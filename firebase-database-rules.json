@@ -1,0 +1,38 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "publicProfiles": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "rooms": {
+      ".read": "auth != null",
+      "$roomId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('players').child(auth.uid).exists() && newData.child('hostUid').val() == auth.uid) || (data.exists() && data.child('players').child(auth.uid).exists()) || (data.exists() && data.child('status').val() == 'lobby' && newData.child('status').val() == 'lobby' && newData.child('players').child(auth.uid).exists()))",
+        ".validate": "!newData.exists() || (newData.hasChildren(['roomId', 'gameMode', 'hostUid', 'players', 'status', 'createdAt', 'updatedAt']) && newData.child('roomId').val() == $roomId && (newData.child('status').val() == 'lobby' || newData.child('status').val() == 'playing' || newData.child('status').val() == 'results'))"
+      }
+    },
+    "shop": {
+      ".read": true,
+      ".write": false
+    },
+    "wouldYouRatherVotes": {
+      ".read": true,
+      "$questionId": {
+        "$choice": {
+          ".write": "($choice == 'a' || $choice == 'b') && newData.isNumber() && newData.val() == (data.exists() ? data.val() + 1 : 1)",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
+    }
+  }
+}

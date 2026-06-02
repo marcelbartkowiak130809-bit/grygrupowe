@@ -1,0 +1,25 @@
+UDOWODNIJ! - URUCHAMIANIE
+
+LOKALNIE NA WINDOWS
+1. Kliknij dwa razy plik URUCHOM_GRE.bat.
+2. Zostaw otwarte okno terminala podczas grania.
+3. Gra otworzy sie pod adresem http://127.0.0.1:49322/
+
+Nie otwieraj index.html bezposrednio przez dwuklik.
+Przegladarki blokuja wtedy importy modulow JavaScript uruchamiane z adresu file://.
+
+PUBLIKACJA
+Mozesz wrzucic caly folder bez budowania na itch.io, Netlify albo GitHub Pages.
+Na opublikowanej stronie index.html uruchomi sie normalnie.
+
+Projekt nie wymaga npm install ani npm run build.
+
+POKOJE ONLINE MIEDZY ROZNYMI URZADZENIAMI
+1. Otworz plik js/firebase-config.js.
+2. Wklej konfiguracje swojej aplikacji Web z Firebase Console.
+3. W Firebase wlacz Authentication -> Email/Password oraz Anonymous.
+4. Wlacz Realtime Database.
+5. Wklej zawartosc firebase-database-rules.json w zakladce Realtime Database -> Rules.
+
+Bez Firebase gra dziala jako lokalne demo. Pokoje sa wtedy widoczne tylko
+miedzy kartami tej samej przegladarki, a nie na telefonach znajomych.
