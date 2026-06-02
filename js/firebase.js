@@ -7,6 +7,7 @@ let remoteAuth;
 let firebaseAuthApi;
 let remoteDatabase;
 let firebaseDatabaseApi;
+let serverTimeOffset = 0;
 
 export function nickToEmail(nick) {
   return `${nick}@udowodnij.local`;
@@ -25,8 +26,17 @@ export async function initFirebaseAuth() {
   const app = initializeApp(config);
   remoteAuth = authApi.getAuth(app);
   if (remoteAuth.authStateReady) await remoteAuth.authStateReady();
-  if (config.databaseURL) remoteDatabase = databaseApi.getDatabase(app);
+  if (config.databaseURL) {
+    remoteDatabase = databaseApi.getDatabase(app);
+    databaseApi.onValue(databaseApi.ref(remoteDatabase, ".info/serverTimeOffset"), snapshot => {
+      serverTimeOffset = Number(snapshot.val()) || 0;
+    });
+  }
   return true;
+}
+
+export function serverNow() {
+  return Date.now() + serverTimeOffset;
 }
 
 export async function authenticateNick(nick, password) {
@@ -155,11 +165,61 @@ export async function syncRoomState(room) {
       status:room.status, settings:room.settings || {}, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
       gameState:room.game || null, chat:room.game?.chat || [],
     };
-    if (remoteDatabase) await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${room.roomId}`), payload);
-    const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=payload;saveLocal(LOCAL_ROOMS_KEY,local);
-    return { ok:true };
+    let saved=payload;
+    if(remoteDatabase){
+      const result=await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`),current=>{
+        if(current&&Number(current.updatedAt||0)>=Number(payload.updatedAt||0))return current;
+        return payload;
+      });
+      saved=result.snapshot.val()||payload;
+    }
+    const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=saved;saveLocal(LOCAL_ROOMS_KEY,local);
+    return { ok:true, room:normalizeRemoteRoom(saved) };
   } catch(error) {
     return { ok:false, error:error?.code || error?.message || "Nieznany błąd Firebase." };
+  }
+}
+
+const normalizeRemoteRoom=room=>({ ...room, game:room.gameState || null, players:Object.keys(room.players || {}), playerProfiles:room.players || {}, joinedAt:Object.fromEntries(Object.entries(room.players || {}).map(([uid,item])=>[uid,item.joinedAt])) });
+
+export async function mutateRemoteRoomGame(roomId, mutate) {
+  if (!remoteDatabase || !roomId) return null;
+  let mutationError="";
+  try {
+    const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
+    const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
+      if(!current?.gameState){mutationError="Stan gry nie jest dostępny.";return;}
+      const game=JSON.parse(JSON.stringify(current.gameState));
+      mutationError=mutate(game,current)||"";
+      if(mutationError)return;
+      return {...current,gameState:game,chat:game.chat||[],updatedAt:Math.max(Date.now(),Number(current.updatedAt||0)+1)};
+    });
+    if(!result.committed)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
+    const value=result.snapshot.val();
+    return value?{ok:true,room:normalizeRemoteRoom(value)}:{ok:false,error:"Pokój już nie istnieje."};
+  } catch(error) {
+    return {ok:false,error:error?.code||error?.message||"Nie udało się zsynchronizować akcji."};
+  }
+}
+
+export async function acknowledgeRemoteImpostorRole(roomId, playerId) {
+  if (!remoteDatabase || !roomId || !playerId) return null;
+  try {
+    const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
+    const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
+      const game=current?.gameState;
+      if(!game||current.gameMode!=="impostor"||game.phase!=="roleReveal"||!current.players?.[playerId])return current;
+      const acknowledged={...(game.acknowledged||{}),[playerId]:true};
+      const players=Object.keys(current.players||{});
+      const allReady=players.length>0&&players.every(uid=>acknowledged[uid]);
+      const gameState={...game,acknowledged};
+      if(allReady){gameState.phase="clues";gameState.phaseEndsAt=Date.now()+(Number(current.settings?.clueTime)||20)*1000;}
+      return {...current,gameState,updatedAt:Math.max(Date.now(),Number(current.updatedAt||0)+1)};
+    });
+    const value=result.snapshot.val();
+    return value?{ok:true,game:value.gameState||null,updatedAt:value.updatedAt}:null;
+  } catch(error) {
+    return {ok:false,error:error?.code||error?.message||"Nie udało się potwierdzić roli."};
   }
 }
 
@@ -170,7 +230,7 @@ export async function removeRemoteRoom(roomId) {
 }
 
 export function subscribeRemoteRooms(callback, onError = () => {}) {
-  const normalize=rooms=>Object.values(rooms||{}).filter(room=>room?.roomId).map(room=>({ ...room, game:room.gameState || null, players:Object.keys(room.players || {}), playerProfiles:room.players || {}, joinedAt:Object.fromEntries(Object.entries(room.players || {}).map(([uid,item])=>[uid,item.joinedAt])) }));
+  const normalize=rooms=>Object.values(rooms||{}).filter(room=>room?.roomId).map(normalizeRemoteRoom);
   if(remoteDatabase&&remoteAuth?.currentUser){
     const stopRemote=firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase,"rooms"),snapshot=>{const rooms=snapshot.val()||{};saveLocal(LOCAL_ROOMS_KEY,rooms);callback(normalize(rooms),"remote");},onError);
     return()=>stopRemote();

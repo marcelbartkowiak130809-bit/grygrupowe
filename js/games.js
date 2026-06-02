@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20260602-16";
-import { impostorDefaults, renderImpostorGame } from "./impostor.js";
+import { renderGame } from "./game.js?v=20260603-21";
+import { impostorDefaults, renderImpostorGame } from "./impostor.js?v=20260602-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260602-1";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js";
-import { renderWouldYouRather } from "./wouldYouRather.js";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js";
 
@@ -11,9 +11,9 @@ export const gamesRegistry = {
     id: "udowodnij",
     name: "Udowodnij!",
     description: "Licytuj liczbę odpowiedzi, podbijaj stawkę i sprawdzaj, kto tylko blefuje.",
-    players: "2-4 osoby",
+    players: "2-8 osób",
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,
     symbol: "⚡",

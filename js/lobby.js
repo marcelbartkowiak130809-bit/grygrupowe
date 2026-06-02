@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js";
-import { getGameMode } from "./games.js";
+import { getGameMode } from "./games.js?v=20260603-6";
 
 function roomCard(room, mode) {
   return `<article class="room-card">

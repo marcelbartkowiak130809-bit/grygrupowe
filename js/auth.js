@@ -6,7 +6,7 @@ export function authModal(actions, options = {}) {
   backdrop.innerHTML = `<section class="modal auth-modal enter" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <div class="modal-title"><div><p class="eyebrow">KONTO GRACZA</p><h2 id="auth-title">${options.title || "Zaloguj się, aby grać"}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div>
     <p class="muted">${options.description || "Nick i hasło wystarczą. Nowe konto utworzymy automatycznie."}</p>
-    <form id="auth-form"><label for="auth-nick">Nick</label><input id="auth-nick" autocomplete="username" placeholder="np. panda" maxlength="18"><label for="auth-password">Hasło</label><input id="auth-password" autocomplete="current-password" placeholder="minimum 3 znaki" type="password"><button class="primary full">Zaloguj / utwórz konto</button></form>
+    <form id="auth-form"><label for="auth-nick">Nick</label><input id="auth-nick" autocomplete="username" placeholder="np. Gracz123" maxlength="18"><label for="auth-password">Hasło</label><input id="auth-password" autocomplete="current-password" placeholder="minimum 3 znaki" type="password"><button class="primary full">Zaloguj / utwórz konto</button></form>
     <div class="auth-divider"><span>albo</span></div><button id="guest-login" class="ghost full">Graj tylko po nicku</button>
     <p class="tiny">Możesz zostawić nick pusty. Wtedy dostaniesz unikalny nick, np. gracz_K7M2PX.</p>
     <p class="guest-note">Tryb gościa pozwala grać i nalicza coiny sesyjne. <b>Zaloguj się na konto, żeby zapisywać coiny i kupować efekty.</b></p>

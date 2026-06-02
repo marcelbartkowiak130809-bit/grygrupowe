@@ -25,7 +25,8 @@ export function sanitizeImpostorSettings(settings, playerCount) {
 
 export function createImpostorGame(players, rawSettings) {
   const settings = sanitizeImpostorSettings(rawSettings, players.length);
-  const pool = settings.category === "Wszystkie" ? impostorWords : impostorWords.filter(item => item.category === settings.category);
+  const selectedPool = settings.category === "Wszystkie" ? impostorWords : impostorWords.filter(item => item.category === settings.category);
+  const pool = selectedPool.length ? selectedPool : impostorWords;
   const words = pool[Math.floor(Math.random() * pool.length)];
   const assigned = shuffled(players), roles = {};
   assigned.forEach((uid,index) => roles[uid] = index < settings.impostorCount ? { role:"impostor", word:words.impostor } : index < settings.impostorCount + settings.whiteCount ? { role:"white", word:null } : { role:"citizen", word:words.main });
@@ -93,7 +94,8 @@ export function renderImpostorLobbySettings(room,isHost) {
 
 function roleCard(game,currentUser,accounts){
   const role=game.roles[currentUser]; if(!role)return "";
-  return `<section class="panel role-card role-${role.role}"><div class="role-owner">${playerMini(accounts[currentUser])}</div><p class="eyebrow">TAJNA ROLA</p><h1>${roleLabel(role.role)}</h1>${role.word?`<p>Twoje słowo:</p><strong>${escapeHtml(role.word)}</strong>`:'<strong>Nie dostajesz słowa.</strong><p>Obserwuj podpowiedzi i spróbuj się wpasować.</p>'}<button class="primary" id="ack-role">Zapamiętałem</button></section>`;
+  const acknowledged=game.acknowledged?.[currentUser];
+  return `<section class="panel role-card role-${role.role}"><div class="role-owner">${playerMini(accounts[currentUser])}</div><p class="eyebrow">TAJNA ROLA</p><h1>${roleLabel(role.role)}</h1>${role.word?`<p>Twoje słowo:</p><strong>${escapeHtml(role.word)}</strong>`:'<strong>Nie dostajesz słowa.</strong><p>Obserwuj podpowiedzi i spróbuj się wpasować.</p>'}<button class="primary" id="ack-role" ${acknowledged?"disabled":""}>${acknowledged?"Zapamiętane · czekamy na resztę":"Zapamiętałem"}</button></section>`;
 }
 function timer(game){const left=Math.max(0,Math.ceil(((game.phaseEndsAt||now())-now())/1000));return `<div class="timer-box ${left<=5?"timer-urgent":""}">${icon("timer",22)}<b id="impostor-timer">${left}s</b></div>`;}
 function playerRail(game,accounts){
