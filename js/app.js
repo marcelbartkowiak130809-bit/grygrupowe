@@ -5,7 +5,7 @@ import { cosmetics } from "./cosmetics.js?v=20260602-8";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260603-23";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
 import { getGameMode } from "./games.js?v=20260603-7";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260602-1";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260603-2";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260602-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
@@ -230,6 +230,13 @@ function repairGameStateForPlayers(room) {
     if (JSON.stringify(order) !== JSON.stringify(game.turnOrder || [])) { game.turnOrder = order; changed = true; }
     if (!game.acknowledged || typeof game.acknowledged !== "object") { game.acknowledged = {}; changed = true; }
     Object.keys(game.acknowledged).forEach(uid => { if (!players.includes(uid)) { delete game.acknowledged[uid]; changed = true; } });
+    if (!Array.isArray(game.clues)) { game.clues = []; changed = true; }
+    if (!Array.isArray(game.chat)) { game.chat = []; changed = true; }
+    if (!game.reactions || typeof game.reactions !== "object" || Array.isArray(game.reactions)) { game.reactions = {}; changed = true; }
+    if (!game.reactionCooldowns || typeof game.reactionCooldowns !== "object" || Array.isArray(game.reactionCooldowns)) { game.reactionCooldowns = {}; changed = true; }
+    if (!game.continueVotes || typeof game.continueVotes !== "object" || Array.isArray(game.continueVotes)) { game.continueVotes = {}; changed = true; }
+    if (!game.votes || typeof game.votes !== "object" || Array.isArray(game.votes)) { game.votes = {}; changed = true; }
+    if (!Number.isFinite(Number(game.continueCount))) { game.continueCount = 0; changed = true; }
     if (!game.turnOrder.length) { game.turnOrder = [...players]; changed = true; }
     if (game.turnIndex >= game.turnOrder.length) { game.turnIndex = 0; changed = true; }
   }
