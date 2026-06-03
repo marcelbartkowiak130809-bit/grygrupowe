@@ -12,8 +12,25 @@ export const maxSpecialRoles = playerCount => Math.floor(playerCount / 2);
 const shuffled = items => [...items].sort(() => Math.random() - .5);
 const now = () => Date.now();
 const roleLabel = role => ({ citizen:"Obywatel", impostor:"Impostor", white:"Pan Biały" })[role];
+const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 function playerMini(profile={}) {
   return playerMiniHtml(profile);
+}
+function normalizeImpostorGame(game, players = []) {
+  game.roles = objectOrEmpty(game.roles);
+  game.acknowledged = objectOrEmpty(game.acknowledged);
+  game.reactions = objectOrEmpty(game.reactions);
+  game.reactionCooldowns = objectOrEmpty(game.reactionCooldowns);
+  game.continueVotes = objectOrEmpty(game.continueVotes);
+  game.votes = objectOrEmpty(game.votes);
+  game.chat = arrayOrEmpty(game.chat);
+  game.clues = arrayOrEmpty(game.clues);
+  game.turnOrder = Array.isArray(game.turnOrder) ? game.turnOrder : Object.keys(game.turnOrder || {});
+  if (!game.turnOrder.length) game.turnOrder = players.length ? [...players] : Object.keys(game.roles);
+  if (!Number.isFinite(Number(game.turnIndex))) game.turnIndex = 0;
+  if (!Number.isFinite(Number(game.continueCount))) game.continueCount = 0;
+  return game;
 }
 
 export function sanitizeImpostorSettings(settings, playerCount) {
@@ -48,37 +65,39 @@ function nextClueTurn(game, settings) {
   game.phaseEndsAt=now()+settings.clueTime*1000;
 }
 function finishDecision(game,settings) {
+  normalizeImpostorGame(game);
   const continueVotes=Object.values(game.continueVotes).filter(Boolean).length;
   if (game.continueCount >= 3 || continueVotes <= game.turnOrder.length / 2) return startVoting(game);
   game.continueCount += 1; game.round += 1; game.turnIndex=0; startClues(game,settings);
 }
 function finishVote(game) {
+  normalizeImpostorGame(game);
   const counts={}; Object.values(game.votes).forEach(uid=>counts[uid]=(counts[uid]||0)+1);
   const expelled=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] || game.turnOrder[0];
-  const revealed=game.roles[expelled], citizensWin=revealed.role!=="citizen";
+  const revealed=game.roles[expelled] || { role:"citizen", word:game.mainWord || "" }, citizensWin=revealed.role!=="citizen";
   game.phase="results"; game.phaseEndsAt=null; game.result={ expelled, revealedRole:revealed.role, revealedWord:revealed.word, citizensWin, counts };
 }
 
 export const ImpostorEngine = {
-  acknowledge(game,uid,settings){ game.acknowledged[uid]=true; if(Object.keys(game.acknowledged).length>=game.turnOrder.length) startClues(game,settings); },
+  acknowledge(game,uid,settings){ normalizeImpostorGame(game); game.acknowledged[uid]=true; if(Object.keys(game.acknowledged).length>=game.turnOrder.length) startClues(game,settings); },
   clue(game,uid,text,settings){
-    game.clues ||= []; game.turnOrder ||= Object.keys(game.roles||{});
+    normalizeImpostorGame(game);
     if(game.phase!=="clues"||game.turnOrder[game.turnIndex]!==uid) return "To nie jest twoja tura.";
     const clean=normalizeAnswer(text); if(!clean) return "Wpisz podpowiedź.";
     if(secretIncluded(game,text)) return "Podpowiedź nie może zawierać tajnego hasła.";
     game.clues.push({ uid,text:text.trim(),round:game.round }); nextClueTurn(game,settings);
   },
   timeout(game,settings){
-    game.clues ||= []; game.turnOrder ||= Object.keys(game.roles||{}); game.votes ||= {}; game.continueVotes ||= {};
+    normalizeImpostorGame(game);
     if(game.phase==="roleReveal") startClues(game,settings);
     else if(game.phase==="clues"){ game.clues.push({uid:game.turnOrder[game.turnIndex],text:"brak odpowiedzi",round:game.round,missed:true}); nextClueTurn(game,settings); }
     else if(game.phase==="continueDecision") finishDecision(game,settings);
     else if(game.phase==="voting") finishVote(game);
   },
-  decide(game,uid,keepPlaying,settings){ if(game.phase!=="continueDecision"||uid in game.continueVotes)return; game.continueVotes[uid]=keepPlaying; if(Object.keys(game.continueVotes).length>=game.turnOrder.length)finishDecision(game,settings); },
-  vote(game,uid,target){ if(game.phase!=="voting"||uid in game.votes)return; game.votes[uid]=target; if(Object.keys(game.votes).length>=game.turnOrder.length)finishVote(game); },
-  react(game,uid,text){ const current=now(); if((game.reactionCooldowns[uid]||0)>current)return false; game.reactionCooldowns[uid]=current+5000; game.reactions[uid]={text,expiresAt:current+2600}; return true; },
-  chat(game,uid,text){ game.chat ||= []; if(!text.trim())return; if(secretIncluded(game,text))return "Nie możesz wysłać wiadomości zawierającej tajne hasło."; game.chat.push({uid,text:text.trim(),createdAt:now()}); },
+  decide(game,uid,keepPlaying,settings){ normalizeImpostorGame(game); if(game.phase!=="continueDecision"||uid in game.continueVotes)return; game.continueVotes[uid]=keepPlaying; if(Object.keys(game.continueVotes).length>=game.turnOrder.length)finishDecision(game,settings); },
+  vote(game,uid,target){ normalizeImpostorGame(game); if(game.phase!=="voting"||uid in game.votes)return; game.votes[uid]=target; if(Object.keys(game.votes).length>=game.turnOrder.length)finishVote(game); },
+  react(game,uid,text){ normalizeImpostorGame(game); const current=now(); if((game.reactionCooldowns[uid]||0)>current)return false; game.reactionCooldowns[uid]=current+5000; game.reactions[uid]={text,expiresAt:current+2600}; return true; },
+  chat(game,uid,text){ normalizeImpostorGame(game); if(!text.trim())return; if(secretIncluded(game,text))return "Nie możesz wysłać wiadomości zawierającej tajne hasło."; game.chat.push({uid,text:text.trim(),createdAt:now()}); },
 };
 function secretIncluded(game,text){ const value=normalizeAnswer(text); return [game.mainWord,game.impostorWord].some(word=>value.includes(normalizeAnswer(word))); }
 
@@ -111,9 +130,7 @@ function chat(game,accounts){return `<aside class="panel impostor-chat"><h3>Czat
 
 export function stopImpostorTimer(){clearInterval(timerId);timerId=null;lastCountdown=null;}
 export function renderImpostorGame(root,{room,accounts,currentUser},actions){
-  stopImpostorTimer(); const game=room.game; game.reactions ||= {}; game.reactionCooldowns ||= {}; game.continueVotes ||= {}; game.votes ||= {}; game.chat ||= []; game.clues ||= []; game.acknowledged ||= {}; game.roles ||= {};
-  game.turnOrder = Array.isArray(game.turnOrder) ? game.turnOrder : Object.keys(game.turnOrder || {});
-  if (!game.turnOrder.length) game.turnOrder = Array.isArray(room.players) ? room.players : Object.keys(room.players || {});
+  stopImpostorTimer(); const game=normalizeImpostorGame(room.game, Array.isArray(room.players) ? room.players : Object.keys(room.players || {}));
   const role=game.roles[currentUser] || { role:"citizen", word:game.mainWord || "" }, current=game.turnOrder[game.turnIndex] || game.turnOrder[0], voted=currentUser in (game.votes||{}), decided=currentUser in (game.continueVotes||{});
   const result = game.result || {}, resultCounts = result.counts || {}, expelled = result.expelled || game.turnOrder[0] || currentUser;
   const revealedRole = result.revealedRole || game.roles[expelled]?.role || "citizen", revealedWord = result.revealedWord ?? game.roles[expelled]?.word;
@@ -123,19 +140,16 @@ export function renderImpostorGame(root,{room,accounts,currentUser},actions){
   :game.phase==="continueDecision"?`<section class="panel center"><p class="eyebrow">DECYZJA EKIPY</p><h1>Głosujemy?</h1>${timer(game)}<p class="muted">Możecie zagrać dalej jeszcze ${3-game.continueCount} razy.</p>${decided?'<p>Twój głos został zapisany.</p>':'<div class="choice-row"><button class="danger" id="vote-now">Głosujemy</button><button class="primary" id="keep-playing">Gramy dalej</button></div>'}</section>`
   :game.phase==="voting"?`<section class="panel center"><p class="eyebrow">GŁOSOWANIE</p><h1>Kto jest podejrzany?</h1>${timer(game)}${voted?'<p>Twój głos został zapisany.</p>':`<div class="vote-grid">${room.players.map(uid=>`<button data-vote-player="${uid}">${playerMini(accounts[uid])}</button>`).join("")}</div>`}</section>`
   :`<section class="panel center result-card"><p class="eyebrow">WYNIK</p><h1>${citizensWin?"Obywatele wygrywają!":"Specjalne role wygrywają!"}</h1><p>Wyrzucony gracz:</p><div class="result-focus-player">${playerMini(accounts[expelled])}</div><div class="revealed-role">${roleLabel(revealedRole)}${revealedWord?` · ${escapeHtml(revealedWord)}`:" · bez słowa"}</div><div class="vote-results">${Object.entries(resultCounts).map(([uid,count])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")}: <b>${count}</b></span>`).join("")}</div><p class="money-pop">Zwycięzcy dostają +150$</p><button class="primary" id="impostor-again">Zagraj ponownie</button></section>`;
-  root.innerHTML=`<main class="page impostor-page impostor-board board-shell enter"><section class="panel secret-strip"><span>Twoja rola: <b>${roleLabel(role.role)}</b></span><span>${role.word?`Słowo: <b>${escapeHtml(role.word)}</b>`:"Bez tajnego słowa"}</span><div class="reaction-actions"><button data-reaction="SUS!">SUS!</button><button data-reaction="GOOD ONE!">GOOD ONE!</button></div></section>${playerRail(game,accounts)}<div class="impostor-layout"><div>${phasePanel}</div>${room.settings.chatEnabled?chat(game,accounts):""}</div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
+  root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell enter"><section class="panel secret-strip"><span>Twoja rola: <b>${roleLabel(role.role)}</b></span><span>${role.word?`Słowo: <b>${escapeHtml(role.word)}</b>`:"Bez tajnego słowa"}</span><div class="reaction-actions"><button data-reaction="SUS!">SUS!</button><button data-reaction="GOOD ONE!">GOOD ONE!</button></div></section>${playerRail(game,accounts)}<div class="impostor-layout"><div>${phasePanel}</div>${room.settings.chatEnabled?chat(game,accounts):""}</div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
   if(game.phase==="results")Effects.play(citizensWin?"citizensWin":"impostorWin",`${room.roomId}:impostor:${expelled}`);
   $("#leave-room").addEventListener("click",actions.leaveRoom);$("#clue-form")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorSubmitClue($("#clue-input").value);});$("#vote-now")?.addEventListener("click",()=>actions.impostorDecision(false));$("#keep-playing")?.addEventListener("click",()=>actions.impostorDecision(true));root.querySelectorAll("[data-vote-player]").forEach(b=>b.addEventListener("click",()=>actions.impostorVote(b.dataset.votePlayer)));root.querySelectorAll("[data-reaction]").forEach(b=>b.addEventListener("click",()=>actions.impostorReact(b.dataset.reaction)));$("#chat-form")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorChat($("#chat-input").value);});$("#impostor-again")?.addEventListener("click",actions.impostorPlayAgain);if(["clues","continueDecision","voting"].includes(game.phase))startTimer(actions,game);
 }
 export function renderImpostorGameStable(root,{room,accounts,currentUser},actions){
   if(room.game?.phase!=="roleReveal")return renderImpostorGame(root,{room,accounts,currentUser},actions);
   stopImpostorTimer();
-  const game=room.game;
-  game.reactions ||= {}; game.reactionCooldowns ||= {}; game.continueVotes ||= {}; game.votes ||= {}; game.chat ||= []; game.clues ||= []; game.acknowledged ||= {}; game.roles ||= {};
-  game.turnOrder = Array.isArray(game.turnOrder) ? game.turnOrder : Object.keys(game.turnOrder || {});
-  if (!game.turnOrder.length) game.turnOrder = Array.isArray(room.players) ? room.players : Object.keys(room.players || {});
+  const game=normalizeImpostorGame(room.game, Array.isArray(room.players) ? room.players : Object.keys(room.players || {}));
   if(!game.phaseEndsAt)game.phaseEndsAt=now()+15000;
-  root.innerHTML=`<main class="page impostor-page impostor-board board-shell enter">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<div class="center">${timer(game)}</div><p class="center muted">${Object.keys(game.acknowledged||{}).length}/${game.turnOrder.length} graczy zna juĹĽ swojÄ… rolÄ™.</p><p class="center tiny">Gra ruszy automatycznie po 15 sekundach.</p><div class="center"><button class="ghost" id="leave-room">WyjdĹş z pokoju</button></div></main>`;
+  root.innerHTML=`<main class="page impostor-page impostor-board board-shell enter">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<div class="center">${timer(game)}</div><p class="center muted">${Object.keys(game.acknowledged||{}).length}/${game.turnOrder.length} graczy zna już swoją rolę.</p><p class="center tiny">Gra ruszy automatycznie po 15 sekundach.</p><div class="center"><button class="ghost" id="leave-room">Wyjdź z pokoju</button></div></main>`;
   $("#ack-role")?.addEventListener("click",actions.impostorAcknowledgeRole);
   $("#leave-room")?.addEventListener("click",actions.leaveRoom);
   startTimer(actions,game);

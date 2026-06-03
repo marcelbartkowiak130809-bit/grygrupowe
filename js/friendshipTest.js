@@ -8,24 +8,38 @@ const now = () => Date.now();
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const mini = profile => playerMiniHtml(profile);
 export const friendshipDefaults = { rounds:5, answerTime:15, assignTime:30, category:"Wszystkie", spicyEnabled:false, rewardCoins:true };
+const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+const arrayOrEmpty = value => Array.isArray(value) ? value : [];
+function normalizeFriendshipGame(game) {
+  game.answers = objectOrEmpty(game.answers);
+  game.guesses = objectOrEmpty(game.guesses);
+  game.scores = objectOrEmpty(game.scores);
+  game.roundScores = objectOrEmpty(game.roundScores);
+  game.answerOrder = arrayOrEmpty(game.answerOrder);
+  game.usedQuestions = arrayOrEmpty(game.usedQuestions);
+  return game;
+}
 function pickQuestion(settings, used = []) {
   const pool = friendshipQuestions.filter(item => (settings.spicyEnabled || !item.spicy) && (settings.category === "Wszystkie" || item.category === settings.category) && !used.includes(item.text));
   return shuffle(pool)[0] || shuffle(friendshipQuestions.filter(item => settings.spicyEnabled || !item.spicy))[0];
 }
 function startAssigning(game, players, settings) {
+  normalizeFriendshipGame(game);
   players.forEach(uid => game.answers[uid] ??= "brak odpowiedzi");
   game.answerOrder = shuffle(players); game.guesses = {}; game.phase = "assigning"; game.phaseEndsAt = now() + settings.assignTime * 1000;
 }
-function allAssigned(game, players) { return players.every(uid => Object.keys(game.guesses[uid] || {}).length >= players.length - 1); }
+function allAssigned(game, players) { normalizeFriendshipGame(game); return players.every(uid => Object.keys(game.guesses[uid] || {}).length >= players.length - 1); }
 function startReveal(game) {
   game.phase = "revealing"; game.revealIndex = 0; game.phaseEndsAt = null;
 }
 function finishRound(game, players) {
+  normalizeFriendshipGame(game);
   const gained = Object.fromEntries(players.map(uid => [uid, 0]));
   players.forEach(guesser => Object.entries(game.guesses[guesser] || {}).forEach(([answerId, target]) => { if (answerId === target) { gained[guesser]++; game.scores[guesser]++; } }));
   game.roundScores = gained; game.phase = "roundSummary";
 }
 function newRound(game, players, settings) {
+  normalizeFriendshipGame(game);
   game.round++; game.question = pickQuestion(settings, game.usedQuestions); game.usedQuestions.push(game.question.text);
   Object.assign(game, { phase:"waitingForAnswers", answers:{}, guesses:{}, answerOrder:[], revealIndex:0, roundScores:{}, phaseEndsAt:now() + settings.answerTime * 1000 });
 }
@@ -35,12 +49,14 @@ export function createFriendshipTestGame(players, rawSettings) {
 }
 export const FriendshipTestEngine = {
   answer(game, uid, text, players, settings) {
+    normalizeFriendshipGame(game);
     if (game.phase !== "waitingForAnswers" || uid in game.answers) return;
     if (!text.trim()) return "Wpisz odpowiedź.";
     game.answers[uid] = text.trim();
     if (Object.keys(game.answers).length >= players.length) startAssigning(game, players, settings);
   },
   guess(game, uid, answerId, target, players) {
+    normalizeFriendshipGame(game);
     if (game.phase !== "assigning" || answerId === uid || target === uid) return;
     game.guesses[uid] ??= {};
     if (answerId in game.guesses[uid]) return;
@@ -48,14 +64,17 @@ export const FriendshipTestEngine = {
     if (allAssigned(game, players)) startReveal(game);
   },
   timeout(game, players, settings) {
+    normalizeFriendshipGame(game);
     if (game.phase === "waitingForAnswers") startAssigning(game, players, settings);
     else if (game.phase === "assigning") startReveal(game);
   },
   nextReveal(game, players) {
+    normalizeFriendshipGame(game);
     if (game.revealIndex < game.answerOrder.length - 1) game.revealIndex++;
     else finishRound(game, players);
   },
   nextRound(game, players, settings) {
+    normalizeFriendshipGame(game);
     if (game.round >= settings.rounds) game.phase = "gameSummary";
     else newRound(game, players, settings);
   },

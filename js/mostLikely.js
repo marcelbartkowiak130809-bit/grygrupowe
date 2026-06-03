@@ -8,16 +8,28 @@ const now = () => Date.now();
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const mini = profile => playerMiniHtml(profile);
 export const mostLikelyDefaults = { questionTime:30, voteTime:15, rounds:8, usePool:true, playerQuestions:true, allowSelfVote:false, showVoteDetails:true, category:"Wszystkie" };
+const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+const arrayOrEmpty = value => Array.isArray(value) ? value : [];
+function normalizeMostLikelyGame(game) {
+  game.submissions = objectOrEmpty(game.submissions);
+  game.votes = objectOrEmpty(game.votes);
+  game.totals = objectOrEmpty(game.totals);
+  game.questions = arrayOrEmpty(game.questions);
+  game.results = arrayOrEmpty(game.results);
+  return game;
+}
 
 function pool(settings) {
   const available = settings.category === "Wszystkie" ? mostLikelyPrompts : mostLikelyPrompts.filter(item => item.category === settings.category);
   return shuffle(available).map(item => item.text);
 }
 function startVoting(game, settings) {
+  normalizeMostLikelyGame(game);
   if (!game.questions.length) game.questions = pool(settings).slice(0, settings.rounds);
   game.phase = "voting"; game.votes = {}; game.phaseEndsAt = now() + settings.voteTime * 1000;
 }
 function collectQuestions(game, settings) {
+  normalizeMostLikelyGame(game);
   const submitted = shuffle(Object.values(game.submissions).filter(Boolean));
   const fallback = pool(settings).filter(text => !submitted.includes(text));
   game.questions = [...submitted, ...(settings.usePool ? fallback : [])].slice(0, Math.max(submitted.length, settings.rounds));
@@ -26,6 +38,7 @@ function collectQuestions(game, settings) {
   startVoting(game, settings);
 }
 function finishVote(game) {
+  normalizeMostLikelyGame(game);
   const counts = {}; Object.values(game.votes).forEach(uid => counts[uid] = (counts[uid] || 0) + 1);
   const max = Math.max(0, ...Object.values(counts)), winners = Object.keys(counts).filter(uid => counts[uid] === max && max);
   winners.forEach(uid => game.totals[uid] = (game.totals[uid] || 0) + 1);
@@ -42,6 +55,7 @@ export function createMostLikelyGame(players, rawSettings) {
 }
 export const MostLikelyEngine = {
   submitQuestion(game, uid, text, players, settings) {
+    normalizeMostLikelyGame(game);
     if (game.phase !== "writingQuestions" || uid in game.submissions) return;
     if (!text.trim()) return "Wpisz pytanie.";
     const question = text.trim().toLowerCase().startsWith("kto najprędzej") ? text.trim() : `Kto najprędzej ${text.trim()}?`;
@@ -49,16 +63,19 @@ export const MostLikelyEngine = {
     if (Object.keys(game.submissions).length >= players.length) collectQuestions(game, settings);
   },
   vote(game, uid, target, players, settings) {
+    normalizeMostLikelyGame(game);
     if (game.phase !== "voting" || uid in game.votes) return;
     if (!settings.allowSelfVote && uid === target) return "Nie możesz głosować na siebie.";
     game.votes[uid] = target;
     if (Object.keys(game.votes).length >= players.length) finishVote(game);
   },
   timeout(game, players, settings) {
+    normalizeMostLikelyGame(game);
     if (game.phase === "writingQuestions") collectQuestions(game, settings);
     else if (game.phase === "voting") finishVote(game);
   },
   next(game, settings) {
+    normalizeMostLikelyGame(game);
     if (game.round >= game.questions.length) { game.phase = "gameSummary"; return; }
     game.round++; startVoting(game, settings);
   },
