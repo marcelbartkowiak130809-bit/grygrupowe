@@ -4,8 +4,8 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260602-8";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260603-23";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
-import { getGameMode } from "./games.js?v=20260603-7";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260603-2";
+import { getGameMode } from "./games.js?v=20260603-9";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260603-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260602-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
@@ -27,6 +27,22 @@ const session=loadSession();
 const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null };
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
+const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
+function activeRoomSignature(room = activeRoom()) {
+  if (!room) return "";
+  const players = normalizedRoomPlayers(room);
+  const playerProfiles = Object.fromEntries(players.map(uid => [uid, room.playerProfiles?.[uid] || state.accounts[uid] || {}]));
+  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, isPrivate:room.isPrivate, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, game:room.game, pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+}
+function lobbySignature() {
+  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, isPrivate:room.isPrivate, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status }));
+  return stableStringify({ selectedGameMode:state.selectedGameMode, onlineBackend:state.onlineBackend, rooms });
+}
+function currentScreenSignature() {
+  if (["room","game"].includes(Router.current)) return activeRoomSignature();
+  if (Router.current === "lobby") return lobbySignature();
+  return "";
+}
 const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => account.nick === nick && !account.nickOnly);
 const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura" });
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode});
@@ -476,7 +492,7 @@ const actions = {
     ImpostorEngine.acknowledge(room.game,state.currentUser,room.settings);touchRoom(room);Audio.play("ready");render();
   },
   impostorSubmitClue(text){return mutateRoomGame((game,room)=>ImpostorEngine.clue(game,state.currentUser,text,room.settings),{sound:"clue"});},
-  impostorTimeout(){const room=activeRoom();if(!room||room.gameMode!=="impostor"||room.hostUid!==state.currentUser)return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry już się zmieniła.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
+  impostorTimeout(){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const phase=room.game?.phase;if(phase!=="roleReveal"&&room.hostUid!==state.currentUser)return;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
   impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:"vote"});},
   impostorVote(target){return mutateRoomGame(game=>ImpostorEngine.vote(game,state.currentUser,target),{sound:"vote",after:settleImpostorResult});},
   impostorReact(text){return mutateRoomGame(game=>ImpostorEngine.react(game,state.currentUser,text)?null:"Reakcja odnawia się co 5 sekund.",{sound:"notification"});},
@@ -533,5 +549,35 @@ function render() {
   if(screen==="platform") return renderPlatform(view,actions); if(screen==="solo") return renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions); if(screen==="lobby") return profile()?renderLobby(view,state,actions):Router.go("platform"); if(screen==="shop") return profile()?renderShop(view,{profile:profile()},actions):actions.openAuth();
   const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); const repaired=repairGameStateForPlayers(room); if(repaired&&room.hostUid===state.currentUser)touchRoom(room); try { return mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions); } catch(error) { return renderGameError(view,room,error); } } renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
 }
-function connectRooms(){stopRoomsSubscription();state.onlineBackend=hasOnlineBackend()?null:false;stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{state.onlineBackend=source==="remote"?true:source==="local"?false:null;const requestedRoomId=state.activeRoomId,keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId)),rooms=new Map(keepLocal.map(room=>[room.roomId,room]));remoteRooms.forEach(remote=>{const local=state.rooms.find(room=>room.roomId===remote.roomId),pending=pendingRoomSyncs.has(remote.roomId),keepPendingLocal=local&&pending&&Number(local.updatedAt||0)>Number(remote.updatedAt||0),room=keepPendingLocal?local:remote;rooms.set(room.roomId,room);Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{state.accounts[id]=id===state.currentUser?{...item,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...item};});});state.rooms=[...rooms.values()];saveAccounts(state.accounts);const room=activeRoom();if(room&&interruptProveRoundWithMissingPlayer(room)){if(closeLonelyFinishedRoom(room,{notify:true}))return;touchRoom(room);return render();}if(room&&closeLonelyFinishedRoom(room,{notify:true}))return;if(requestedRoomId&&source==="remote"&&!room&&!pendingRoomSyncs.has(requestedRoomId)){state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();return;}announceRoomRoster(room);announceRoomPhase(room);claimPendingProgress(room);if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");if(!restoredRoom&&room){restoredRoom=true;return Router.go(room.game?"game":"room");}if(["lobby","room","game"].includes(Router.current))render();},()=>{state.onlineBackend=false;if(profile())message("Firebase odrzucił dostęp do pokoi. Zaloguj się ponownie albo sprawdź reguły bazy.");if(["lobby","room","game"].includes(Router.current))render();});}
+function connectRooms(){
+  stopRoomsSubscription();
+  state.onlineBackend=hasOnlineBackend()?null:false;
+  stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
+    const beforeScreenSignature=currentScreenSignature();
+    state.onlineBackend=source==="remote"?true:source==="local"?false:null;
+    const requestedRoomId=state.activeRoomId;
+    const keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId));
+    const rooms=new Map(keepLocal.map(room=>[room.roomId,room]));
+    remoteRooms.forEach(remote=>{
+      const local=state.rooms.find(room=>room.roomId===remote.roomId),pending=pendingRoomSyncs.has(remote.roomId),keepPendingLocal=local&&pending&&Number(local.updatedAt||0)>Number(remote.updatedAt||0),room=keepPendingLocal?local:remote;
+      rooms.set(room.roomId,room);
+      Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{state.accounts[id]=id===state.currentUser?{...item,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...item};});
+    });
+    state.rooms=[...rooms.values()];saveAccounts(state.accounts);
+    const room=activeRoom();
+    if(room&&interruptProveRoundWithMissingPlayer(room)){if(closeLonelyFinishedRoom(room,{notify:true}))return;touchRoom(room);return render();}
+    if(room&&closeLonelyFinishedRoom(room,{notify:true}))return;
+    if(requestedRoomId&&source==="remote"&&!room&&!pendingRoomSyncs.has(requestedRoomId)){state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();return;}
+    announceRoomRoster(room);announceRoomPhase(room);
+    if(claimPendingProgress(room))return render();
+    if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
+    if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
+    if(!restoredRoom&&room){restoredRoom=true;return Router.go(room.game?"game":"room");}
+    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==beforeScreenSignature)render();
+  },()=>{
+    state.onlineBackend=false;
+    if(profile())message("Firebase odrzucil dostep do pokoi. Zaloguj sie ponownie albo sprawdz reguly bazy.");
+    if(["lobby","room","game"].includes(Router.current))render();
+  });
+}
 Audio.init(); Audio.bindGlobalUI(); Router.init(render); initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();connectRooms();if(["solo","lobby","platform"].includes(Router.current))render();}); render();
