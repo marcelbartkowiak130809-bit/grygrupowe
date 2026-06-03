@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260603-9";
+import { gamesList } from "./games.js?v=20260603-10";
 import { icon } from "./utils.js";
 
 function gameCard(mode) {

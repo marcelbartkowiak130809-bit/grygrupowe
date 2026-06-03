@@ -4,17 +4,17 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260602-8";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260603-23";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
-import { getGameMode } from "./games.js?v=20260603-9";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260603-4";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260602-1";
-import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js";
+import { getGameMode } from "./games.js?v=20260603-10";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260603-9";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260603-1";
+import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260603-1";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
-import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js";
-import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260602-15";
-import { renderPlatform } from "./platform.js?v=20260602-1";
+import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260603-1";
+import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260603-1";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260603-1";
+import { renderPlatform } from "./platform.js?v=20260603-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260602-1";
+import { playerMini, renderRoom } from "./room.js?v=20260603-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260603-22";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js";
 import { grantProgression, levelProgressButtonHtml, progressionModal } from "./progression.js?v=20260602-6";
@@ -28,11 +28,33 @@ const state = { accounts, currentUser:accounts[session.currentUser]?session.curr
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
 const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
+function signatureGame(game, gameMode, players) {
+  if (!game) return null;
+  const copy = JSON.parse(JSON.stringify(game));
+  const objectField = key => { if (!copy[key] || typeof copy[key] !== "object" || Array.isArray(copy[key])) copy[key] = {}; };
+  const arrayField = key => { if (!Array.isArray(copy[key])) copy[key] = []; };
+  if (gameMode === "impostor") {
+    objectField("roles"); objectField("acknowledged"); objectField("reactions"); objectField("reactionCooldowns"); objectField("continueVotes"); objectField("votes");
+    arrayField("clues"); arrayField("chat");
+    copy.turnOrder = Array.isArray(copy.turnOrder) ? copy.turnOrder : [];
+    if (!copy.turnOrder.length) copy.turnOrder = players;
+  } else if (gameMode === "kim-jestem") {
+    arrayField("history"); objectField("responses"); objectField("scores"); objectField("words");
+    copy.order = Array.isArray(copy.order) ? copy.order : players;
+  } else if (gameMode === "inne-pytanie") {
+    objectField("answers"); objectField("votes"); objectField("scores"); arrayField("chat");
+  } else if (gameMode === "kto-najpredzej") {
+    objectField("submissions"); objectField("votes"); objectField("totals"); arrayField("questions"); arrayField("results");
+  } else if (gameMode === "test-znajomosci") {
+    objectField("answers"); objectField("guesses"); objectField("scores"); objectField("roundScores"); arrayField("answerOrder");
+  }
+  return copy;
+}
 function activeRoomSignature(room = activeRoom()) {
   if (!room) return "";
   const players = normalizedRoomPlayers(room);
   const playerProfiles = Object.fromEntries(players.map(uid => [uid, room.playerProfiles?.[uid] || state.accounts[uid] || {}]));
-  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, isPrivate:room.isPrivate, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, game:room.game, pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, isPrivate:room.isPrivate, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
 }
 function lobbySignature() {
   const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, isPrivate:room.isPrivate, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status }));
@@ -51,6 +73,7 @@ const pendingRoomSyncs=new Map();
 const roomSyncChains=new Map();
 const roomRosterSnapshots=new Map();
 const roomPhaseSnapshots=new Map();
+let lastRenderedScreenSignature="";
 let stopRoomsSubscription=()=>{};
 
 function saveAndRender() { saveAccounts(state.accounts); render(); }
@@ -82,7 +105,7 @@ function queueRoomSync(room) {
   const previous=roomSyncChains.get(roomId)||Promise.resolve();
   const current=previous.catch(()=>{}).then(()=>syncRoomState(snapshot)).catch(error=>({ok:false,error:error?.message}));
   roomSyncChains.set(roomId,current);
-  current.then(result=>{const latest=pendingRoomSyncs.get(roomId)===version;if(roomSyncChains.get(roomId)===current)roomSyncChains.delete(roomId);if(latest)pendingRoomSyncs.delete(roomId);if(!result.ok){message(`Nie udało się zsynchronizować pokoju: ${result.error}`);connectRooms();return;}const local=state.rooms.find(room=>room.roomId===roomId);if(result.room&&(!local||Number(result.room.updatedAt||0)>=Number(local.updatedAt||0))){const synced=installRemoteRoom(result.room);if(latest&&state.activeRoomId===roomId&&["room","game"].includes(Router.current)){if(synced.status==="playing"&&synced.game&&Router.current==="room")return Router.go("game");if(synced.status==="lobby"&&Router.current==="game")return Router.go("room");render();}}});
+  current.then(result=>{const latest=pendingRoomSyncs.get(roomId)===version;if(roomSyncChains.get(roomId)===current)roomSyncChains.delete(roomId);if(latest)pendingRoomSyncs.delete(roomId);if(!result.ok){message(`Nie udało się zsynchronizować pokoju: ${result.error}`);connectRooms();return;}const local=state.rooms.find(room=>room.roomId===roomId);if(result.room&&(!local||Number(result.room.updatedAt||0)>=Number(local.updatedAt||0))){const synced=installRemoteRoom(result.room);if(latest&&state.activeRoomId===roomId&&["room","game"].includes(Router.current)){if(synced.status==="playing"&&synced.game&&Router.current==="room")return Router.go("game");if(synced.status==="lobby"&&Router.current==="game")return Router.go("room");if(currentScreenSignature()!==lastRenderedScreenSignature)render();}}});
 }
 function updateProfile(patch) { if (state.currentUser) { state.accounts[state.currentUser] = { ...profile(), ...patch, updatedAt:Date.now() }; syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]); const room=activeRoom();if(room?.players.includes(state.currentUser))touchRoom(room);saveAndRender(); } }
 function touchRoom(room) { room.updatedAt = Math.max(Date.now(),Number(room.updatedAt||0)+1); if(room.players.includes(state.currentUser)&&profile())room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; queueRoomSync(room); return room; }
@@ -492,7 +515,7 @@ const actions = {
     ImpostorEngine.acknowledge(room.game,state.currentUser,room.settings);touchRoom(room);Audio.play("ready");render();
   },
   impostorSubmitClue(text){return mutateRoomGame((game,room)=>ImpostorEngine.clue(game,state.currentUser,text,room.settings),{sound:"clue"});},
-  impostorTimeout(){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const phase=room.game?.phase;if(phase!=="roleReveal"&&room.hostUid!==state.currentUser)return;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
+  impostorTimeout(){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
   impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:"vote"});},
   impostorVote(target){return mutateRoomGame(game=>ImpostorEngine.vote(game,state.currentUser,target),{sound:"vote",after:settleImpostorResult});},
   impostorReact(text){return mutateRoomGame(game=>ImpostorEngine.react(game,state.currentUser,text)?null:"Reakcja odnawia się co 5 sekund.",{sound:"notification"});},
@@ -500,11 +523,11 @@ const actions = {
   impostorPlayAgain(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;room.status="lobby";room.game=null;touchRoom(room);Router.go("room");},
   identitySubmit(text,type){return mutateRoomGame((game,room)=>IdentityEngine.submit(game,state.currentUser,text,type,room.settings,room.customWords),{sound:type==="guess"?"submit":"clue",after:settleIdentityResult});},
   identityRespond(response){return mutateRoomGame((game,room)=>IdentityEngine.respond(game,state.currentUser,response,room.settings,room.customWords),{sound:"choice",after:settleIdentityResult});},
-  identityTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kim-jestem"||room.hostUid!==state.currentUser)return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry już się zmieniła.";IdentityEngine.timeout(game,current.settings,current.customWords);},{after:settleIdentityResult});},
+  identityTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kim-jestem")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";IdentityEngine.timeout(game,current.settings,current.customWords);},{after:settleIdentityResult});},
   otherAnswer(text){return mutateRoomGame((game,room)=>OtherQuestionEngine.answer(game,state.currentUser,text,room.settings),{sound:"submit"});},
   otherChat(text){const room=activeRoom();if(!room?.settings.chatEnabled)return;return mutateRoomGame(game=>OtherQuestionEngine.chat(game,state.currentUser,text),{sound:"chat"});},
   otherVote(uid){return mutateRoomGame(game=>OtherQuestionEngine.vote(game,state.currentUser,uid),{sound:"vote",after:settleOtherQuestionResult});},
-  otherTimeout(){const room=activeRoom();if(!room||room.gameMode!=="inne-pytanie"||room.hostUid!==state.currentUser)return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry już się zmieniła.";OtherQuestionEngine.timeout(game,current.settings);},{after:settleOtherQuestionResult});},
+  otherTimeout(){const room=activeRoom();if(!room||room.gameMode!=="inne-pytanie")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";OtherQuestionEngine.timeout(game,current.settings);},{after:settleOtherQuestionResult});},
   otherNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="results")return"Runda została już zmieniona.";OtherQuestionEngine.next(game,current.players,current.settings);});},
   async wyrVote(choice){
     const user=profile(),question=currentWouldYouRather();if(!question)return;
@@ -515,11 +538,11 @@ const actions = {
   },
   mostLikelyQuestion(text){return mutateRoomGame((game,room)=>MostLikelyEngine.submitQuestion(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
   mostLikelyVote(uid){return mutateRoomGame((game,room)=>MostLikelyEngine.vote(game,state.currentUser,uid,room.players,room.settings),{sound:"vote"});},
-  mostLikelyTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kto-najpredzej"||room.hostUid!==state.currentUser)return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry już się zmieniła.";MostLikelyEngine.timeout(game,current.players,current.settings);});},
+  mostLikelyTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kto-najpredzej")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";MostLikelyEngine.timeout(game,current.players,current.settings);});},
   mostLikelyNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="roundResult")return"Runda została już zmieniona.";MostLikelyEngine.next(game,current.settings);},{after:settleMostLikelyResult});},
   friendshipAnswer(text){return mutateRoomGame((game,room)=>FriendshipTestEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
   friendshipGuess(answerId,target){return mutateRoomGame((game,room)=>FriendshipTestEngine.guess(game,state.currentUser,answerId,target,room.players),{sound:"vote"});},
-  friendshipTimeout(){const room=activeRoom();if(!room||room.gameMode!=="test-znajomosci"||room.hostUid!==state.currentUser)return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry już się zmieniła.";FriendshipTestEngine.timeout(game,current.players,current.settings);});},
+  friendshipTimeout(){const room=activeRoom();if(!room||room.gameMode!=="test-znajomosci")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";FriendshipTestEngine.timeout(game,current.players,current.settings);});},
   friendshipRevealNext(){return mutateRoomGame((game,current)=>{if(game.phase!=="revealing")return"Odpowiedzi zostały już pokazane.";FriendshipTestEngine.nextReveal(game,current.players);});},
   friendshipRoundNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="roundSummary")return"Runda została już zmieniona.";FriendshipTestEngine.nextRound(game,current.players,current.settings);},{after:settleFriendshipResult});},
   buyCosmetic(itemId) {
@@ -543,17 +566,17 @@ function renderGameError(view, room, error) {
   $("#leave-broken-game")?.addEventListener("click", () => actions.leaveRoom("platform"));
 }
 function render() {
+  lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop);
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen==="platform") return renderPlatform(view,actions); if(screen==="solo") return renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions); if(screen==="lobby") return profile()?renderLobby(view,state,actions):Router.go("platform"); if(screen==="shop") return profile()?renderShop(view,{profile:profile()},actions):actions.openAuth();
-  const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); const repaired=repairGameStateForPlayers(room); if(repaired&&room.hostUid===state.currentUser)touchRoom(room); try { return mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions); } catch(error) { return renderGameError(view,room,error); } } renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
+  const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions); } catch(error) { return renderGameError(view,room,error); } } renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
 }
 function connectRooms(){
   stopRoomsSubscription();
   state.onlineBackend=hasOnlineBackend()?null:false;
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
-    const beforeScreenSignature=currentScreenSignature();
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
     const requestedRoomId=state.activeRoomId;
     const keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId));
@@ -573,7 +596,7 @@ function connectRooms(){
     if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
     if(!restoredRoom&&room){restoredRoom=true;return Router.go(room.game?"game":"room");}
-    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==beforeScreenSignature)render();
+    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render();
   },()=>{
     state.onlineBackend=false;
     if(profile())message("Firebase odrzucil dostep do pokoi. Zaloguj sie ponownie albo sprawdz reguly bazy.");

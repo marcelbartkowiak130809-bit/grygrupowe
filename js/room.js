@@ -1,10 +1,10 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260603-9";
-import { renderImpostorLobbySettings } from "./impostor.js?v=20260603-4";
-import { renderIdentityLobbySettings } from "./identity.js?v=20260602-1";
-import { renderOtherQuestionLobbySettings } from "./otherQuestion.js";
-import { renderMostLikelyLobbySettings } from "./mostLikely.js";
-import { renderFriendshipLobbySettings } from "./friendshipTest.js";
+import { getGameMode } from "./games.js?v=20260603-10";
+import { renderImpostorLobbySettings } from "./impostor.js?v=20260603-9";
+import { renderIdentityLobbySettings } from "./identity.js?v=20260603-1";
+import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260603-1";
+import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260603-1";
+import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260603-1";
 
 export function playerMini(profile = {}) {
   return playerMiniHtml(profile);
