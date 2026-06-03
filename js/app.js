@@ -559,19 +559,53 @@ function audioModal() {
   modal.querySelector("[data-close]").addEventListener("click",()=>actions.closeModal(modal)); $("#music-volume",modal).addEventListener("input",e=>{Audio.setMusicVolume(e.target.value);$("#music-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#sfx-volume",modal).addEventListener("input",e=>{Audio.setSfxVolume(e.target.value);$("#sfx-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#mute-all",modal).addEventListener("change",e=>Audio.setMuted(e.target.checked)); document.body.append(modal); Audio.play("modalOpen");
 }
 function topBar() { const user = profile(); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
+function cssSelectorValue(value) {
+  return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
+}
+function draftFieldKey(field, index) {
+  if (field.id) return `#${cssSelectorValue(field.id)}`;
+  if (field.name) return `${field.tagName.toLowerCase()}[name="${cssSelectorValue(field.name)}"]`;
+  return `__draft_index_${index}`;
+}
+function captureInputDrafts(container) {
+  const fields = [...container.querySelectorAll(draftFieldSelector)];
+  const active = document.activeElement;
+  return fields.map((field, index) => ({
+    key:draftFieldKey(field,index),
+    index,
+    value:field.value,
+    active:field === active,
+    start:field === active && Number.isFinite(field.selectionStart) ? field.selectionStart : null,
+    end:field === active && Number.isFinite(field.selectionEnd) ? field.selectionEnd : null,
+  }));
+}
+function restoreInputDrafts(container, drafts = []) {
+  const fields = [...container.querySelectorAll(draftFieldSelector)];
+  drafts.forEach(draft => {
+    const field = draft.key.startsWith("__draft_index_") ? fields[draft.index] : container.querySelector(draft.key);
+    if (!field || field.disabled || field.readOnly) return;
+    field.value = draft.value;
+    if (!draft.active) return;
+    try { field.focus({ preventScroll:true }); } catch { field.focus(); }
+    if (draft.start !== null && typeof field.setSelectionRange === "function") field.setSelectionRange(draft.start, draft.end);
+  });
+}
 function renderGameError(view, room, error) {
   console.error("Błąd renderowania trybu gry", room?.gameMode, error);
   view.innerHTML = `<main class="page enter"><section class="panel center"><p class="eyebrow">SYNCHRONIZACJA GRY</p><h1>Ten tryb dostał niepełny stan pokoju</h1><p class="muted">Nie pokazuję już pustej strony. Spróbuj odświeżyć widok albo wróć do pokoju i rozpocznij rundę jeszcze raz.</p><p class="tiny">${escapeHtml(error?.message || "Nieznany błąd renderera")}</p><div class="choice-row"><button class="primary" id="retry-game-render">Spróbuj ponownie</button><button class="ghost" id="leave-broken-game">Wyjdź z pokoju</button></div></section></main>`;
   $("#retry-game-render")?.addEventListener("click", render);
   $("#leave-broken-game")?.addEventListener("click", () => actions.leaveRoom("platform"));
 }
-function render() {
+function render(options = {}) {
+  const drafts = options?.preserveDrafts ? captureInputDrafts(root) : [];
   lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop);
+  const finish = result => { restoreInputDrafts(root,drafts); return result; };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
-  if(screen==="platform") return renderPlatform(view,actions); if(screen==="solo") return renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions); if(screen==="lobby") return profile()?renderLobby(view,state,actions):Router.go("platform"); if(screen==="shop") return profile()?renderShop(view,{profile:profile()},actions):actions.openAuth();
-  const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions); } catch(error) { return renderGameError(view,room,error); } } renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
+  if(screen==="platform") return finish(renderPlatform(view,actions)); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return finish(mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions)); } catch(error) { return finish(renderGameError(view,room,error)); } } return finish(renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions));
 }
 function connectRooms(){
   stopRoomsSubscription();
@@ -596,7 +630,7 @@ function connectRooms(){
     if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
     if(!restoredRoom&&room){restoredRoom=true;return Router.go(room.game?"game":"room");}
-    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render();
+    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});
   },()=>{
     state.onlineBackend=false;
     if(profile())message("Firebase odrzucil dostep do pokoi. Zaloguj sie ponownie albo sprawdz reguly bazy.");
