@@ -95,3 +95,19 @@ input[type="range"]{height:22px;padding:0;border:0;background:transparent;box-sh
 @keyframes noteDrop{from{opacity:.3;transform:translateY(-10px) rotate(-3deg) scale(.96)}to{opacity:1}}
 @media(max-width:720px){.prove-table,.question-table,.vote-table,.friendship-table{padding:13px;border-radius:24px}.question-board .answer-board article:nth-child(n){transform:none}.wyr-mood-badge{margin-left:0}.wyr-mood-tabs{gap:6px}.mood-tab{padding:8px 10px;font-size:12px}.choice-board .wyr-stage{padding:15px}}
 .site-version{position:fixed;left:8px;bottom:6px;z-index:20;padding:3px 6px;border:1px solid rgba(255,255,255,.06);border-radius:999px;background:rgba(8,9,20,.38);color:rgba(226,232,240,.45);font-size:10px;font-weight:800;letter-spacing:.08em;pointer-events:none;user-select:none;text-shadow:0 0 10px rgba(8,9,20,.9)}
+
+.role-citizen{border-color:rgba(56,189,248,.48);background:linear-gradient(145deg,rgba(12,74,110,.5),rgba(15,18,34,.92))}
+.role-citizen strong{color:#7dd3fc}.role-impostor strong{color:#fecaca}.role-white strong{color:#f8fafc}
+.role-board-citizen .eyebrow,.role-board-citizen .bid{color:#7dd3fc}.role-board-impostor .eyebrow{color:#fca5a5}.role-board-white .eyebrow{color:#f8fafc}
+.role-board-citizen .primary{background:linear-gradient(135deg,#0369a1,#22d3ee);box-shadow:0 9px 24px rgba(14,165,233,.18)}
+.role-board-impostor .primary{background:linear-gradient(135deg,#7f1d1d,#ef4444);box-shadow:0 9px 24px rgba(239,68,68,.18)}
+.role-board-white .primary{background:linear-gradient(135deg,#475569,#e2e8f0);color:#0f172a;box-shadow:0 9px 24px rgba(226,232,240,.16)}
+.impostor-board .impostor-players{padding-top:42px}.reaction-bubble{top:-31px;right:8px;bottom:auto;max-width:142px;white-space:nowrap}
+.role-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0 18px;text-align:left}
+.role-reveal-card{display:grid;gap:8px;padding:13px;border:1px solid rgba(255,255,255,.11);border-radius:16px;background:rgba(255,255,255,.055)}
+.role-reveal-card strong{font-size:13px;text-transform:uppercase;letter-spacing:.08em}.role-reveal-card span{color:#cbd5e1;font-weight:800}
+.most-category-box{grid-column:1/-1;margin-top:14px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04)}
+.most-category-box>b{display:block;margin-bottom:3px;color:#cbd5e1;font-size:14px}.most-category-box>small{display:block;color:#94a3b8;font-size:11px}
+.multi-category-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.category-chip{margin:0!important;padding:9px 10px!important;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(8,9,20,.32)!important;font-size:12px;line-height:1.2}
+.category-chip input{flex:none}.category-chip:has(input:checked){border-color:rgba(34,211,238,.42);background:rgba(6,182,212,.12)!important;color:#e0f2fe}

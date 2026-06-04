@@ -1,9 +1,9 @@
 import { renderGame } from "./game.js?v=20260603-22";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260603-10";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260604-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260603-2";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260603-2";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260603-2";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260603-2";
 
 export const gamesRegistry = {
@@ -11,8 +11,8 @@ export const gamesRegistry = {
     id: "udowodnij",
     name: "Udowodnij!",
     description: "Licytuj liczbę odpowiedzi, podbijaj stawkę i sprawdzaj, kto tylko blefuje.",
-    players: "3-8 osób",
-    minPlayers: 3,
+    players: "2-8 osób",
+    minPlayers: 2,
     maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,
@@ -26,8 +26,8 @@ export const gamesRegistry = {
     id: "impostor",
     name: "Impostor",
     description: "Jedna osoba nie zna sekretnego hasła. Rozmawiajcie i znajdźcie impostora.",
-    players: "2-8 osób",
-    minPlayers: 2,
+    players: "3-8 osób",
+    minPlayers: 3,
     maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,

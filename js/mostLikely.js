@@ -1,4 +1,4 @@
-import { mostLikelyCategories, mostLikelyPrompts } from "../content/kto-najpredzej/prompts.js";
+import { mostLikelyCategories, mostLikelyPrompts } from "../content/kto-najpredzej/prompts.js?v=20260604-1";
 import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
@@ -8,6 +8,7 @@ const now = () => Date.now();
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const mini = profile => playerMiniHtml(profile);
 export const mostLikelyDefaults = { questionTime:30, voteTime:15, rounds:8, usePool:true, playerQuestions:true, allowSelfVote:false, showVoteDetails:true, category:"Wszystkie" };
+const minSelectedCategories = 3;
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 function normalizeMostLikelyGame(game) {
@@ -20,8 +21,22 @@ function normalizeMostLikelyGame(game) {
 }
 
 function pool(settings) {
-  const available = settings.category === "Wszystkie" ? mostLikelyPrompts : mostLikelyPrompts.filter(item => item.category === settings.category);
+  const categories = selectedCategories(settings);
+  const available = categories.length ? mostLikelyPrompts.filter(item => categories.includes(item.category)) : mostLikelyPrompts;
   return shuffle(available).map(item => item.text);
+}
+function selectedCategories(settings) {
+  const safe = categories => [...new Set(categories)].filter(category => mostLikelyCategories.includes(category));
+  const fillMinimum = categories => {
+    const picked = safe(categories);
+    mostLikelyCategories.filter(category => !category.startsWith("18+")).forEach(category => {
+      if (picked.length < minSelectedCategories && !picked.includes(category)) picked.push(category);
+    });
+    return picked.length >= minSelectedCategories ? picked : mostLikelyCategories.slice(0, minSelectedCategories);
+  };
+  if (Array.isArray(settings.categories)) return fillMinimum(settings.categories);
+  if (settings.category && settings.category !== "Wszystkie") return fillMinimum([settings.category]);
+  return mostLikelyCategories.filter(category => !category.startsWith("18+"));
 }
 function startVoting(game, settings) {
   normalizeMostLikelyGame(game);
@@ -48,6 +63,7 @@ function finishVote(game) {
 
 export function createMostLikelyGame(players, rawSettings) {
   const settings = { ...mostLikelyDefaults, ...rawSettings };
+  settings.categories = selectedCategories(settings);
   const phase = settings.playerQuestions ? "writingQuestions" : "voting";
   const game = { phase, submissions:{}, questions:settings.playerQuestions ? [] : pool(settings).slice(0, settings.rounds), votes:{}, results:[], totals:Object.fromEntries(players.map(uid => [uid, 0])), round:1, phaseEndsAt:null };
   game.phaseEndsAt = now() + (phase === "writingQuestions" ? settings.questionTime : settings.voteTime) * 1000;
@@ -83,11 +99,12 @@ export const MostLikelyEngine = {
 
 export function renderMostLikelyLobbySettings(room, isHost) {
   const s = { ...mostLikelyDefaults, ...room.settings };
+  const selected = selectedCategories(s);
   return `<div class="impostor-settings-grid">
     <label>Czas na pytanie <b>${s.questionTime}s</b><input data-most-setting="questionTime" type="range" min="15" max="60" step="5" value="${s.questionTime}" ${isHost ? "" : "disabled"}></label>
     <label>Czas głosowania <b>${s.voteTime}s</b><input data-most-setting="voteTime" type="range" min="10" max="30" step="5" value="${s.voteTime}" ${isHost ? "" : "disabled"}></label>
     <label>Liczba rund<select data-most-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,8,10,12,16].map(n => `<option ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-    <label>Kategoria<select data-most-setting="category" ${isHost ? "" : "disabled"}>${["Wszystkie", ...mostLikelyCategories].map(x => `<option ${s.category === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+    <div class="most-category-box"><b>Kategorie</b><small>minimum ${minSelectedCategories}, bez limitu</small><div class="multi-category-list">${mostLikelyCategories.map(category => `<label class="check category-chip"><input data-most-category="${escapeHtml(category)}" type="checkbox" ${selected.includes(category) ? "checked" : ""} ${!isHost || selected.length <= minSelectedCategories && selected.includes(category) ? "disabled" : ""}> ${escapeHtml(category)}</label>`).join("")}</div></div>
     <label class="check"><input data-most-setting="playerQuestions" type="checkbox" ${s.playerQuestions ? "checked" : ""} ${isHost ? "" : "disabled"}> Pytania od graczy</label>
     <label class="check"><input data-most-setting="usePool" type="checkbox" ${s.usePool ? "checked" : ""} ${isHost ? "" : "disabled"}> Gotowa pula pytań</label>
     <label class="check"><input data-most-setting="allowSelfVote" type="checkbox" ${s.allowSelfVote ? "checked" : ""} ${isHost ? "" : "disabled"}> Można głosować na siebie</label>

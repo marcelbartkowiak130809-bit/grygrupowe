@@ -3,7 +3,7 @@ import { getGameMode } from "./games.js?v=20260603-10";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260603-10";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260603-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260603-1";
-import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260603-1";
+import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260604-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260603-1";
 
 export function playerMini(profile = {}) {
@@ -40,6 +40,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-most-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
   root.querySelectorAll("[data-friend-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
