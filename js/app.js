@@ -1,7 +1,8 @@
 import { accountModal, authModal } from "./auth.js?v=20260604-1";
 import { Audio } from "./audio.js";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260604-1";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260604-1";
+import { cosmetics } from "./cosmetics.js?v=20260604-2";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, submitModerationReport, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
 import { getGameMode } from "./games.js?v=20260604-6";
@@ -13,16 +14,16 @@ import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./m
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260604-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-3";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-4";
-import { renderPlatform } from "./platform.js?v=20260604-1";
+import { renderPlatform } from "./platform.js?v=20260604-2";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260604-6";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260604-1";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js";
-import { grantProgression, levelProgressButtonHtml, progressionModal } from "./progression.js?v=20260602-6";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260604-2";
+import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260604-1";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260604-1";
 
 const root = $("#app");
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.birthDate ||= "";account.inbox = Array.isArray(account.inbox) ? account.inbox : []; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.birthDate ||= "";account.inbox = Array.isArray(account.inbox) ? account.inbox : [];Object.assign(account,grantProgression(account,0).profile); });
 saveAccounts(accounts);
 const session=loadSession();
 const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null };
@@ -70,7 +71,7 @@ function currentScreenSignature() {
   return "";
 }
 const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => account.nick === nick && !account.nickOnly);
-const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy" });
+const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode});
 let restoredRoom=false;
 const pendingRoomSyncs=new Map();
@@ -146,6 +147,13 @@ function applyPlayerXp(playerId, amount) {
   syncPlayerProfile(playerId,updated);saveAccounts(state.accounts);
   if(playerId===state.currentUser&&result.leveledUp)message(`Awans! Masz teraz level ${result.level}. Nagrody z drogi levelu zostały odebrane.`,"info");
 }
+function applyQuestEvent(playerId, event) {
+  const player=state.accounts[playerId];if(!player)return;
+  const updated={...noteQuestEvent(player,event),updatedAt:Date.now()};
+  state.accounts[playerId]=updated;
+  const room=activeRoom();if(room?.players.includes(playerId))room.playerProfiles={...(room.playerProfiles||{}),[playerId]:publicProfile(updated)};
+  syncPlayerProfile(playerId,updated);
+}
 function addPlayerMoney(playerId, amount) {
   if(playerId===state.currentUser)return applyPlayerMoney(playerId,amount);
   const room=activeRoom();if(!room)return;
@@ -158,7 +166,7 @@ function addPlayerXp(playerId, amount) {
   room.pendingXp={...(room.pendingXp||{}),[playerId]:(room.pendingXp?.[playerId]||0)+amount};
 }
 function rewardRoomXp(room, amount) {
-  room.players.forEach(uid=>addPlayerXp(uid,amount));
+  room.players.forEach(uid=>{applyQuestEvent(uid,{type:"mode",mode:room.gameMode});addPlayerXp(uid,amount);});
 }
 function claimPendingProgress(room) {
   const money=Number(room?.pendingRewards?.[state.currentUser])||0,xp=Number(room?.pendingXp?.[state.currentUser])||0;if((!money&&!xp)||!profile())return false;
@@ -453,7 +461,7 @@ async function adminPanelModal() {
 function defaultAccount(nick, password, auth = {}, birthDate = "") {
   return { nick, passwordHash:hashRoomPassword(`account:${password}`), authEmail: nickToEmail(nick), authProvider: auth.provider || "local", money: 0, xp:0, claimedLevelRewards:{}, stats:{},
     ownedCosmetics: { defaultNick: true, defaultFrame: true, noAura: true, defaultCandy: true }, selectedNickEffect: "defaultNick",
-    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", birthDate, inbox:[], createdAt: Date.now() };
+    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", selectedIdleAnimation:"", selectedWinAnimation:"", selectedLoseAnimation:"", birthDate, inbox:[], createdAt: Date.now() };
 }
 
 const actions = {
@@ -483,7 +491,14 @@ const actions = {
     if (!profile()) return actions.openAuth({ title: "Zaloguj się lub utwórz konto", description: "Konto zapisuje coiny, kosmetyki i efekty nicku." });
     const modal = accountModal(profile(), actions); document.body.append(modal); Audio.play("modalOpen");
   },
-  openProgression() { if(profile()){const modal=progressionModal(profile(),actions.closeModal);document.body.append(modal);Audio.play("modalOpen");} },
+  openProgression() { if(profile()){const modal=progressionModal(profile(),actions.closeModal,actions.claimQuestRewards);document.body.append(modal);Audio.play("modalOpen");} },
+  claimQuestRewards(modal) {
+    const user=profile();if(!user)return;
+    const result=claimCompletedQuestRewards(user);
+    if(!result.completed.length)return;
+    state.accounts[state.currentUser]={...result.profile,updatedAt:Date.now()};
+    syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]);saveAccounts(state.accounts);actions.closeModal(modal);message(`Odebrano ${result.completed.length} questow.`,"info");render();
+  },
   showGameInfo(modeId){ gameInfoModal(modeId); },
   openReportModal(targetUid=""){ reportModal(targetUid); },
   openInbox(){ inboxModal(); },
@@ -702,9 +717,10 @@ const actions = {
   buyCosmetic(itemId) {
     const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user || user.ownedCosmetics[itemId]) return;
     if (user.nickOnly) return message("Zaloguj się na konto, żeby kupować efekty."); if (user.money < item.price) return message("Nie masz tyle pieniędzy.");
-    Audio.play("purchase"); updateProfile({ money: user.money - item.price, ownedCosmetics: { ...user.ownedCosmetics, [itemId]: true } });
+    const quested=noteQuestEvent(noteQuestEvent(user,{type:"bought"}),{type:"spent",amount:item.price});
+    Audio.play("purchase"); updateProfile({ questStats:quested.questStats, money: user.money - item.price, ownedCosmetics: { ...user.ownedCosmetics, [itemId]: true } });
   },
-  equipCosmetic(itemId) { const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play("success"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin" }[item.type]]: itemId }); },
+  equipCosmetic(itemId) { const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play("success"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
 function audioModal() {
@@ -712,7 +728,15 @@ function audioModal() {
   modal.innerHTML = `<section class="modal audio-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">AUDIO</p><h2>Ustawienia dźwięku</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Music Volume <span id="music-value">${Math.round(settings.musicVolume*100)}%</span></label><input id="music-volume" type="range" min="0" max="1" step="0.01" value="${settings.musicVolume}"><label>SFX Volume <span id="sfx-value">${Math.round(settings.sfxVolume*100)}%</span></label><input id="sfx-volume" type="range" min="0" max="1" step="0.01" value="${settings.sfxVolume}"><label class="check"><input id="mute-all" type="checkbox" ${settings.muted?"checked":""}> Mute All</label><p class="tiny">Ambient: ${Audio.currentTrack}. Ustawienia zapisują się automatycznie.</p></section>`;
   modal.querySelector("[data-close]").addEventListener("click",()=>actions.closeModal(modal)); $("#music-volume",modal).addEventListener("input",e=>{Audio.setMusicVolume(e.target.value);$("#music-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#sfx-volume",modal).addEventListener("input",e=>{Audio.setSfxVolume(e.target.value);$("#sfx-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#mute-all",modal).addEventListener("change",e=>Audio.setMuted(e.target.checked)); document.body.append(modal); Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function changelogModal() {
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  const entryHtml=entry=>`<article class="changelog-entry"><p class="eyebrow">${escapeHtml(entry.date)} · ${escapeHtml(entry.version)}</p><h2>${escapeHtml(entry.title)}</h2><ul>${entry.changes.map(change=>`<li>${escapeHtml(change)}</li>`).join("")}</ul></article>`;
+  modal.innerHTML=`<section class="modal changelog-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">CHANGELOG</p><h2>Historia aktualizacji</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="changelog-layout"><aside>${changelogEntries.map((entry,index)=>`<button class="changelog-version ${index?"":"active"}" data-changelog-index="${index}"><b>${escapeHtml(entry.version)}</b><small>${escapeHtml(entry.date)}</small></button>`).join("")}</aside><div id="changelog-current">${entryHtml(latestChangelog)}</div></div></section>`;
+  modal.querySelector("[data-close]").addEventListener("click",()=>actions.closeModal(modal));
+  modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);}));
+  document.body.append(modal);Audio.play("modalOpen");
+}
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}" title="Changelog">${icon("scroll",18)}</button><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -763,7 +787,7 @@ function render(options = {}) {
   const drafts = options?.preserveDrafts ? captureInputDrafts(root) : {fields:[]};
   lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
   const finish = result => { restoreInputDrafts(root,drafts); return result; };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen==="platform") return finish(renderPlatform(view,actions)); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();

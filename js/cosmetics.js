@@ -99,6 +99,75 @@ export const cosmetics = [
   item("divineAura","aura","Boska aura",7600,"mythic","Złota promienna poświata."),
   item("plasmaAura","aura","Plasma aura",8100,"mythic","Mocny puls różowej i błękitnej energii."),
 
+  item("hornedFrame","frame","Diabelskie rogi",5200,"legendary","Ramka z rogami i ogonem przy profilowym."),
+  item("impTailFrame","frame","Ogon impa",3600,"epic","Czerwony ogon oplata avatar."),
+  item("thunderFrame","frame","Ramka pioruna",4200,"legendary","Profilowe lapie blyskawice przy wygranych."),
+  item("stageFrame","frame","Sceniczna ramka",3800,"epic","Delikatne swiatlo sceniczne wokol avatara."),
+  item("moneyFrame","frame","Banknotowa ramka",4100,"legendary","Zielone blyski jak deszcz monet."),
+  item("glassFrame","frame","Szklana ramka",2400,"epic","Przezroczysty szlif na avatarze."),
+  item("moonFrame","frame","Kszycowa ramka",2600,"epic","Chlodny srebrny polksiezyc."),
+  item("roseFrame","frame","Rozana ramka",2700,"epic","Rzadsza rozowa obwodka z drobnymi platkami."),
+  item("stormFrame","frame","Burzowa ramka",4550,"legendary","Ciemny pierscien z blyskami."),
+  item("royalSealFrame","frame","Krolewska pieczec",5900,"mythic","Zlota pieczec dla zwyciezcow."),
+  item("dragonFrame","frame","Smocza ramka",6600,"mythic","Ostre rogi i rozgrzany obrys."),
+  item("angelFrame","frame","Anielska ramka",6200,"mythic","Jasny krag i subtelna aureola."),
+
+  item("batAura","aura","Nietoperze",3500,"epic","Male cienie przelatuja wokol profilowego."),
+  item("coinAura","aura","Monety",4200,"legendary","Zlote monety krazace przy avatarze."),
+  item("crownAura","aura","Korony",4500,"legendary","Mini korony migaja przy graczu."),
+  item("spotlightAura","aura","Reflektor",3900,"epic","Sceniczne swiatlo spada na profilowe."),
+  item("meteorAura","aura","Meteory",5200,"legendary","Male meteory przecinaja tlo avatara."),
+  item("heartAura","aura","Serca",2500,"epic","Lekkie serca unosza sie przy profilu."),
+  item("pixelAura","aura","Piksele",2700,"epic","Kwadratowe iskry arcade."),
+  item("runeAura","aura","Runy",4700,"legendary","Runiczne znaki obracaja sie powoli."),
+  item("shadowAura","aura","Cien",4300,"legendary","Ciemna smuga za profilowym."),
+  item("lavaAura","aura","Lawa",6100,"mythic","Goracy puls lawy wokol avatara."),
+  item("haloAura","aura","Aureola",5900,"mythic","Zlote swiatlo nad profilem."),
+  item("cashStormAura","aura","Burza kasy",6800,"mythic","Banknoty przelatuja przy zwyciezcy."),
+
+  item("bubbleIdle","idle","Idle: lekki bounce",900,"common","Profilowe delikatnie oddycha podczas gry."),
+  item("tiltIdle","idle","Idle: przechylka",1100,"common","Krotkie plynne bujanie avatara."),
+  item("pulseIdle","idle","Idle: puls",1350,"rare","Miekki puls bez ruszania strony."),
+  item("floatIdle","idle","Idle: unoszenie",1600,"rare","Avatar spokojnie unosi sie i opada."),
+  item("blinkIdle","idle","Idle: blysk",1800,"rare","Krotki blysk co chwile."),
+  item("spinIdle","idle","Idle: maly obrot",2600,"epic","Subtelny obrot profilowego."),
+  item("glitchIdle","idle","Idle: glitch",3100,"epic","Cyfrowy skok tylko na avatarze."),
+  item("heartbeatIdle","idle","Idle: heartbeat",3300,"epic","Podwojny rytm jak bicie serca."),
+  item("royalIdle","idle","Idle: royal hover",4300,"legendary","Dostojne unoszenie z blyskiem."),
+  item("voidIdle","idle","Idle: void drift",5600,"mythic","Ciezki plynny dryf premium."),
+
+  item("winCrown","win","Wygrana: korona",1700,"rare","Po zwyciestwie korona spada na profilowe."),
+  item("winMoney","win","Wygrana: kasa",1900,"rare","Gracz rzuca pieniedzmi po wygranej."),
+  item("winSpotlight","win","Wygrana: reflektor",2200,"rare","Swiatlo sceniczne robi wejscie zwyciezcy."),
+  item("winConfetti","win","Wygrana: konfetti",2400,"epic","Kolorowy wybuch nad nickiem."),
+  item("winFireworks","win","Wygrana: fajerwerki",2900,"epic","Mini fajerwerki przy profilowym."),
+  item("winLightning","win","Wygrana: piorun",3200,"epic","Blyskawica uderza obok zwyciezcy."),
+  item("winStageBow","win","Wygrana: uklon",3500,"epic","Profilowe robi szybki uklon."),
+  item("winTrophy","win","Wygrana: puchar",3900,"legendary","Puchar wyskakuje nad graczem."),
+  item("winHalo","win","Wygrana: aureola",4300,"legendary","Jasny kreg odpala przy zwyciezcy."),
+  item("winPortal","win","Wygrana: portal",4700,"legendary","Portal otwiera sie za profilem."),
+  item("winLaser","win","Wygrana: laser show",5100,"legendary","Krotkie lasery podswietlaja nick."),
+  item("winRoyalRain","win","Wygrana: zloty deszcz",5600,"mythic","Mityczny deszcz zlota."),
+  item("winMeteor","win","Wygrana: meteor",6100,"mythic","Meteor przelatuje nad zwyciezca."),
+  item("winAscend","win","Wygrana: ascend",6800,"mythic","Profilowe unosi sie jak legenda."),
+  item("winDemonKing","win","Wygrana: demon king",7200,"mythic","Czerwony tron cienia za zwyciezca."),
+
+  item("loseFall","lose","Przegrana: przewrotka",1200,"common","Profilowe przewraca sie po porazce."),
+  item("loseBonk","lose","Przegrana: bonk",1400,"common","Cos spada na avatar i go splaszcza."),
+  item("loseDust","lose","Przegrana: kurz",1600,"rare","Profilowe znika w chmurce kurzu."),
+  item("loseCrack","lose","Przegrana: pekniecie",1900,"rare","Szklo peka na avatarze."),
+  item("loseThunder","lose","Przegrana: piorun",2300,"epic","Piorun uderza w przegranego."),
+  item("loseLetters","lose","Przegrana: nick rozsypany",2600,"epic","Nick drzy i rozsypuje sie wizualnie."),
+  item("loseSquash","lose","Przegrana: squash",2900,"epic","Avatar zgniata sie i wraca."),
+  item("loseBurn","lose","Przegrana: popiol",3300,"epic","Ciemny blysk i popiol."),
+  item("loseFreeze","lose","Przegrana: lod",3600,"legendary","Profilowe zamarza na chwile."),
+  item("losePortal","lose","Przegrana: portal out",4100,"legendary","Portal zabiera avatar."),
+  item("loseMeteorHit","lose","Przegrana: meteor hit",4700,"legendary","Cos wielkiego spada obok profilu."),
+  item("losePixelBreak","lose","Przegrana: pixel break",5200,"legendary","Avatar rozpada sie w piksele."),
+  item("loseDemonLaugh","lose","Przegrana: demoniczny smiech",5900,"mythic","Czerwony cien smieje sie za profilem."),
+  item("loseBlackHole","lose","Przegrana: czarna dziura",6500,"mythic","Profilowe zasysa mini portal."),
+  item("loseCrownDrop","lose","Przegrana: spadajaca korona",6900,"mythic","Korona spada obok przegranego."),
+
   item("levelBronzeFrame","frame","Ramka Weterana",0,"rare","Ekskluzywna ramka za level 6.",{exclusive:true,requiredLevel:6}),
   item("levelVioletNick","nick","Nick Awansu",0,"epic","Ekskluzywny fioletowy nick za level 10.",{exclusive:true,requiredLevel:10}),
   item("levelBlazeFrame","frame","Ramka Żaru",0,"epic","Ekskluzywna płonąca ramka za level 18.",{exclusive:true,requiredLevel:18}),
@@ -106,9 +175,20 @@ export const cosmetics = [
   item("levelChampionNick","nick","Nick Czempiona",0,"legendary","Ekskluzywny nick czempiona za level 35.",{exclusive:true,requiredLevel:35}),
   item("levelPrismFrame","frame","Pryzmatyczna ramka",0,"mythic","Ekskluzywna ramka za level 45.",{exclusive:true,requiredLevel:45}),
   item("levelNovaAura","aura","Aura Supernowej",0,"mythic","Ekskluzywna aura za level 60.",{exclusive:true,requiredLevel:60}),
+  item("levelImpTailFrame","frame","Ogon za level",0,"epic","Ekskluzywna diabelska ramka za level 14.",{exclusive:true,requiredLevel:14}),
+  item("levelQuestAura","aura","Aura Questow",0,"epic","Ekskluzywna aura za level 20.",{exclusive:true,requiredLevel:20}),
+  item("levelRoyalIdle","idle","Idle Levelowy",0,"legendary","Ekskluzywna animacja idle za level 32.",{exclusive:true,requiredLevel:32}),
+  item("levelChampionWin","win","Wygrana Czempiona",0,"legendary","Ekskluzywna animacja wygranej za level 38.",{exclusive:true,requiredLevel:38}),
+  item("levelShatterLose","lose","Porazka Shatter",0,"legendary","Ekskluzywna animacja porazki za level 42.",{exclusive:true,requiredLevel:42}),
+  item("levelDemonFrame","frame","Rogi Arcymistrza",0,"mythic","Ekskluzywna demoniczna ramka za level 55.",{exclusive:true,requiredLevel:55}),
+  item("levelAscendWin","win","Ascend za level",0,"mythic","Ekskluzywna animacja wygranej za level 70.",{exclusive:true,requiredLevel:70}),
+  item("levelVoidLose","lose","Void porazki",0,"mythic","Ekskluzywna animacja porazki za level 80.",{exclusive:true,requiredLevel:80}),
+  item("levelHaloAura","aura","Aureola Legendy",0,"mythic","Ekskluzywna aura za level 90.",{exclusive:true,requiredLevel:90}),
 ];
 
 const escapeAttr = value => String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char]);
+export const rarityOrder = { common:0, rare:1, epic:2, legendary:3, mythic:4 };
+export const sortCosmeticsByRarity = items => [...items].sort((a, b) => (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0) || a.name.localeCompare(b.name, "pl"));
 
 export function cosmeticPreview(item, profile = {}, options = {}) {
   if (item.type === "candy") {
@@ -116,6 +196,19 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
       <div class="shop-candy candy-${item.id}"><span></span></div>
       <span class="nick">${escapeAttr(item.name)}</span>
       ${options.hideType ? "" : '<small class="preview-type">CUKIEREK</small>'}
+    </div>`;
+  }
+  if (["idle","win","lose"].includes(item.type)) {
+    const kind = { idle:"IDLE", win:"WYGRANA", lose:"PORAZKA" }[item.type];
+    const stateClass = item.type === "idle" ? "preview-idle-state" : item.type === "win" ? "preview-win-state" : "preview-lose-state";
+    const avatar = profile.avatarImage ? `<img src="${escapeAttr(profile.avatarImage)}" alt="">` : "G";
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-${item.type} ${stateClass}">
+      <span class="preview-glow"></span><span class="preview-particle particle-a"></span><span class="preview-particle particle-b"></span>
+      <div class="mini-player cosmetic-animation-preview ${item.id}">
+        <div class="preview-avatar avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${item.type === "idle" ? item.id : ""}">${avatar}</div>
+        <span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeAttr(options.nick || profile.nick || "Gracz")}</span>
+      </div>
+      ${options.hideType ? "" : `<small class="preview-type">${kind}</small>`}
     </div>`;
   }
   const nick = item.type === "nick" ? item.id : "defaultNick";

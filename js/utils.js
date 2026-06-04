@@ -1,4 +1,4 @@
-import { levelBadgeHtml } from "./progression.js?v=20260602-6";
+import { levelBadgeHtml } from "./progression.js?v=20260604-1";
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -10,7 +10,7 @@ export function escapeHtml(value) {
 }
 
 export function avatarHtml(profile = {}, className = "") {
-  const classes = `avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${className}`.trim();
+  const classes = `avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${profile.selectedIdleAnimation || ""} ${className}`.trim();
   const content = profile.avatarImage
     ? `<img src="${escapeHtml(profile.avatarImage)}" alt="">`
     : escapeHtml((profile.nick || "?")[0].toUpperCase());
@@ -18,7 +18,8 @@ export function avatarHtml(profile = {}, className = "") {
 }
 
 export function playerMiniHtml(profile = {}, className = "") {
-  return `<div class="mini-player ${className}">${avatarHtml(profile)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+  const animationClasses = `${profile.selectedWinAnimation || ""} ${profile.selectedLoseAnimation || ""}`.trim();
+  return `<div class="mini-player ${animationClasses} ${className}">${avatarHtml(profile)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
 }
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {
@@ -62,6 +63,7 @@ const icons = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
   shop: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  scroll: '<path d="M8 21h10a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h9"/><path d="M8 21a3 3 0 0 1 0-6h1"/><path d="M18 9a3 3 0 0 0 0-6H7a3 3 0 0 0-3 3v12"/><path d="M7 3a3 3 0 0 1 0 6"/>',
   sparkles: '<path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9Z"/><path d="m5 18-.7 1.3L3 20l1.3.7L5 22l.7-1.3L7 20l-1.3-.7Z"/><path d="m19 16-.7 1.3L17 18l1.3.7L19 20l.7-1.3L21 18l-1.3-.7Z"/>',
   timer: '<path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/>',
   userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',

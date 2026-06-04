@@ -1,14 +1,39 @@
-import { gamesList } from "./games.js?v=20260604-4";
+import { gamesList } from "./games.js?v=20260604-7";
 import { icon } from "./utils.js";
 
+const filters = [
+  ["all", "Wszystkie"],
+  ["original", "Oryginalna gra"],
+  ["everyone", "Gra dla kazdego"],
+  ["crew", "Gra dla ekipy"],
+  ["solo", "Tryb solo"],
+];
+
+function modeCategory(mode) {
+  if (mode.featured) return "original";
+  if (mode.supportsSolo && !mode.supportsLobby) return "solo";
+  return mode.audience === "crew" ? "crew" : "everyone";
+}
+
+function categoryTag(mode) {
+  const category = modeCategory(mode);
+  const labels = { original:"ORYGINALNA GRA", solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO" };
+  return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
+}
+
+function badgeTag(type) {
+  const labels = { popular:"Popularne 🔥", new:"Nowe ✨", newQuestions:"Nowe pytania ✅" };
+  return labels[type] ? `<span class="tag game-badge game-badge-${type}">${labels[type]}</span>` : "";
+}
+
 function gameCard(mode) {
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""}">
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""}" data-mode-category="${modeCategory(mode)}">
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
       <span>${mode.symbol}</span>
     </div>
     <div class="game-card-content">
-      <div class="game-card-top">${mode.featured ? '<span class="tag">ORYGINALNA GRA</span>' : mode.supportsSolo && !mode.supportsLobby ? '<span class="tag">TRYB SOLO</span>' : '<span class="tag tag-soft">GRA DLA EKIPY</span>'}</div>
+      <div class="game-card-top">${categoryTag(mode)}${(mode.badges || []).map(badgeTag).join("")}</div>
       <h2>${mode.name}</h2>
       <p class="muted">${mode.description}</p>
       <div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Zagraj</button></div>
@@ -33,10 +58,17 @@ export function renderPlatform(root, actions) {
       <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
     </section>
     <section class="games-section">
-      <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Każdy znajdzie coś dla siebie.</p></div>
+      <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
+      <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
       <div class="games-grid">${gamesList.map(gameCard).join("")}</div>
     </section>
   </main>`;
+
+  root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
+    const filter = button.dataset.gameFilter;
+    root.querySelectorAll("[data-game-filter]").forEach(item => item.classList.toggle("active", item === button));
+    root.querySelectorAll("[data-mode-category]").forEach(card => card.classList.toggle("hidden-game-card", filter !== "all" && card.dataset.modeCategory !== filter));
+  }));
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelector("#platform-join-form").addEventListener("submit", event => {
     event.preventDefault();
