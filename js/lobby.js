@@ -1,10 +1,11 @@
 import { $, escapeHtml, icon } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260603-10";
+import { getGameMode } from "./games.js?v=20260604-2";
 
 function roomCard(room, mode) {
+  const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "voice" ? "Tryb głosowy" : "Tryb normalny"}</span>` : "";
   return `<article class="room-card">
     <div><div class="room-mode">${mode.symbol} ${mode.name}</div><h3>${escapeHtml(room.name)}</h3>
-      <p class="muted">${room.roomId} · ${room.players.length}/${mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p></div>
+      <p class="muted">${room.roomId} · ${room.players.length}/${mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${identityFlow}</div>
     <div class="room-right">${room.isPrivate ? icon("lock", 18) : ""}<button data-join-room="${room.roomId}">Wejdź</button></div>
   </article>`;
 }
@@ -58,7 +59,7 @@ export function createRoomModal(mode, actions) {
     backdrop.querySelectorAll("[data-time]").forEach(item => item.classList.toggle("active", item === button));
   }));
   $("#confirm-create", backdrop).addEventListener("click", async () => {
-    if(await actions.createRoom({ name: $("#room-name", backdrop).value, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, settings: { ...mode.defaultSettings, answerTime } })!==false)close();
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, settings: { ...mode.defaultSettings, answerTime } }) !== false) close();
   });
   return backdrop;
 }

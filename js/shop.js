@@ -1,9 +1,9 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels } from "./cosmetics.js?v=20260602-8";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels } from "./cosmetics.js?v=20260604-1";
 import { $, formatClock, icon } from "./utils.js";
 
 let shopTimer;
 export function stopShopTimer() { clearInterval(shopTimer); shopTimer = null; }
-const equipped = (profile, id) => [profile.selectedNickEffect, profile.selectedAvatarFrame, profile.selectedAura].includes(id);
+const equipped = (profile, id) => [profile.selectedNickEffect, profile.selectedAvatarFrame, profile.selectedAura, profile.selectedCandySkin].includes(id);
 
 export function renderShop(root, { profile }, actions) {
   stopShopTimer();
@@ -13,6 +13,7 @@ export function renderShop(root, { profile }, actions) {
     { type:"nick", title:"Nicki" },
     { type:"frame", title:"Ramki" },
     { type:"aura", title:"Aury" },
+    { type:"candy", title:"Cukierki" },
   ];
   const wardrobeHtml = wardrobeGroups.map(group => {
     const items = ownedItems.filter(item => item.type === group.type);

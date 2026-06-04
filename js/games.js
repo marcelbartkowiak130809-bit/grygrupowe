@@ -1,10 +1,11 @@
 import { renderGame } from "./game.js?v=20260603-22";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260604-1";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260603-2";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260604-1";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260603-2";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-1";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-2";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260603-2";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -105,6 +106,20 @@ export const gamesRegistry = {
     art: "friends",
     render: renderFriendshipTestGame,
     defaultSettings: friendshipDefaults,
+  },
+  "zatruty-cukierek": {
+    id: "zatruty-cukierek",
+    name: "Zatruty cukierek!",
+    description: "Zatruj swoje cukierki po cichu, a potem jedzcie po kolei, az przy stole zostanie jedna osoba.",
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "C",
+    art: "candy",
+    render: renderPoisonCandyGame,
+    defaultSettings: poisonCandyDefaults,
   },
 };
 

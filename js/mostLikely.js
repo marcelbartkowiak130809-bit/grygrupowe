@@ -11,6 +11,9 @@ export const mostLikelyDefaults = { questionTime:30, voteTime:15, rounds:8, useP
 const minSelectedCategories = 3;
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
+const requiredPlayerQuestions = settings => settings.playerQuestions && !settings.usePool ? Math.max(1, Number(settings.rounds) || 1) : 1;
+const submittedQuestions = submissions => Object.values(submissions || {}).flatMap(item => Array.isArray(item) ? item : item ? [item] : []).filter(Boolean);
+
 function normalizeMostLikelyGame(game) {
   game.submissions = objectOrEmpty(game.submissions);
   game.votes = objectOrEmpty(game.votes);
@@ -25,6 +28,7 @@ function pool(settings) {
   const available = categories.length ? mostLikelyPrompts.filter(item => categories.includes(item.category)) : mostLikelyPrompts;
   return shuffle(available).map(item => item.text);
 }
+
 function selectedCategories(settings) {
   const safe = categories => [...new Set(categories)].filter(category => mostLikelyCategories.includes(category));
   const fillMinimum = categories => {
@@ -38,27 +42,46 @@ function selectedCategories(settings) {
   if (settings.category && settings.category !== "Wszystkie") return fillMinimum([settings.category]);
   return mostLikelyCategories.filter(category => !category.startsWith("18+"));
 }
+
 function startVoting(game, settings) {
   normalizeMostLikelyGame(game);
   if (!game.questions.length) game.questions = pool(settings).slice(0, settings.rounds);
-  game.phase = "voting"; game.votes = {}; game.phaseEndsAt = now() + settings.voteTime * 1000;
+  game.phase = "voting";
+  game.votes = {};
+  game.phaseEndsAt = now() + settings.voteTime * 1000;
 }
+
 function collectQuestions(game, settings) {
   normalizeMostLikelyGame(game);
-  const submitted = shuffle(Object.values(game.submissions).filter(Boolean));
+  const submitted = shuffle(submittedQuestions(game.submissions));
   const fallback = pool(settings).filter(text => !submitted.includes(text));
-  game.questions = [...submitted, ...(settings.usePool ? fallback : [])].slice(0, Math.max(submitted.length, settings.rounds));
-  while (game.questions.length < settings.rounds) game.questions.push(...pool(settings).slice(0, settings.rounds - game.questions.length));
-  game.questions = shuffle(game.questions).slice(0, Math.max(submitted.length, settings.rounds));
+  if (settings.usePool) {
+    game.questions = [...submitted, ...fallback].slice(0, Math.max(submitted.length, settings.rounds));
+    while (game.questions.length < settings.rounds) game.questions.push(...pool(settings).slice(0, settings.rounds - game.questions.length));
+    game.questions = shuffle(game.questions).slice(0, Math.max(submitted.length, settings.rounds));
+  } else {
+    game.questions = shuffle(submitted).slice(0, settings.rounds);
+  }
   startVoting(game, settings);
 }
+
 function finishVote(game) {
   normalizeMostLikelyGame(game);
-  const counts = {}; Object.values(game.votes).forEach(uid => counts[uid] = (counts[uid] || 0) + 1);
-  const max = Math.max(0, ...Object.values(counts)), winners = Object.keys(counts).filter(uid => counts[uid] === max && max);
+  const counts = {};
+  Object.values(game.votes).forEach(uid => counts[uid] = (counts[uid] || 0) + 1);
+  const max = Math.max(0, ...Object.values(counts));
+  const winners = Object.keys(counts).filter(uid => counts[uid] === max && max);
   winners.forEach(uid => game.totals[uid] = (game.totals[uid] || 0) + 1);
   game.results.push({ question:game.questions[game.round - 1], counts, votes:{ ...game.votes }, winners });
-  game.phase = "roundResult"; game.phaseEndsAt = null;
+  game.phase = "roundResult";
+  game.phaseEndsAt = null;
+}
+
+function formatQuestion(text) {
+  const clean = String(text || "").trim();
+  const lower = clean.toLowerCase();
+  if (lower.startsWith("kto najprędzej") || lower.startsWith("kto najpredzej")) return clean;
+  return `Kto najprędzej ${clean}?`;
 }
 
 export function createMostLikelyGame(players, rawSettings) {
@@ -69,13 +92,16 @@ export function createMostLikelyGame(players, rawSettings) {
   game.phaseEndsAt = now() + (phase === "writingQuestions" ? settings.questionTime : settings.voteTime) * 1000;
   return game;
 }
+
 export const MostLikelyEngine = {
   submitQuestion(game, uid, text, players, settings) {
     normalizeMostLikelyGame(game);
     if (game.phase !== "writingQuestions" || uid in game.submissions) return;
-    if (!text.trim()) return "Wpisz pytanie.";
-    const question = text.trim().toLowerCase().startsWith("kto najprędzej") ? text.trim() : `Kto najprędzej ${text.trim()}?`;
-    game.submissions[uid] = question;
+    const needed = requiredPlayerQuestions(settings);
+    const rawItems = Array.isArray(text) ? text : String(text || "").split("\n");
+    const questions = rawItems.map(item => String(item || "").trim()).filter(Boolean).slice(0, needed).map(formatQuestion);
+    if (questions.length < needed) return needed === 1 ? "Wpisz pytanie." : `Wpisz ${needed} pytan.`;
+    game.submissions[uid] = needed === 1 ? questions[0] : questions;
     if (Object.keys(game.submissions).length >= players.length) collectQuestions(game, settings);
   },
   vote(game, uid, target, players, settings) {
@@ -93,7 +119,8 @@ export const MostLikelyEngine = {
   next(game, settings) {
     normalizeMostLikelyGame(game);
     if (game.round >= game.questions.length) { game.phase = "gameSummary"; return; }
-    game.round++; startVoting(game, settings);
+    game.round++;
+    startVoting(game, settings);
   },
 };
 
@@ -111,19 +138,64 @@ export function renderMostLikelyLobbySettings(room, isHost) {
     <label class="check"><input data-most-setting="showVoteDetails" type="checkbox" ${s.showVoteDetails ? "checked" : ""} ${isHost ? "" : "disabled"}> Pokaż kto na kogo głosował</label>
   </div>`;
 }
-export function stopMostLikelyTimer() { clearInterval(timerId); timerId = null; lastCountdown = null; }
+
+export function stopMostLikelyTimer() {
+  clearInterval(timerId);
+  timerId = null;
+  lastCountdown = null;
+}
+
 const timer = game => `<div class="timer-box"><b id="most-timer">${Math.max(0, Math.ceil((game.phaseEndsAt - now()) / 1000))}s</b></div>`;
+
+function writingQuestionsBody(room, currentUser, game, settings) {
+  const needed = requiredPlayerQuestions(settings);
+  const submitted = currentUser in game.submissions;
+  const title = needed === 1 ? "Napisz pytanie" : `Napisz ${needed} pytań`;
+  const form = needed === 1
+    ? '<form id="most-question-form" class="answer-form"><input data-most-question-input placeholder="Kto najprędzej..."><button class="primary">Dodaj</button></form>'
+    : `<form id="most-question-form" class="most-question-form"><div class="most-question-stack">${Array.from({ length:needed }, (_, index) => `<input data-most-question-input placeholder="Pytanie ${index + 1}: Kto najprędzej...">`).join("")}</div><button class="primary">Dodaj pytania</button></form>`;
+  return `<section class="panel center phase-card"><p class="eyebrow">PRZYGOTOWANIE</p><h1>${title}</h1><p class="muted">W stylu: Kto najprędzej zaśnie na filmie?</p>${timer(game)}${submitted ? `<div class="waiting-state"><span class="waiting-pulse">✓</span><h3>Pytania zapisane</h3><p>Czekamy jeszcze na ${room.players.length - Object.keys(game.submissions).length} graczy. Głosowanie wystartuje automatycznie.</p></div>` : form}<p>${Object.keys(game.submissions).length}/${room.players.length} graczy wysłało pytania</p></section>`;
+}
+
 export function renderMostLikelyGame(root, { room, accounts, currentUser }, actions) {
-  stopMostLikelyTimer(); const g = room.game, s = { ...mostLikelyDefaults, ...room.settings }; g.submissions ||= {}; g.questions ||= []; g.votes ||= {}; g.results ||= []; g.totals ||= Object.fromEntries(room.players.map(uid => [uid, 0])); let body;
-  if(g.phase==="roundResult")Effects.play("voteResult",`${room.roomId}:most:${g.round}`);if(g.phase==="gameSummary")Effects.play("roundWin",`${room.roomId}:most:summary`);
-  if (g.phase === "writingQuestions") body = `<section class="panel center phase-card"><p class="eyebrow">PRZYGOTOWANIE</p><h1>Napisz pytanie</h1><p class="muted">W stylu: Kto najprędzej zaśnie na filmie?</p>${timer(g)}${currentUser in g.submissions ? `<div class="waiting-state"><span class="waiting-pulse">✓</span><h3>Pytanie zapisane</h3><p>Czekamy jeszcze na ${room.players.length - Object.keys(g.submissions).length} graczy. Głosowanie wystartuje automatycznie.</p></div>` : '<form id="most-question-form" class="answer-form"><input id="most-question" placeholder="Kto najprędzej..."><button class="primary">Dodaj</button></form>'}<p>${Object.keys(g.submissions).length}/${room.players.length} graczy wysłało pytanie</p></section>`;
+  stopMostLikelyTimer();
+  const g = room.game, s = { ...mostLikelyDefaults, ...room.settings };
+  g.submissions ||= {};
+  g.questions ||= [];
+  g.votes ||= {};
+  g.results ||= [];
+  g.totals ||= Object.fromEntries(room.players.map(uid => [uid, 0]));
+  let body;
+  if (g.phase === "roundResult") Effects.play("voteResult", `${room.roomId}:most:${g.round}`);
+  if (g.phase === "gameSummary") Effects.play("roundWin", `${room.roomId}:most:summary`);
+  if (g.phase === "writingQuestions") body = writingQuestionsBody(room, currentUser, g, s);
   else if (g.phase === "voting") body = `<section class="panel center phase-card"><p class="eyebrow">RUNDA ${g.round}/${g.questions.length}</p><h1>${escapeHtml(g.questions[g.round - 1])}</h1>${timer(g)}${currentUser in g.votes ? `<div class="waiting-state"><span class="waiting-pulse">✓</span><h3>Głos zapisany</h3><p>Czekamy na pozostałych graczy. Wynik rundy pojawi się automatycznie.</p></div>` : `<div class="vote-grid">${room.players.map(uid => `<button data-most-vote="${uid}" ${!s.allowSelfVote && uid === currentUser ? "disabled" : ""}>${mini(accounts[uid])}</button>`).join("")}</div>`}</section>`;
-  else if (g.phase === "roundResult") { const result = g.results.at(-1); body = `<section class="panel center phase-card"><p class="eyebrow">WYNIK RUNDY</p><h1>${escapeHtml(result.question)}</h1><div class="result-player-grid">${room.players.map(uid => `<article class="${result.winners.includes(uid) ? "winner-card" : ""}">${mini(accounts[uid])}<strong>${result.counts[uid] || 0} gł.</strong></article>`).join("")}</div>${s.showVoteDetails ? `<div class="vote-details">${Object.entries(result.votes).map(([uid, target]) => `<span>${escapeHtml(accounts[uid]?.nick)} → ${escapeHtml(accounts[target]?.nick)}</span>`).join("")}</div>` : ""}<button class="primary" id="most-next">Następne pytanie</button></section>`; }
-  else { const ranking = Object.entries(g.totals).sort((a, b) => b[1] - a[1]); body = `<section class="panel center phase-card"><p class="eyebrow">PODSUMOWANIE</p><h1>Najczęściej wybierani</h1><p class="muted">Ekipa przemówiła. Nie przyjmujemy reklamacji.</p><div class="final-ranking">${ranking.map(([uid, score], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${score} razy</strong></article>`).join("")}</div><p class="money-pop">Każdy uczestnik otrzymuje +25$, zwycięzcy rund po +10$.</p><button class="primary" id="most-lobby">Wróć do lobby</button></section>`; }
-  root.innerHTML = `<main class="page social-page vote-board board-shell enter">${boardPlayerStripHtml(room.players,accounts,{scores:g.totals})}<section class="vote-table">${body}</section><button class="ghost" id="leave-room">Wyjdź z pokoju</button></main>`;
-  $("#leave-room").addEventListener("click", actions.leaveRoom); $("#most-question-form")?.addEventListener("submit", event => { event.preventDefault(); actions.mostLikelyQuestion($("#most-question").value); });
+  else if (g.phase === "roundResult") {
+    const result = g.results.at(-1);
+    body = `<section class="panel center phase-card"><p class="eyebrow">WYNIK RUNDY</p><h1>${escapeHtml(result.question)}</h1><div class="result-player-grid">${room.players.map(uid => `<article class="${result.winners.includes(uid) ? "winner-card" : ""}">${mini(accounts[uid])}<strong>${result.counts[uid] || 0} gł.</strong></article>`).join("")}</div>${s.showVoteDetails ? `<div class="vote-details">${Object.entries(result.votes).map(([uid, target]) => `<span>${escapeHtml(accounts[uid]?.nick)} → ${escapeHtml(accounts[target]?.nick)}</span>`).join("")}</div>` : ""}<button class="primary" id="most-next">Następne pytanie</button></section>`;
+  } else {
+    const ranking = Object.entries(g.totals).sort((a, b) => b[1] - a[1]);
+    body = `<section class="panel center phase-card"><p class="eyebrow">PODSUMOWANIE</p><h1>Najczęściej wybierani</h1><p class="muted">Ekipa przemówiła. Nie przyjmujemy reklamacji.</p><div class="final-ranking">${ranking.map(([uid, score], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${score} razy</strong></article>`).join("")}</div><p class="money-pop">Każdy uczestnik otrzymuje +25$, zwycięzcy rund po +10$.</p><button class="primary" id="most-lobby">Wróć do lobby</button></section>`;
+  }
+  root.innerHTML = `<main class="page social-page vote-board board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:g.totals })}<section class="vote-table">${body}</section><button class="ghost" id="leave-room">Wyjdź z pokoju</button></main>`;
+  $("#leave-room").addEventListener("click", actions.leaveRoom);
+  $("#most-question-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    actions.mostLikelyQuestion([...root.querySelectorAll("[data-most-question-input]")].map(input => input.value));
+  });
   root.querySelectorAll("[data-most-vote]").forEach(button => button.addEventListener("click", () => actions.mostLikelyVote(button.dataset.mostVote)));
-  $("#most-next")?.addEventListener("click", actions.mostLikelyNext); $("#most-lobby")?.addEventListener("click", actions.returnToRoom);
+  $("#most-next")?.addEventListener("click", actions.mostLikelyNext);
+  $("#most-lobby")?.addEventListener("click", actions.returnToRoom);
   if (["writingQuestions", "voting"].includes(g.phase)) startTimer(actions);
 }
-function startTimer(actions) { timerId = setInterval(() => { const el = $("#most-timer"); if (!el) return; const left = Math.max(0, Number(el.textContent.replace("s", "")) - 1); el.textContent = `${left}s`; if (left > 0 && left <= 3 && lastCountdown !== left) { lastCountdown = left; Audio.play("countdown"); } if (!left) { stopMostLikelyTimer(); actions.mostLikelyTimeout(); } }, 1000); }
+
+function startTimer(actions) {
+  timerId = setInterval(() => {
+    const el = $("#most-timer");
+    if (!el) return;
+    const left = Math.max(0, Number(el.textContent.replace("s", "")) - 1);
+    el.textContent = `${left}s`;
+    if (left > 0 && left <= 3 && lastCountdown !== left) { lastCountdown = left; Audio.play("countdown"); }
+    if (!left) { stopMostLikelyTimer(); actions.mostLikelyTimeout(); }
+  }, 1000);
+}

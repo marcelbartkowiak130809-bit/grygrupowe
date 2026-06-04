@@ -2,6 +2,11 @@ const item = (id, type, name, price, rarity, description, options = {}) => ({ id
 export const rarityLabels = { common:"Common", rare:"Rare", epic:"Epic", legendary:"Legendary", mythic:"Mythic" };
 
 export const cosmetics = [
+  item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
+  item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
+  item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
+  item("jellyCandy","candy","Galaretka",1800,"rare","Miekki zelkowy wyglad cukierkow tylko do trybu Zatruty cukierek."),
+  item("cosmicCandy","candy","Kosmiczny cukierek",3200,"epic","Animowany kosmiczny skin cukierkow tylko do trybu Zatruty cukierek."),
   item("defaultNick","nick","Zwykły nick",0,"common","Klasyczny wygląd nicku."),
   item("redNick","nick","Czerwony nick",250,"common","Wyrazisty czerwony kolor."),
   item("blueNick","nick","Niebieski nick",250,"common","Spokojny niebieski kolor."),
@@ -106,6 +111,13 @@ export const cosmetics = [
 const escapeAttr = value => String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char]);
 
 export function cosmeticPreview(item, profile = {}, options = {}) {
+  if (item.type === "candy") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-candy">
+      <div class="shop-candy candy-${item.id}"><span></span></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">CUKIEREK</small>'}
+    </div>`;
+  }
   const nick = item.type === "nick" ? item.id : "defaultNick";
   const frame = item.type === "frame" ? item.id : "defaultFrame";
   const aura = item.type === "aura" ? item.id : "noAura";
