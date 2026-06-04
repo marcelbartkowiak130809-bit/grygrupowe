@@ -182,11 +182,8 @@ function questCard(quest, stats, profile) {
 
 function statsPanel(profile) {
   const stats = normalizeGameStats(profile);
-  const cards = id => {
-    const item = id === "all" ? stats : modeStats(stats.modes[id]);
-    return `<div class="stats-cards" data-stats-view="${id}" ${id === "all" ? "" : "hidden"}><span><b>${item.played}</b><small>zagrane</small></span><span><b>${item.wins}</b><small>wygrane</small></span><span><b>${item.losses}</b><small>przegrane</small></span></div>`;
-  };
-  return `<section class="progression-side-card"><div class="section-heading"><div><p class="eyebrow">STATYSTYKI</p><h3>Twoje gry</h3></div></div><select id="progression-stats-mode">${Object.entries(modeLabels).map(([id,label]) => `<option value="${id}">${label}</option>`).join("")}</select>${["all", ...modeIds].map(cards).join("")}</section>`;
+  const payload = { all:modeStats(stats), ...Object.fromEntries(modeIds.map(id => [id,modeStats(stats.modes[id])])) };
+  return `<section class="progression-side-card" data-stats-map='${JSON.stringify(payload)}'><div class="section-heading"><div><p class="eyebrow">STATYSTYKI</p><h3>Twoje gry</h3></div></div><select id="progression-stats-mode">${Object.entries(modeLabels).map(([id,label]) => `<option value="${id}">${label}</option>`).join("")}</select><div class="stats-cards"><span><b data-stat="played">${payload.all.played}</b><small>zagrane</small></span><span><b data-stat="wins">${payload.all.wins}</b><small>wygrane</small></span><span><b data-stat="losses">${payload.all.losses}</b><small>przegrane</small></span></div></section>`;
 }
 
 export function progressionModal(profile = {}, closeAction, claimAction) {
@@ -211,6 +208,11 @@ export function progressionModal(profile = {}, closeAction, claimAction) {
   </section>`;
   modal.querySelector("[data-close]").addEventListener("click", () => closeAction(modal));
   modal.querySelector("#claim-quests")?.addEventListener("click", () => { modal.querySelectorAll(".quest-board").forEach(board => board.classList.add("quest-claiming")); setTimeout(() => claimAction?.(modal), 650); });
-  modal.querySelector("#progression-stats-mode")?.addEventListener("change", event => modal.querySelectorAll("[data-stats-view]").forEach(view => view.hidden = view.dataset.statsView !== event.target.value));
+  modal.querySelector("#progression-stats-mode")?.addEventListener("change", event => {
+    const panel = event.target.closest("[data-stats-map]"), stats = JSON.parse(panel?.dataset.statsMap || "{}")[event.target.value] || {};
+    panel?.querySelector('[data-stat="played"]')?.replaceChildren(String(stats.played || 0));
+    panel?.querySelector('[data-stat="wins"]')?.replaceChildren(String(stats.wins || 0));
+    panel?.querySelector('[data-stat="losses"]')?.replaceChildren(String(stats.losses || 0));
+  });
   return modal;
 }

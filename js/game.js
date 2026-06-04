@@ -1,9 +1,9 @@
-import { categories } from "./categories.js?v=20260603-12";
+import { categories } from "./categories.js?v=20260604-13";
 import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js";
 import { playerMini } from "./room.js?v=20260602-1";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { canonicalAnswerKey } from "../content/udowodnij/expandedPools.js?v=20260603-7";
+import { canonicalAnswerKey } from "../content/udowodnij/expandedPools.js?v=20260604-8";
 import { serverNow } from "./firebase.js?v=20260604-6";
 
 let timerId;
@@ -101,9 +101,15 @@ export function renderGame(root, { room, accounts, currentUser }, actions) {
   $("#plus-one")?.addEventListener("click", actions.plusOne);
   $("#challenge")?.addEventListener("click", actions.challenge);
   $("#next-round")?.addEventListener("click", actions.nextRound);
-  const submitCurrentAnswer = () => {
+  const submitCurrentAnswer = async () => {
     const input = $("#answer-input");
-    if (input) actions.submitAnswer(input.value, task.answers);
+    if (!input) return;
+    const accepted = await actions.submitAnswer(input.value, task.answers);
+    const freshInput = $("#answer-input");
+    if (accepted && freshInput) {
+      freshInput.value = "";
+      freshInput.focus();
+    }
   };
   $("#answer-form")?.addEventListener("submit", event => {
     event.preventDefault();

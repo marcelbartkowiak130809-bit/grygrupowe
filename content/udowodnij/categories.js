@@ -1,5 +1,5 @@
 import { pokemonAnswers } from "./pokemon.js";
-import { aliases, expandedPools, focusedPools, mergeUnique, supplementalPools } from "./expandedPools.js?v=20260603-7";
+import { aliases, expandedPools, focusedPools, mergeUnique, supplementalPools } from "./expandedPools.js?v=20260604-8";
 import { newCategoryDefinitions, newCategoryPools, newCategoryPrompts } from "./newCategories.js?v=20260602-2";
 import { moreAnswerPools } from "./moreAnswers.js?v=20260602-3";
 import { specificTasks } from "./specificTasks.js?v=20260603-4";
@@ -56,6 +56,28 @@ const promptSets = {
   brands:["Wymień popularne marki"],
   pokemon:["Wymień Pokémony"],
   ...newCategoryPrompts,
+};
+
+const extraPromptSets = {
+  animals:["Wymien zwierzeta domowe albo dzikie"],
+  fruits:["Wymien owoce, ktore mozna kupic w sklepie"],
+  countries:["Wymien panstwa z dowolnego kontynentu"],
+  games:["Wymien popularne gry, stare albo nowe"],
+  tech:["Wymien sprzet, aplikacje albo pojecia z technologii"],
+  food:["Wymien dania, przekaski albo desery"],
+  school:["Wymien przedmioty, miejsca albo rzeczy ze szkoly"],
+  music:["Wymien wykonawcow, gatunki albo instrumenty"],
+  sport:["Wymien sporty, kluby albo rzeczy ze sportu"],
+  cities:["Wymien miasta w Polsce albo za granica"],
+  movies:["Wymien filmy, seriale albo bajki"],
+  everyday:["Wymien rzeczy, ktore czesto sa w domu"],
+  vegetables:["Wymien warzywa albo straczki"],
+  internet:["Wymien aplikacje, strony albo slowa z internetu"],
+  minecraft:["Wymien moby, bloki albo przedmioty z Minecrafta"],
+  roblox:["Wymien gry, miejsca albo rzeczy z Robloxa"],
+  creators:["Wymien tworcow internetowych"],
+  brands:["Wymien marki sklepowe, technologiczne albo modowe"],
+  pokemon:["Wymien Pokemony z dowolnej generacji"],
 };
 
 const definitions = [
@@ -115,7 +137,7 @@ export const categories = definitions.map(([id,name]) => ({
   id,
   name,
   tasks:[
-    ...tasks(id,pools[id],promptSets[id]),
+    ...tasks(id,pools[id],[...(promptSets[id] || []),...(extraPromptSets[id] || [])]),
     ...(specificTasks[id] || []).map(([taskId,prompt,answers]) => ({ id:taskId,prompt,answers:mergeUnique(answers) })),
     ...(focusedTasks[id] || []).map(([taskId,prompt,answers]) => ({ id:taskId,prompt,answers:mergeUnique(answers) })),
   ],
