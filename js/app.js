@@ -1,26 +1,26 @@
-import { accountModal, authModal } from "./auth.js?v=20260604-1";
+import { accountModal, authModal } from "./auth.js?v=20260604-2";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260604-1";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260604-3";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-6";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260604-23";
-import { getGameMode } from "./games.js?v=20260604-7";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260604-1";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260604-3";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260604-1";
-import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260604-1";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
-import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260604-3";
-import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260604-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-4";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-5";
-import { renderPlatform } from "./platform.js?v=20260604-4";
+import { cosmetics } from "./cosmetics.js?v=20260605-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-7";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
+import { getGameMode } from "./games.js?v=20260605-2";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-2";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-1";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260604-2";
+import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-1";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260605-1";
+import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260605-1";
+import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-1";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
+import { renderPlatform } from "./platform.js?v=20260605-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260604-7";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260604-3";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260604-1";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260604-3";
+import { playerMini, renderRoom } from "./room.js?v=20260605-2";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260605-1";
+import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-1";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-1";
 
 const root = $("#app");
 const accounts = loadAccounts();
@@ -71,7 +71,7 @@ function currentScreenSignature() {
   if (Router.current === "lobby") return lobbySignature();
   return "";
 }
-const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => account.nick === nick && !account.nickOnly);
+const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => normalizeNick(account.nick) === normalizeNick(nick) && !account.nickOnly);
 const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode});
 let restoredRoom=false;
@@ -261,6 +261,13 @@ function message(text, type = "error") {
   setTimeout(() => toast.remove(), 3200);
 }
 const isAdminProfile = item => String(item?.nick || "").toLowerCase() === "panda";
+function validBirthDate(value) {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return "";
+  const date = new Date(`${text}T00:00:00`);
+  if (Number.isNaN(date.getTime()) || date > new Date()) return "";
+  return text;
+}
 const reportableMode = room => Boolean(getGameMode(room?.gameMode).allowReports);
 const adultAcceptedKey = modeId => `adult-warning:${modeId || "global"}`;
 const hasAdultCategory = settings => [settings?.category, ...(Array.isArray(settings?.categories) ? settings.categories : [])].some(item => String(item || "").startsWith("18+"));
@@ -317,6 +324,17 @@ function closeLonelyFinishedRoom(room, { notify = false } = {}) {
   const wasActive = state.activeRoomId === room.roomId;
   removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId);
   if (wasActive) { state.activeRoomId = null; persistSession(); Router.go("platform"); if (notify) showRoomClosedNotice(); }
+  return true;
+}
+function leaveKickedRoom(room, { notify = true } = {}) {
+  if (!room || !state.currentUser || room.players.includes(state.currentUser)) return false;
+  if (state.activeRoomId !== room.roomId) return false;
+  state.selectedGameMode = room.gameMode || state.selectedGameMode;
+  state.activeRoomId = null;
+  persistSession();
+  identityVoiceChat.stop();
+  Router.go("lobby");
+  if (notify) message("Zostales wyrzucony z pokoju.", "info");
   return true;
 }
 function requiredProvePlayers(room) {
@@ -491,8 +509,10 @@ async function adminPanelModal() {
   const bans=Object.values(await loadModerationBans()).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
   const modal=document.createElement("div");modal.className="modal-backdrop";
   modal.innerHTML=`<section class="modal admin-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">PANEL ADMINA</p><h2>Inbox zgłoszeń</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="admin-grid"><section><h3>Zgłoszenia</h3><div class="inbox-list">${reports.length?reports.map(item=>`<article><b>${escapeHtml(item.reportedNick||item.targetNick||"Gracz")}</b><small>${escapeHtml(item.modeName||item.modeId||"")} · ${item.createdAt?new Date(item.createdAt).toLocaleString("pl-PL"):""}</small><p>${escapeHtml(item.description||"")}</p><button data-admin-reply="${item.id}">Odpowiedz</button></article>`).join(""):'<p class="muted">Brak zgłoszeń.</p>'}</div></section><section><h3>Wiadomość do gracza</h3><label>Nick</label><input id="admin-message-nick" placeholder="nick"><label>Treść</label><textarea id="admin-message-body" maxlength="700"></textarea><button class="primary full" id="admin-send-message">Wyślij</button><h3>Ban</h3><label>Nick</label><input id="admin-ban-nick" placeholder="nick"><label>IP / identyfikator</label><input id="admin-ban-ip" placeholder="opcjonalnie"><label>Tryby</label><input id="admin-ban-modes" placeholder="global albo np. impostor,udowodnij"><label>Czas bana</label><select id="admin-ban-duration"><option value="3600000">1 godzina</option><option value="86400000">1 dzień</option><option value="604800000">7 dni</option><option value="0">Na stałe</option></select><label>Powód</label><textarea id="admin-ban-reason" maxlength="500"></textarea><button class="danger full" id="admin-ban-submit">Nadaj bana</button><div class="tiny">Aktywne bany: ${bans.length}</div></section></div></section>`;
+  modal.querySelector("#admin-send-message")?.insertAdjacentHTML("afterend", `<section class="admin-mini-panel"><h3>Data urodzenia</h3><label>Nick</label><input id="admin-birth-nick" placeholder="nick gracza"><label>Nowa data</label><input id="admin-birth-date" type="date"><button class="primary full" id="admin-birth-submit">Zapisz date</button></section>`);
   modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
   modal.querySelector("#admin-send-message").addEventListener("click",()=>actions.adminSendMessage(modal.querySelector("#admin-message-nick").value,modal.querySelector("#admin-message-body").value));
+  modal.querySelector("#admin-birth-submit").addEventListener("click",()=>actions.adminSetBirthDate(modal.querySelector("#admin-birth-nick").value,modal.querySelector("#admin-birth-date").value));
   modal.querySelector("#admin-ban-submit").addEventListener("click",()=>actions.adminBanPlayer({ nick:modal.querySelector("#admin-ban-nick").value, ip:modal.querySelector("#admin-ban-ip").value, modes:modal.querySelector("#admin-ban-modes").value, duration:Number(modal.querySelector("#admin-ban-duration").value), reason:modal.querySelector("#admin-ban-reason").value }));
   modal.querySelectorAll("[data-admin-reply]").forEach(button=>button.addEventListener("click",()=>{const report=reports.find(item=>item.id===button.dataset.adminReply);if(report){modal.querySelector("#admin-message-nick").value=report.reporterNick||"";modal.querySelector("#admin-message-body").value=`Odpowiedź do zgłoszenia ${report.id}: `;}}));
   document.body.append(modal);Audio.play("modalOpen");
@@ -599,12 +619,36 @@ const actions = {
     await submitModerationReport({ type:"birthDateChange", reporterUid:state.currentUser, reporterNick:user.nick, reportedUid:state.currentUser, reportedNick:user.nick, modeId:"account", modeName:"Konto", description:body, document:{ name:file.name, type:file.type, size:file.size } });
     user.inbox=[...(user.inbox||[]),{id:uid("MSG"),subject:"Prośba wysłana",body:"Prośba o zmianę daty urodzenia trafiła do administracji.",createdAt:Date.now()}];saveAccounts(state.accounts);syncPlayerProfile(state.currentUser,user);message("Prośba wysłana do administracji.","info");return true;
   },
+  setOwnBirthDate(value) {
+    const user=profile(), birthDate=validBirthDate(value);
+    if(!user||user.nickOnly)return false;
+    if(user.birthDate)return message("Data urodzenia jest juz ustawiona. Zmiana wymaga administracji.","info");
+    if(!birthDate)return message("Podaj poprawna date urodzenia.");
+    updateProfile({ birthDate });
+    message("Data urodzenia zapisana.","info");
+    return true;
+  },
   async adminSendMessage(nick, body) {
     if(!isAdminProfile(profile()))return message("Brak dostępu.");
     const clean=normalizeNick(nick), text=String(body||"").trim(); if(!clean||text.length<2)return message("Podaj nick i treść.");
     await sendInboxMessageToNick(clean,{fromNick:profile().nick,subject:"Wiadomość od administracji",body:text});
     const entry=accountByNick(clean); if(entry){entry[1].inbox=[...(entry[1].inbox||[]),{id:uid("MSG"),fromNick:profile().nick,subject:"Wiadomość od administracji",body:text,createdAt:Date.now()}];saveAccounts(state.accounts);}
     message("Wiadomość wysłana.","info");
+  },
+  async adminSetBirthDate(nick, value) {
+    if(!isAdminProfile(profile()))return message("Brak dostepu.");
+    const clean=normalizeNick(nick), birthDate=validBirthDate(value);
+    if(!clean||!birthDate)return message("Podaj nick i poprawna date.");
+    const entry=accountByNick(clean);
+    if(entry){
+      entry[1].birthDate=birthDate; entry[1].updatedAt=Date.now();
+      await syncPlayerProfile(entry[0],entry[1]);
+      saveAccounts(state.accounts);
+    }
+    const remoteUpdated=await setRemoteBirthDateForNick(clean,birthDate);
+    await sendInboxMessageToNick(clean,{fromNick:profile().nick,subject:"Data urodzenia zmieniona",body:`Administrator ustawil date urodzenia na ${birthDate}.`});
+    if(!entry&&!remoteUpdated)return message("Nie znaleziono profilu po nicku. Jesli gracz nigdy nie byl online tutaj, nie da sie go zaktualizowac.");
+    message("Data urodzenia zapisana.","info");
   },
   async adminBanPlayer({nick, ip, modes, duration, reason}) {
     if(!isAdminProfile(profile()))return message("Brak dostępu.");
@@ -723,6 +767,8 @@ const actions = {
   impostorTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const guard={phase:room.game?.phase,phaseEndsAt:room.game?.phaseEndsAt||0,round:room.game?.round||0,turnIndex:room.game?.turnIndex??""};return mutateRoomGame((game,current)=>{if(expected.phase&&game.phase!==expected.phase)return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";if(expected.round&&Number(game.round||0)!==Number(expected.round))return"Faza gry juz sie zmienila.";if(String(game.turnIndex??"")!==String(expected.turnIndex??guard.turnIndex))return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
   impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:"vote"});},
   impostorVote(target){return mutateRoomGame(game=>ImpostorEngine.vote(game,state.currentUser,target),{sound:"vote",after:settleImpostorResult});},
+  impostorFinalGuess(text){return mutateRoomGame(game=>ImpostorEngine.finalGuess(game,state.currentUser,text),{sound:"submit",after:settleImpostorResult});},
+  impostorFinalSurrender(){return mutateRoomGame(game=>ImpostorEngine.finalSurrender(game,state.currentUser),{sound:"choice",after:settleImpostorResult});},
   impostorReact(text){return mutateRoomGame(game=>ImpostorEngine.react(game,state.currentUser,text)?null:"Reakcja odnawia się co 5 sekund.",{sound:"notification"});},
   impostorChat(text){const room=activeRoom();if(!room?.settings.chatEnabled)return;return mutateRoomGame(game=>ImpostorEngine.chat(game,state.currentUser,text),{sound:"chat"});},
   impostorPlayAgain(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;room.status="lobby";room.game=null;touchRoom(room);Router.go("room");},
@@ -847,7 +893,7 @@ function render(options = {}) {
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen!=="game") identityVoiceChat.stop();
   if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous"})); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
-  const room=activeRoom(); if(!room) return Router.go("platform"); if(closeLonelyFinishedRoom(room,{notify:true}))return;
+  const room=activeRoom(); if(!room) return Router.go("platform"); if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature();
     try {
@@ -873,6 +919,7 @@ function connectRooms(){
     });
     state.rooms=[...rooms.values()];saveAccounts(state.accounts);
     const room=activeRoom();
+    if(room&&source==="remote"&&leaveKickedRoom(room))return;
     if(room&&interruptProveRoundWithMissingPlayer(room)){if(closeLonelyFinishedRoom(room,{notify:true}))return;touchRoom(room);return render();}
     if(room&&closeLonelyFinishedRoom(room,{notify:true}))return;
     if(requestedRoomId&&source==="remote"&&!room&&!pendingRoomSyncs.has(requestedRoomId)){state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();return;}

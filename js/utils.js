@@ -1,4 +1,4 @@
-import { levelBadgeHtml } from "./progression.js?v=20260604-2";
+import { levelBadgeHtml } from "./progression.js?v=20260605-1";
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -17,9 +17,35 @@ export function avatarHtml(profile = {}, className = "") {
   return `<div class="${classes}">${content}</div>`;
 }
 
+function playerFxHtml(profile = {}) {
+  return [profile.selectedWinAnimation, profile.selectedLoseAnimation].filter(Boolean).map(id => {
+    if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span>';
+    if (id === "winMeteor" || id === "loseMeteorHit") return '<span class="fx-meteor"></span><span class="fx-impact"></span>';
+    if (id === "loseBlackHole" || id === "levelVoidLose") return '<span class="fx-black-hole"></span>';
+    if (id === "loseDemonLaugh" || id === "winDemonKing") return '<span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
+    if (id === "winMoney" || id === "winRoyalRain") return '<span class="fx-money money-a">$</span><span class="fx-money money-b">$</span><span class="fx-money money-c">$</span>';
+    if (id === "winCrown" || id === "loseCrownDrop" || id === "levelChampionWin") return '<span class="fx-crown">CR</span>';
+    if (id === "winSpotlight") return '<span class="fx-spotlight"></span>';
+    if (id === "winConfetti" || id === "winFireworks") return '<span class="fx-burst burst-a"></span><span class="fx-burst burst-b"></span><span class="fx-burst burst-c"></span><span class="fx-burst burst-d"></span>';
+    if (id === "winLightning" || id === "loseThunder") return '<span class="fx-lightning"></span>';
+    if (id === "winTrophy") return '<span class="fx-trophy">T</span>';
+    if (id === "winPortal" || id === "losePortal" || id === "winAscend" || id === "levelAscendWin") return '<span class="fx-portal-ring"></span><span class="fx-portal-core"></span>';
+    if (id === "winHalo") return '<span class="fx-halo-ring"></span>';
+    if (id === "winStageBow") return '<span class="fx-stage-floor"></span>';
+    if (id === "loseFreeze") return '<span class="fx-freeze-pane"></span><span class="fx-ice-crack crack-a"></span><span class="fx-ice-crack crack-b"></span>';
+    if (id === "loseBurn") return '<span class="fx-ash ash-a"></span><span class="fx-ash ash-b"></span><span class="fx-ash ash-c"></span>';
+    if (id === "loseCrack" || id === "levelShatterLose") return '<span class="fx-glass-crack"></span>';
+    if (id === "losePixelBreak") return '<span class="fx-pixels pixel-a"></span><span class="fx-pixels pixel-b"></span><span class="fx-pixels pixel-c"></span><span class="fx-pixels pixel-d"></span>';
+    if (id === "loseLetters") return '<span class="fx-letter l-a">G</span><span class="fx-letter l-b">R</span><span class="fx-letter l-c">!</span>';
+    if (id === "loseDust") return '<span class="fx-dust dust-a"></span><span class="fx-dust dust-b"></span><span class="fx-dust dust-c"></span>';
+    if (id === "loseBonk" || id === "loseSquash") return '<span class="fx-weight"></span>';
+    return "";
+  }).join("");
+}
+
 export function playerMiniHtml(profile = {}, className = "") {
   const animationClasses = `${profile.selectedWinAnimation || ""} ${profile.selectedLoseAnimation || ""}`.trim();
-  return `<div class="mini-player ${animationClasses} ${className}">${avatarHtml(profile)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+  return `<div class="mini-player ${animationClasses} ${className}">${playerFxHtml(profile)}${avatarHtml(profile)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
 }
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {

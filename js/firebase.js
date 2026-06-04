@@ -220,6 +220,17 @@ export async function syncPlayerProfile(uid, profile) {
     return true;
   } catch { return false; }
 }
+export async function setRemoteBirthDateForNick(nick, birthDate) {
+  const key = normalizeNickKey(nick);
+  if (!remoteDatabase || !key || !birthDate) return false;
+  try {
+    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "profiles"));
+    const match = Object.entries(snapshot.val() || {}).find(([, item]) => normalizeNickKey(item?.nick) === key);
+    if (!match) return false;
+    await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${match[0]}`), { birthDate, updatedAt:Date.now() });
+    return true;
+  } catch { return false; }
+}
 export function hashRoomPassword(value = "") {
   let hash = 2166136261;
   for (const char of String(value)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); }

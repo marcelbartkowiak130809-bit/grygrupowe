@@ -1,8 +1,8 @@
-import { $, escapeHtml, icon } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260604-7";
+import { $, escapeHtml, icon } from "./utils.js?v=20260605-1";
+import { getGameMode } from "./games.js?v=20260605-2";
 
 function roomCard(room, mode) {
-  const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "voice" ? "Tryb głosowy" : "Tryb normalny"}</span>` : "";
+  const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "browserVoice" || room.settings?.gameFlow === "voice" ? "Voice chat w grze" : room.settings?.gameFlow === "externalVoice" ? "Glos poza gra" : "Tryb tekstowy"}</span>` : "";
   const adult = Boolean(mode.adult || [room.settings?.category, ...(Array.isArray(room.settings?.categories) ? room.settings.categories : [])].some(item => String(item || "").startsWith("18+")));
   return `<article class="room-card">
     <div><div class="room-mode">${mode.symbol} ${mode.name}</div><h3>${escapeHtml(room.name)}</h3>

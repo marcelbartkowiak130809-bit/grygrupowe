@@ -1,5 +1,5 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-1";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
@@ -42,7 +42,7 @@ const settingsWithDefaults = settings => {
   s.rounds = clampNumber(s.rounds, 1, 10, identityDefaults.rounds);
   s.targetScore = clampNumber(s.targetScore, 1, 5, identityDefaults.targetScore);
   s.turnTime = clampNumber(s.turnTime, 20, 90, identityDefaults.turnTime);
-  s.gameFlow = s.gameFlow === "voice" ? "voice" : "normal";
+  s.gameFlow = ["externalVoice", "browserVoice"].includes(s.gameFlow) ? s.gameFlow : s.gameFlow === "voice" ? "browserVoice" : "normal";
   s.categories = normalizeCategories(s);
   s.category = s.categories[0] || "";
   return s;
@@ -212,7 +212,7 @@ export const IdentityEngine = {
   voiceQuestion(game, uid, settingsRaw) {
     const settings = settingsWithDefaults(settingsRaw);
     normalizeIdentityGame(game);
-    if (settings.gameFlow !== "voice") return "Ten pokoj nie jest w trybie glosowym.";
+    if (!["externalVoice", "browserVoice"].includes(settings.gameFlow)) return "Ten pokoj nie jest w trybie glosowym.";
     if (game.phase !== "turn" || game.order[game.turnIndex] !== uid) return "To nie jest twoja tura.";
     game.pending = { uid, text: "Pytanie glosowe", type: "question", correct: false, voice: true };
     game.phase = "responses";
@@ -266,8 +266,13 @@ export function renderIdentityLobbySettings(room, isHost) {
   const totalMinutes = Math.ceil((s.turnTime * s.rounds * players) / 60);
   const extraRoundMinutes = Math.ceil((s.turnTime * players) / 60);
   const categoryChecks = identityCategoryNames.map(name => `<label class="check"><input data-identity-category="${escapeHtml(name)}" type="checkbox" ${s.categories.includes(name) ? "checked" : ""} ${isHost ? "" : "disabled"}> ${escapeHtml(name)}</label>`).join("");
+  const flowNote = s.gameFlow === "browserVoice"
+    ? "Voice chat w grze: strona poprosi o mikrofon i sama przelacza, kto moze mowic."
+    : s.gameFlow === "externalVoice"
+      ? "Glos poza gra: rozmawiacie przez Discorda lub inny komunikator, a strona tylko pilnuje tur."
+      : "Tryb pisany: pytania i odpowiedzi ida przez ekran gry.";
   return `<div class="impostor-settings-grid">
-<label>Tryb gry<select data-identity-setting="gameFlow" ${isHost ? "" : "disabled"}><option value="normal" ${s.gameFlow === "normal" ? "selected" : ""}>Normalny, pisany</option><option value="voice" ${s.gameFlow === "voice" ? "selected" : ""}>Głosowy / Discord</option></select></label>
+<label>Tryb gry<select data-identity-setting="gameFlow" ${isHost ? "" : "disabled"}><option value="normal" ${s.gameFlow === "normal" ? "selected" : ""}>Tekstowy</option><option value="externalVoice" ${s.gameFlow === "externalVoice" ? "selected" : ""}>Glosowy poza gra</option><option value="browserVoice" ${s.gameFlow === "browserVoice" ? "selected" : ""}>Voice chat w grze</option></select></label>
 <label>Czas tury <b>${s.turnTime}s</b><input data-identity-setting="turnTime" type="range" min="20" max="90" step="5" value="${s.turnTime}" ${isHost ? "" : "disabled"}></label>
 <label>Liczba rund<select data-identity-setting="rounds" ${isHost ? "" : "disabled"}>${[1,2,3,4,5,6,7,8,9,10].map(n => `<option ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
 <label>Gramy do<select data-identity-setting="targetScore" ${isHost ? "" : "disabled"}>${[1,2,3,4,5].map(n => `<option ${s.targetScore === n ? "selected" : ""}>${n} trafien${n === 1 ? "ia" : ""}</option>`).join("")}</select></label>
@@ -276,12 +281,11 @@ export function renderIdentityLobbySettings(room, isHost) {
 <label class="check"><input data-identity-setting="newAfterGuess" type="checkbox" ${s.newAfterGuess ? "checked" : ""} ${isHost ? "" : "disabled"}> Nowa postac po trafieniu</label>
 <label class="check"><input data-identity-setting="endAfterRounds" type="checkbox" ${s.endAfterRounds ? "checked" : ""} ${isHost ? "" : "disabled"}> Glosowanie po X rundach</label>
 <label class="check"><input data-identity-setting="playerWordsEnabled" type="checkbox" ${s.playerWordsEnabled ? "checked" : ""} ${isHost ? "" : "disabled"}> Hasla graczy</label></div>
-<div class="custom-words"><label>Kategorie haseł - wybierz minimum 3</label><div class="impostor-settings-grid">${categoryChecks}</div></div>
-<p class="tiny identity-mode-note">Szacowany czas gry: około ${totalMinutes} min. Każda dodatkowa runda doda około ${extraRoundMinutes} min.</p>
-<p class="tiny identity-mode-note">${s.gameFlow === "voice" ? "Przed wejściem widać, że pokój koordynuje rozmowę głosową. Sama rozmowa może iść przez Discorda lub mikrofon przeglądarki u graczy." : "Tryb pisany: pytania i odpowiedzi idą przez ekran gry."}</p>
+<div class="custom-words"><label>Kategorie hasel - wybierz minimum 3</label><div class="impostor-settings-grid">${categoryChecks}</div></div>
+<p class="tiny identity-mode-note">Szacowany czas gry: okolo ${totalMinutes} min. Kazda dodatkowa runda doda okolo ${extraRoundMinutes} min.</p>
+<p class="tiny identity-mode-note">${escapeHtml(flowNote)}</p>
 ${s.playerWordsEnabled ? `<div class="custom-words"><label>Twoje wlasne hasla (1-5, oddziel przecinkami)</label><div class="row"><input id="identity-custom-words" value="${escapeHtml((room.customWords?.[room.viewerUid] || []).join(", "))}" placeholder="np. Shrek, lodowka, Warszawa"><button id="save-identity-words">Zapisz hasla</button></div></div>` : ""}`;
 }
-
 export function stopIdentityTimer() {
   clearInterval(timerId);
   timerId = null;
@@ -338,7 +342,7 @@ function voiceTurnHtml(me, active, accounts) {
 function voiceControlsHtml(actions) {
   const state = actions.identityVoiceState?.() || {};
   const label = state.error ? "Blad mikrofonu" : state.requesting ? "Prosba o mikrofon..." : !state.connected ? "Mikrofon nieaktywny" : state.manualMuted ? "Wyciszony recznie" : state.allowedToSpeak ? "Mikrofon aktywny" : "Wyciszony przez ture";
-  const detail = state.error || (state.connected ? `${state.remoteCount || 0} polaczen audio. Firebase laczy WebRTC, audio nie jest zapisywane.` : "Po wejściu w tryb glosowy gra poprosi o dostep do mikrofonu.");
+  const detail = state.error || (state.connected ? `${state.remoteCount || 0}/${state.peerCount || 0} polaczen audio. Firebase sluzy tylko do WebRTC signalingu, audio nie jest zapisywane.` : "Kliknij, zeby pozwolic stronie na mikrofon.");
   return `<section class="identity-voice-controls ${state.error ? "voice-error" : state.allowedToSpeak && !state.manualMuted ? "voice-speaking" : ""}"><div><p class="eyebrow">VOICE CHAT</p><h3>${escapeHtml(label)}</h3><p>${escapeHtml(detail)}</p></div><div class="choice-row"><button id="identity-enable-voice" ${state.requesting ? "disabled" : ""}>Polacz mikrofon</button><button class="ghost" id="identity-toggle-mic" ${!state.connected ? "disabled" : ""}>${state.manualMuted ? "Odcisz" : "Wycisz"}</button></div></section>`;
 }
 
@@ -370,7 +374,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
     ? `<section class="panel center identity-results"><h1>Koniec gry</h1><div class="final-ranking">${Object.entries(g.scores).sort((a,b) => b[1] - a[1]).map(([uid,n], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${n} pkt</strong></article>`).join("")}</div><h2>Kto kim byl</h2>${resultsHistory(g, accounts)}<button class="primary" id="identity-again">Wroc do lobby</button></section>`
     : g.phase === "extendVote"
       ? `<section class="panel identity-main center"><div class="game-top"><div><p class="eyebrow">DOGRYWKA</p><h1>Dodajemy jeszcze jedną rundę?</h1></div>${timer(g)}</div><p class="muted">Głosowanie kończy grę, jeżeli grupa nie chce dogrywki.</p><div class="choice-row"><button class="primary" data-identity-extend="true">Dodaj rundę</button><button data-identity-extend="false">Kończymy</button></div><div class="vote-details">${Object.entries(g.extendVotes || {}).map(([uid, vote]) => `<span>${escapeHtml(accounts[uid]?.nick || "Gracz")}: ${vote ? "jeszcze jedna" : "koniec"}</span>`).join("")}</div></section>`
-      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} · ${s.gameFlow === "voice" ? "GŁOSOWY" : "PISANY"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj własną postać." : `${escapeHtml(accounts[active]?.nick || "Gracz")} próbuje odkryć swoją kartę.`}</div>${s.gameFlow === "voice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "voice" ? voiceTurnHtml(me, active, accounts) : normalTurnHtml(me, active, accounts)) : responsesHtml(g, currentUser, accounts, answers)}</section>`;
+      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts)) : responsesHtml(g, currentUser, accounts, answers)}</section>`;
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 

@@ -1,4 +1,4 @@
-import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260604-6";
+import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260604-7";
 
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }] };
 const now = () => Date.now();
@@ -9,7 +9,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
   let lastStateJson = "";
   const peers = new Map(), processedIce = new Set(), remoteAudio = new Map(), offeredPeers = new Set();
 
-  const state = () => ({ supported:hasVoiceSignaling(), connected:Boolean(stream), requesting, error:micError, manualMuted, allowedToSpeak:canSpeak(), remoteCount:remoteAudio.size });
+  const state = () => ({ supported:hasVoiceSignaling(), connected:Boolean(stream), requesting, error:micError, manualMuted, allowedToSpeak:canSpeak(), remoteCount:remoteAudio.size, peerCount:Math.max(0, players.length - 1) });
   const emit = () => { const next = JSON.stringify(state()); if (next !== lastStateJson) { lastStateJson = next; onChange(); } };
 
   function canSpeak() {
@@ -63,7 +63,12 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     peers.set(peerUid, pc);
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
     pc.onicecandidate = event => { if (event.candidate) pushVoiceIceCandidate(roomId, uid, peerUid, event.candidate.toJSON()); };
-    pc.ontrack = event => { audioFor(peerUid).srcObject = event.streams[0]; emit(); };
+    pc.ontrack = event => {
+      const element = audioFor(peerUid);
+      element.srcObject = event.streams[0];
+      element.play?.().catch(() => {});
+      emit();
+    };
     pc.onconnectionstatechange = () => { if (["failed","closed","disconnected"].includes(pc.connectionState)) emit(); };
     return pc;
   }
@@ -75,7 +80,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     const offer = await pc.createOffer({ offerToReceiveAudio:true });
     await pc.setLocalDescription(offer);
     offeredPeers.add(peerUid);
-    await setVoiceSignal(roomId, uid, peerUid, "offer", pc.localDescription.toJSON());
+    await setVoiceSignal(roomId, uid, peerUid, "offer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
   }
 
   async function handleSignals(data = {}) {
@@ -89,7 +94,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
         await pc.setRemoteDescription(new RTCSessionDescription(incoming.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await setVoiceSignal(roomId, uid, fromUid, "answer", pc.localDescription.toJSON());
+        await setVoiceSignal(roomId, uid, fromUid, "answer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
       }
       if (incoming.answer && pc.signalingState === "have-local-offer") await pc.setRemoteDescription(new RTCSessionDescription(incoming.answer));
       for (const [candidateId, candidate] of Object.entries(incoming.candidates || {})) {
@@ -102,7 +107,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
   }
 
   async function sync(nextRoom, currentUid) {
-    const voice = nextRoom?.gameMode === "kim-jestem" && nextRoom.settings?.gameFlow === "voice" && nextRoom.status === "playing" && nextRoom.game?.phase !== "results";
+    const voice = nextRoom?.gameMode === "kim-jestem" && ["browserVoice", "voice"].includes(nextRoom.settings?.gameFlow) && nextRoom.status === "playing" && nextRoom.game?.phase !== "results";
     if (!voice || !currentUid) return stop();
     const changedRoom = roomId !== nextRoom.roomId || uid !== currentUid;
     roomId = nextRoom.roomId; uid = currentUid; players = [...(nextRoom.players || [])]; game = nextRoom.game;

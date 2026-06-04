@@ -1,11 +1,11 @@
-import { renderGame } from "./game.js?v=20260603-22";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260604-1";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260604-3";
-import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260604-1";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-3";
-import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260604-1";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-3";
+import { renderGame } from "./game.js?v=20260605-1";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260605-2";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260605-1";
+import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-1";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20260605-1";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260605-1";
+import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-1";
 
 export const gamesRegistry = {
   udowodnij: {
