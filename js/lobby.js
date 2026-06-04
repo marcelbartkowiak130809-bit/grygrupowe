@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260604-2";
+import { getGameMode } from "./games.js?v=20260604-3";
 
 function roomCard(room, mode) {
   const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "voice" ? "Tryb głosowy" : "Tryb normalny"}</span>` : "";

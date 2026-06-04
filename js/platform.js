@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260604-2";
+import { gamesList } from "./games.js?v=20260604-3";
 import { icon } from "./utils.js";
 
 function gameCard(mode) {
@@ -21,7 +21,7 @@ export function renderPlatform(root, actions) {
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY DLA ZNAJOMYCH</p>
-        <h1>Jedna ekipa.<br><span>Siedem sposobów</span> na dobry wieczór.</h1>
+        <h1>Jedna ekipa.<br><span>Osiem sposobów</span> na dobry wieczór.</h1>
         <p>Wybierz tryb, zaproś znajomych kodem pokoju i zacznijcie grać. Bez instalowania czegokolwiek.</p>
         <form class="platform-join" id="platform-join-form">
           <div><p class="eyebrow">MASZ JUŻ POKÓJ?</p><strong>Dołącz kodem pokoju</strong></div>

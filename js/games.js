@@ -5,7 +5,7 @@ import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-2";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260603-2";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-1";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-2";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -116,7 +116,7 @@ export const gamesRegistry = {
     maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,
-    symbol: "C",
+    symbol: "🍬",
     art: "candy",
     render: renderPoisonCandyGame,
     defaultSettings: poisonCandyDefaults,
