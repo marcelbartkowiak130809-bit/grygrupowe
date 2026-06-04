@@ -2,31 +2,32 @@ import { accountModal, authModal } from "./auth.js?v=20260604-1";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260604-1";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260604-2";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, submitModerationReport, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-2";
+import { cosmetics } from "./cosmetics.js?v=20260604-3";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-6";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
-import { getGameMode } from "./games.js?v=20260604-6";
+import { getGameMode } from "./games.js?v=20260604-7";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260604-1";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260604-2";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260604-3";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260604-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260604-1";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260604-3";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260604-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-3";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-4";
-import { renderPlatform } from "./platform.js?v=20260604-2";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-4";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-5";
+import { renderPlatform } from "./platform.js?v=20260604-4";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260604-6";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260604-2";
+import { playerMini, renderRoom } from "./room.js?v=20260604-7";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260604-3";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260604-1";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260604-1";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260604-2";
 
 const root = $("#app");
 const accounts = loadAccounts();
 Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.birthDate ||= "";account.inbox = Array.isArray(account.inbox) ? account.inbox : [];Object.assign(account,grantProgression(account,0).profile); });
 saveAccounts(accounts);
 const session=loadSession();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null, onlineCount:1 };
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
 const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
@@ -80,8 +81,33 @@ const roomRosterSnapshots=new Map();
 const roomPhaseSnapshots=new Map();
 let lastRenderedScreenSignature="";
 let stopRoomsSubscription=()=>{};
+let stopOnlineSubscription=()=>{};
+let stopPresence=()=>{};
+let lastRenderedRoute="";
+const identityVoiceChat=createIdentityVoiceChat(()=>{ if(Router.current==="game") render({preserveDrafts:true}); });
 
 function saveAndRender() { saveAccounts(state.accounts); render(); }
+function refreshPresence() {
+  stopPresence();
+  const user=profile();
+  stopPresence=startPresence(state.currentUser, { nick:user?.nick || "Gość" });
+}
+function connectOnlineCount() {
+  stopOnlineSubscription();
+  stopOnlineSubscription=subscribeOnlineCount(count=>{state.onlineCount=Math.max(1,Number(count)||1);updateOnlineCountPill();});
+}
+function onlineCountLabel() {
+  const count=state.onlineCount;
+  return `${count} ${count===1?"gracz":"graczy"} online`;
+}
+function updateOnlineCountPill() {
+  const pill=document.querySelector(".online-count-pill");
+  if(!pill)return;
+  const label=onlineCountLabel();
+  pill.dataset.count=String(state.onlineCount);
+  pill.title=label;
+  pill.innerHTML=`<i></i><b>${state.onlineCount}</b> ${state.onlineCount===1?"gracz":"graczy"} online`;
+}
 function moveCurrentProfile(remote, current = profile()) {
   if(!state.currentUser||!remote?.uid||!current)return false;
   if(state.currentUser===remote.uid)return true;
@@ -165,8 +191,14 @@ function addPlayerXp(playerId, amount) {
   const room=activeRoom();if(!room)return;
   room.pendingXp={...(room.pendingXp||{}),[playerId]:(room.pendingXp?.[playerId]||0)+amount};
 }
-function rewardRoomXp(room, amount) {
-  room.players.forEach(uid=>{applyQuestEvent(uid,{type:"mode",mode:room.gameMode});addPlayerXp(uid,amount);});
+function rewardRoomXp(room, amount, winners = []) {
+  const winnerSet = new Set(winners);
+  room.players.forEach(uid=>{applyQuestEvent(uid,{type:"mode",mode:room.gameMode,result:winnerSet.has(uid)?"win":"loss"});addPlayerXp(uid,amount);});
+}
+function playCurrentUserResultSound(winners = []) {
+  const user=profile();if(!user)return;
+  const won=winners.includes(state.currentUser);
+  Audio.play(won ? (user.selectedWinAnimation || "victory") : (user.selectedLoseAnimation || "defeat"));
 }
 function claimPendingProgress(room) {
   const money=Number(room?.pendingRewards?.[state.currentUser])||0,xp=Number(room?.pendingXp?.[state.currentUser])||0;if((!money&&!xp)||!profile())return false;
@@ -175,46 +207,53 @@ function claimPendingProgress(room) {
 }
 function settleProveResult(room) {
   if(room.gameMode!=="udowodnij"||room.game.phase!=="result"||room.game.result?.rewarded||room.game.result?.leftRoom)return;
+  const winners = room.game.result.success ? [room.game.currentBidder] : room.players.filter(uid=>uid!==room.game.result.loser);
   if(room.game.result.success)addPlayerMoney(room.game.currentBidder,100);
-  else room.players.filter(uid=>uid!==room.game.result.loser).forEach(uid=>addPlayerMoney(uid,100));
-  rewardRoomXp(room,18);
+  else winners.forEach(uid=>addPlayerMoney(uid,100));
+  rewardRoomXp(room,18,winners);playCurrentUserResultSound(winners);
   room.game.result.rewarded=true;saveAccounts(state.accounts);Audio.play(room.game.result.success?"success":"roundEnd");
 }
 function settleImpostorResult(room) {
   if (room.game.phase !== "results" || room.game.result.rewarded) return;
   const winners = room.players.filter(uid => room.game.result.citizensWin ? room.game.roles[uid].role === "citizen" : room.game.roles[uid].role !== "citizen");
   winners.forEach(uid => addPlayerMoney(uid,150));
-  rewardRoomXp(room,55);
+  rewardRoomXp(room,55,winners);playCurrentUserResultSound(winners);
   room.game.result.rewarded=true; room.status="results"; saveAccounts(state.accounts); Audio.play("roundEnd");
 }
 function settleOtherQuestionResult(room) {
   if(room.game.phase!=="results"||room.game.result.rewarded)return;
   const winners=room.game.result.caught?room.players.filter(uid=>uid!==room.game.impostor):[room.game.impostor];
   winners.forEach(uid=>addPlayerMoney(uid,100));
-  rewardRoomXp(room,18);
+  rewardRoomXp(room,18,winners);playCurrentUserResultSound(winners);
   room.game.result.rewarded=true;saveAccounts(state.accounts);Audio.play("roundEnd");
 }
 function settleMostLikelyResult(room) {
   if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
   room.players.forEach(uid=>addPlayerMoney(uid,25+(room.game.totals[uid]||0)*10));
-  rewardRoomXp(room,60);
+  const max = Math.max(0,...Object.values(room.game.totals||{}).map(Number));
+  const winners = room.players.filter(uid => Number(room.game.totals?.[uid] || 0) === max && max > 0);
+  rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleFriendshipResult(room) {
   if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
   if(room.settings.rewardCoins)room.players.forEach(uid=>addPlayerMoney(uid,(room.game.scores[uid]||0)*25));
-  rewardRoomXp(room,60);
+  const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
+  const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
+  rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settlePoisonCandyResult(room) {
   if(room.game.phase!=="results"||room.game.rewarded)return;
   if(room.game.result?.winner)addPlayerMoney(room.game.result.winner,150);
-  rewardRoomXp(room,45);
+  rewardRoomXp(room,45,room.game.result?.winner?[room.game.result.winner]:[]);playCurrentUserResultSound(room.game.result?.winner?[room.game.result.winner]:[]);
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleIdentityResult(room) {
   if(room.game.phase!=="results"||room.game.rewarded)return;
-  rewardRoomXp(room,60);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
+  const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
+  const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
+  rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function message(text, type = "error") {
   Audio.play(type === "error" ? "error" : "notification");
@@ -465,11 +504,12 @@ function defaultAccount(nick, password, auth = {}, birthDate = "") {
 }
 
 const actions = {
+  playSound(name) { Audio.play(name); },
   refresh: render,
   goPlatform() { if(activeRoom())return actions.leaveRoom("platform");Router.go("platform"); },
   goLobby() { Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },
-  openShop() { const room=activeRoom();state.shopReturnScreen=room?(room.status==="lobby"?"room":"game"):(Router.current==="shop"?state.shopReturnScreen:Router.current);Router.go("shop"); },
+  openShop() { const room=activeRoom();state.shopReturnScreen=room?(room.status==="lobby"?"room":"game"):(Router.current==="shop"?state.shopReturnScreen:Router.current);Audio.play("shopOpen");Router.go("shop"); },
   joinByCode(roomId,password="") {
     const code=String(roomId||"").trim().toUpperCase();
     if(!code)return message("Wpisz kod pokoju.");
@@ -497,11 +537,11 @@ const actions = {
     const result=claimCompletedQuestRewards(user);
     if(!result.completed.length)return;
     state.accounts[state.currentUser]={...result.profile,updatedAt:Date.now()};
-    syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]);saveAccounts(state.accounts);actions.closeModal(modal);message(`Odebrano ${result.completed.length} questow.`,"info");render();
+    syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]);saveAccounts(state.accounts);actions.closeModal(modal);Audio.play("questClaim");message(`Odebrano ${result.completed.length} questow.`,"info");render();
   },
   showGameInfo(modeId){ gameInfoModal(modeId); },
-  openReportModal(targetUid=""){ reportModal(targetUid); },
-  openInbox(){ inboxModal(); },
+  openReportModal(targetUid=""){ Audio.play("report");reportModal(targetUid); },
+  openInbox(){ Audio.play("inbox");inboxModal(); },
   openBirthDateRequest(){ birthDateRequestModal(); },
   openAdminPanel(){ adminPanelModal(); },
   async login(nick, password, mode, birthDate = "") {
@@ -510,7 +550,7 @@ const actions = {
     if (mode === "nickOnly") {
       try {
         const auth=await authenticateGuest(),guestId=auth.uid; state.accounts[guestId] = { ...defaultAccount(clean, "",auth), nickOnly: true, sessionMoney: 0, sessionXp:0 };
-        state.currentUser = guestId;saveAccounts(state.accounts);persistSession();connectRooms();actions.finishLogin(); return true;
+        state.currentUser = guestId;saveAccounts(state.accounts);persistSession();refreshPresence();connectRooms();actions.finishLogin(); return true;
       } catch { message("Nie udało się uruchomić gry po nicku. Sprawdź czy Anonymous Auth jest włączone."); return false; }
     }
     if (!password || password.length < 3) { message("Hasło musi mieć minimum 3 znaki."); return false; }
@@ -524,7 +564,7 @@ const actions = {
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
       if(existingEntry?.[0]&&existingEntry[0]!==accountId)delete state.accounts[existingEntry[0]];
-      state.currentUser = accountId; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);connectRooms();Audio.play("success"); actions.finishLogin(); return true;
+      state.currentUser = accountId; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);refreshPresence();connectRooms();Audio.play("success"); actions.finishLogin(); return true;
     } catch { message("Nie udało się zalogować. Spróbuj ponownie."); return false; }
   },
   finishLogin() { if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; Router.go(destination); },
@@ -542,7 +582,7 @@ const actions = {
     await Promise.allSettled(roomUpdates);
     state.rooms = state.rooms.filter(room => room.players.length);
     await logoutAuth();
-    state.currentUser = null; state.activeRoomId = null;clearSession(); Router.go("platform");
+    state.currentUser = null; state.activeRoomId = null;clearSession();refreshPresence(); Router.go("platform");
   },
   async submitReport(targetUid, description) {
     const room=activeRoom(), reporter=profile(); if(!room||!reporter||!reportableMode(room))return false;
@@ -687,6 +727,9 @@ const actions = {
   impostorPlayAgain(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;room.status="lobby";room.game=null;touchRoom(room);Router.go("room");},
   identitySubmit(text,type){return mutateRoomGame((game,room)=>IdentityEngine.submit(game,state.currentUser,text,type,room.settings,room.customWords),{sound:type==="guess"?"submit":"clue",after:settleIdentityResult});},
   identityVoiceQuestion(){return mutateRoomGame((game,room)=>IdentityEngine.voiceQuestion(game,state.currentUser,room.settings),{sound:"clue"});},
+  identityVoiceState(){return identityVoiceChat.state();},
+  identityEnableVoice(){return identityVoiceChat.enable();},
+  identityToggleMic(){identityVoiceChat.toggleMute();render({preserveDrafts:true});},
   identityRespond(response){return mutateRoomGame((game,room)=>IdentityEngine.respond(game,state.currentUser,response,room.settings,room.customWords),{sound:"choice",after:settleIdentityResult});},
   identityRepeatRequest(){return mutateRoomGame(game=>IdentityEngine.repeat(game,state.currentUser),{sound:"notification"});},
   identityExtendVote(addRound){return mutateRoomGame((game,room)=>IdentityEngine.extendVote(game,state.currentUser,addRound,room.players,room.settings),{sound:"vote",after:settleIdentityResult});},
@@ -707,8 +750,8 @@ const actions = {
   mostLikelyVote(uid){return mutateRoomGame((game,room)=>MostLikelyEngine.vote(game,state.currentUser,uid,room.players,room.settings),{sound:"vote"});},
   mostLikelyTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kto-najpredzej")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";MostLikelyEngine.timeout(game,current.players,current.settings);});},
   mostLikelyNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="roundResult")return"Runda została już zmieniona.";MostLikelyEngine.next(game,current.settings);},{after:settleMostLikelyResult});},
-  poisonCandyPoison(ids){return mutateRoomGame((game,room)=>PoisonCandyEngine.poison(game,state.currentUser,ids,room.players,room.settings),{sound:"choice"});},
-  poisonCandyEat(id){return mutateRoomGame(game=>PoisonCandyEngine.eat(game,state.currentUser,id),{sound:"submit",after:settlePoisonCandyResult});},
+  poisonCandyPoison(ids){return mutateRoomGame((game,room)=>PoisonCandyEngine.poison(game,state.currentUser,ids,room.players,room.settings),{sound:"candyPoison"});},
+  poisonCandyEat(id){return mutateRoomGame(game=>PoisonCandyEngine.eat(game,state.currentUser,id),{sound:"candyPick",after:room=>{const type=room.game?.lastEvent?.type;Audio.play(type==="poisoned"?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
   friendshipAnswer(text){return mutateRoomGame((game,room)=>FriendshipTestEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
   friendshipGuess(answerId,target){return mutateRoomGame((game,room)=>FriendshipTestEngine.guess(game,state.currentUser,answerId,target,room.players),{sound:"vote"});},
   friendshipTimeout(){const room=activeRoom();if(!room||room.gameMode!=="test-znajomosci")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";FriendshipTestEngine.timeout(game,current.players,current.settings);});},
@@ -718,9 +761,9 @@ const actions = {
     const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user || user.ownedCosmetics[itemId]) return;
     if (user.nickOnly) return message("Zaloguj się na konto, żeby kupować efekty."); if (user.money < item.price) return message("Nie masz tyle pieniędzy.");
     const quested=noteQuestEvent(noteQuestEvent(user,{type:"bought"}),{type:"spent",amount:item.price});
-    Audio.play("purchase"); updateProfile({ questStats:quested.questStats, money: user.money - item.price, ownedCosmetics: { ...user.ownedCosmetics, [itemId]: true } });
+    Audio.play(`cosmetic${item.rarity[0].toUpperCase()}${item.rarity.slice(1)}`); updateProfile({ questStats:quested.questStats, money: user.money - item.price, ownedCosmetics: { ...user.ownedCosmetics, [itemId]: true } });
   },
-  equipCosmetic(itemId) { const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play("success"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
+  equipCosmetic(itemId) { const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
 function audioModal() {
@@ -736,7 +779,7 @@ function changelogModal() {
   modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);}));
   document.body.append(modal);Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}" title="Changelog">${icon("scroll",18)}</button><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}" title="Changelog">${icon("scroll",18)}</button><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button><span class="online-count-pill" data-count="${state.onlineCount}" title="${onlineLabel}"><i></i><b>${state.onlineCount}</b> ${state.onlineCount===1?"gracz":"graczy"} online</span>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -784,14 +827,35 @@ function renderGameError(view, room, error) {
   $("#leave-broken-game")?.addEventListener("click", () => actions.leaveRoom("platform"));
 }
 function render(options = {}) {
-  const drafts = options?.preserveDrafts ? captureInputDrafts(root) : {fields:[]};
+  const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
+  const drafts = (options?.preserveDrafts || softRender) ? captureInputDrafts(root) : {fields:[]};
+  if (softRender) {
+    root.classList.add("soft-render");
+    root.style.minHeight = `${Math.max(root.offsetHeight, window.innerHeight)}px`;
+  } else root.classList.remove("soft-render");
+  lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
-  const finish = result => { restoreInputDrafts(root,drafts); return result; };
+  const finish = result => {
+    const after = () => { restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";}); };
+    if(result?.then)return result.finally(after);
+    after();
+    return result;
+  };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
-  if(screen==="platform") return finish(renderPlatform(view,actions)); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
-  const room=activeRoom(); if(!room) return Router.go("platform"); if(closeLonelyFinishedRoom(room,{notify:true}))return; if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return finish(mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions)); } catch(error) { return finish(renderGameError(view,room,error)); } } return finish(renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions));
+  if(screen!=="game") identityVoiceChat.stop();
+  if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous"})); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  const room=activeRoom(); if(!room) return Router.go("platform"); if(closeLonelyFinishedRoom(room,{notify:true}))return;
+  if(screen==="game") {
+    const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature();
+    try {
+      const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
+      identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
+      return finish(rendered);
+    } catch(error) { identityVoiceChat.stop(); return finish(renderGameError(view,room,error)); }
+  }
+  return finish(renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions));
 }
 function connectRooms(){
   stopRoomsSubscription();
@@ -823,4 +887,4 @@ function connectRooms(){
     if(["lobby","room","game"].includes(Router.current))render();
   });
 }
-Audio.init(); Audio.bindGlobalUI(); Router.init(render); initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();connectRooms();if(["solo","lobby","platform"].includes(Router.current))render();}); render();
+Audio.init(); Audio.bindGlobalUI(); Router.init(render); initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(["solo","lobby","platform"].includes(Router.current))render();}); render();

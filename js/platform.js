@@ -1,5 +1,6 @@
 import { gamesList } from "./games.js?v=20260604-7";
-import { icon } from "./utils.js";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, votePoll } from "./polls.js?v=20260604-1";
+import { escapeHtml, icon } from "./utils.js?v=20260604-1";
 
 const filters = [
   ["all", "Wszystkie"],
@@ -8,6 +9,7 @@ const filters = [
   ["crew", "Gra dla ekipy"],
   ["solo", "Tryb solo"],
 ];
+let pollCountdownTimer;
 
 function modeCategory(mode) {
   if (mode.featured) return "original";
@@ -41,7 +43,50 @@ function gameCard(mode) {
   </article>`;
 }
 
-export function renderPlatform(root, actions) {
+function visiblePoll() {
+  return activePoll() || latestPoll();
+}
+
+function pollResultsHtml(state) {
+  return `<div class="poll-results">${state.poll.options.map(option => {
+    const count = state.totals[option.id] || 0, percent = state.total ? Math.round((count / state.total) * 100) : 0;
+    return `<div class="poll-result-row"><span>${escapeHtml(option.label)}</span><b>${percent}% · ${count} gł.</b><i><em style="width:${percent}%"></em></i></div>`;
+  }).join("")}</div>`;
+}
+
+function pollPanelHtml(context = {}) {
+  const poll = visiblePoll(), state = pollState(poll, context.voterId || "anonymous");
+  if (!poll) return `<section class="platform-poll platform-poll-empty" id="platform-poll"><p class="eyebrow">GŁOSOWANIE</p><h2>Nie ma obecnie żadnego głosowania</h2></section>`;
+  const voted = Boolean(state.vote), hot = state.active && !voted;
+  return `<section class="platform-poll ${hot ? "poll-hot" : ""} ${voted ? "poll-voted" : ""} ${state.ended ? "poll-ended" : ""}" id="platform-poll" role="button" tabindex="0">
+    <div><p class="eyebrow">${state.ended ? "WYNIKI GŁOSOWANIA" : "AKTYWNE GŁOSOWANIE"}</p><h2>${escapeHtml(poll.question)}</h2><p>${state.ended ? "Wyniki są już jawne." : voted ? "Głos zapisany. Wyniki pokażą się po zakończeniu." : "Kliknij i wybierz jedną odpowiedź."}</p></div>
+    <strong data-poll-countdown="${escapeHtml(poll.endsAt)}">${state.ended ? `${state.total} gł.` : countdownText(poll.endsAt)}</strong>
+  </section>`;
+}
+
+function openPollModal(context = {}, actions) {
+  const poll = visiblePoll(), state = pollState(poll, context.voterId || "anonymous"), modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  if (!poll) {
+    modal.innerHTML = `<section class="modal poll-modal enter"><div class="modal-title"><div><p class="eyebrow">GŁOSOWANIE</p><h2>Nie ma obecnie żadnego głosowania</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Wróć później, gdy pojawi się nowe pytanie.</p></section>`;
+  } else {
+    const ended = state.ended, voted = Boolean(state.vote);
+    modal.innerHTML = `<section class="modal poll-modal enter"><div class="modal-title"><div><p class="eyebrow">${ended ? "WYNIKI" : "GŁOSOWANIE"} · do ${escapeHtml(formatPollTime(poll.endsAt))}</p><h2>${escapeHtml(poll.question)}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div>
+      ${ended ? pollResultsHtml(state) : `<div class="poll-options">${poll.options.map(option => `<button class="${state.vote === option.id ? "selected-poll-option" : ""}" data-poll-option="${option.id}" ${voted ? "disabled" : ""}>${escapeHtml(option.label)}</button>`).join("")}</div><p class="muted">${voted ? "Masz już zapisany głos. Wyniki pokażą się po zakończeniu." : "Każdy gracz ma jeden głos."}</p>`}
+    </section>`;
+  }
+  modal.querySelector("[data-close]").addEventListener("click", () => modal.remove());
+  modal.querySelectorAll("[data-poll-option]").forEach(button => button.addEventListener("click", () => {
+    actions.playSound?.("poll");
+    votePoll(poll.id, context.voterId || "anonymous", button.dataset.pollOption);
+    modal.remove();
+    actions.refresh();
+  }));
+  document.body.append(modal);
+}
+
+export function renderPlatform(root, actions, context = {}) {
+  clearInterval(pollCountdownTimer);
   root.innerHTML = `<main class="page platform-page enter">
     <section class="platform-hero">
       <div>
@@ -57,6 +102,7 @@ export function renderPlatform(root, actions) {
       </div>
       <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
     </section>
+    ${pollPanelHtml(context)}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
@@ -64,6 +110,12 @@ export function renderPlatform(root, actions) {
     </section>
   </main>`;
 
+  root.querySelector("#platform-poll")?.addEventListener("click", () => { actions.playSound?.("poll"); openPollModal(context, actions); });
+  root.querySelector("#platform-poll")?.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { actions.playSound?.("poll"); openPollModal(context, actions); } });
+  const countdown = root.querySelector("[data-poll-countdown]");
+  if (countdown && visiblePoll() && !pollState(visiblePoll(), context.voterId || "anonymous").ended) {
+    pollCountdownTimer = setInterval(() => { if (!countdown.isConnected) return clearInterval(pollCountdownTimer); countdown.textContent = countdownText(countdown.dataset.pollCountdown); }, 1000);
+  }
   root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
     const filter = button.dataset.gameFilter;
     root.querySelectorAll("[data-game-filter]").forEach(item => item.classList.toggle("active", item === button));

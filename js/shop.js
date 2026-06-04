@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260604-2";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260604-3";
 import { $, formatClock, icon } from "./utils.js";
 
 let shopTimer;
@@ -24,7 +24,7 @@ const groups = [
   { type:"candy", title:"Cukierki" },
 ];
 
-const rail = (id, content) => `<div class="cosmetic-carousel">
+const rail = (id, content, count, side = "owned") => `<div class="cosmetic-carousel ${count > 7 ? "has-carousel-arrows" : "no-carousel-arrows"} ${side === "catalog" ? "catalog-carousel" : "owned-carousel"}">
   <button class="carousel-arrow" data-scroll-cosmetics="${id}" data-dir="-1" aria-label="Przewin w lewo">‹</button>
   <div class="cosmetic-list cosmetic-rail" id="${id}">${content}</div>
   <button class="carousel-arrow" data-scroll-cosmetics="${id}" data-dir="1" aria-label="Przewin w prawo">›</button>
@@ -32,7 +32,7 @@ const rail = (id, content) => `<div class="cosmetic-carousel">
 
 function cosmeticCard(item, profile, { catalog = false } = {}) {
   const owned = Boolean(profile.ownedCosmetics?.[item.id]), active = equipped(profile, item.id);
-  const disabled = catalog ? !owned : active;
+  const disabled = catalog ? !owned : false;
   const action = owned ? `data-equip="${item.id}"` : "";
   const label = active ? "ZALOZONE" : owned ? catalog ? "POSIADANY" : rarityLabels[item.rarity] : rarityLabels[item.rarity];
   return `<button ${action} class="owned-cosmetic-card ${catalog ? "catalog-card" : ""} rarity-${item.rarity} ${owned ? "owned-catalog-card" : "locked-catalog-card"} ${active ? "equipped-cosmetic" : ""}" ${disabled ? "disabled" : ""}>
@@ -42,18 +42,18 @@ function cosmeticCard(item, profile, { catalog = false } = {}) {
 }
 
 function groupSection(group, items, profile, idPrefix, options = {}) {
-  const sorted = sortCosmeticsByRarity(items.filter(item => item.type === group.type));
+  const sorted = sortCosmeticsByRarity(items.filter(item => item.type === group.type), { rareFirst:idPrefix === "owned" });
   const content = sorted.map(item => cosmeticCard(item, profile, options)).join("") || '<p class="muted">Brak kosmetykow w tej kategorii.</p>';
   return `<div class="wardrobe-category">
     <div class="wardrobe-category-title"><h3>${group.title}</h3><span>${sorted.length}</span></div>
-    ${rail(`${idPrefix}-${group.type}`, content)}
+    ${rail(`${idPrefix}-${group.type}`, content, sorted.length, idPrefix)}
   </div>`;
 }
 
 export function renderShop(root, { profile }, actions) {
   stopShopTimer();
   const rotation = getShopRotation();
-  const ownedItems = sortCosmeticsByRarity(cosmetics.filter(item => profile.ownedCosmetics?.[item.id]));
+  const ownedItems = sortCosmeticsByRarity(cosmetics.filter(item => profile.ownedCosmetics?.[item.id]), { rareFirst:true });
   const wardrobeHtml = groups.map(group => groupSection(group, ownedItems, profile, "owned")).join("");
   const catalogHtml = groups.map(group => groupSection(group, cosmetics, profile, "catalog", { catalog:true })).join("");
 
@@ -72,7 +72,7 @@ export function renderShop(root, { profile }, actions) {
         <button class="${owned ? "" : "primary"}" data-${owned ? "equip" : "buy"}="${item.id}" ${active ? "disabled" : ""}>${active ? "Zalozone" : owned ? "Zaloz" : "Kup"}</button>
       </article>`;
     }).join("")}</section>
-    <section class="panel owned-cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">GARDEROBA</p><h2>Twoje kosmetyki</h2></div><span class="badge">${ownedItems.length}</span></div><p class="muted">Kliknij karte, aby zalozyc efekt. Widoczne jest kilka naraz, reszta przewija sie strzalkami.</p>
+    <section class="panel owned-cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">GARDEROBA</p><h2>Twoje kosmetyki</h2></div><span class="badge">${ownedItems.length}</span></div><p class="muted">Kliknij karte, aby zalozyc efekt. Strzalki pojawiaja sie dopiero gdy w kategorii jest wiecej niz 7 kart.</p>
       <div class="wardrobe-sections">${wardrobeHtml}</div>
     </section>
     <section class="panel owned-cosmetics-panel cosmetic-catalog" id="cosmetic-catalog"><div class="section-heading"><div><p class="eyebrow">KATALOG</p><h2>Wszystkie kosmetyki</h2></div><span class="badge">${cosmetics.length}</span></div><p class="muted">Najrzadsze sa po prawej stronie karuzeli. Posiadany kosmetyk mozesz zalozyc z katalogu.</p>
@@ -84,11 +84,11 @@ export function renderShop(root, { profile }, actions) {
   updateTimer();
   shopTimer = setInterval(() => Date.now() >= rotation.endsAt ? actions.refresh() : updateTimer(), 1000);
   $("#back-home").addEventListener("click", actions.goHome);
-  $("#open-catalog").addEventListener("click", () => $("#cosmetic-catalog")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+  $("#open-catalog").addEventListener("click", () => { actions.playSound?.("catalogOpen"); $("#cosmetic-catalog")?.scrollIntoView({ behavior:"smooth", block:"start" }); });
   root.querySelectorAll("[data-scroll-cosmetics]").forEach(button => button.addEventListener("click", () => {
     const target = $(`#${button.dataset.scrollCosmetics}`, root);
     target?.scrollBy({ left:Number(button.dataset.dir) * 520, behavior:"smooth" });
   }));
   root.querySelectorAll("[data-buy]").forEach(button => button.addEventListener("click", () => actions.buyCosmetic(button.dataset.buy)));
-  root.querySelectorAll("[data-equip]").forEach(button => button.addEventListener("click", () => actions.equipCosmetic(button.dataset.equip)));
+  root.querySelectorAll("[data-equip]").forEach(button => button.addEventListener("click", () => { if(!button.classList.contains("equipped-cosmetic")) actions.equipCosmetic(button.dataset.equip); }));
 }

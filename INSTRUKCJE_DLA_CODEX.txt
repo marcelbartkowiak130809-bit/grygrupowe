@@ -1,0 +1,12 @@
+"Pomarańczowe "Popularne 🔥" przy trybach ktorzy ludzie graja - aktualnie najlepiej impostor i kim jestem
+Zielone "Nowe ✨" - nowe tryby - aktualnie cukierek 
+Niebieskie "Nowe pytania ✅" do trybu gdzie dodalismy nowe pytania - aktualnie kim jestem
+
+Wersje mają format:
+v1.2.3
+1 liczba to gdy naprawde duza zmiana typu zmiana wgl calego featura albo nowy tryb
+2 liczba gdy są jakieś mini nowe rzeczy typu nowe pytania nowe kategorie lub naprawia wiekszych bledow
+3 liczba gdy bug fix, usuniecie dodanie pojdynczych pytan, dodaje/usuniecie jednego kosmetyka
+sprawdzaj aktualną werjse w pliku index.html
+
+Preferuję customowe lub kreatywne rozwiązania nad zwykłymi scrollbarami i checkboxami"

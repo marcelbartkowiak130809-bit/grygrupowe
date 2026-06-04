@@ -7,6 +7,10 @@ export const cosmetics = [
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
   item("jellyCandy","candy","Galaretka",1800,"rare","Miekki zelkowy wyglad cukierkow tylko do trybu Zatruty cukierek."),
   item("cosmicCandy","candy","Kosmiczny cukierek",3200,"epic","Animowany kosmiczny skin cukierkow tylko do trybu Zatruty cukierek."),
+  item("colaCandy","candy","Cola drops",1400,"rare","Ciemny karmelowy cukierek tylko do trybu Zatruty cukierek."),
+  item("neonCandy","candy","Neonowy zel",3600,"epic","Swiecacy zelowy cukierek tylko do trybu Zatruty cukierek."),
+  item("lavaCandy","candy","Lava karmel",5200,"legendary","Rozgrzany cukierek lawowy tylko do trybu Zatruty cukierek."),
+  item("diamondCandy","candy","Diamentowy cukierek",6100,"legendary","Krystaliczny cukierek tylko do trybu Zatruty cukierek."),
   item("defaultNick","nick","Zwykły nick",0,"common","Klasyczny wygląd nicku."),
   item("redNick","nick","Czerwony nick",250,"common","Wyrazisty czerwony kolor."),
   item("blueNick","nick","Niebieski nick",250,"common","Spokojny niebieski kolor."),
@@ -188,7 +192,21 @@ export const cosmetics = [
 
 const escapeAttr = value => String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char]);
 export const rarityOrder = { common:0, rare:1, epic:2, legendary:3, mythic:4 };
-export const sortCosmeticsByRarity = items => [...items].sort((a, b) => (rarityOrder[b.rarity] ?? 0) - (rarityOrder[a.rarity] ?? 0) || a.name.localeCompare(b.name, "pl"));
+export const sortCosmeticsByRarity = (items, options = {}) => {
+  const direction = (options.rareFirst ?? true) ? -1 : 1;
+  return [...items].sort((a, b) => direction * ((rarityOrder[a.rarity] ?? 0) - (rarityOrder[b.rarity] ?? 0)) || a.name.localeCompare(b.name, "pl"));
+};
+
+function animationEffectHtml(id) {
+  if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span>';
+  if (id === "winMeteor" || id === "loseMeteorHit") return '<span class="fx-meteor"></span><span class="fx-impact"></span>';
+  if (id === "loseBlackHole" || id === "levelVoidLose") return '<span class="fx-black-hole"></span>';
+  if (id === "loseDemonLaugh" || id === "winDemonKing") return '<span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
+  if (id === "winMoney" || id === "winRoyalRain") return '<span class="fx-money money-a">$</span><span class="fx-money money-b">$</span><span class="fx-money money-c">$</span>';
+  if (id === "winCrown" || id === "loseCrownDrop" || id === "levelChampionWin") return '<span class="fx-crown">♛</span>';
+  if (id === "winSpotlight") return '<span class="fx-spotlight"></span>';
+  return "";
+}
 
 export function cosmeticPreview(item, profile = {}, options = {}) {
   if (item.type === "candy") {
@@ -203,7 +221,7 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
     const stateClass = item.type === "idle" ? "preview-idle-state" : item.type === "win" ? "preview-win-state" : "preview-lose-state";
     const avatar = profile.avatarImage ? `<img src="${escapeAttr(profile.avatarImage)}" alt="">` : "G";
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-${item.type} ${stateClass}">
-      <span class="preview-glow"></span><span class="preview-particle particle-a"></span><span class="preview-particle particle-b"></span>
+      <span class="preview-glow"></span>${animationEffectHtml(item.id)}
       <div class="mini-player cosmetic-animation-preview ${item.id}">
         <div class="preview-avatar avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${item.type === "idle" ? item.id : ""}">${avatar}</div>
         <span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeAttr(options.nick || profile.nick || "Gracz")}</span>

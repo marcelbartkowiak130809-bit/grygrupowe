@@ -1,5 +1,6 @@
 import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js";
 import { Effects } from "./effects.js";
+import { Audio } from "./audio.js";
 
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -208,14 +209,14 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
     const id = button.dataset.candyId;
     if (game.phase === "poisoning") {
       if (game.poisonChoices[currentUser]) return;
-      if (selected.has(id)) { selected.delete(id); button.classList.remove("selected-candy"); }
-      else if (selected.size < needed) { selected.add(id); button.classList.add("selected-candy"); }
+      if (selected.has(id)) { selected.delete(id); button.classList.remove("selected-candy"); Audio.play("buttonClick"); }
+      else if (selected.size < needed) { selected.add(id); button.classList.add("selected-candy"); Audio.play("candyPick"); }
       try { sessionStorage.setItem(selectionKey, JSON.stringify([...selected])); } catch {}
       const submit = $("#candy-poison-submit");
       if (submit) submit.disabled = selected.size !== needed;
       return;
     }
-    actions.poisonCandyEat(id);
+    Audio.play("candyPick");actions.poisonCandyEat(id);
   }));
   $("#candy-poison-submit")?.addEventListener("click", () => { try { sessionStorage.removeItem(selectionKey); } catch {} actions.poisonCandyPoison([...selected]); });
 }

@@ -4,11 +4,20 @@ const LOCAL_ROOMS_KEY = "udowodnij_local_rooms_v1";
 const MODERATION_KEY = "udowodnij_moderation_v1";
 const WOULD_YOU_RATHER_VOTES_KEY = "udowodnij_would_you_rather_votes_v1";
 const WOULD_YOU_RATHER_ANSWERS_KEY = "udowodnij_would_you_rather_answers_v1";
+const LOCAL_PRESENCE_KEY = "udowodnij_local_presence_v1";
 let remoteAuth;
 let firebaseAuthApi;
 let remoteDatabase;
 let firebaseDatabaseApi;
 let serverTimeOffset = 0;
+let localPresenceTimer;
+let remotePresenceStop = () => {};
+
+const clientPresenceId = () => {
+  let id = sessionStorage.getItem("udowodnij_presence_client");
+  if (!id) { id = `tab_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; sessionStorage.setItem("udowodnij_presence_client", id); }
+  return id;
+};
 
 export function nickToEmail(nick) {
   return `${nick}@udowodnij.local`;
@@ -89,6 +98,106 @@ export function loadSession() {
 export function saveSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
 export function clearSession() { localStorage.removeItem(SESSION_KEY); }
 export function hasOnlineBackend() { return Boolean(remoteDatabase); }
+
+function localPresenceUserKey(userKey) {
+  return String(userKey || remoteAuth?.currentUser?.uid || clientPresenceId());
+}
+
+function localPresenceCount() {
+  const now = Date.now(), data = readLocal(LOCAL_PRESENCE_KEY), users = new Set();
+  Object.entries(data).forEach(([userKey, clients]) => {
+    const activeClients = Object.fromEntries(Object.entries(clients || {}).filter(([, item]) => now - Number(item?.seenAt || 0) < 75000));
+    if (Object.keys(activeClients).length) { data[userKey] = activeClients; users.add(userKey); }
+    else delete data[userKey];
+  });
+  saveLocal(LOCAL_PRESENCE_KEY, data);
+  return users.size;
+}
+
+export function startPresence(userKey, meta = {}) {
+  const clientId = clientPresenceId(), key = localPresenceUserKey(userKey);
+  remotePresenceStop();
+  clearInterval(localPresenceTimer);
+  if (remoteDatabase) {
+    const clientRef = firebaseDatabaseApi.ref(remoteDatabase, `presence/${key}/clients/${clientId}`);
+    firebaseDatabaseApi.set(clientRef, { nick:meta.nick || "", seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{});
+    firebaseDatabaseApi.onDisconnect?.(clientRef)?.remove?.();
+    localPresenceTimer = setInterval(() => firebaseDatabaseApi.update(clientRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{}), 30000);
+    remotePresenceStop = () => { clearInterval(localPresenceTimer); firebaseDatabaseApi.remove(clientRef).catch(()=>{}); };
+    window.addEventListener("beforeunload", remotePresenceStop, { once:true });
+    return remotePresenceStop;
+  }
+  const touch = () => {
+    const data = readLocal(LOCAL_PRESENCE_KEY);
+    data[key] = { ...(data[key] || {}), [clientId]:{ nick:meta.nick || "", seenAt:Date.now() } };
+    saveLocal(LOCAL_PRESENCE_KEY, data);
+    window.dispatchEvent(new CustomEvent("udowodnij-presence-change"));
+  };
+  touch();
+  localPresenceTimer = setInterval(touch, 30000);
+  remotePresenceStop = () => { clearInterval(localPresenceTimer); const data=readLocal(LOCAL_PRESENCE_KEY); if(data[key]){delete data[key][clientId]; if(!Object.keys(data[key]).length)delete data[key]; saveLocal(LOCAL_PRESENCE_KEY,data);} };
+  window.addEventListener("beforeunload", remotePresenceStop, { once:true });
+  return remotePresenceStop;
+}
+
+export function subscribeOnlineCount(callback) {
+  let lastCount = -1, lastLargeUpdate = 0;
+  const emit = count => {
+    const now = Date.now();
+    if (count === lastCount) return;
+    if (count > 100 && now - lastLargeUpdate < 60000) { lastCount = count; return; }
+    lastCount = count; if (count > 100) lastLargeUpdate = now; callback(count);
+  };
+  if (remoteDatabase) {
+    return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, "presence"), snapshot => {
+      const users = snapshot.val() || {};
+      emit(Object.values(users).filter(user => Object.keys(user?.clients || {}).length).length);
+    }, () => emit(localPresenceCount()));
+  }
+  emit(localPresenceCount());
+  const storage = event => { if (event.key === LOCAL_PRESENCE_KEY) emit(localPresenceCount()); };
+  const localChange = () => emit(localPresenceCount());
+  const timer = setInterval(() => emit(localPresenceCount()), 60000);
+  window.addEventListener("storage", storage);
+  window.addEventListener("udowodnij-presence-change", localChange);
+  return () => { clearInterval(timer); window.removeEventListener("storage", storage); window.removeEventListener("udowodnij-presence-change", localChange); };
+}
+
+export function hasVoiceSignaling() { return Boolean(remoteDatabase && remoteAuth?.currentUser); }
+
+export async function setVoiceSignal(roomId, fromUid, toUid, key, value) {
+  if (!remoteDatabase || !roomId || !fromUid || !toUid || !key) return false;
+  try {
+    await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/${key}`), value);
+    return true;
+  } catch { return false; }
+}
+
+export async function pushVoiceIceCandidate(roomId, fromUid, toUid, candidate) {
+  if (!remoteDatabase || !roomId || !fromUid || !toUid || !candidate) return false;
+  try {
+    await firebaseDatabaseApi.push(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/candidates`), candidate);
+    return true;
+  } catch { return false; }
+}
+
+export function subscribeVoiceSignals(roomId, uid, callback) {
+  if (!remoteDatabase || !roomId || !uid) return () => {};
+  return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`), snapshot => callback(snapshot.val() || {}), () => callback({}));
+}
+
+export async function clearVoiceSignals(roomId, uid = "") {
+  if (!remoteDatabase || !roomId) return false;
+  try {
+    if (!uid) { await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`)); return true; }
+    const roomRef = firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`);
+    const snapshot = await firebaseDatabaseApi.get(roomRef), data = snapshot.val() || {};
+    const updates = { [uid]: null };
+    Object.keys(data).forEach(from => { if (data[from]?.[uid]) updates[`${from}/${uid}`] = null; });
+    await firebaseDatabaseApi.update(roomRef, updates);
+    return true;
+  } catch { return false; }
+}
 
 function readLocal(key) {
   try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }

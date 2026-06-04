@@ -332,7 +332,14 @@ function normalTurnHtml(me, active, accounts) {
 function voiceTurnHtml(me, active, accounts) {
   return me
     ? `<div class="identity-voice-box"><p class="eyebrow">TRYB GLOSOWY</p><h3>Twoj mikrofon jest teraz aktywny w rozmowie.</h3><p>Zadaj pytanie na glos, a potem kliknij, ze grupa ma odpowiadac. Gdy juz wiesz, wpisz zgadywana postac.</p><button class="primary" id="identity-voice-question">Zadalem pytanie</button><form id="identity-form" class="identity-guess-form"><input id="identity-input" placeholder="wpisz, kim jestes"><button data-identity-type="guess">Zgaduje</button></form></div>`
-    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>Po pytaniu gra przelaczy ekran na odpowiedzi grupy.</p><button id="identity-enable-mic">Popros o dostep do mikrofonu</button></div>`;
+    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>Po pytaniu gra przelaczy ekran na odpowiedzi grupy.</p><button id="identity-enable-mic">Polacz mikrofon</button></div>`;
+}
+
+function voiceControlsHtml(actions) {
+  const state = actions.identityVoiceState?.() || {};
+  const label = state.error ? "Blad mikrofonu" : state.requesting ? "Prosba o mikrofon..." : !state.connected ? "Mikrofon nieaktywny" : state.manualMuted ? "Wyciszony recznie" : state.allowedToSpeak ? "Mikrofon aktywny" : "Wyciszony przez ture";
+  const detail = state.error || (state.connected ? `${state.remoteCount || 0} polaczen audio. Firebase laczy WebRTC, audio nie jest zapisywane.` : "Po wejściu w tryb glosowy gra poprosi o dostep do mikrofonu.");
+  return `<section class="identity-voice-controls ${state.error ? "voice-error" : state.allowedToSpeak && !state.manualMuted ? "voice-speaking" : ""}"><div><p class="eyebrow">VOICE CHAT</p><h3>${escapeHtml(label)}</h3><p>${escapeHtml(detail)}</p></div><div class="choice-row"><button id="identity-enable-voice" ${state.requesting ? "disabled" : ""}>Polacz mikrofon</button><button class="ghost" id="identity-toggle-mic" ${!state.connected ? "disabled" : ""}>${state.manualMuted ? "Odcisz" : "Wycisz"}</button></div></section>`;
 }
 
 function responsesHtml(game, currentUser, accounts, answers) {
@@ -363,7 +370,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
     ? `<section class="panel center identity-results"><h1>Koniec gry</h1><div class="final-ranking">${Object.entries(g.scores).sort((a,b) => b[1] - a[1]).map(([uid,n], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${n} pkt</strong></article>`).join("")}</div><h2>Kto kim byl</h2>${resultsHistory(g, accounts)}<button class="primary" id="identity-again">Wroc do lobby</button></section>`
     : g.phase === "extendVote"
       ? `<section class="panel identity-main center"><div class="game-top"><div><p class="eyebrow">DOGRYWKA</p><h1>Dodajemy jeszcze jedną rundę?</h1></div>${timer(g)}</div><p class="muted">Głosowanie kończy grę, jeżeli grupa nie chce dogrywki.</p><div class="choice-row"><button class="primary" data-identity-extend="true">Dodaj rundę</button><button data-identity-extend="false">Kończymy</button></div><div class="vote-details">${Object.entries(g.extendVotes || {}).map(([uid, vote]) => `<span>${escapeHtml(accounts[uid]?.nick || "Gracz")}: ${vote ? "jeszcze jedna" : "koniec"}</span>`).join("")}</div></section>`
-      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} · ${s.gameFlow === "voice" ? "GŁOSOWY" : "PISANY"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj własną postać." : `${escapeHtml(accounts[active]?.nick || "Gracz")} próbuje odkryć swoją kartę.`}</div>${g.phase === "turn" ? (s.gameFlow === "voice" ? voiceTurnHtml(me, active, accounts) : normalTurnHtml(me, active, accounts)) : responsesHtml(g, currentUser, accounts, answers)}</section>`;
+      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} · ${s.gameFlow === "voice" ? "GŁOSOWY" : "PISANY"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj własną postać." : `${escapeHtml(accounts[active]?.nick || "Gracz")} próbuje odkryć swoją kartę.`}</div>${s.gameFlow === "voice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "voice" ? voiceTurnHtml(me, active, accounts) : normalTurnHtml(me, active, accounts)) : responsesHtml(g, currentUser, accounts, answers)}</section>`;
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 
@@ -371,15 +378,9 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
   $("#identity-again")?.addEventListener("click", actions.returnToRoom);
   $("#identity-voice-question")?.addEventListener("click", () => actions.identityVoiceQuestion());
   $("#identity-repeat")?.addEventListener("click", () => actions.identityRepeatRequest());
-  $("#identity-enable-mic")?.addEventListener("click", async event => {
-    try {
-      await navigator.mediaDevices?.getUserMedia?.({ audio: true });
-      event.currentTarget.textContent = "Mikrofon dozwolony";
-      event.currentTarget.disabled = true;
-    } catch {
-      event.currentTarget.textContent = "Brak dostepu do mikrofonu";
-    }
-  });
+  $("#identity-enable-mic")?.addEventListener("click", () => actions.identityEnableVoice?.());
+  $("#identity-enable-voice")?.addEventListener("click", () => actions.identityEnableVoice?.());
+  $("#identity-toggle-mic")?.addEventListener("click", () => actions.identityToggleMic?.());
   $("#identity-notepad")?.addEventListener("input", event => {
     try { localStorage.setItem(event.currentTarget.dataset.noteKey, event.currentTarget.value); } catch {}
   });

@@ -1,7 +1,7 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260604-6";
+import { getGameMode } from "./games.js?v=20260604-7";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260603-10";
-import { renderIdentityLobbySettings } from "./identity.js?v=20260604-2";
+import { renderIdentityLobbySettings } from "./identity.js?v=20260604-3";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260604-1";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260604-3";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260604-1";

@@ -14,6 +14,28 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
+    "presence": {
+      ".read": true,
+      "$uid": {
+        "clients": {
+          "$clientId": {
+            ".write": "auth != null && auth.uid == $uid",
+            ".validate": "newData.hasChildren(['seenAt'])"
+          }
+        }
+      }
+    },
+    "voiceSignaling": {
+      "$roomId": {
+        ".read": "auth != null",
+        "$fromUid": {
+          ".write": "auth != null && auth.uid == $fromUid",
+          "$toUid": {
+            ".write": "auth != null && (auth.uid == $fromUid || auth.uid == $toUid)"
+          }
+        }
+      }
+    },
     "rooms": {
       ".read": "auth != null",
       "$roomId": {
