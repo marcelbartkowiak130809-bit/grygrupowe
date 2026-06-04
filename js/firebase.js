@@ -1,6 +1,7 @@
 const ACCOUNTS_KEY = "udowodnij_prototype_accounts_v1";
 const SESSION_KEY = "udowodnij_session_v1";
 const LOCAL_ROOMS_KEY = "udowodnij_local_rooms_v1";
+const MODERATION_KEY = "udowodnij_moderation_v1";
 const WOULD_YOU_RATHER_VOTES_KEY = "udowodnij_would_you_rather_votes_v1";
 const WOULD_YOU_RATHER_ANSWERS_KEY = "udowodnij_would_you_rather_answers_v1";
 let remoteAuth;
@@ -94,7 +95,7 @@ function readLocal(key) {
 }
 function saveLocal(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 const publicProfile = profile => ({ nick:profile.nick, avatarImage:profile.avatarImage || "", xp:Number(profile.xp)||0, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", updatedAt:Date.now() });
-const savedProfile = profile => ({ nick:profile.nick, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:profile.ownedCosmetics || {}, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
+const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:profile.ownedCosmetics || {}, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
 export async function loadRemoteProfile(uid) {
   if (!remoteDatabase || !uid) return null;
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`))).val() || null; }
@@ -154,6 +155,66 @@ export async function voteWouldYouRather({ questionId, choice, playerId, persist
   const votes=readLocal(WOULD_YOU_RATHER_VOTES_KEY), item=votes[questionId] || {a:0,b:0};
   item[choice]=(item[choice]||0)+1;votes[questionId]=item;saveLocal(WOULD_YOU_RATHER_VOTES_KEY,votes);
   return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
+}
+
+function moderationLocal() {
+  return readLocal(MODERATION_KEY);
+}
+function saveModerationLocal(value) {
+  saveLocal(MODERATION_KEY, value);
+}
+const moderationId = prefix => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+const normalizeNickKey = nick => String(nick || "").toLowerCase().trim();
+
+export async function submitModerationReport(report) {
+  const item = { ...report, id:report.id || moderationId("rep"), status:report.status || "open", createdAt:report.createdAt || Date.now() };
+  const local = moderationLocal(); local.reports = { ...(local.reports || {}), [item.id]:item }; saveModerationLocal(local);
+  if (remoteDatabase) {
+    try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `moderation/reports/${item.id}`), item); } catch {}
+  }
+  return item;
+}
+
+export async function loadModerationReports() {
+  const local = moderationLocal().reports || {};
+  if (remoteDatabase) {
+    try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "moderation/reports"))).val() || {}) }; } catch {}
+  }
+  return local;
+}
+
+export async function saveModerationBan(ban) {
+  const item = { ...ban, id:ban.id || moderationId("ban"), createdAt:ban.createdAt || Date.now() };
+  const local = moderationLocal(); local.bans = { ...(local.bans || {}), [item.id]:item }; saveModerationLocal(local);
+  if (remoteDatabase) {
+    try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `moderation/bans/${item.id}`), item); } catch {}
+  }
+  return item;
+}
+
+export async function loadModerationBans() {
+  const local = moderationLocal().bans || {};
+  if (remoteDatabase) {
+    try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "moderation/bans"))).val() || {}) }; } catch {}
+  }
+  return local;
+}
+
+export async function sendInboxMessageToNick(nick, message) {
+  const key = normalizeNickKey(nick), item = { ...message, id:message.id || moderationId("msg"), toNick:key, createdAt:message.createdAt || Date.now(), read:false };
+  const local = moderationLocal(); local.mail = { ...(local.mail || {}) }; local.mail[key] = { ...(local.mail[key] || {}), [item.id]:item }; saveModerationLocal(local);
+  if (remoteDatabase) {
+    try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `mail/${key}/${item.id}`), item); } catch {}
+  }
+  return item;
+}
+
+export async function loadInboxForNick(nick) {
+  const key = normalizeNickKey(nick), local = moderationLocal().mail?.[key] || {};
+  if (remoteDatabase) {
+    try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `mail/${key}`))).val() || {}) }; } catch {}
+  }
+  return local;
 }
 
 export async function syncRoomState(room) {

@@ -150,13 +150,20 @@ export function renderPoisonCandyLobbySettings(room, isHost) {
 function candyHtml(candy, index, total, game, accounts, currentUser, canPick, settings) {
   const ownerIndex = Math.max(0, game.order.indexOf(candy.ownerUid));
   const skin = candySkin(accounts[candy.ownerUid]);
-  const angle = settings.skinLayout === "nearPlayer" ? (ownerIndex / Math.max(1, game.order.length)) * 360 + ((index % 7) - 3) * 5 : (index / total) * 360;
-  const ring = settings.skinLayout === "nearPlayer" ? 31 + (index % 4) * 7 : 22 + (index % 5) * 9;
+  const baseAngle = settings.skinLayout === "nearPlayer"
+    ? (ownerIndex / Math.max(1, game.order.length)) * 360 + ((index % 9) - 4) * 7
+    : index * 137.508;
+  const radius = settings.skinLayout === "nearPlayer"
+    ? 18 + (index % 5) * 6
+    : 8 + Math.sqrt((index + .5) / Math.max(1, total)) * 39;
+  const angle = baseAngle * Math.PI / 180;
+  const x = 50 + Math.cos(angle) * radius;
+  const y = 50 + Math.sin(angle) * radius;
   const poisoners = arrayOrEmpty(candy.poisoners);
   const ownPoison = poisoners.includes(currentUser);
   const poisonedByMe = game.phase === "poisoning" && ownPoison;
   const disabled = candy.eatenBy || ownPoison || !canPick;
-  const style = `--angle:${angle}deg;--ring:${ring}%;--delay:${(index % 12) * 22}ms`;
+  const style = `--x:${x.toFixed(2)}%;--y:${y.toFixed(2)}%;--delay:${(index % 12) * 22}ms`;
   return `<button class="candy-token candy-${skin} ${candy.eatenBy ? "eaten-candy" : ""} ${poisonedByMe ? "marked-poison" : ""} ${game.lastEvent?.candyId === candy.id ? "last-candy" : ""}" style="${style}" data-candy-id="${candy.id}" ${disabled ? "disabled" : ""} aria-label="Cukierek ${index + 1}">
     <span></span>${poisonedByMe ? "<i>!</i>" : ""}
   </button>`;
@@ -189,7 +196,7 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
   const body = game.phase === "results"
     ? `<section class="panel center candy-result"><p class="eyebrow">KONIEC GRY</p><h1>${escapeHtml(accounts[game.result?.winner]?.nick || "Nikt")} wygrywa</h1><div class="final-ranking">${game.order.map(uid => `<article><b>${game.alive[uid] ? "WIN" : "OUT"}</b>${mini(accounts[uid])}<strong>${game.alive[uid] ? "ocalal" : "zatruty"}</strong></article>`).join("")}</div><button class="primary" id="candy-lobby">Wroc do lobby</button></section>`
     : `<section class="poison-candy-stage"><div class="candy-topline"><div><p class="eyebrow">${game.phase === "poisoning" ? "ZATRUWANIE" : "JEDZENIE"}</p><h1>${game.phase === "poisoning" ? "Wybierz zatrute cukierki" : `${escapeHtml(accounts[active]?.nick || "Gracz")} wybiera cukierka`}</h1></div><span class="badge">${livePlayers(game).length} zywych</span></div>${playersRing(game, accounts, active)}<div class="candy-table">${game.candies.map((candy, index) => candyHtml(candy, index, game.candies.length, game, accounts, currentUser, game.phase === "poisoning" ? !game.poisonChoices[currentUser] : isTurn && isAlive, settings)).join("")}</div>${eventHtml(game, accounts)}${game.phase === "poisoning" ? (game.poisonChoices[currentUser] ? `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Cukierki zatrute</h3><p>Czekamy jeszcze na ${Math.max(0, room.players.length - Object.keys(game.poisonChoices).length)} graczy.</p></div>` : `<section class="panel candy-action-panel"><h3>Wybierz ${needed}</h3><p class="muted">Tylko ty widzisz swoje zatrute cukierki. Kliknij cukierki na stole i potwierdz.</p><button class="primary" id="candy-poison-submit" disabled>Zatruj wybrane</button></section>`) : (!isAlive ? `<div class="waiting-state"><span class="waiting-pulse">X</span><h3>Odpadasz, ale ogladzasz gre</h3><p>Stol dalej gra do ostatniego zywego gracza.</p></div>` : isTurn ? `<section class="panel candy-action-panel"><h3>Twoja kolej</h3><p class="muted">Wybierz cukierka, ktory nie jest twoim zatrutym.</p></section>` : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Czekasz na ruch gracza</h3><p>Kamera trzyma stol i aktywnego gracza.</p></div>`)}</section>`;
-  root.innerHTML = `<main class="page poison-candy-page board-shell enter">${body}<button class="ghost" id="leave-room">Wyjdz z pokoju</button></main>`;
+  root.innerHTML = `<main class="page poison-candy-page board-shell">${body}<button class="ghost" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room").addEventListener("click", actions.leaveRoom);
   $("#candy-lobby")?.addEventListener("click", actions.returnToRoom);
   root.querySelectorAll("[data-candy-id]").forEach(button => {

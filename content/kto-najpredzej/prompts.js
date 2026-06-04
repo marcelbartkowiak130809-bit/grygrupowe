@@ -237,7 +237,9 @@ mostLikelyPrompts.push(
     "Kto najprędzej poszedłby na jednorazową przygodę?", "Kto najprędzej miałby najbardziej nietypowy turn-on?",
     "Kto najprędzej kupiłby zabawkę erotyczną dla żartu, a potem serio jej używał?", "Kto najprędzej zaproponowałby coś nowego w łóżku?",
     "Kto najprędzej byłby głośny za ścianą?", "Kto najprędzej miałby najwięcej pikantnych historii?",
-    "Kto najprędzej dostałby nudesy?", "Kto najprędzej wysłałby nudesy zaufanej osobie?"
+    "Kto najprędzej dostałby nudesy?", "Kto najprędzej wysłałby nudesy zaufanej osobie?",
+    "Kto najprędzej wybrałby bardzo odważne pytanie w grze 18+?", "Kto najprędzej przyznałby się do najbardziej pikantnego sekretu?",
+    "Kto najprędzej miałby najbardziej niegrzeczną historię z wakacji?", "Kto najprędzej odpowiedziałby szczerze na pytanie, które wszyscy inni pominęliby milczeniem?"
   ]),
   ...group("18+ Impreza", [
     "Kto najprędzej wypije za dużo i będzie wszystkim mówić, że ich kocha?", "Kto najprędzej zrobi after u siebie?",
@@ -253,7 +255,9 @@ mostLikelyPrompts.push(
     "Kto najprędzej ma najbardziej przypałową randkową historię?", "Kto najprędzej przypadkiem odczyta pikantną wiadomość na głos?",
     "Kto najprędzej ma najdziwniejszy typ?", "Kto najprędzej przyzna się do rzeczy, której reszta by nie powiedziała?",
     "Kto najprędzej zgodzi się na odważne wyzwanie?", "Kto najprędzej zdradzi sekret po jednym drinku?",
-    "Kto najprędzej ma najwięcej rzeczy ukrytych w notatkach telefonu?", "Kto najprędzej robi dobrą minę do najbardziej niezręcznej sytuacji?"
+    "Kto najprędzej ma najwięcej rzeczy ukrytych w notatkach telefonu?", "Kto najprędzej robi dobrą minę do najbardziej niezręcznej sytuacji?",
+    "Kto najprędzej wybrałby pytanie 18+ zamiast bezpiecznej opcji?", "Kto najprędzej żałowałby, że powiedział prawdę?",
+    "Kto najprędzej ma historię, której nie powinno się czytać na głos?", "Kto najprędzej rozkręci rozmowę, która robi się zdecydowanie dla dorosłych?"
   ])
 );
 

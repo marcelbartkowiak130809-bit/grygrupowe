@@ -1,28 +1,28 @@
-import { accountModal, authModal } from "./auth.js?v=20260603-1";
+import { accountModal, authModal } from "./auth.js?v=20260604-1";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260604-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, submitModerationReport, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260603-22";
-import { getGameMode } from "./games.js?v=20260604-3";
+import { getGameMode } from "./games.js?v=20260604-6";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260604-1";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260604-1";
-import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260603-2";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260604-2";
+import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260604-1";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260603-22";
-import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260604-2";
-import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260603-2";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-2";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-2";
+import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260604-3";
+import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260604-1";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260604-3";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260604-4";
 import { renderPlatform } from "./platform.js?v=20260604-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260604-3";
+import { playerMini, renderRoom } from "./room.js?v=20260604-6";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260604-1";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js";
 import { grantProgression, levelProgressButtonHtml, progressionModal } from "./progression.js?v=20260602-6";
 
 const root = $("#app");
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy"; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.birthDate ||= "";account.inbox = Array.isArray(account.inbox) ? account.inbox : []; });
 saveAccounts(accounts);
 const session=loadSession();
 const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null };
@@ -213,14 +213,51 @@ function message(text, type = "error") {
   const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = text; document.body.append(toast);
   setTimeout(() => toast.remove(), 3200);
 }
-const finishedRoomPhases = new Set(["result", "results", "final", "roundResult", "roundSummary", "gameSummary"]);
+const isAdminProfile = item => String(item?.nick || "").toLowerCase() === "panda";
+const reportableMode = room => Boolean(getGameMode(room?.gameMode).allowReports);
+const adultAcceptedKey = modeId => `adult-warning:${modeId || "global"}`;
+const hasAdultCategory = settings => [settings?.category, ...(Array.isArray(settings?.categories) ? settings.categories : [])].some(item => String(item || "").startsWith("18+"));
+const roomIsAdult = room => Boolean(getGameMode(room?.gameMode).adult || hasAdultCategory(room?.settings));
+function adultWarningModal(mode, onConfirm) {
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal confirm-modal enter adult-warning-modal" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">OSTRZEŻENIE 18+</p><h2>${escapeHtml(mode?.name || "Tryb 18+")}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Ten wybór może zawierać mocne pytania dla dorosłych: seksualne, imprezowe, alkoholowe albo bardzo prywatne. Wchodź tylko, jeśli masz 18+ i świadomie chcesz grać w taki materiał.</p><div class="modal-actions"><button class="ghost" data-close>Nie wchodzę</button><button class="danger" id="confirm-adult-warning">Mam 18+ i potwierdzam</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
+  modal.querySelector("#confirm-adult-warning").addEventListener("click",()=>{sessionStorage.setItem(adultAcceptedKey(mode?.id),"true");actions.closeModal(modal);onConfirm?.();});
+  document.body.append(modal);Audio.play("modalOpen");
+}
+function withAdultWarning(mode, onConfirm, force = false) {
+  if(!force || sessionStorage.getItem(adultAcceptedKey(mode?.id))==="true") return onConfirm();
+  adultWarningModal(mode,onConfirm);
+}
+function banApplies(ban, user, modeId = "") {
+  if (!ban || ban.revoked) return false;
+  if (Number(ban.expiresAt || 0) && Number(ban.expiresAt) < Date.now()) return false;
+  const modes = Array.isArray(ban.modes) ? ban.modes : [];
+  if (!ban.global && !modeId) return false;
+  if (!ban.global && modes.length && !modes.includes(modeId)) return false;
+  const nickMatch = String(ban.targetNick || "").toLowerCase() === String(user?.nick || "").toLowerCase();
+  const ipMatch = ban.targetIp && user?.lastKnownIp && String(ban.targetIp) === String(user.lastKnownIp);
+  return nickMatch || ipMatch;
+}
+async function activeBanFor(user, modeId = "") {
+  if (!user || isAdminProfile(user)) return null;
+  const bans = Object.values(await loadModerationBans());
+  return bans.find(ban => banApplies(ban, user, modeId));
+}
+async function guardBan(modeId = "") {
+  const ban = await activeBanFor(profile(), modeId);
+  if (!ban) return false;
+  const until = ban.expiresAt ? ` do ${new Date(ban.expiresAt).toLocaleString("pl-PL")}` : "";
+  message(`Masz bana${until}. Powód: ${ban.reason || "brak"}`, "error");
+  return true;
+}
 function shouldCloseLonelyFinishedRoom(room) {
-  return room?.players?.length === 1 && room.status !== "lobby" && finishedRoomPhases.has(room.game?.phase);
+  return room?.players?.length === 1 && room.status !== "lobby" && Boolean(room.game);
 }
 function showRoomClosedNotice() {
   if (document.querySelector("[data-room-closed-modal]")) return;
   const modal = document.createElement("div"); modal.className = "modal-backdrop"; modal.dataset.roomClosedModal = "true";
-  modal.innerHTML = `<section class="modal confirm-modal enter" role="dialog" aria-modal="true" aria-labelledby="room-closed-title"><div class="modal-title"><div><p class="eyebrow">POKÓJ ZAMKNIĘTY</p><h2 id="room-closed-title">Rozgrywka została zakończona</h2></div></div><p class="muted">W pokoju został tylko jeden gracz, więc nie można rozpocząć kolejnej rundy. Wróciłeś do menu gier.</p><div class="modal-actions"><button class="primary" data-close-room-notice>Rozumiem</button></div></section>`;
+  modal.innerHTML = `<section class="modal confirm-modal enter" role="dialog" aria-modal="true" aria-labelledby="room-closed-title"><div class="modal-title"><div><p class="eyebrow">POKÓJ ZAMKNIĘTY</p><h2 id="room-closed-title">Rozgrywka została zakończona</h2></div></div><p class="muted">W pokoju został tylko jeden gracz, więc nie można kontynuować gry. Wróciłeś do menu gier.</p><div class="modal-actions"><button class="primary" data-close-room-notice>Rozumiem</button></div></section>`;
   modal.querySelector("[data-close-room-notice]").addEventListener("click", () => { modal.remove(); Audio.play("modalClose"); });
   document.body.append(modal); Audio.play("modalOpen");
 }
@@ -373,10 +410,50 @@ function leaveRoomModal(destination = "lobby") {
   modal.querySelector("#confirm-leave-room").addEventListener("click",()=>{modal.remove();actions.confirmLeaveRoom(destination);});
   document.body.append(modal);Audio.play("modalOpen");
 }
-function defaultAccount(nick, password, auth = {}) {
+function gameInfoModal(modeId) {
+  const mode = getGameMode(modeId), modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">JAK GRAĆ</p><h2>${escapeHtml(mode.name)}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><ol class="compact-rules">${(mode.help || [mode.description]).map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ol><div class="modal-actions"><button class="primary" data-close>OK</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));document.body.append(modal);Audio.play("modalOpen");
+}
+function reportModal(targetUid = "") {
+  const room=activeRoom(), mode=getGameMode(room?.gameMode), modal=document.createElement("div");modal.className="modal-backdrop";
+  if(!room||!reportableMode(room))return message("W tym trybie nie ma zgłaszania graczy.","info");
+  const options=room.players.filter(uid=>uid!==state.currentUser).map(uid=>`<option value="${uid}" ${uid===targetUid?"selected":""}>${escapeHtml(state.accounts[uid]?.nick||room.playerProfiles?.[uid]?.nick||"Gracz")}</option>`).join("");
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">ZGŁOSZENIE</p><h2>Zgłoś gracza</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Nick gracza</label><select id="report-target">${options}</select><label>Opis problemu</label><textarea id="report-description" maxlength="700" placeholder="Krótko napisz, co się stało."></textarea><p class="tiny">Zgłoszenie zapisze zgłaszającego, zgłaszanego, datę, tryb gry i opis.</p><div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="danger" id="submit-report">Wyślij zgłoszenie</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
+  modal.querySelector("#submit-report").addEventListener("click",async()=>{if(await actions.submitReport(modal.querySelector("#report-target").value,modal.querySelector("#report-description").value))actions.closeModal(modal);});
+  document.body.append(modal);Audio.play("modalOpen");
+}
+async function inboxModal() {
+  const user=profile(); if(!user||user.nickOnly)return message("Inbox jest dostępny tylko na koncie.","info");
+  const remote=Object.values(await loadInboxForNick(user.nick)); const local=Array.isArray(user.inbox)?user.inbox:[]; const items=[...local,...remote].sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">INBOX</p><h2>Wiadomości konta</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="inbox-list">${items.length?items.map(item=>`<article><b>${escapeHtml(item.subject||"Wiadomość")}</b><small>${item.createdAt?new Date(item.createdAt).toLocaleString("pl-PL"):""}</small><p>${escapeHtml(item.body||item.description||"")}</p></article>`).join(""):'<p class="muted">Inbox jest pusty.</p>'}</div><div class="modal-actions"><button class="primary" data-close>Zamknij</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));document.body.append(modal);Audio.play("modalOpen");
+}
+function birthDateRequestModal() {
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">DATA URODZENIA</p><h2>Prośba do administracji</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Co chcesz zmienić?</label><textarea id="birth-request-text" maxlength="700" placeholder="Napisz obecną i poprawną datę oraz krótki powód."></textarea><label>Dokument do weryfikacji</label><input id="birth-request-file" type="file" accept="image/*,.pdf"><p class="tiny">Możesz zamazać wszystko poza datą i elementem potwierdzającym, że dokument nie jest losowym obrazkiem z internetu.</p><div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="submit-birth-request">Wyślij</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
+  modal.querySelector("#submit-birth-request").addEventListener("click",async()=>{const file=modal.querySelector("#birth-request-file").files[0];if(await actions.requestBirthDateChange(modal.querySelector("#birth-request-text").value,file))actions.closeModal(modal);});
+  document.body.append(modal);Audio.play("modalOpen");
+}
+async function adminPanelModal() {
+  if(!isAdminProfile(profile()))return message("Brak dostępu.","error");
+  const reports=Object.values(await loadModerationReports()).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+  const bans=Object.values(await loadModerationBans()).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal admin-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">PANEL ADMINA</p><h2>Inbox zgłoszeń</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="admin-grid"><section><h3>Zgłoszenia</h3><div class="inbox-list">${reports.length?reports.map(item=>`<article><b>${escapeHtml(item.reportedNick||item.targetNick||"Gracz")}</b><small>${escapeHtml(item.modeName||item.modeId||"")} · ${item.createdAt?new Date(item.createdAt).toLocaleString("pl-PL"):""}</small><p>${escapeHtml(item.description||"")}</p><button data-admin-reply="${item.id}">Odpowiedz</button></article>`).join(""):'<p class="muted">Brak zgłoszeń.</p>'}</div></section><section><h3>Wiadomość do gracza</h3><label>Nick</label><input id="admin-message-nick" placeholder="nick"><label>Treść</label><textarea id="admin-message-body" maxlength="700"></textarea><button class="primary full" id="admin-send-message">Wyślij</button><h3>Ban</h3><label>Nick</label><input id="admin-ban-nick" placeholder="nick"><label>IP / identyfikator</label><input id="admin-ban-ip" placeholder="opcjonalnie"><label>Tryby</label><input id="admin-ban-modes" placeholder="global albo np. impostor,udowodnij"><label>Czas bana</label><select id="admin-ban-duration"><option value="3600000">1 godzina</option><option value="86400000">1 dzień</option><option value="604800000">7 dni</option><option value="0">Na stałe</option></select><label>Powód</label><textarea id="admin-ban-reason" maxlength="500"></textarea><button class="danger full" id="admin-ban-submit">Nadaj bana</button><div class="tiny">Aktywne bany: ${bans.length}</div></section></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
+  modal.querySelector("#admin-send-message").addEventListener("click",()=>actions.adminSendMessage(modal.querySelector("#admin-message-nick").value,modal.querySelector("#admin-message-body").value));
+  modal.querySelector("#admin-ban-submit").addEventListener("click",()=>actions.adminBanPlayer({ nick:modal.querySelector("#admin-ban-nick").value, ip:modal.querySelector("#admin-ban-ip").value, modes:modal.querySelector("#admin-ban-modes").value, duration:Number(modal.querySelector("#admin-ban-duration").value), reason:modal.querySelector("#admin-ban-reason").value }));
+  modal.querySelectorAll("[data-admin-reply]").forEach(button=>button.addEventListener("click",()=>{const report=reports.find(item=>item.id===button.dataset.adminReply);if(report){modal.querySelector("#admin-message-nick").value=report.reporterNick||"";modal.querySelector("#admin-message-body").value=`Odpowiedź do zgłoszenia ${report.id}: `;}}));
+  document.body.append(modal);Audio.play("modalOpen");
+}
+function defaultAccount(nick, password, auth = {}, birthDate = "") {
   return { nick, passwordHash:hashRoomPassword(`account:${password}`), authEmail: nickToEmail(nick), authProvider: auth.provider || "local", money: 0, xp:0, claimedLevelRewards:{}, stats:{},
     ownedCosmetics: { defaultNick: true, defaultFrame: true, noAura: true, defaultCandy: true }, selectedNickEffect: "defaultNick",
-    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", createdAt: Date.now() };
+    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", birthDate, inbox:[], createdAt: Date.now() };
 }
 
 const actions = {
@@ -391,10 +468,12 @@ const actions = {
     if(!profile()){state.pendingJoin={roomId:code,password};return actions.openAuth({title:"Zaloguj się, aby dołączyć do pokoju",description:"Po logowaniu od razu przeniesiemy cię do właściwej gry."});}
     actions.joinRoom(code,password);
   },
-  selectGame(gameMode) {
+  async selectGame(gameMode) {
     state.selectedGameMode = gameMode;persistSession();
-    if (getGameMode(gameMode).supportsSolo && !getGameMode(gameMode).supportsLobby) return Router.go("solo");
+    const mode=getGameMode(gameMode);
+    if (mode.supportsSolo && !mode.supportsLobby) return withAdultWarning(mode,()=>Router.go("solo"),Boolean(mode.adult));
     if (!profile()) { state.afterLogin = "lobby"; return actions.openAuth({ title: `Zaloguj się, aby zagrać w ${getGameMode(gameMode).name}` }); }
+    if(await guardBan(gameMode))return;
     Router.go("lobby");
   },
   openAuth(options = {}) {
@@ -405,7 +484,12 @@ const actions = {
     const modal = accountModal(profile(), actions); document.body.append(modal); Audio.play("modalOpen");
   },
   openProgression() { if(profile()){const modal=progressionModal(profile(),actions.closeModal);document.body.append(modal);Audio.play("modalOpen");} },
-  async login(nick, password, mode) {
+  showGameInfo(modeId){ gameInfoModal(modeId); },
+  openReportModal(targetUid=""){ reportModal(targetUid); },
+  openInbox(){ inboxModal(); },
+  openBirthDateRequest(){ birthDateRequestModal(); },
+  openAdminPanel(){ adminPanelModal(); },
+  async login(nick, password, mode, birthDate = "") {
     const clean = normalizeNick(nick || (mode==="nickOnly"?randomGuestNick():""));
     if (!clean) { message("Nick może mieć tylko litery, cyfry i _."); return false; }
     if (mode === "nickOnly") {
@@ -420,7 +504,10 @@ const actions = {
       const auth = await authenticateNick(clean, password);
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId);
-      state.accounts[accountId] = { ...defaultAccount(clean,password,auth), ...(existing||{}), ...(remote||{}), passwordHash:hashRoomPassword(`account:${password}`) }; delete state.accounts[accountId].password;
+      if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }
+      state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; delete state.accounts[accountId].password;
+      const ban = await activeBanFor(state.accounts[accountId]);
+      if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
       if(existingEntry?.[0]&&existingEntry[0]!==accountId)delete state.accounts[existingEntry[0]];
       state.currentUser = accountId; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);connectRooms();Audio.play("success"); actions.finishLogin(); return true;
     } catch { message("Nie udało się zalogować. Spróbuj ponownie."); return false; }
@@ -442,6 +529,37 @@ const actions = {
     await logoutAuth();
     state.currentUser = null; state.activeRoomId = null;clearSession(); Router.go("platform");
   },
+  async submitReport(targetUid, description) {
+    const room=activeRoom(), reporter=profile(); if(!room||!reporter||!reportableMode(room))return false;
+    const text=String(description||"").trim(); if(text.length<6){message("Opisz krótko problem.");return false;}
+    const target=state.accounts[targetUid]||room.playerProfiles?.[targetUid]||{};
+    await submitModerationReport({ reporterUid:state.currentUser, reporterNick:reporter.nick, reportedUid:targetUid, reportedNick:target.nick || "Gracz", modeId:room.gameMode, modeName:getGameMode(room.gameMode).name, roomId:room.roomId, description:text });
+    message("Zgłoszenie wysłane.","info"); return true;
+  },
+  async requestBirthDateChange(text, file) {
+    const user=profile(); if(!user||user.nickOnly)return false;
+    const body=String(text||"").trim(); if(body.length<8){message("Napisz, co chcesz zmienić.");return false;}
+    if(!file){message("Dołącz plik do weryfikacji.");return false;}
+    if(file.size>5*1024*1024){message("Plik jest za duży. Maksymalnie 5 MB.");return false;}
+    await submitModerationReport({ type:"birthDateChange", reporterUid:state.currentUser, reporterNick:user.nick, reportedUid:state.currentUser, reportedNick:user.nick, modeId:"account", modeName:"Konto", description:body, document:{ name:file.name, type:file.type, size:file.size } });
+    user.inbox=[...(user.inbox||[]),{id:uid("MSG"),subject:"Prośba wysłana",body:"Prośba o zmianę daty urodzenia trafiła do administracji.",createdAt:Date.now()}];saveAccounts(state.accounts);syncPlayerProfile(state.currentUser,user);message("Prośba wysłana do administracji.","info");return true;
+  },
+  async adminSendMessage(nick, body) {
+    if(!isAdminProfile(profile()))return message("Brak dostępu.");
+    const clean=normalizeNick(nick), text=String(body||"").trim(); if(!clean||text.length<2)return message("Podaj nick i treść.");
+    await sendInboxMessageToNick(clean,{fromNick:profile().nick,subject:"Wiadomość od administracji",body:text});
+    const entry=accountByNick(clean); if(entry){entry[1].inbox=[...(entry[1].inbox||[]),{id:uid("MSG"),fromNick:profile().nick,subject:"Wiadomość od administracji",body:text,createdAt:Date.now()}];saveAccounts(state.accounts);}
+    message("Wiadomość wysłana.","info");
+  },
+  async adminBanPlayer({nick, ip, modes, duration, reason}) {
+    if(!isAdminProfile(profile()))return message("Brak dostępu.");
+    const clean=normalizeNick(nick), targetIp=String(ip||"").trim(), modeList=String(modes||"").toLowerCase().split(",").map(item=>item.trim()).filter(Boolean);
+    if(!clean&&!targetIp)return message("Podaj nick albo IP.");
+    const global=!modeList.length||modeList.includes("global")||modeList.includes("all");
+    await saveModerationBan({targetNick:clean,targetIp,global,modes:global?[]:modeList,reason:String(reason||"").trim(),createdBy:profile().nick,expiresAt:Number(duration)?Date.now()+Number(duration):0});
+    if(clean)await sendInboxMessageToNick(clean,{fromNick:profile().nick,subject:"Kara konta",body:`Nałożono bana${global?" globalnego":" na wybrane tryby"}. Powód: ${String(reason||"brak")}`});
+    message("Ban zapisany.","info");
+  },
   async changePassword(password) {
     if (!password || password.length < 3) { message("Nowe hasło musi mieć minimum 3 znaki."); return false; }
     try { await updateAuthPassword(password); updateProfile({ passwordHash:hashRoomPassword(`account:${password}`) }); message("Hasło zostało zmienione.", "info"); return true; }
@@ -460,16 +578,19 @@ const actions = {
   async createRoom({ name, password, settings, isPrivate }) {
     if(!ensureRoomSession()||!profile())return false;
     const now = Date.now(); const mode = getGameMode(state.selectedGameMode);
+    if(await guardBan(mode.id))return false;
     const room = { roomId: uid(), gameMode: mode.id, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
       isPrivate, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings, createdAt: now, updatedAt: now, game: null };
     const result=await syncRoomState(room);if(!result.ok){message(`Nie udało się utworzyć pokoju: ${result.error}`);connectRooms();return false;}
     state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;persistSession(); Audio.play("joinRoom"); Router.go("room");
     return true;
   },
-  joinRoom(roomId, password = "") {
+  async joinRoom(roomId, password = "") {
     if(!ensureRoomSession()||!profile())return false;
     const code=String(roomId||"").trim().toUpperCase(),room = state.rooms.find(item => item.roomId === code); if (!room) return message("Nie znaleziono pokoju.");
     const mode = getGameMode(room.gameMode);
+    if(await guardBan(room.gameMode))return false;
+    if(roomIsAdult(room)&&sessionStorage.getItem(adultAcceptedKey(room.gameMode))!=="true")return withAdultWarning(mode,()=>actions.joinRoom(roomId,password),true);
     if (room.isPrivate && room.passwordHash !== hashRoomPassword(password)) return message("Złe hasło do pokoju.");
     if (!room.players.includes(state.currentUser)) {
       if (room.status !== "lobby") return message("Gra już wystartowała.");
@@ -493,10 +614,12 @@ const actions = {
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); render();
   },
   setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","assignTime","candyCount","poisonedPerPlayer"].includes(key)?Number(value):value};touchRoom(room);render();},
+  setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:room.settings.adultWarningAccepted||next.some(item=>String(item).startsWith("18+"))};touchRoom(room);render();};if(addingAdult&&!room.settings.adultWarningAccepted)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   saveIdentityWords(text){const room=activeRoom();if(!room||room.gameMode!=="kim-jestem")return;room.customWords??={};room.customWords[state.currentUser]=text.split(",").map(x=>x.trim()).filter(Boolean).slice(0,5);touchRoom(room);message("Hasła zapisane.","info");render();},
-  startGame() {
+  async startGame() {
     const room = activeRoom(), mode = getGameMode(room?.gameMode);
     if (!room || room.hostUid !== state.currentUser) return;
+    if(await guardBan(room.gameMode))return;
     const players = normalizedRoomPlayers(room);
     if (players.length < mode.minPlayers) return message(`Ten tryb wymaga minimum ${mode.minPlayers} graczy.`, "info");
     room.players = players;
@@ -589,7 +712,7 @@ function audioModal() {
   modal.innerHTML = `<section class="modal audio-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">AUDIO</p><h2>Ustawienia dźwięku</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Music Volume <span id="music-value">${Math.round(settings.musicVolume*100)}%</span></label><input id="music-volume" type="range" min="0" max="1" step="0.01" value="${settings.musicVolume}"><label>SFX Volume <span id="sfx-value">${Math.round(settings.sfxVolume*100)}%</span></label><input id="sfx-volume" type="range" min="0" max="1" step="0.01" value="${settings.sfxVolume}"><label class="check"><input id="mute-all" type="checkbox" ${settings.muted?"checked":""}> Mute All</label><p class="tiny">Ambient: ${Audio.currentTrack}. Ustawienia zapisują się automatycznie.</p></section>`;
   modal.querySelector("[data-close]").addEventListener("click",()=>actions.closeModal(modal)); $("#music-volume",modal).addEventListener("input",e=>{Audio.setMusicVolume(e.target.value);$("#music-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#sfx-volume",modal).addEventListener("input",e=>{Audio.setSfxVolume(e.target.value);$("#sfx-value",modal).textContent=`${Math.round(e.target.value*100)}%`;}); $("#mute-all",modal).addEventListener("change",e=>Audio.setMuted(e.target.checked)); document.body.append(modal); Audio.play("modalOpen");
 }
-function topBar() { const user = profile(); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry dla znajomych!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -640,11 +763,11 @@ function render(options = {}) {
   const drafts = options?.preserveDrafts ? captureInputDrafts(root) : {fields:[]};
   lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop);
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
   const finish = result => { restoreInputDrafts(root,drafts); return result; };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen==="platform") return finish(renderPlatform(view,actions)); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
-  const room=activeRoom(); if(!room) return Router.go("platform"); if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return finish(mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions)); } catch(error) { return finish(renderGameError(view,room,error)); } } return finish(renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions));
+  const room=activeRoom(); if(!room) return Router.go("platform"); if(closeLonelyFinishedRoom(room,{notify:true}))return; if(screen==="game") { const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature(); try { return finish(mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions)); } catch(error) { return finish(renderGameError(view,room,error)); } } return finish(renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions));
 }
 function connectRooms(){
   stopRoomsSubscription();

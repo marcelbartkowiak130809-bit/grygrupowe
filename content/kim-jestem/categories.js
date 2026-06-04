@@ -45,4 +45,32 @@ Object.entries(identityExtras).forEach(([category, items]) => {
   identityCategories[category] = [...new Set([...(identityCategories[category] || []), ...items])];
 });
 
+const identityMoreExtras = {
+  "Postacie z bajek":["Merida","Mulan","Dżin","Aladyn","Dzwoneczek","Piotruś Pan","Roszpunka","Kopciuszek","Śnieżka","Bella","Bestia","Pinokio","Dumbo","Kłapouchy","Królewna Fiona","Lord Farquaad","Kowalski","Rico","Skipper","Szeregowy"],
+  "Postacie z filmów":["Tony Montana","Hannibal Lecter","E.T.","Sherlock Holmes","Dracula","Frankenstein","Godzilla","King Kong","Maverick","Ethan Hunt","Lara Jean","Mia Wallace","Don Corleone","Vito Corleone","Han Solo","Chewbacca","Princess Leia","Obi-Wan Kenobi","Dumbledore","Hagrid"],
+  "Postacie z gier":["Donkey Kong","Bowser","Princess Peach","Yoshi","Samus","Mega Man","Solid Snake","Nathan Drake","Aloy","Doom Slayer","Vault Boy","Raiden","Jinx","Teemo","Ahri","Tracer","D.Va","Isaac Clarke","Spyro","Ratchet"],
+  "Celebryci i artyści":["Taco Hemingway","Oki","Sobel","Lanek","Bambi","Ralph Kaminski","Krzysztof Zalewski","Podsiadło","Margaret","Vito Bambino","Zendaya","Timothée Chalamet","Tom Holland","Dwayne Johnson","Ryan Reynolds","Emma Watson","Millie Bobby Brown","Olivia Rodrigo","Doja Cat","SZA"],
+  "Zwierzęta":["lama","alpaka","szop pracz","jeż","wiewiórka","ryś","łoś","foka","mors","krab","homar","meduza","konik morski","pelikan","tukan","paw","struś","lemur","surikatka","nietoperz"],
+  "Zawody":["barber","cukiernik","taksówkarz","motorniczy","maszynista","reżyser","scenarzysta","operator kamery","montażysta","producent muzyczny","DJ","ochroniarz","żołnierz","marynarz","tancerz","kosmetyczka","dietetyk","farmaceuta","tłumacz","informatyk"],
+  "Przedmioty":["drukarka","skaner","tablet","mikrofon","kamera","statyw","notes","długopis","ołówek","gumka","linijka","taśma klejąca","nożyczki","młotek","śrubokręt","wiertarka","wiadro","miotła","mop","kosz na śmieci"],
+  "Jedzenie":["żurek","barszcz","bigos","gołąbki","placki ziemniaczane","racuchy","oscypek","tiramisu","croissant","bagietka","donut","brownie","cheeseburger","nachosy","quesadilla","curry","pad thai","pho","kimchi","falafel"],
+  "Marki":["Tymbark","Wedel","Milka","Kinder","Lay's","Pringles","Oreo","Nesquik","M&M's","Skittles","Tarczyński","Reserved","Cropp","House","Media Expert","Empik","InPost","Orlen","Rossmann","Pepco"],
+  "Kraje":["Nowa Zelandia","RPA","Kenia","Tunezja","Algieria","Nigeria","Chile","Peru","Kolumbia","Wenezuela","Kuba","Jamajka","Wietnam","Malezja","Indonezja","Filipiny","Singapur","Arabia Saudyjska","ZEA","Izrael"],
+  "Miasta":["Bydgoszcz","Białystok","Gdynia","Częstochowa","Radom","Gliwice","Zabrze","Bielsko-Biała","Olsztyn","Opole","Płock","Kielce","Berno","Zurych","Oslo","Kopenhaga","Helsinki","Dublin","Edynburg","San Francisco"],
+  "Memy i internet":["NPC stream","ratio","based","boomer","Karen","backrooms","liminal space","iceberg","deepfake","green screen","reaction video","storytime","unboxing","speedrun","rage quit","lag","AFK","GG EZ","skill issue","fan edit"],
+  "Minecraft":["Krowa","Świnia","Owca","Kurczak","Lis","Lama","Handlarz","Fantom","Topielec","Strażnik","Starszy strażnik","Magma cube","Hoglin","Zoglin","Strider","Ravager","Allay","Żaba","Kijanka","Sniffer"],
+  "Roblox":["Royale High","Murderers vs Sheriffs","Anime Adventures","Toilet Tower Defense","PLS DONATE","Mocap Dancing","Find the Markers","Nico's Nextbots","A Dusty Trip","Strongman Simulator","Shindo Life","Anime Fighters","King Legacy","Driving Empire","Car Crushers 2","Super Golf","Epic Minigames","Mega Easy Obby","Survive the Killer","Slap Battles"],
+  "Twórcy internetowi":["Abstrachuje","Cyber Marian","Planeta Faktów","SciFun","Uwaga Naukowy Bełkot","Historia bez Cenzury","Kolega Ignacy","Klocuch","Generator Frajdy","Fangotten","Człowiek Warga","Hania Es","Maksymalnie","Doknes","Vito i Bella","Natsu","Murcix","Patec","Qesek","Palion"],
+  "Gry popularne":["Baldur's Gate 3","Helldivers 2","Palworld","Lethal Company","Phasmophobia","Dead by Daylight","Hades","Hollow Knight","Celeste","Slime Rancher","Sea of Thieves","No Man's Sky","Warframe","Destiny 2","Dota 2","Team Fortress 2","The Forest","Sons of the Forest","It Takes Two","The Crew Motorfest"],
+  "Pokémon":["Arceus","Mimikyu","Sylveon","Umbreon","Espeon","Vaporeon","Jolteon","Flareon","Leafeon","Glaceon","Goodra","Garchomp","Rayquaza","Kyogre","Groudon","Lugia","Ho-Oh","Zacian","Zamazenta","Koraidon"],
+  "Superbohaterowie":["Moon Knight","Ms. Marvel","She-Hulk","Falcon","Winter Soldier","Punisher","Ghost Rider","Blade","Cyclops","Jean Grey","Storm","Professor X","Magneto","Beast","Raven","Nightwing","Riddler","Penguin","Green Arrow","Constantine"],
+  "Filmy i seriale":["Better Call Saul","Peaky Blinders","Sherlock","The Boys","The Mandalorian","Loki","WandaVision","Arcane","Rick i Morty","BoJack Horseman","South Park","Family Guy","Stranger Things 4","Dark","Narcos","Dexter","Lost","Dr House","M jak miłość","Ranczo"],
+  "Sport":["Zinedine Zidane","David Beckham","Sergio Ramos","Robert Lewandowski w Barcelonie","Harry Kane","Mohamed Salah","Kevin De Bruyne","Stephen Curry","Kobe Bryant","Shaquille O'Neal","Conor McGregor","Jan Błachowicz","Joanna Jędrzejczyk","Anita Włodarczyk","Bartosz Kurek","Wilfredo Leon","Piotr Żyła","Dawid Kubacki","Fernando Alonso","Valentino Rossi"],
+  "Anime i manga":["Itachi","Hinata","Madara","Frieza","Piccolo","Chopper","Sanji","Usopp","Nico Robin","Ichigo","Rukia","Edward Elric","Alphonse Elric","Mikasa Ackerman","Eren Yeager","Armin","Killua","Gon","Hisoka","Sukuna"],
+};
+
+Object.entries(identityMoreExtras).forEach(([category, items]) => {
+  identityCategories[category] = [...new Set([...(identityCategories[category] || []), ...items])];
+});
+
 export const identityCategoryNames=Object.keys(identityCategories);

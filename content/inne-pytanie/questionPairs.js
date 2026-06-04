@@ -60,12 +60,12 @@ export const otherQuestionPairs=[
 {category:"Dziwne pytania",main:"Ile zdjęć masz obecnie w telefonie?",impostor:"Ile screenshotów masz obecnie w telefonie?"},
 {category:"Dziwne pytania",main:"Ile razy zmieniałeś fryzurę?",impostor:"Ile razy farbowałeś włosy?"},
 {category:"Dziwne pytania",main:"Ile minut wytrzymasz bez telefonu?",impostor:"Ile godzin wytrzymasz bez internetu?"},
-{category:"Spicy 18+",spicy:true,main:"Ile razy byłeś na randce w ostatnim roku?",impostor:"Ile nowych osób poznałeś romantycznie w ostatnim roku?"},
-{category:"Spicy 18+",spicy:true,main:"Ile razy dostałeś numer telefonu od nowej osoby?",impostor:"Ile razy poprosiłeś kogoś o kontakt?"},
-{category:"Spicy 18+",spicy:true,main:"Ile osób pocałowałeś?",impostor:"Z iloma osobami byłeś na randce?"},
-{category:"Spicy 18+",spicy:true,main:"Ile razy napisałeś pierwszy po randce?",impostor:"Ile razy ktoś napisał pierwszy do ciebie?"},
-{category:"Spicy 18+",spicy:true,main:"Ile razy miałeś crusha na znajomego?",impostor:"Ile razy ktoś ze znajomych miał crusha na ciebie?"},
-{category:"Spicy 18+",spicy:true,main:"Ile razy użyłeś aplikacji randkowej?",impostor:"Ile rozmów zacząłeś w aplikacji randkowej?"}
+{category:"Relacje",main:"Ile razy byłeś na randce w ostatnim roku?",impostor:"Ile nowych osób poznałeś przez znajomych w ostatnim roku?"},
+{category:"Relacje",main:"Ile razy dostałeś numer telefonu od nowej osoby?",impostor:"Ile razy poprosiłeś kogoś o kontakt?"},
+{category:"Relacje",main:"Ile osób zaprosiłbyś na spokojne spotkanie?",impostor:"Z iloma osobami byłeś na kawie lub spacerze?"},
+{category:"Relacje",main:"Ile razy napisałeś pierwszy po udanym spotkaniu?",impostor:"Ile razy ktoś napisał pierwszy do ciebie?"},
+{category:"Relacje",main:"Ile razy miałeś niewinnego crusha na znajomego?",impostor:"Ile razy ktoś ze znajomych był dla ciebie wyjątkowo miły?"},
+{category:"Relacje",main:"Ile rozmów z nowymi osobami zacząłeś w internecie?",impostor:"Ile nowych znajomości utrzymałeś dłużej niż tydzień?"}
 ,{category:"Minecraft i Roblox",main:"Ile godzin grałeś najdłużej w Minecrafta?",impostor:"Ile godzin grałeś najdłużej w Roblox?"}
 ,{category:"Minecraft i Roblox",main:"Ile diamentów znalazłeś kiedyś w jednym świecie?",impostor:"Ile razy zginąłeś kiedyś w jednym świecie?"}
 ,{category:"Minecraft i Roblox",main:"Ile razy pokonałeś smoka Endu?",impostor:"Ile razy dotarłeś do Endu?"}

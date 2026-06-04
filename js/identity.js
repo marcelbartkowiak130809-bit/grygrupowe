@@ -7,7 +7,8 @@ import { Effects } from "./effects.js";
 let timerId, lastCountdown;
 
 export const identityDefaults = {
-  category: "Wszystkie",
+  category: "",
+  categories: identityCategoryNames.slice(0, 3),
   turnTime: 45,
   rounds: 3,
   responseMode: "extended",
@@ -25,26 +26,46 @@ const objectOrEmpty = value => value && typeof value === "object" && !Array.isAr
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 const mini = p => playerMiniHtml(p);
 const clampNumber = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
+const minimumCategoryCount = 3;
+const normalizeCategories = settings => {
+  let selected = Array.isArray(settings?.categories) ? settings.categories : [];
+  if (!selected.length && settings?.category === "Wszystkie") selected = [...identityCategoryNames];
+  else if (!selected.length && identityCategories[settings?.category]) selected = [settings.category];
+  selected = [...new Set(selected.filter(name => identityCategories[name]))];
+  identityCategoryNames.forEach(name => {
+    if (selected.length < minimumCategoryCount && !selected.includes(name)) selected.push(name);
+  });
+  return selected.slice(0, identityCategoryNames.length);
+};
 const settingsWithDefaults = settings => {
   const s = { ...identityDefaults, ...settings };
   s.rounds = clampNumber(s.rounds, 1, 10, identityDefaults.rounds);
   s.targetScore = clampNumber(s.targetScore, 1, 5, identityDefaults.targetScore);
   s.turnTime = clampNumber(s.turnTime, 20, 90, identityDefaults.turnTime);
   s.gameFlow = s.gameFlow === "voice" ? "voice" : "normal";
+  s.categories = normalizeCategories(s);
+  s.category = s.categories[0] || "";
   return s;
 };
 const roundLimit = (game, settings) => Math.min(99, clampNumber(game.roundsLimit || settings.rounds, 1, 99, settings.rounds));
 const scoreDone = (game, uid, settings) => Number(game.scores?.[uid] || 0) >= settings.targetScore;
 
 function pool(settings, customWords) {
-  let base = settings.category === "Wszystkie" ? Object.values(identityCategories).flat() : identityCategories[settings.category] || [];
+  const selected = normalizeCategories(settings);
+  let base = selected.flatMap(name => identityCategories[name] || []);
   const own = Object.values(customWords || {}).flat();
-  return [...own, ...base];
+  return [...new Set([...own, ...base])];
 }
 
 function drawWord(game, uid, settings, customWords) {
-  const choices = shuffle(pool(settings, customWords)).filter(word => !(customWords?.[uid] || []).includes(word));
-  return choices[0] || shuffle(pool(settings, customWords))[0] || "tajemnicza postac";
+  const words = pool(settings, customWords);
+  const used = new Set([
+    ...Object.values(game.words || {}),
+    ...Object.values(game.wordHistory || {}).flatMap(entries => arrayOrEmpty(entries).map(entry => entry.word)),
+    ...(customWords?.[uid] || []),
+  ].filter(Boolean));
+  const choices = shuffle(words).filter(word => !used.has(word));
+  return choices[0] || shuffle(words)[0] || "tajemnicza postac";
 }
 
 function ensureWordHistory(game, players) {
@@ -73,7 +94,11 @@ function assignNewWord(game, uid, settings, customWords) {
 export function createIdentityGame(players, settings, customWords = {}) {
   const s = settingsWithDefaults(settings);
   const words = {};
-  players.forEach(uid => words[uid] = drawWord({}, uid, s, customWords));
+  const wordHistory = Object.fromEntries(players.map(uid => [uid, []]));
+  players.forEach(uid => {
+    words[uid] = drawWord({ words, wordHistory }, uid, s, customWords);
+    wordHistory[uid].push({ word: words[uid], startRound: 1, endRound: null });
+  });
   const order = shuffle(players);
   return {
     phase: "turn",
@@ -82,7 +107,7 @@ export function createIdentityGame(players, settings, customWords = {}) {
     round: 1,
     roundsLimit: s.rounds,
     words,
-    wordHistory: Object.fromEntries(players.map(uid => [uid, [{ word: words[uid], startRound: 1, endRound: null }]])),
+    wordHistory,
     history: [],
     responses: {},
     extendVotes: {},
@@ -237,9 +262,12 @@ export const IdentityEngine = {
 
 export function renderIdentityLobbySettings(room, isHost) {
   const s = settingsWithDefaults(room.settings);
+  const players = Math.max(1, Number(room.players?.length) || 1);
+  const totalMinutes = Math.ceil((s.turnTime * s.rounds * players) / 60);
+  const extraRoundMinutes = Math.ceil((s.turnTime * players) / 60);
+  const categoryChecks = identityCategoryNames.map(name => `<label class="check"><input data-identity-category="${escapeHtml(name)}" type="checkbox" ${s.categories.includes(name) ? "checked" : ""} ${isHost ? "" : "disabled"}> ${escapeHtml(name)}</label>`).join("");
   return `<div class="impostor-settings-grid">
 <label>Tryb gry<select data-identity-setting="gameFlow" ${isHost ? "" : "disabled"}><option value="normal" ${s.gameFlow === "normal" ? "selected" : ""}>Normalny, pisany</option><option value="voice" ${s.gameFlow === "voice" ? "selected" : ""}>Głosowy / Discord</option></select></label>
-<label>Kategoria<select data-identity-setting="category" ${isHost ? "" : "disabled"}>${["Wszystkie", ...identityCategoryNames].map(x => `<option ${s.category === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
 <label>Czas tury <b>${s.turnTime}s</b><input data-identity-setting="turnTime" type="range" min="20" max="90" step="5" value="${s.turnTime}" ${isHost ? "" : "disabled"}></label>
 <label>Liczba rund<select data-identity-setting="rounds" ${isHost ? "" : "disabled"}>${[1,2,3,4,5,6,7,8,9,10].map(n => `<option ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
 <label>Gramy do<select data-identity-setting="targetScore" ${isHost ? "" : "disabled"}>${[1,2,3,4,5].map(n => `<option ${s.targetScore === n ? "selected" : ""}>${n} trafien${n === 1 ? "ia" : ""}</option>`).join("")}</select></label>
@@ -248,6 +276,8 @@ export function renderIdentityLobbySettings(room, isHost) {
 <label class="check"><input data-identity-setting="newAfterGuess" type="checkbox" ${s.newAfterGuess ? "checked" : ""} ${isHost ? "" : "disabled"}> Nowa postac po trafieniu</label>
 <label class="check"><input data-identity-setting="endAfterRounds" type="checkbox" ${s.endAfterRounds ? "checked" : ""} ${isHost ? "" : "disabled"}> Glosowanie po X rundach</label>
 <label class="check"><input data-identity-setting="playerWordsEnabled" type="checkbox" ${s.playerWordsEnabled ? "checked" : ""} ${isHost ? "" : "disabled"}> Hasla graczy</label></div>
+<div class="custom-words"><label>Kategorie haseł - wybierz minimum 3</label><div class="impostor-settings-grid">${categoryChecks}</div></div>
+<p class="tiny identity-mode-note">Szacowany czas gry: około ${totalMinutes} min. Każda dodatkowa runda doda około ${extraRoundMinutes} min.</p>
 <p class="tiny identity-mode-note">${s.gameFlow === "voice" ? "Przed wejściem widać, że pokój koordynuje rozmowę głosową. Sama rozmowa może iść przez Discorda lub mikrofon przeglądarki u graczy." : "Tryb pisany: pytania i odpowiedzi idą przez ekran gry."}</p>
 ${s.playerWordsEnabled ? `<div class="custom-words"><label>Twoje wlasne hasla (1-5, oddziel przecinkami)</label><div class="row"><input id="identity-custom-words" value="${escapeHtml((room.customWords?.[room.viewerUid] || []).join(", "))}" placeholder="np. Shrek, lodowka, Warszawa"><button id="save-identity-words">Zapisz hasla</button></div></div>` : ""}`;
 }

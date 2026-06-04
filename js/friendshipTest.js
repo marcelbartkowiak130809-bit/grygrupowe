@@ -7,7 +7,8 @@ let timerId, lastCountdown;
 const now = () => Date.now();
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const mini = profile => playerMiniHtml(profile);
-export const friendshipDefaults = { rounds:5, answerTime:15, assignTime:30, category:"Wszystkie", spicyEnabled:false, rewardCoins:true };
+export const friendshipDefaults = { rounds:5, answerTime:15, assignTime:30, category:"", categories:friendshipCategories.slice(0,3), rewardCoins:true };
+const minFriendCategories = 3;
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 function normalizeFriendshipGame(game) {
@@ -19,9 +20,16 @@ function normalizeFriendshipGame(game) {
   game.usedQuestions = arrayOrEmpty(game.usedQuestions);
   return game;
 }
+function selectedFriendCategories(settings) {
+  let picked = Array.isArray(settings.categories) ? settings.categories : (settings.category && settings.category !== "Wszystkie" ? [settings.category] : friendshipCategories.slice(0, 3));
+  picked = [...new Set(picked)].filter(category => friendshipCategories.includes(category));
+  friendshipCategories.forEach(category => { if (picked.length < minFriendCategories && !picked.includes(category)) picked.push(category); });
+  return picked;
+}
 function pickQuestion(settings, used = []) {
-  const pool = friendshipQuestions.filter(item => (settings.spicyEnabled || !item.spicy) && (settings.category === "Wszystkie" || item.category === settings.category) && !used.includes(item.text));
-  return shuffle(pool)[0] || shuffle(friendshipQuestions.filter(item => settings.spicyEnabled || !item.spicy))[0];
+  const categories = selectedFriendCategories(settings);
+  const pool = friendshipQuestions.filter(item => categories.includes(item.category) && !used.includes(item.text));
+  return shuffle(pool)[0] || shuffle(friendshipQuestions.filter(item => categories.includes(item.category)))[0];
 }
 function startAssigning(game, players, settings) {
   normalizeFriendshipGame(game);
@@ -81,12 +89,12 @@ export const FriendshipTestEngine = {
 };
 export function renderFriendshipLobbySettings(room, isHost) {
   const s = { ...friendshipDefaults, ...room.settings };
+  const selected = selectedFriendCategories(s);
   return `<div class="impostor-settings-grid">
     <label>Liczba rund<select data-friend-setting="rounds" ${isHost ? "" : "disabled"}>${[1,3,5,8,10].map(n => `<option ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
     <label>Czas odpowiedzi <b>${s.answerTime}s</b><input data-friend-setting="answerTime" type="range" min="10" max="30" step="5" value="${s.answerTime}" ${isHost ? "" : "disabled"}></label>
     <label>Czas przypisywania <b>${s.assignTime}s</b><input data-friend-setting="assignTime" type="range" min="20" max="60" step="5" value="${s.assignTime}" ${isHost ? "" : "disabled"}></label>
-    <label>Kategoria<select data-friend-setting="category" ${isHost ? "" : "disabled"}>${["Wszystkie", ...friendshipCategories].map(x => `<option ${s.category === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
-    <label class="check"><input data-friend-setting="spicyEnabled" type="checkbox" ${s.spicyEnabled ? "checked" : ""} ${isHost ? "" : "disabled"}> Lekkie spicy</label>
+    <div class="most-category-box"><b>Kategorie</b><small>minimum ${minFriendCategories}, bez limitu</small><div class="multi-category-list">${friendshipCategories.map(category => `<label class="check category-chip"><input data-friend-category="${escapeHtml(category)}" type="checkbox" ${selected.includes(category) ? "checked" : ""} ${!isHost || selected.length <= minFriendCategories && selected.includes(category) ? "disabled" : ""}> ${escapeHtml(category)}</label>`).join("")}</div></div>
     <label class="check"><input data-friend-setting="rewardCoins" type="checkbox" ${s.rewardCoins ? "checked" : ""} ${isHost ? "" : "disabled"}> Nagrody coinowe</label>
   </div>`;
 }

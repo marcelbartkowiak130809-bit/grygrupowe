@@ -1,4 +1,4 @@
-import { mostLikelyCategories, mostLikelyPrompts } from "../content/kto-najpredzej/prompts.js?v=20260604-1";
+import { mostLikelyCategories, mostLikelyPrompts } from "../content/kto-najpredzej/prompts.js?v=20260604-2";
 import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";

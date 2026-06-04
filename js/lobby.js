@@ -1,11 +1,12 @@
 import { $, escapeHtml, icon } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260604-3";
+import { getGameMode } from "./games.js?v=20260604-6";
 
 function roomCard(room, mode) {
   const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "voice" ? "Tryb głosowy" : "Tryb normalny"}</span>` : "";
+  const adult = Boolean(mode.adult || [room.settings?.category, ...(Array.isArray(room.settings?.categories) ? room.settings.categories : [])].some(item => String(item || "").startsWith("18+")));
   return `<article class="room-card">
     <div><div class="room-mode">${mode.symbol} ${mode.name}</div><h3>${escapeHtml(room.name)}</h3>
-      <p class="muted">${room.roomId} · ${room.players.length}/${mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${identityFlow}</div>
+      <p class="muted">${room.roomId} · ${room.players.length}/${mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}</div>
     <div class="room-right">${room.isPrivate ? icon("lock", 18) : ""}<button data-join-room="${room.roomId}">Wejdź</button></div>
   </article>`;
 }
@@ -22,7 +23,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
     <section class="mode-hero panel">
       <div class="game-symbol game-symbol-${mode.art}">${mode.symbol}</div>
       <div><p class="eyebrow">WYBRANY TRYB</p><h1>${mode.name}</h1><p class="muted">${mode.description}</p><span class="players-count">${icon("users", 17)} ${mode.players}</span></div>
-      <button class="ghost" id="change-mode">Zmień tryb</button>
+      <div class="mode-hero-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="change-mode">Zmień tryb</button></div>
     </section>
     <section class="panel">
       <div class="section-heading"><div><p class="eyebrow">NOWA ROZGRYWKA</p><h2>Stwórz pokój lub dołącz kodem</h2></div><button id="create-room" class="primary">${icon("userPlus", 18)} Stwórz pokój</button></div>
@@ -34,6 +35,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
     </section>
   </main>`;
   $("#change-mode").addEventListener("click", actions.goPlatform);
+  $("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
   $("#create-room").addEventListener("click", actions.openCreateRoom);
   $("#join-code-button").addEventListener("click", () => actions.joinByCode($("#join-code").value, $("#join-pass").value));
   root.querySelectorAll("[data-join-room]").forEach(button => button.addEventListener("click", () => actions.joinRoom(button.dataset.joinRoom)));

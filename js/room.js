@@ -1,11 +1,11 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js";
-import { getGameMode } from "./games.js?v=20260604-3";
+import { getGameMode } from "./games.js?v=20260604-6";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260603-10";
-import { renderIdentityLobbySettings } from "./identity.js?v=20260604-1";
-import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260603-1";
-import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260604-2";
-import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260603-1";
-import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260604-2";
+import { renderIdentityLobbySettings } from "./identity.js?v=20260604-2";
+import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260604-1";
+import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260604-3";
+import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260604-1";
+import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260604-3";
 
 export function playerMini(profile = {}) {
   return playerMiniHtml(profile);
@@ -25,11 +25,12 @@ function settingsHtml(mode, room, isHost) {
 export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const mode = getGameMode(room.gameMode);
   const isHost = room.hostUid === currentUser;
+  const canReport = Boolean(mode.allowReports);
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page enter">
     <section class="panel room-header">
       <div><p class="eyebrow">${mode.symbol} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
-      <button class="ghost" id="leave-room">Wyjdz</button>
+      <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost)}</section>
@@ -39,21 +40,27 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
       ${playerMini(accounts[uid])}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"}</p>
+      ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
     <section class="room-actions">${isHost ? `<button class="primary big" id="start-game" ${room.players.length < mode.minPlayers ? "disabled" : ""}>${icon("play", 20)} Start gry</button>` : '<p class="muted">Czekamy, az host rozpocznie gre.</p>'}
       ${room.players.length < mode.minPlayers ? `<p class="muted">Do startu potrzeba minimum ${mode.minPlayers} graczy.</p>` : ""}</section>
   </main>`;
   root.querySelector("#leave-room").addEventListener("click", actions.leaveRoom);
+  root.querySelector("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
   root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));
   root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-other-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-other-category]:checked")].map(item => item.dataset.otherCategory))));
   root.querySelectorAll("[data-most-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
+  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setMostCategories([...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
   root.querySelectorAll("[data-friend-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-friend-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-friend-category]:checked")].map(item => item.dataset.friendCategory))));
   root.querySelectorAll("[data-candy-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
+  root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));
   root.querySelector("#start-game")?.addEventListener("click", actions.startGame);
 }

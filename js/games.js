@@ -1,17 +1,19 @@
 import { renderGame } from "./game.js?v=20260603-22";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260604-1";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260604-1";
-import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260603-2";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260604-2";
+import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260604-1";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260603-22";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-2";
-import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260603-2";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-2";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260604-3";
+import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260604-1";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260604-3";
 
 export const gamesRegistry = {
   udowodnij: {
     id: "udowodnij",
     name: "Udowodnij!",
     description: "Licytuj liczbę odpowiedzi, podbijaj stawkę i sprawdzaj, kto tylko blefuje.",
+    help: ["Gracz deklaruje, ile poprawnych odpowiedzi poda na temat.", "Kolejni gracze podbijają wynik albo sprawdzają deklarację.", "Sprawdzany gracz wpisuje odpowiedzi przed końcem czasu.", "Da radę - wygrywa rundę. Nie da rady - przegrywa rundę."],
+    allowReports: true,
     players: "2-8 osób",
     minPlayers: 2,
     maxPlayers: 8,
@@ -27,6 +29,8 @@ export const gamesRegistry = {
     id: "impostor",
     name: "Impostor",
     description: "Jedna osoba nie zna sekretnego hasła. Rozmawiajcie i znajdźcie impostora.",
+    help: ["Większość graczy dostaje to samo słowo, impostor inne albo gorszą podpowiedź.", "Po kolei piszecie wskazówki tak, żeby nie zdradzić słowa zbyt łatwo.", "Po rundach głosujecie, kto jest impostorem.", "Obywatele wygrywają, gdy wyrzucą impostora. Impostor wygrywa, gdy się ukryje."],
+    allowReports: true,
     players: "3-8 osób",
     minPlayers: 3,
     maxPlayers: 8,
@@ -41,6 +45,8 @@ export const gamesRegistry = {
     id: "kim-jestem",
     name: "Kim jestem?",
     description: "Odgadnij swoją postać, zadając znajomym pytania, na które odpowiedzą tak lub nie.",
+    help: ["Każdy widzi hasła innych graczy, ale nie swoje.", "W swojej turze zadajesz pytanie albo próbujesz zgadnąć, kim jesteś.", "Reszta odpowiada zgodnie z ustawieniami pokoju.", "Gra kończy się po rundach albo gdy gracze zdobędą wymagane trafienia."],
+    allowReports: true,
     players: "2-10 osób",
     minPlayers: 2,
     maxPlayers: 10,
@@ -55,6 +61,8 @@ export const gamesRegistry = {
     id: "inne-pytanie",
     name: "Inne pytanie",
     description: "Odpowiedz tak, żeby pasować do grupy, ale uważaj: ktoś dostał zupełnie inne pytanie.",
+    help: ["Prawie wszyscy dostają jedno pytanie, jedna osoba inne.", "Każdy pisze odpowiedź tak, żeby brzmiała naturalnie.", "Czytacie odpowiedzi i głosujecie, kto miał inne pytanie.", "Grupa wygrywa, gdy złapie tę osobę. Osoba z innym pytaniem wygrywa, gdy się ukryje."],
+    allowReports: true,
     players: "3-10 osób",
     minPlayers: 3,
     maxPlayers: 10,
@@ -69,6 +77,8 @@ export const gamesRegistry = {
     id: "co-wolisz",
     name: "Co wolisz?",
     description: "Wybieraj jedną z dwóch opcji i porównuj swoje odpowiedzi z innymi graczami.",
+    adult: true,
+    help: ["Dostajesz pytanie z dwiema opcjami.", "Wybierasz jedną odpowiedź.", "Od razu widzisz wynik głosowania.", "To tryb solo, bez pokoju."],
     players: "Tryb solo",
     minPlayers: 1,
     maxPlayers: 12,
@@ -83,6 +93,9 @@ export const gamesRegistry = {
     id: "kto-najpredzej",
     name: "Kto najprędzej...?",
     description: "Głosujcie, kto z was najpewniej zrobi daną rzecz. Wyniki potrafią zaskoczyć.",
+    adultBySettings: true,
+    help: ["Pojawia się pytanie typu: kto najprędzej coś zrobi.", "Każdy głosuje na jednego gracza.", "Po rundzie widzicie wyniki i punkty.", "Tryb najlepiej działa w ekipie, która się zna."],
+    allowReports: false,
     players: "2-8 osób",
     minPlayers: 2,
     maxPlayers: 8,
@@ -97,6 +110,8 @@ export const gamesRegistry = {
     id: "test-znajomosci",
     name: "Test znajomości",
     description: "Sprawdźcie, kto naprawdę zna ekipę najlepiej. Każda odpowiedź ma znaczenie.",
+    help: ["Gracze odpowiadają na pytania o sobie.", "Potem reszta zgaduje, kto dał którą odpowiedź.", "Za trafienia wpadają punkty.", "Tryb wymaga znajomości graczy, więc najlepiej grać ze swoją ekipą."],
+    allowReports: false,
     players: "3-8 osób",
     minPlayers: 3,
     maxPlayers: 8,
@@ -111,6 +126,8 @@ export const gamesRegistry = {
     id: "zatruty-cukierek",
     name: "Zatruty cukierek!",
     description: "Zatruj swoje cukierki po cichu, a potem jedzcie po kolei, az przy stole zostanie jedna osoba.",
+    help: ["Każdy po cichu wybiera cukierki, które zatruwa.", "Potem gracze po kolei jedzą po jednym cukierku ze stołu.", "Nie możesz zjeść własnego zatrutego cukierka.", "Kto trafi na cudzy zatruty cukierek, odpada. Wygrywa ostatni żywy gracz."],
+    allowReports: true,
     players: "2-8 osob",
     minPlayers: 2,
     maxPlayers: 8,
