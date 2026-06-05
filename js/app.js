@@ -3,13 +3,13 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260605-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260605-8";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-2";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-3";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { gamesList, getGameMode } from "./games.js?v=20260605-2";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-3";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-6";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
-import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-1";
+import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-2";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260605-1";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260605-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
@@ -97,6 +97,7 @@ function currentScreenSignature() {
 }
 const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => normalizeNick(account.nick) === normalizeNick(nick) && !account.nickOnly);
 const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
+const normalizeRoomProfile = item => ({ ...item, nickOnly:Boolean(item?.nickOnly || (Number(item?.sessionXp || 0) > 0 && !Number(item?.xp || 0))) });
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode});
 let restoredRoom=false;
 const pendingRoomSyncs=new Map();
@@ -167,7 +168,7 @@ function touchRoom(room) { room.updatedAt = Math.max(Date.now(),Number(room.upda
 function installRemoteRoom(room) {
   const index=state.rooms.findIndex(item=>item.roomId===room.roomId);
   if(index>=0)state.rooms[index]=room;else state.rooms.unshift(room);
-  Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{state.accounts[id]=id===state.currentUser?{...item,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...item};});
+  Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{const clean=normalizeRoomProfile(item);room.playerProfiles[id]=clean;state.accounts[id]=id===state.currentUser?{...clean,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...clean};});
   saveAccounts(state.accounts);return room;
 }
 async function resolveRoomForJoin(code) {
@@ -1029,7 +1030,7 @@ function connectRooms(){
     remoteRooms.forEach(remote=>{
       const local=state.rooms.find(room=>room.roomId===remote.roomId),pending=pendingRoomSyncs.has(remote.roomId),keepPendingLocal=local&&pending&&Number(local.updatedAt||0)>Number(remote.updatedAt||0),room=keepPendingLocal?local:remote;
       rooms.set(room.roomId,room);
-      Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{state.accounts[id]=id===state.currentUser?{...item,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...item};});
+      Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{const clean=normalizeRoomProfile(item);room.playerProfiles[id]=clean;state.accounts[id]=id===state.currentUser?{...clean,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...clean};});
     });
     state.rooms=[...rooms.values()];saveAccounts(state.accounts);
     const room=activeRoom();
