@@ -1,6 +1,6 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
 import { getGameMode } from "./games.js?v=20260605-2";
-import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-2";
+import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-3";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260605-2";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-1";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260605-1";
@@ -53,6 +53,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
   root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));
   root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));

@@ -1,4 +1,4 @@
-import { impostorCategories, impostorWords } from "../content/impostor/words.js?v=20260604-1";
+import { impostorCategories, impostorWords } from "../content/impostor/words.js?v=20260605-1";
 import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-5";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
@@ -7,7 +7,7 @@ let timerId;
 let lastCountdown;
 let lastTimeoutKey = "";
 const clueReviewMs = 5000;
-export const impostorDefaults = { impostorCount:1, whiteEnabled:false, whiteCount:0, clueTime:20, minRounds:2, chatEnabled:true, category:"Wszystkie" };
+export const impostorDefaults = { impostorCount:1, whiteEnabled:false, whiteCount:0, clueTime:20, minRounds:2, chatEnabled:true, category:"Wszystkie", categories:["Jedzenie","Gry","Filmy i seriale"] };
 export const maxSpecialRoles = playerCount => Math.floor(playerCount / 2);
 
 const shuffled = items => [...items].sort(() => Math.random() - .5);
@@ -39,12 +39,15 @@ export function sanitizeImpostorSettings(settings, playerCount) {
   const impostorCount = Math.max(1, Math.min(Number(settings.impostorCount) || 1, max));
   const whiteEnabled = Boolean(settings.whiteEnabled);
   const whiteCount = whiteEnabled ? Math.max(0, Math.min(Number(settings.whiteCount) || 1, max - impostorCount)) : 0;
-  return { ...impostorDefaults, ...settings, impostorCount, whiteEnabled: whiteEnabled && whiteCount > 0, whiteCount, clueTime:Math.max(10,Math.min(30,Number(settings.clueTime)||20)), minRounds:Math.max(1,Math.min(5,Number(settings.minRounds)||2)) };
+  const rawCategories = Array.isArray(settings.categories) ? settings.categories : settings.category && settings.category !== "Wszystkie" ? [settings.category] : impostorDefaults.categories;
+  const categories = [...new Set(rawCategories.filter(name => impostorCategories.includes(name)))];
+  impostorCategories.forEach(name => { if (categories.length < 3 && !categories.includes(name)) categories.push(name); });
+  return { ...impostorDefaults, ...settings, category:categories.length === impostorCategories.length ? "Wszystkie" : categories[0] || "Wszystkie", categories, impostorCount, whiteEnabled: whiteEnabled && whiteCount > 0, whiteCount, clueTime:Math.max(10,Math.min(30,Number(settings.clueTime)||20)), minRounds:Math.max(1,Math.min(5,Number(settings.minRounds)||2)) };
 }
 
 export function createImpostorGame(players, rawSettings) {
   const settings = sanitizeImpostorSettings(rawSettings, players.length);
-  const selectedPool = settings.category === "Wszystkie" ? impostorWords : impostorWords.filter(item => item.category === settings.category);
+  const selectedPool = settings.categories?.length ? impostorWords.filter(item => settings.categories.includes(item.category)) : impostorWords;
   const pool = selectedPool.length ? selectedPool : impostorWords;
   const words = pool[Math.floor(Math.random() * pool.length)];
   const assigned = shuffled(players), roles = {};
@@ -123,6 +126,7 @@ function mainWordIncluded(game,text){ const value=normalizeAnswer(text); return 
 
 export function renderImpostorLobbySettings(room,isHost) {
   const settings=sanitizeImpostorSettings(room.settings,room.players.length), max=maxSpecialRoles(room.players.length);
+  const selected = new Set(settings.categories || []);
   return `<p class="muted">Specjalne role mogą zajmować maksymalnie 50% miejsc. Teraz: ${settings.impostorCount+settings.whiteCount}/${max}.</p>
   <div class="impostor-settings-grid">
     <label>Impostorzy <select data-impostor-setting="impostorCount" ${isHost?"":"disabled"}>${[1,2,3,4].map(n=>`<option value="${n}" ${settings.impostorCount===n?"selected":""}>${n}</option>`).join("")}</select></label>
@@ -131,8 +135,8 @@ export function renderImpostorLobbySettings(room,isHost) {
     <label>Czas podpowiedzi <b>${settings.clueTime}s</b><input data-impostor-setting="clueTime" type="range" min="10" max="30" value="${settings.clueTime}" ${isHost?"":"disabled"}></label>
     <label>Minimum kolejek <select data-impostor-setting="minRounds" ${isHost?"":"disabled"}>${[1,2,3,4,5].map(n=>`<option value="${n}" ${settings.minRounds===n?"selected":""}>${n}</option>`).join("")}</select></label>
     <label class="check"><input data-impostor-setting="chatEnabled" type="checkbox" ${settings.chatEnabled?"checked":""} ${isHost?"":"disabled"}> Czat w grze</label>
-    <label>Kategoria <select data-impostor-setting="category" ${isHost?"":"disabled"}>${["Wszystkie",...impostorCategories].map(name=>`<option ${settings.category===name?"selected":""}>${name}</option>`).join("")}</select></label>
-  </div>`;
+  </div>
+  <div class="category-picker impostor-category-picker"><p class="tiny">Kategorie haseł: wybierz minimum 3, bez limitu.</p>${impostorCategories.map(name=>`<label class="check"><input data-impostor-category="${escapeHtml(name)}" type="checkbox" ${selected.has(name)?"checked":""} ${isHost?"":"disabled"}> ${escapeHtml(name)}</label>`).join("")}</div>`;
 }
 
 function roleCard(game,currentUser,accounts){

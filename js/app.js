@@ -6,7 +6,7 @@ import { cosmetics } from "./cosmetics.js?v=20260605-8";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { gamesList, getGameMode } from "./games.js?v=20260605-2";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-2";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-3";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-6";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-1";
@@ -17,7 +17,7 @@ import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, 
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
 import { renderPlatform } from "./platform.js?v=20260605-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260605-5";
+import { playerMini, renderRoom } from "./room.js?v=20260605-6";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260605-5";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-5";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-3";
@@ -598,13 +598,17 @@ async function adminPanelModal() {
   if(!isAdminProfile(profile()))return message("Brak dostępu.","error");
   const reports=Object.values(await loadModerationReports()).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
   const bans=Object.values(await loadModerationBans()).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+  const adminModeChecks=gamesList.map(mode=>`<label class="check admin-mode-check"><input type="checkbox" data-admin-ban-mode="${escapeHtml(mode.id)}"> ${escapeHtml(mode.name)}</label>`).join("");
   const modal=document.createElement("div");modal.className="modal-backdrop";
-  modal.innerHTML=`<section class="modal admin-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">PANEL ADMINA</p><h2>Inbox zgłoszeń</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="admin-grid"><section><h3>Zgłoszenia</h3><div class="inbox-list">${reports.length?reports.map(item=>`<article><b>${escapeHtml(item.reportedNick||item.targetNick||"Gracz")}</b><small>${escapeHtml(item.modeName||item.modeId||"")} · ${item.createdAt?new Date(item.createdAt).toLocaleString("pl-PL"):""}</small><p>${escapeHtml(item.description||"")}</p><button data-admin-reply="${item.id}">Odpowiedz</button></article>`).join(""):'<p class="muted">Brak zgłoszeń.</p>'}</div></section><section><h3>Wiadomość do gracza</h3><label>Nick</label><input id="admin-message-nick" placeholder="nick"><label>Treść</label><textarea id="admin-message-body" maxlength="700"></textarea><button class="primary full" id="admin-send-message">Wyślij</button><h3>Ban</h3><label>Nick</label><input id="admin-ban-nick" placeholder="nick"><label>IP / identyfikator</label><input id="admin-ban-ip" placeholder="opcjonalnie"><label>Tryby</label><input id="admin-ban-modes" placeholder="global albo np. impostor,udowodnij"><label>Czas bana</label><select id="admin-ban-duration"><option value="3600000">1 godzina</option><option value="86400000">1 dzień</option><option value="604800000">7 dni</option><option value="0">Na stałe</option></select><label>Powód</label><textarea id="admin-ban-reason" maxlength="500"></textarea><button class="danger full" id="admin-ban-submit">Nadaj bana</button><div class="tiny">Aktywne bany: ${bans.length}</div></section></div></section>`;
+  modal.innerHTML=`<section class="modal admin-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">PANEL ADMINA</p><h2>Inbox zgłoszeń</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><div class="admin-grid"><section><h3>Zgłoszenia</h3><div class="inbox-list">${reports.length?reports.map(item=>`<article><b>${escapeHtml(item.reportedNick||item.targetNick||"Gracz")}</b><small>${escapeHtml(item.modeName||item.modeId||"")} · ${item.createdAt?new Date(item.createdAt).toLocaleString("pl-PL"):""}</small><p>${escapeHtml(item.description||"")}</p><button data-admin-reply="${item.id}">Odpowiedz</button></article>`).join(""):'<p class="muted">Brak zgłoszeń.</p>'}</div></section><section><h3>Wiadomość do gracza</h3><label>Nick</label><input id="admin-message-nick" placeholder="nick"><label>Treść</label><textarea id="admin-message-body" maxlength="700"></textarea><button class="primary full" id="admin-send-message">Wyślij</button><h3>Ban</h3><label>Nick</label><input id="admin-ban-nick" placeholder="nick"><label>IP / identyfikator</label><input id="admin-ban-ip" placeholder="opcjonalnie"><label class="check admin-global-check"><input id="admin-ban-global" type="checkbox" checked> Ban globalny na całą stronę</label><label>Tryby gry</label><div class="admin-mode-list" id="admin-ban-mode-list">${adminModeChecks}</div><label>Czas bana</label><select id="admin-ban-duration"><option value="900000">15 minut</option><option value="3600000">1 godzina</option><option value="21600000">6 godzin</option><option value="86400000">1 dzień</option><option value="259200000">3 dni</option><option value="604800000">7 dni</option><option value="2592000000">30 dni</option><option value="0">Na stałe</option></select><label>Powód</label><textarea id="admin-ban-reason" maxlength="500"></textarea><button class="danger full" id="admin-ban-submit">Nadaj bana</button><div class="tiny">Aktywne bany: ${bans.length}</div></section></div></section>`;
   modal.querySelector("#admin-send-message")?.insertAdjacentHTML("afterend", `<section class="admin-mini-panel"><h3>Data urodzenia</h3><label>Nick</label><input id="admin-birth-nick" placeholder="nick gracza"><label>Nowa data</label><input id="admin-birth-date" type="date"><button class="primary full" id="admin-birth-submit">Zapisz date</button></section>`);
   modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
   modal.querySelector("#admin-send-message").addEventListener("click",()=>actions.adminSendMessage(modal.querySelector("#admin-message-nick").value,modal.querySelector("#admin-message-body").value));
   modal.querySelector("#admin-birth-submit").addEventListener("click",()=>actions.adminSetBirthDate(modal.querySelector("#admin-birth-nick").value,modal.querySelector("#admin-birth-date").value));
-  modal.querySelector("#admin-ban-submit").addEventListener("click",()=>actions.adminBanPlayer({ nick:modal.querySelector("#admin-ban-nick").value, ip:modal.querySelector("#admin-ban-ip").value, modes:modal.querySelector("#admin-ban-modes").value, duration:Number(modal.querySelector("#admin-ban-duration").value), reason:modal.querySelector("#admin-ban-reason").value }));
+  const syncAdminBanModeList=()=>{const global=modal.querySelector("#admin-ban-global").checked;modal.querySelector("#admin-ban-mode-list").classList.toggle("disabled-mode-list",global);modal.querySelectorAll("[data-admin-ban-mode]").forEach(input=>input.disabled=global);};
+  modal.querySelector("#admin-ban-global").addEventListener("change",syncAdminBanModeList);
+  syncAdminBanModeList();
+  modal.querySelector("#admin-ban-submit").addEventListener("click",()=>actions.adminBanPlayer({ nick:modal.querySelector("#admin-ban-nick").value, ip:modal.querySelector("#admin-ban-ip").value, global:modal.querySelector("#admin-ban-global").checked, modes:[...modal.querySelectorAll("[data-admin-ban-mode]:checked")].map(input=>input.dataset.adminBanMode), duration:Number(modal.querySelector("#admin-ban-duration").value), reason:modal.querySelector("#admin-ban-reason").value }));
   modal.querySelectorAll("[data-admin-reply]").forEach(button=>button.addEventListener("click",()=>{const report=reports.find(item=>item.id===button.dataset.adminReply);if(report){modal.querySelector("#admin-message-nick").value=report.reporterNick||"";modal.querySelector("#admin-message-body").value=`Odpowiedź do zgłoszenia ${report.id}: `;}}));
   document.body.append(modal);Audio.play("modalOpen");
 }
@@ -741,11 +745,13 @@ const actions = {
     if(!entry&&!remoteUpdated)return message("Nie znaleziono profilu po nicku. Jesli gracz nigdy nie byl online tutaj, nie da sie go zaktualizowac.");
     message("Data urodzenia zapisana.","info");
   },
-  async adminBanPlayer({nick, ip, modes, duration, reason}) {
+  async adminBanPlayer({nick, ip, global: forceGlobal, modes, duration, reason}) {
     if(!isAdminProfile(profile()))return message("Brak dostępu.");
-    const clean=normalizeNick(nick), targetIp=String(ip||"").trim(), modeList=String(modes||"").toLowerCase().split(",").map(item=>item.trim()).filter(Boolean);
+    const clean=normalizeNick(nick), targetIp=String(ip||"").trim(), rawModes=Array.isArray(modes)?modes:String(modes||"").toLowerCase().split(",");
+    const modeList=[...new Set(rawModes.map(item=>String(item||"").trim()).filter(id=>validModeIds.has(id)))];
     if(!clean&&!targetIp)return message("Podaj nick albo IP.");
-    const global=!modeList.length||modeList.includes("global")||modeList.includes("all");
+    const global=Boolean(forceGlobal);
+    if(!global&&!modeList.length)return message("Wybierz tryby albo zaznacz bana globalnego.");
     await saveModerationBan({targetNick:clean,targetIp,global,modes:global?[]:modeList,reason:String(reason||"").trim(),createdBy:profile().nick,expiresAt:Number(duration)?Date.now()+Number(duration):0});
     if(clean)await sendInboxMessageToNick(clean,{fromNick:profile().nick,subject:"Kara konta",body:`Nałożono bana${global?" globalnego":" na wybrane tryby"}. Powód: ${String(reason||"brak")}`});
     message("Ban zapisany.","info");
