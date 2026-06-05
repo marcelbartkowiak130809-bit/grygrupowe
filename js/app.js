@@ -3,12 +3,12 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260605-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260605-7";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { gamesList, getGameMode } from "./games.js?v=20260605-2";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-2";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-4";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-2";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-5";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-1";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260605-1";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260605-1";
@@ -280,10 +280,18 @@ function settlePoisonCandyResult(room) {
   rewardRoomXp(room,45,room.game.result?.winner?[room.game.result.winner]:[]);playCurrentUserResultSound(room.game.result?.winner?[room.game.result.winner]:[]);
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
+function identityCoinReward(room, uid, winners) {
+  const turns = Math.max(1, Array.isArray(room.game.history) ? room.game.history.length : 1);
+  const turnTime = Math.max(20, Number(room.settings?.turnTime) || 45);
+  const minutes = Math.max(1, Math.ceil((turns * turnTime) / 60));
+  const score = Math.max(0, Number(room.game.scores?.[uid]) || 0);
+  return Math.min(240, Math.round(15 + minutes * 7 + score * 25 + (winners.includes(uid) ? 45 : 0)));
+}
 function settleIdentityResult(room) {
   if(room.game.phase!=="results"||room.game.rewarded)return;
   const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
   const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
+  room.players.forEach(uid=>addPlayerMoney(uid,identityCoinReward(room,uid,winners)));
   rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function message(text, type = "error") {

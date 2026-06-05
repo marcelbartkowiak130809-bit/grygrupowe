@@ -192,8 +192,10 @@ export async function clearVoiceSignals(roomId, uid = "") {
     if (!uid) { await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`)); return true; }
     const roomRef = firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`);
     const snapshot = await firebaseDatabaseApi.get(roomRef), data = snapshot.val() || {};
-    const updates = { [uid]: null };
+    const updates = {};
+    Object.keys(data[uid] || {}).forEach(to => { updates[`${uid}/${to}`] = null; });
     Object.keys(data).forEach(from => { if (data[from]?.[uid]) updates[`${from}/${uid}`] = null; });
+    if (!Object.keys(updates).length) return true;
     await firebaseDatabaseApi.update(roomRef, updates);
     return true;
   } catch { return false; }

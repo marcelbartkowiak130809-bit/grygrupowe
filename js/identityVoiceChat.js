@@ -1,4 +1,4 @@
-import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260605-1";
+import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260605-2";
 
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }] };
 const now = () => Date.now();
@@ -64,7 +64,11 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     const pc = new RTCPeerConnection(rtcConfig);
     peers.set(peerUid, pc);
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
-    pc.onicecandidate = event => { if (event.candidate) pushVoiceIceCandidate(roomId, uid, peerUid, event.candidate.toJSON()); };
+    pc.onicecandidate = event => {
+      if (event.candidate) pushVoiceIceCandidate(roomId, uid, peerUid, event.candidate.toJSON()).then(ok => {
+        if (!ok) { micError = "Nie udalo sie wyslac danych WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
+      });
+    };
     pc.ontrack = event => {
       const element = audioFor(peerUid);
       element.srcObject = event.streams[0];
@@ -84,8 +88,9 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     if (!pc || pc.signalingState !== "stable") return;
     const offer = await pc.createOffer({ offerToReceiveAudio:true });
     await pc.setLocalDescription(offer);
-    offeredPeers.add(peerUid);
-    await setVoiceSignal(roomId, uid, peerUid, "offer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
+    const ok = await setVoiceSignal(roomId, uid, peerUid, "offer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
+    if (ok) offeredPeers.add(peerUid);
+    else { micError = "Nie udalo sie wyslac zaproszenia WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
   }
 
   async function handleSignals(data = {}) {
@@ -99,13 +104,13 @@ export function createIdentityVoiceChat(onChange = () => {}) {
         await pc.setRemoteDescription(new RTCSessionDescription(incoming.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await setVoiceSignal(roomId, uid, fromUid, "answer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
+        const ok = await setVoiceSignal(roomId, uid, fromUid, "answer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
+        if (!ok) { micError = "Nie udalo sie wyslac odpowiedzi WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
       }
       if (incoming.answer && pc.signalingState === "have-local-offer") await pc.setRemoteDescription(new RTCSessionDescription(incoming.answer));
       for (const [candidateId, candidate] of Object.entries(incoming.candidates || {})) {
         const key = `${fromUid}:${candidateId}`;
         if (processedIce.has(key)) continue;
-        processedIce.add(key);
         if (!pc.remoteDescription) continue;
         try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); processedIce.add(key); } catch {}
       }
@@ -121,7 +126,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     await ensureMic();
     applyMute();
     if (!stream) return;
-    [...peers.keys()].filter(peerUid => !players.includes(peerUid)).forEach(peerUid => { peers.get(peerUid)?.close(); peers.delete(peerUid); offeredPeers.delete(peerUid); remoteAudio.get(peerUid)?.remove(); remoteAudio.delete(peerUid); });
+    [...peers.entries()].filter(([peerUid, pc]) => !players.includes(peerUid) || ["failed", "closed"].includes(pc.connectionState)).forEach(([peerUid, pc]) => { pc.close(); peers.delete(peerUid); offeredPeers.delete(peerUid); remoteAudio.get(peerUid)?.remove(); remoteAudio.delete(peerUid); });
     players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
     if (changedRoom || signalsRoomId !== roomId || signalsUid !== uid) {
       stopSignals();

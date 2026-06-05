@@ -27,11 +27,11 @@
     },
     "voiceSignaling": {
       "$roomId": {
-        ".read": "auth != null",
+        ".read": "auth != null && root.child('rooms').child($roomId).child('players').child(auth.uid).exists()",
         "$fromUid": {
-          ".write": "auth != null && auth.uid == $fromUid",
+          ".write": "auth != null && !newData.exists() && root.child('rooms').child($roomId).child('players').child(auth.uid).exists() && root.child('rooms').child($roomId).child('players').child($fromUid).exists()",
           "$toUid": {
-            ".write": "auth != null && (auth.uid == $fromUid || auth.uid == $toUid)"
+            ".write": "auth != null && root.child('rooms').child($roomId).child('players').child(auth.uid).exists() && root.child('rooms').child($roomId).child('players').child($fromUid).exists() && root.child('rooms').child($roomId).child('players').child($toUid).exists()"
           }
         }
       }

@@ -39,7 +39,7 @@ const normalizeCategories = settings => {
 };
 const settingsWithDefaults = settings => {
   const s = { ...identityDefaults, ...settings };
-  s.rounds = clampNumber(s.rounds, 1, 10, identityDefaults.rounds);
+  s.rounds = clampNumber(s.rounds, 1, 20, identityDefaults.rounds);
   s.targetScore = clampNumber(s.targetScore, 1, 5, identityDefaults.targetScore);
   s.turnTime = clampNumber(s.turnTime, 20, 90, identityDefaults.turnTime);
   s.gameFlow = ["externalVoice", "browserVoice"].includes(s.gameFlow) ? s.gameFlow : s.gameFlow === "voice" ? "browserVoice" : "normal";
@@ -284,7 +284,7 @@ export function renderIdentityLobbySettings(room, isHost) {
   return `<div class="impostor-settings-grid">
 <label>Tryb gry<select data-identity-setting="gameFlow" ${isHost ? "" : "disabled"}><option value="normal" ${s.gameFlow === "normal" ? "selected" : ""}>Tekstowy</option><option value="externalVoice" ${s.gameFlow === "externalVoice" ? "selected" : ""}>Glosowy poza gra</option><option value="browserVoice" ${s.gameFlow === "browserVoice" ? "selected" : ""}>Voice chat w grze</option></select></label>
 <label>Czas tury <b>${s.turnTime}s</b><input data-identity-setting="turnTime" type="range" min="20" max="90" step="5" value="${s.turnTime}" ${isHost ? "" : "disabled"}></label>
-<label>Liczba rund<select data-identity-setting="rounds" ${isHost ? "" : "disabled"}>${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}" ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+<label>Liczba rund<select data-identity-setting="rounds" ${isHost ? "" : "disabled"}>${Array.from({ length:20 }, (_, index) => index + 1).map(n => `<option value="${n}" ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
 <label>Gramy do<select data-identity-setting="targetScore" ${isHost ? "" : "disabled"}>${[1,2,3,4,5].map(n => `<option value="${n}" ${s.targetScore === n ? "selected" : ""}>${n} ${n === 1 ? "trafienie" : "trafienia"}</option>`).join("")}</select></label>
 <label>Odpowiedzi<select data-identity-setting="responseMode" ${isHost ? "" : "disabled"}><option value="binary" ${s.responseMode === "binary" ? "selected" : ""}>TAK / NIE</option><option value="extended" ${s.responseMode === "extended" ? "selected" : ""}>TAK / NIE / NIE WIEM / CZESCIOWO</option></select></label>
 <label class="check"><input data-identity-setting="oneGuess" type="checkbox" ${s.oneGuess ? "checked" : ""} ${isHost ? "" : "disabled"}> Jedna proba zgadniecia na ture</label>
