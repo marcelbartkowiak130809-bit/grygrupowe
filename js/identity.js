@@ -1,5 +1,5 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-2";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-3";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";

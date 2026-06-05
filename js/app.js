@@ -2,7 +2,7 @@ import { accountModal, authModal } from "./auth.js?v=20260604-2";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260604-1";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260605-2";
+import { cosmetics } from "./cosmetics.js?v=20260605-4";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { getGameMode } from "./games.js?v=20260605-2";
@@ -19,7 +19,7 @@ import { renderPlatform } from "./platform.js?v=20260605-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260605-3";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260605-3";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-2";
+import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-3";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-2";
 
 const root = $("#app");

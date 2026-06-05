@@ -1,4 +1,4 @@
-import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-2";
+import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-3";
 import { getGameMode } from "./games.js?v=20260605-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-2";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260605-2";

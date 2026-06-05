@@ -1,6 +1,6 @@
 import { gamesList } from "./games.js?v=20260605-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, votePoll } from "./polls.js?v=20260604-1";
-import { escapeHtml, icon } from "./utils.js?v=20260605-2";
+import { escapeHtml, icon } from "./utils.js?v=20260605-3";
 
 const filters = [
   ["all", "Wszystkie"],

@@ -21,7 +21,8 @@ function playerFxHtml(profile = {}) {
   return [profile.selectedWinAnimation, profile.selectedLoseAnimation].filter(Boolean).map(id => {
     if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span>';
     if (id === "winMeteor" || id === "loseMeteorHit") return '<span class="fx-meteor"></span><span class="fx-impact"></span>';
-    if (id === "loseBlackHole" || id === "levelVoidLose") return '<span class="fx-black-hole"></span>';
+    if (id === "loseBlackHole") return '<span class="fx-black-hole"></span>';
+    if (id === "levelVoidLose") return '<span class="fx-void-rift"></span><span class="fx-void-ring"></span>';
     if (id === "loseDemonLaugh" || id === "winDemonKing") return '<span class="fx-demon-shadow"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
     if (id === "winMoney" || id === "winRoyalRain") return '<span class="fx-money money-a"></span><span class="fx-money money-b"></span><span class="fx-money money-c"></span><span class="fx-money money-d"></span>';
     if (id === "winCrown" || id === "loseCrownDrop" || id === "levelChampionWin") return '<span class="fx-crown"></span>';

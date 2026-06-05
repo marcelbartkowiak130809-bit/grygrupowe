@@ -1,5 +1,5 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-2";
-import { $, formatClock, icon } from "./utils.js?v=20260605-2";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-4";
+import { $, formatClock, icon } from "./utils.js?v=20260605-3";
 
 let shopTimer;
 export function stopShopTimer() { clearInterval(shopTimer); shopTimer = null; }

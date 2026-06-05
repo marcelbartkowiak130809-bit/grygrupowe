@@ -140,9 +140,9 @@ export const cosmetics = [
   item("royalIdle","idle","Idle: royal hover",4300,"legendary","Dostojne unoszenie z blyskiem."),
   item("voidIdle","idle","Idle: void drift",5600,"mythic","Ciezki plynny dryf premium."),
 
-  item("winCrown","win","Wygrana: korona",1700,"rare","Po zwyciestwie korona spada na profilowe."),
-  item("winMoney","win","Wygrana: kasa",1900,"rare","Gracz rzuca pieniedzmi po wygranej."),
-  item("winSpotlight","win","Wygrana: reflektor",2200,"rare","Swiatlo sceniczne robi wejscie zwyciezcy."),
+  item("winCrown","win","Wygrana: korona",1700,"rare","Korona zaklada sie na profilowe, a avatar dumnie podskakuje."),
+  item("winMoney","win","Wygrana: kasa",1900,"rare","Avatar robi taniec zwyciezcy w deszczu banknotow."),
+  item("winSpotlight","win","Wygrana: reflektor",2200,"rare","Profilowe pozuje w swietle jak na scenie."),
   item("winConfetti","win","Wygrana: konfetti",2400,"epic","Kolorowy wybuch nad nickiem."),
   item("winFireworks","win","Wygrana: fajerwerki",2900,"epic","Mini fajerwerki przy profilowym."),
   item("winLightning","win","Wygrana: piorun",3200,"epic","Blyskawica uderza obok zwyciezcy."),
@@ -156,7 +156,7 @@ export const cosmetics = [
   item("winAscend","win","Wygrana: ascend",6800,"mythic","Profilowe unosi sie jak legenda."),
   item("winDemonKing","win","Wygrana: demon king",7200,"mythic","Czerwony tron cienia za zwyciezca."),
 
-  item("loseFall","lose","Przegrana: przewrotka",1200,"common","Profilowe przewraca sie po porazce."),
+  item("loseFall","lose","Przegrana: przewrotka",1200,"common","Profilowe traci rownowage i przewraca sie po porazce."),
   item("loseBonk","lose","Przegrana: bonk",1400,"common","Cos spada na avatar i go splaszcza."),
   item("loseDust","lose","Przegrana: kurz",1600,"rare","Profilowe znika w chmurce kurzu."),
   item("loseCrack","lose","Przegrana: pekniecie",1900,"rare","Szklo peka na avatarze."),
@@ -169,8 +169,8 @@ export const cosmetics = [
   item("loseMeteorHit","lose","Przegrana: meteor hit",4700,"legendary","Cos wielkiego spada obok profilu."),
   item("losePixelBreak","lose","Przegrana: pixel break",5200,"legendary","Avatar rozpada sie w piksele."),
   item("loseDemonLaugh","lose","Przegrana: demoniczny smiech",5900,"mythic","Czerwony cien smieje sie za profilem."),
-  item("loseBlackHole","lose","Przegrana: czarna dziura",6500,"mythic","Profilowe zasysa mini portal."),
-  item("loseCrownDrop","lose","Przegrana: spadajaca korona",6900,"mythic","Korona spada obok przegranego."),
+  item("loseBlackHole","lose","Przegrana: czarna dziura",6500,"mythic","Profilowe i nick sa wciagane do rosnacej czarnej dziury."),
+  item("loseCrownDrop","lose","Przegrana: spadajaca korona",6900,"mythic","Korona zsuwa sie z profilowego i spada obok przegranego."),
 
   item("levelBronzeFrame","frame","Ramka Weterana",0,"rare","Ekskluzywna ramka za level 6.",{exclusive:true,requiredLevel:6}),
   item("levelVioletNick","nick","Nick Awansu",0,"epic","Ekskluzywny fioletowy nick za level 10.",{exclusive:true,requiredLevel:10}),
@@ -186,7 +186,7 @@ export const cosmetics = [
   item("levelShatterLose","lose","Porazka Shatter",0,"legendary","Ekskluzywna animacja porazki za level 42.",{exclusive:true,requiredLevel:42}),
   item("levelDemonFrame","frame","Rogi Arcymistrza",0,"mythic","Ekskluzywna demoniczna ramka za level 55.",{exclusive:true,requiredLevel:55}),
   item("levelAscendWin","win","Ascend za level",0,"mythic","Ekskluzywna animacja wygranej za level 70.",{exclusive:true,requiredLevel:70}),
-  item("levelVoidLose","lose","Void porazki",0,"mythic","Ekskluzywna animacja porazki za level 80.",{exclusive:true,requiredLevel:80}),
+  item("levelVoidLose","lose","Void porazki",0,"mythic","Ekskluzywna porazka za level 80: avatar rozpada sie w szczeline pustki.",{exclusive:true,requiredLevel:80}),
   item("levelHaloAura","aura","Aureola Legendy",0,"mythic","Ekskluzywna aura za level 90.",{exclusive:true,requiredLevel:90}),
 ];
 
@@ -200,7 +200,8 @@ export const sortCosmeticsByRarity = (items, options = {}) => {
 function animationEffectHtml(id) {
   if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span>';
   if (id === "winMeteor" || id === "loseMeteorHit") return '<span class="fx-meteor"></span><span class="fx-impact"></span>';
-  if (id === "loseBlackHole" || id === "levelVoidLose") return '<span class="fx-black-hole"></span>';
+  if (id === "loseBlackHole") return '<span class="fx-black-hole"></span>';
+  if (id === "levelVoidLose") return '<span class="fx-void-rift"></span><span class="fx-void-ring"></span>';
   if (id === "loseDemonLaugh" || id === "winDemonKing") return '<span class="fx-demon-shadow"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
   if (id === "winMoney" || id === "winRoyalRain") return '<span class="fx-money money-a"></span><span class="fx-money money-b"></span><span class="fx-money money-c"></span><span class="fx-money money-d"></span>';
   if (id === "winCrown" || id === "loseCrownDrop" || id === "levelChampionWin") return '<span class="fx-crown"></span>';
@@ -236,8 +237,8 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-${item.type} ${stateClass}">
       <span class="preview-glow"></span>${animationEffectHtml(item.id)}
       <div class="mini-player cosmetic-animation-preview ${item.id}">
-        <div class="preview-avatar avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${item.type === "idle" ? item.id : ""}">${avatar}</div>
-        <span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeAttr(options.nick || profile.nick || "Gracz")}</span>
+        <div class="preview-avatar avatar defaultFrame noAura ${item.type === "idle" ? item.id : ""}">${avatar}</div>
+        <span class="nick defaultNick">${escapeAttr(options.nick || profile.nick || "Gracz")}</span>
       </div>
       ${options.hideType ? "" : `<small class="preview-type">${kind}</small>`}
     </div>`;

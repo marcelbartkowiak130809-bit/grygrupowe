@@ -1,5 +1,5 @@
 import { friendshipCategories, friendshipQuestions } from "../content/test-znajomosci/questions.js";
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-2";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-3";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 

@@ -1,4 +1,4 @@
-import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-2";
+import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-3";
 import { Effects } from "./effects.js";
 import { Audio } from "./audio.js";
 
