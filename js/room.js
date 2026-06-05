@@ -1,4 +1,4 @@
-import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-3";
+import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-4";
 import { getGameMode } from "./games.js?v=20260605-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-2";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260605-2";
@@ -26,6 +26,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const mode = getGameMode(room.gameMode);
   const isHost = room.hostUid === currentUser;
   const canReport = Boolean(mode.allowReports);
+  const inviteLink = actions.inviteLink?.(room) || "";
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page enter">
     <section class="panel room-header">
@@ -34,7 +35,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost)}</section>
-      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym, aby mogli dolaczyc.</p></aside>
+      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button></div></aside>
     </section>
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
@@ -46,8 +47,10 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     <section class="room-actions">${isHost ? `<button class="primary big" id="start-game" ${room.players.length < mode.minPlayers ? "disabled" : ""}>${icon("play", 20)} Start gry</button>` : '<p class="muted">Czekamy, az host rozpocznie gre.</p>'}
       ${room.players.length < mode.minPlayers ? `<p class="muted">Do startu potrzeba minimum ${mode.minPlayers} graczy.</p>` : ""}</section>
   </main>`;
-  root.querySelector("#leave-room").addEventListener("click", actions.leaveRoom);
+  root.querySelector("#leave-room").addEventListener("click", () => actions.leaveRoom());
   root.querySelector("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
+  root.querySelector("#copy-invite-link")?.addEventListener("click", () => actions.copyInviteLink(room.roomId));
+  root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
   root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));

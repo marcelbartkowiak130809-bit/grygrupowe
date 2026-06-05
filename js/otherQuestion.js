@@ -1,5 +1,5 @@
 import { otherQuestionCategories, otherQuestionPairs } from "../content/inne-pytanie/questionPairs.js";
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-3";import{Audio}from"./audio.js";import{Effects}from"./effects.js";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-4";import{Audio}from"./audio.js";import{Effects}from"./effects.js";
 let timerId,lastCountdown;const now=()=>Date.now(),shuffle=a=>[...a].sort(()=>Math.random()-.5);
 const objectOrEmpty=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
 const arrayOrEmpty=value=>Array.isArray(value)?value:[];

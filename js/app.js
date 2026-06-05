@@ -2,10 +2,10 @@ import { accountModal, authModal } from "./auth.js?v=20260604-2";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260604-1";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260605-4";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260604-7";
+import { cosmetics } from "./cosmetics.js?v=20260605-5";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-1";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
-import { getGameMode } from "./games.js?v=20260605-2";
+import { gamesList, getGameMode } from "./games.js?v=20260605-2";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-2";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-2";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260604-2";
@@ -17,9 +17,9 @@ import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, 
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
 import { renderPlatform } from "./platform.js?v=20260605-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260605-3";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260605-3";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-3";
+import { playerMini, renderRoom } from "./room.js?v=20260605-4";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260605-4";
+import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-4";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-2";
 
 const root = $("#app");
@@ -27,9 +27,33 @@ const accounts = loadAccounts();
 Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.birthDate ||= "";account.inbox = Array.isArray(account.inbox) ? account.inbox : [];Object.assign(account,grantProgression(account,0).profile); });
 saveAccounts(accounts);
 const session=loadSession();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:session.activeRoomId||null, selectedGameMode:session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, onlineBackend:null, shopReturnScreen:null, onlineCount:1 };
+const validModeIds = new Set(gamesList.map(mode => mode.id));
+const normalizeModeParam = value => { const id = String(value || "").trim().toLowerCase(); return validModeIds.has(id) ? id : ""; };
+function readUrlRoute() {
+  try {
+    const params = new URLSearchParams(window.location.search), rawMode = String(params.get("mode") || "").trim().toLowerCase(), room = String(params.get("room") || "").trim().toUpperCase();
+    const mode = normalizeModeParam(rawMode);
+    return { mode, room, invalidMode:Boolean(rawMode && !mode) };
+  } catch { return { mode:"", room:"", invalidMode:false }; }
+}
+const initialUrlRoute = readUrlRoute();
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.room?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, shopReturnScreen:null, onlineCount:1 };
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
+function setUrlRoute(modeId = "", roomId = "") {
+  try {
+    const url = new URL(window.location.href);
+    if (modeId) url.searchParams.set("mode", modeId); else url.searchParams.delete("mode");
+    if (roomId) url.searchParams.set("room", roomId); else url.searchParams.delete("room");
+    window.history.replaceState(null, "", url);
+  } catch {}
+}
+const setModeUrl = modeId => setUrlRoute(modeId || state.selectedGameMode, "");
+const setRoomUrl = room => room && setUrlRoute(room.gameMode || state.selectedGameMode, room.roomId);
+const roomInviteLink = room => {
+  try { const url = new URL(window.location.href); url.searchParams.set("mode", room.gameMode); url.searchParams.set("room", room.roomId); return url.toString(); }
+  catch { return `${window.location.origin}${window.location.pathname}?mode=${encodeURIComponent(room.gameMode)}&room=${encodeURIComponent(room.roomId)}`; }
+};
 const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
 function signatureGame(game, gameMode, players) {
   if (!game) return null;
@@ -145,6 +169,13 @@ function installRemoteRoom(room) {
   if(index>=0)state.rooms[index]=room;else state.rooms.unshift(room);
   Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{state.accounts[id]=id===state.currentUser?{...item,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...item};});
   saveAccounts(state.accounts);return room;
+}
+async function resolveRoomForJoin(code) {
+  const room = state.rooms.find(item => item.roomId === code);
+  if (room) return { ok:true, room };
+  const result = await loadRemoteRoom(code);
+  if (!result.ok) return result;
+  return { ok:true, room:installRemoteRoom(result.room) };
 }
 async function mutateRoomGame(mutator,{sound,after}={}) {
   const room=activeRoom();if(!room?.game)return false;
@@ -283,6 +314,57 @@ function withAdultWarning(mode, onConfirm, force = false) {
   if(!force || sessionStorage.getItem(adultAcceptedKey(mode?.id))==="true") return onConfirm();
   adultWarningModal(mode,onConfirm);
 }
+function clearPendingInvite({ clearUrl = false } = {}) {
+  state.pendingInviteMode = ""; state.pendingInviteRoom = ""; state.pendingInviteInvalidMode = false; state.pendingInviteJoining = false; state.inviteAuthPrompted = false;
+  if (clearUrl) setUrlRoute("", "");
+}
+function inviteErrorModal(text) {
+  if (document.querySelector("[data-invite-error-modal]")) return false;
+  const modal = document.createElement("div"); modal.className = "modal-backdrop"; modal.dataset.inviteErrorModal = "true";
+  modal.innerHTML = `<section class="modal confirm-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">LINK ZAPROSZENIA</p><h2>Nie można dołączyć</h2></div></div><p class="muted">${escapeHtml(text)}</p><div class="modal-actions"><button class="primary" id="invite-back-menu">Powrót do menu</button></div></section>`;
+  modal.querySelector("#invite-back-menu").addEventListener("click", () => { modal.remove(); state.activeRoomId = null; clearPendingInvite({ clearUrl:true }); persistSession(); Router.go("platform"); Audio.play("modalClose"); });
+  document.body.append(modal); Audio.play("modalOpen");
+  return false;
+}
+function invitePasswordModal(room, inviteMode) {
+  if (document.querySelector("[data-invite-password-modal]")) return false;
+  const modal = document.createElement("div"); modal.className = "modal-backdrop"; modal.dataset.invitePasswordModal = "true";
+  modal.innerHTML = `<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">PRYWATNY POKÓJ</p><h2>${escapeHtml(room.name || "Pokój")}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Link zaproszenia uzupełnił kod pokoju. Wpisz hasło, żeby dołączyć.</p><label>Hasło pokoju</label><input id="invite-room-password" type="password" autocomplete="current-password"><div class="modal-actions"><button class="ghost" data-close>Powrót do menu</button><button class="primary" id="invite-password-submit">Dołącz</button></div></section>`;
+  const close = () => { actions.closeModal(modal); state.activeRoomId = null; clearPendingInvite({ clearUrl:true }); Router.go("platform"); };
+  modal.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", close));
+  modal.querySelector("#invite-password-submit").addEventListener("click", async () => { if (await actions.joinRoom(room.roomId, modal.querySelector("#invite-room-password").value, { fromInvite:true, inviteMode })) actions.closeModal(modal); });
+  modal.querySelector("#invite-room-password").addEventListener("keydown", event => { if (event.key === "Enter") modal.querySelector("#invite-password-submit").click(); });
+  document.body.append(modal); Audio.play("modalOpen"); setTimeout(() => modal.querySelector("#invite-room-password")?.focus(), 30);
+  return false;
+}
+async function handlePendingInvite() {
+  if (!state.pendingInviteRoom) return false;
+  if (state.pendingInviteInvalidMode || !state.pendingInviteMode) return inviteErrorModal("Ten link prowadzi do innego trybu gry.");
+  state.selectedGameMode = state.pendingInviteMode; persistSession();
+  if (!profile()) {
+    if (!state.inviteAuthPrompted && !document.querySelector(".auth-modal")) {
+      state.inviteAuthPrompted = true;
+      actions.openAuth({ title:"Zaloguj się, aby dołączyć do pokoju", description:"Po logowaniu automatycznie spróbujemy dołączyć do pokoju z linku." });
+    }
+    return true;
+  }
+  if (state.pendingInviteJoining) return true;
+  state.pendingInviteJoining = true;
+  const joined = await actions.joinRoom(state.pendingInviteRoom, "", { fromInvite:true, inviteMode:state.pendingInviteMode });
+  state.pendingInviteJoining = false;
+  return joined;
+}
+function routeFromUrlIfNeeded() {
+  if (state.pendingInviteRoom) { handlePendingInvite(); return true; }
+  if (initialUrlRoute.mode && !state.activeRoomId) {
+    state.selectedGameMode = initialUrlRoute.mode; persistSession(); setModeUrl(state.selectedGameMode);
+    const mode = getGameMode(state.selectedGameMode), destination = mode.supportsSolo && !mode.supportsLobby ? "solo" : "lobby";
+    if (profile()) Router.go(destination);
+    else if (!state.inviteAuthPrompted && !document.querySelector(".auth-modal")) { state.inviteAuthPrompted = true; state.afterLogin = destination; actions.openAuth({ title:`Zaloguj się, aby zagrać w ${mode.name}` }); }
+    return true;
+  }
+  return false;
+}
 function banApplies(ban, user, modeId = "") {
   if (!ban || ban.revoked) return false;
   if (Number(ban.expiresAt || 0) && Number(ban.expiresAt) < Date.now()) return false;
@@ -323,7 +405,7 @@ function closeLonelyFinishedRoom(room, { notify = false } = {}) {
   if (!shouldCloseLonelyFinishedRoom(room)) return false;
   const wasActive = state.activeRoomId === room.roomId;
   removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId);
-  if (wasActive) { state.activeRoomId = null; persistSession(); Router.go("platform"); if (notify) showRoomClosedNotice(); }
+  if (wasActive) { state.activeRoomId = null; clearPendingInvite({clearUrl:true}); persistSession(); Router.go("platform"); if (notify) showRoomClosedNotice(); }
   return true;
 }
 function leaveKickedRoom(room, { notify = true } = {}) {
@@ -333,6 +415,7 @@ function leaveKickedRoom(room, { notify = true } = {}) {
   state.activeRoomId = null;
   persistSession();
   identityVoiceChat.stop();
+  setModeUrl(state.selectedGameMode);
   Router.go("lobby");
   if (notify) message("Zostales wyrzucony z pokoju.", "info");
   return true;
@@ -526,8 +609,8 @@ function defaultAccount(nick, password, auth = {}, birthDate = "") {
 const actions = {
   playSound(name) { Audio.play(name); },
   refresh: render,
-  goPlatform() { if(activeRoom())return actions.leaveRoom("platform");Router.go("platform"); },
-  goLobby() { Router.go("lobby"); },
+  goPlatform() { if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
+  goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },
   openShop() { const room=activeRoom();state.shopReturnScreen=room?(room.status==="lobby"?"room":"game"):(Router.current==="shop"?state.shopReturnScreen:Router.current);Audio.play("shopOpen");Router.go("shop"); },
   joinByCode(roomId,password="") {
@@ -537,7 +620,7 @@ const actions = {
     actions.joinRoom(code,password);
   },
   async selectGame(gameMode) {
-    state.selectedGameMode = gameMode;persistSession();
+    state.selectedGameMode = gameMode;persistSession();setModeUrl(gameMode);
     const mode=getGameMode(gameMode);
     if (mode.supportsSolo && !mode.supportsLobby) return withAdultWarning(mode,()=>Router.go("solo"),Boolean(mode.adult));
     if (!profile()) { state.afterLogin = "lobby"; return actions.openAuth({ title: `Zaloguj się, aby zagrać w ${getGameMode(gameMode).name}` }); }
@@ -587,7 +670,7 @@ const actions = {
       state.currentUser = accountId; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);refreshPresence();connectRooms();Audio.play("success"); actions.finishLogin(); return true;
     } catch { message("Nie udało się zalogować. Spróbuj ponownie."); return false; }
   },
-  finishLogin() { if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; Router.go(destination); },
+  finishLogin() { if(state.pendingInviteRoom)return handlePendingInvite();if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; if(destination==="lobby")setModeUrl(state.selectedGameMode); Router.go(destination); },
   async logout() {
     const roomUpdates=state.rooms.map(room => {
       interruptProveRoundForDeparture(room,state.currentUser);
@@ -602,7 +685,7 @@ const actions = {
     await Promise.allSettled(roomUpdates);
     state.rooms = state.rooms.filter(room => room.players.length);
     await logoutAuth();
-    state.currentUser = null; state.activeRoomId = null;clearSession();refreshPresence(); Router.go("platform");
+    state.currentUser = null; state.activeRoomId = null;clearPendingInvite({clearUrl:true});clearSession();refreshPresence(); Router.go("platform");
   },
   async submitReport(targetUid, description) {
     const room=activeRoom(), reporter=profile(); if(!room||!reporter||!reportableMode(room))return false;
@@ -674,6 +757,20 @@ const actions = {
   removeAvatar(){updateProfile({avatarImage:""});message("Zdjęcie profilowe usunięte.","info");},
   openCreateRoom() { const modal = createRoomModal(getGameMode(state.selectedGameMode), actions); document.body.append(modal); Audio.play("modalOpen"); },
   closeModal(modal) { modal.remove(); Audio.play("modalClose"); },
+  inviteLink(roomId = state.activeRoomId) { const room = typeof roomId === "object" ? roomId : state.rooms.find(item=>item.roomId===roomId) || activeRoom(); return room ? roomInviteLink(room) : ""; },
+  async copyInviteLink(roomId = state.activeRoomId) {
+    const link = actions.inviteLink(roomId); if(!link)return false;
+    let copied = false;
+    try { if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link);copied=true;} } catch {}
+    if(!copied){try{const input=document.createElement("textarea");input.value=link;input.style.position="fixed";input.style.opacity="0";document.body.append(input);input.select();copied=document.execCommand("copy");input.remove();}catch{}}
+    message(copied?"Link zaproszenia skopiowany.":"Nie udało się skopiować linku.",copied?"info":"error"); return copied;
+  },
+  async shareInviteLink(roomId = state.activeRoomId) {
+    const room = typeof roomId === "object" ? roomId : state.rooms.find(item=>item.roomId===roomId) || activeRoom(), link = room ? roomInviteLink(room) : "";
+    if(!link)return false;
+    if(navigator.share){try{await navigator.share({title:room.name||"Pokój gry",text:"Dołącz do mojego pokoju gry.",url:link});return true;}catch{return false;}}
+    return actions.copyInviteLink(room?.roomId);
+  },
   async createRoom({ name, password, settings, isPrivate }) {
     if(!ensureRoomSession()||!profile())return false;
     const now = Date.now(); const mode = getGameMode(state.selectedGameMode);
@@ -681,22 +778,26 @@ const actions = {
     const room = { roomId: uid(), gameMode: mode.id, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
       isPrivate, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings, createdAt: now, updatedAt: now, game: null };
     const result=await syncRoomState(room);if(!result.ok){message(`Nie udało się utworzyć pokoju: ${result.error}`);connectRooms();return false;}
-    state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;persistSession(); Audio.play("joinRoom"); Router.go("room");
+    state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go("room");
     return true;
   },
-  async joinRoom(roomId, password = "") {
+  async joinRoom(roomId, password = "", options = {}) {
     if(!ensureRoomSession()||!profile())return false;
-    const code=String(roomId||"").trim().toUpperCase(),room = state.rooms.find(item => item.roomId === code); if (!room) return message("Nie znaleziono pokoju.");
-    const mode = getGameMode(room.gameMode);
+    const code=String(roomId||"").trim().toUpperCase(),fail=text=>options.fromInvite?inviteErrorModal(text):(message(text),false);
+    if(!code)return fail("Nie można dołączyć do tego pokoju.");
+    const resolved=await resolveRoomForJoin(code); if(!resolved.ok)return fail(resolved.missing?"Ten pokój nie istnieje.":"Nie można dołączyć do tego pokoju.");
+    const room = resolved.room, mode = getGameMode(room.gameMode), alreadyInRoom = room.players.includes(state.currentUser);
+    if(options.inviteMode && room.gameMode !== options.inviteMode)return fail("Ten link prowadzi do innego trybu gry.");
+    if(room.deleted || room.closed || room.status === "closed")return fail("Ten pokój został zamknięty.");
+    if(!alreadyInRoom && room.status !== "lobby")return fail(room.status === "playing" || room.game ? "Gra w tym pokoju już trwa." : "Ten link jest nieaktualny.");
+    if(!alreadyInRoom && room.players.length >= mode.maxPlayers)return fail("Ten pokój jest już pełny.");
     if(await guardBan(room.gameMode))return false;
-    if(roomIsAdult(room)&&sessionStorage.getItem(adultAcceptedKey(room.gameMode))!=="true")return withAdultWarning(mode,()=>actions.joinRoom(roomId,password),true);
-    if (room.isPrivate && room.passwordHash !== hashRoomPassword(password)) return message("Złe hasło do pokoju.");
-    if (!room.players.includes(state.currentUser)) {
-      if (room.status !== "lobby") return message("Gra już wystartowała.");
-      if (room.players.length >= mode.maxPlayers) return message("Pokój jest pełny.");
+    if(roomIsAdult(room)&&sessionStorage.getItem(adultAcceptedKey(room.gameMode))!=="true")return withAdultWarning(mode,()=>actions.joinRoom(roomId,password,options),true);
+    if (room.isPrivate && !alreadyInRoom && room.passwordHash !== hashRoomPassword(password)) return options.fromInvite && !password ? invitePasswordModal(room, options.inviteMode) : (message("Złe hasło do pokoju."), false);
+    if (!alreadyInRoom) {
       room.players.push(state.currentUser); room.joinedAt={...(room.joinedAt||{}),[state.currentUser]:Date.now()}; room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; touchRoom(room);
     }
-    state.selectedGameMode = room.gameMode; state.activeRoomId = room.roomId;persistSession(); Audio.play("joinRoom"); Router.go(room.status === "lobby" ? "room" : "game");
+    state.selectedGameMode = room.gameMode; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go(room.status === "lobby" ? "room" : "game"); return true;
   },
   leaveRoom(destination = "lobby") { leaveRoomModal(destination); },
   confirmLeaveRoom(destination = "lobby") {
@@ -704,7 +805,7 @@ const actions = {
     interruptProveRoundForDeparture(room,state.currentUser);
     room.players = room.players.filter(id => id !== state.currentUser); if(room.playerProfiles)delete room.playerProfiles[state.currentUser];if(room.joinedAt)delete room.joinedAt[state.currentUser]; if (room.hostUid === state.currentUser) room.hostUid = room.players[0];
     const closeRoom=!room.players.length||shouldCloseLonelyFinishedRoom(room);
-    if(closeRoom){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else touchRoom(room); state.rooms = state.rooms.filter(item => item.players.length); state.activeRoomId = null;persistSession(); Audio.play("leaveRoom"); Router.go(destination);
+    if(closeRoom){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else touchRoom(room); state.rooms = state.rooms.filter(item => item.players.length); state.activeRoomId = null;clearPendingInvite();persistSession(); destination==="platform"?setUrlRoute("", ""):setModeUrl(state.selectedGameMode); Audio.play("leaveRoom"); Router.go(destination);
   },
   kickPlayer(playerId) { const room = activeRoom(); if (room?.hostUid === state.currentUser) { interruptProveRoundForDeparture(room,playerId);room.players = room.players.filter(id => id !== playerId); if(room.playerProfiles)delete room.playerProfiles[playerId];if(room.joinedAt)delete room.joinedAt[playerId];if(!room.players.length||shouldCloseLonelyFinishedRoom(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();}else{touchRoom(room);render();} } },
   setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; touchRoom(room); render(); } },
@@ -725,9 +826,9 @@ const actions = {
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) };
     room.status = "playing"; room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):room.settings;
     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : {};
-    touchRoom(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
+    touchRoom(room); setRoomUrl(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
   },
-  returnToRoom() { const room = activeRoom(); if (room) { if(closeLonelyFinishedRoom(room,{notify:true}))return; room.status = "lobby"; room.game = null; touchRoom(room); Router.go("room"); } },
+  returnToRoom() { const room = activeRoom(); if (room) { if(closeLonelyFinishedRoom(room,{notify:true}))return; room.status = "lobby"; room.game = null; touchRoom(room); setRoomUrl(room); Router.go("room"); } },
   submitInitialBid(value) {
     const amount=Math.max(1,Math.min(50,parseInt(value||"1",10)));
     return mutateRoomGame((game,room)=>{if(game.phase!=="initialBid"||game.starter!==state.currentUser)return"Pierwszą deklarację podaje teraz inny gracz.";game.phase="bidding";game.currentBid=amount;game.currentBidder=state.currentUser;game.decisionPlayer=nextProvePlayer(room.players,state.currentUser);game.phaseEndsAt=provePhaseEnd(Math.round(room.settings.answerTime/2));},{sound:"bid"});
@@ -922,12 +1023,12 @@ function connectRooms(){
     if(room&&source==="remote"&&leaveKickedRoom(room))return;
     if(room&&interruptProveRoundWithMissingPlayer(room)){if(closeLonelyFinishedRoom(room,{notify:true}))return;touchRoom(room);return render();}
     if(room&&closeLonelyFinishedRoom(room,{notify:true}))return;
-    if(requestedRoomId&&source==="remote"&&!room&&!pendingRoomSyncs.has(requestedRoomId)){state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();return;}
+    if(requestedRoomId&&source==="remote"&&!room&&!pendingRoomSyncs.has(requestedRoomId)){state.activeRoomId=null;clearPendingInvite({clearUrl:true});persistSession();Router.go("platform");showRoomClosedNotice();return;}
     announceRoomRoster(room);announceRoomPhase(room);
     if(claimPendingProgress(room))return render({preserveDrafts:true});
     if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
-    if(!restoredRoom&&room){restoredRoom=true;return Router.go(room.game?"game":"room");}
+    if(!restoredRoom&&room){restoredRoom=true;setRoomUrl(room);return Router.go(room.game?"game":"room");}
     if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});
   },()=>{
     state.onlineBackend=false;
@@ -935,4 +1036,4 @@ function connectRooms(){
     if(["lobby","room","game"].includes(Router.current))render();
   });
 }
-Audio.init(); Audio.bindGlobalUI(); Router.init(render); initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(["solo","lobby","platform"].includes(Router.current))render();}); render();
+Audio.init(); Audio.bindGlobalUI(); Router.init(render); initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current))render();}); render();

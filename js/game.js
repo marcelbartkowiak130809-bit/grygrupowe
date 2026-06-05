@@ -1,5 +1,5 @@
 import { categories } from "./categories.js?v=20260604-13";
-import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js?v=20260605-3";
+import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js?v=20260605-4";
 import { playerMini } from "./room.js?v=20260602-1";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";

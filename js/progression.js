@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-4";
+import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-5";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 

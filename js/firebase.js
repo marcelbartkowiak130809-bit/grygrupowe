@@ -363,6 +363,24 @@ export async function syncRoomState(room) {
 
 const normalizeRemoteRoom=room=>({ ...room, game:room.gameState || null, players:Object.keys(room.players || {}), playerProfiles:room.players || {}, joinedAt:Object.fromEntries(Object.entries(room.players || {}).map(([uid,item])=>[uid,item.joinedAt])) });
 
+export async function loadRemoteRoom(roomId) {
+  const code = String(roomId || "").trim().toUpperCase();
+  if (!code) return { ok:false, error:"Brak kodu pokoju." };
+  try {
+    if (remoteDatabase) {
+      const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${code}`));
+      const value = snapshot.val();
+      if (!value) return { ok:false, missing:true, error:"Pokoj nie istnieje." };
+      const local = readLocal(LOCAL_ROOMS_KEY); local[code] = value; saveLocal(LOCAL_ROOMS_KEY, local);
+      return { ok:true, room:normalizeRemoteRoom(value) };
+    }
+    const value = readLocal(LOCAL_ROOMS_KEY)[code];
+    return value ? { ok:true, room:normalizeRemoteRoom(value) } : { ok:false, missing:true, error:"Pokoj nie istnieje." };
+  } catch(error) {
+    return { ok:false, error:error?.code || error?.message || "Nie mozna odczytac pokoju." };
+  }
+}
+
 export async function mutateRemoteRoomGame(roomId, mutate) {
   if (!remoteDatabase || !roomId) return null;
   let mutationError="";
