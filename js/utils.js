@@ -9,8 +9,9 @@ export function escapeHtml(value) {
   })[char]);
 }
 
-export function avatarHtml(profile = {}, className = "") {
-  const classes = `avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${profile.selectedIdleAnimation || ""} ${className}`.trim();
+export function avatarHtml(profile = {}, className = "", options = {}) {
+  const idleClass = options.disableIdle ? "" : profile.selectedIdleAnimation || "";
+  const classes = `avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${idleClass} ${className}`.trim();
   const content = profile.avatarImage
     ? `<img src="${escapeHtml(profile.avatarImage)}" alt="">`
     : escapeHtml((profile.nick || "?")[0].toUpperCase());
@@ -54,9 +55,9 @@ function playerFxHtml(profile = {}) {
   }).join("");
 }
 
-export function playerMiniHtml(profile = {}, className = "") {
+export function playerMiniHtml(profile = {}, className = "", options = {}) {
   const animationClasses = `${profile.selectedWinAnimation || ""} ${profile.selectedLoseAnimation || ""}`.trim();
-  return `<div class="mini-player ${animationClasses} ${className}">${playerFxHtml(profile)}${avatarHtml(profile)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+  return `<div class="mini-player ${animationClasses} ${className}">${playerFxHtml(profile)}${avatarHtml(profile, "", options)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
 }
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {

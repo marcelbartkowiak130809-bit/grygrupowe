@@ -1,4 +1,4 @@
-import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-5";
+import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
 import { getGameMode } from "./games.js?v=20260605-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-2";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260605-2";
@@ -7,8 +7,8 @@ import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260605-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1";
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-3";
 
-export function playerMini(profile = {}) {
-  return playerMiniHtml(profile);
+export function playerMini(profile = {}, options = {}) {
+  return playerMiniHtml(profile, "", options);
 }
 
 function settingsHtml(mode, room, isHost) {
@@ -40,7 +40,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
-      ${playerMini(accounts[uid])}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"}</p>
+      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"}</p>
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>

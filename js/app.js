@@ -17,7 +17,7 @@ import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, 
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
 import { renderPlatform } from "./platform.js?v=20260605-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260605-4";
+import { playerMini, renderRoom } from "./room.js?v=20260605-5";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260605-5";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-5";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-3";
