@@ -2,24 +2,27 @@ import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605
 import { Effects } from "./effects.js";
 import { Audio } from "./audio.js";
 
+let timerId;
 const shuffle = items => [...items].sort(() => Math.random() - .5);
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 
-export const poisonCandyDefaults = { candyCount:40, poisonedPerPlayer:1, skinLayout:"random" };
+export const poisonCandyDefaults = { candyCount:40, poisonedPerPlayer:1, lives:1, skinLayout:"random" };
 const candyCounts = [20,40,60,80,100];
 const poisonOptions = [1,2,3];
+const poisonPickMs = 30000;
 const livePlayers = game => game.order.filter(uid => game.alive?.[uid]);
 const hasLegalCandy = (game, uid) => game.candies.some(candy => !candy.eatenBy && !arrayOrEmpty(candy.poisoners).includes(uid));
 const candySkin = profile => profile?.selectedCandySkin || "defaultCandy";
 const mini = profile => playerMiniHtml(profile);
-export const stopPoisonCandyTimer = () => {};
+export const stopPoisonCandyTimer = () => { clearInterval(timerId); timerId = null; };
 
 export function sanitizePoisonCandySettings(settings = {}, playerCount = 2) {
   const candyCount = candyCounts.includes(Number(settings.candyCount)) ? Number(settings.candyCount) : poisonCandyDefaults.candyCount;
   const maxPoison = Math.max(1, Math.floor(candyCount / (Math.max(2, playerCount) * 2)));
   const poisonedPerPlayer = Math.min(maxPoison, poisonOptions.includes(Number(settings.poisonedPerPlayer)) ? Number(settings.poisonedPerPlayer) : poisonCandyDefaults.poisonedPerPlayer);
-  return { ...poisonCandyDefaults, ...settings, candyCount, poisonedPerPlayer, skinLayout:settings.skinLayout === "nearPlayer" ? "nearPlayer" : "random" };
+  const lives = Math.max(1, Math.min(poisonedPerPlayer, Number(settings.lives) || poisonCandyDefaults.lives));
+  return { ...poisonCandyDefaults, ...settings, candyCount, poisonedPerPlayer, lives, skinLayout:settings.skinLayout === "nearPlayer" ? "nearPlayer" : "random" };
 }
 
 function candyOwners(players, count, layout) {
@@ -42,10 +45,12 @@ export function createPoisonCandyGame(players, rawSettings) {
     turnIndex:0,
     candies:owners.map((ownerUid, index) => ({ id:`c${index}`, ownerUid, poisoners:[], eatenBy:null })),
     alive:Object.fromEntries(players.map(uid => [uid, true])),
+    hits:Object.fromEntries(players.map(uid => [uid, 0])),
     poisonChoices:{},
     eliminated:[],
     lastEvent:null,
     result:null,
+    phaseEndsAt:Date.now()+poisonPickMs,
   };
 }
 
@@ -58,8 +63,10 @@ function normalize(game) {
     candy.eatenBy ||= null;
   });
   game.alive = objectOrEmpty(game.alive);
+  game.hits = objectOrEmpty(game.hits);
   game.poisonChoices = objectOrEmpty(game.poisonChoices);
   game.eliminated = arrayOrEmpty(game.eliminated);
+  if (game.phase === "poisoning" && !Number(game.phaseEndsAt)) game.phaseEndsAt = Date.now()+poisonPickMs;
   return game;
 }
 
@@ -90,6 +97,16 @@ function finishIfNeeded(game) {
   }
   return false;
 }
+function randomPoisonIds(game, needed) {
+  return shuffle(game.candies.filter(candy => !candy.eatenBy).map(candy => candy.id)).slice(0, needed);
+}
+function finishPoisoning(game, players) {
+  game.phase = "eating";
+  game.turnIndex = 0;
+  game.phaseEndsAt = null;
+  game.lastEvent = { type:"start", at:Date.now() };
+  players.forEach(uid => { if (!game.alive[uid]) game.alive[uid] = true; });
+}
 
 export const PoisonCandyEngine = {
   poison(game, uid, candyIds, players, settings) {
@@ -106,12 +123,23 @@ export const PoisonCandyEngine = {
       const candy = game.candies.find(item => item.id === id);
       if (candy) candy.poisoners.push(uid);
     });
-    if (players.every(playerId => game.poisonChoices[playerId])) {
-      game.phase = "eating";
-      game.turnIndex = 0;
-      game.lastEvent = { type:"start", at:Date.now() };
-    }
+    if (players.every(playerId => game.poisonChoices[playerId])) finishPoisoning(game, players);
     return null;
+  },
+  timeoutPoisoning(game, players, settings) {
+    normalize(game);
+    if (game.phase !== "poisoning") return;
+    const needed = sanitizePoisonCandySettings(settings, players.length).poisonedPerPlayer;
+    players.forEach(uid => {
+      if (game.poisonChoices[uid]) return;
+      const ids = randomPoisonIds(game, needed);
+      game.poisonChoices[uid] = ids;
+      ids.forEach(id => {
+        const candy = game.candies.find(item => item.id === id);
+        if (candy && !candy.poisoners.includes(uid)) candy.poisoners.push(uid);
+      });
+    });
+    finishPoisoning(game, players);
   },
   eat(game, uid, candyId) {
     normalize(game);
@@ -127,8 +155,18 @@ export const PoisonCandyEngine = {
     const died = Boolean(poisoner);
     game.lastEvent = { type:died ? "poisoned" : "safe", candyId, uid, poisoner, ownerUid:candy.ownerUid, at:Date.now() };
     if (died) {
+      const lives = sanitizePoisonCandySettings(settings, game.order.length).lives;
+      game.hits[uid] = Number(game.hits[uid] || 0) + 1;
+      const dead = game.hits[uid] >= lives;
+      game.lastEvent.lives = lives;
+      game.lastEvent.hits = game.hits[uid];
+      game.lastEvent.dead = dead;
+      if (!dead) {
+        advanceTurn(game);
+        return null;
+      }
       game.alive[uid] = false;
-      game.eliminated.push({ uid, candyId, poisoner, at:Date.now() });
+      game.eliminated.push({ uid, candyId, poisoner, hits:game.hits[uid], lives, at:Date.now() });
       if (finishIfNeeded(game)) return null;
     }
     advanceTurn(game);
@@ -141,9 +179,11 @@ export function renderPoisonCandyLobbySettings(room, isHost) {
   const players = room.players?.length || 2;
   const settings = sanitizePoisonCandySettings(room.settings, players);
   const canUsePoison = amount => players * amount <= settings.candyCount / 2;
+  const lifeOptions = Array.from({ length:settings.poisonedPerPlayer }, (_, index) => index + 1);
   return `<div class="impostor-settings-grid">
     <label>Liczba cukierkow<select data-candy-setting="candyCount" ${isHost ? "" : "disabled"}>${candyCounts.map(count => `<option value="${count}" ${settings.candyCount === count ? "selected" : ""}>${count}</option>`).join("")}</select></label>
     <label>Zatrute na gracza<select data-candy-setting="poisonedPerPlayer" ${isHost ? "" : "disabled"}>${poisonOptions.map(amount => `<option value="${amount}" ${settings.poisonedPerPlayer === amount ? "selected" : ""} ${canUsePoison(amount) ? "" : "disabled"}>${amount}</option>`).join("")}</select></label>
+    <label>Zycia<select data-candy-setting="lives" ${isHost ? "" : "disabled"}>${lifeOptions.map(amount => `<option value="${amount}" ${settings.lives === amount ? "selected" : ""}>${amount}</option>`).join("")}</select></label>
     <label>Uklad skinow<select data-candy-setting="skinLayout" ${isHost ? "" : "disabled"}><option value="random" ${settings.skinLayout === "random" ? "selected" : ""}>Losowo na stole</option><option value="nearPlayer" ${settings.skinLayout === "nearPlayer" ? "selected" : ""}>Blizej wlasciciela</option></select></label>
   </div><p class="tiny">Kazdy gracz zatruwa swoje cukierki po cichu. Nie da sie zjesc wlasnego zatrutego cukierka.</p>`;
 }
@@ -176,19 +216,25 @@ function candyHtml(candy, index, total, game, accounts, currentUser, canPick, se
   </button>`;
 }
 
-function playersRing(game, accounts, active) {
-  return `<section class="candy-players-ring">${game.order.map(uid => `<article class="${uid === active ? "active-candy-player" : ""} ${game.alive[uid] ? "" : "dead-candy-player"}">${avatarHtml(accounts[uid], "candy-avatar")}<b>${escapeHtml(accounts[uid]?.nick || "Gracz")}</b><small>${game.alive[uid] ? "gra" : "odpada"}</small></article>`).join("")}</section>`;
+function heartMeter(game, uid, settings) {
+  const lost = Math.min(settings.lives, Number(game.hits?.[uid] || 0));
+  return `<span class="candy-hearts" aria-label="Zycia ${settings.lives - lost} z ${settings.lives}">${Array.from({ length:settings.lives }, (_, index) => `<i class="${index < lost ? "lost" : "live"}">♥</i>`).join("")}</span>`;
+}
+
+function playersRing(game, accounts, active, settings) {
+  return `<section class="candy-players-ring">${game.order.map(uid => `<article class="${uid === active ? "active-candy-player" : ""} ${game.alive[uid] ? "" : "dead-candy-player"}">${avatarHtml(accounts[uid], "candy-avatar")}<b>${escapeHtml(accounts[uid]?.nick || "Gracz")}</b>${heartMeter(game, uid, settings)}<small>${game.alive[uid] ? "gra" : "odpada"}</small></article>`).join("")}</section>`;
 }
 
 function eventHtml(game, accounts) {
   const event = game.lastEvent;
   if (!event?.uid) return "";
   const nick = escapeHtml(accounts[event.uid]?.nick || "Gracz");
-  if (event.type === "poisoned") return `<div class="candy-event poison-event"><b>${nick} trafil na zatrutego cukierka</b><span>Odpada i oglada dalsza gre.</span><i></i><i></i><i></i></div>`;
+  if (event.type === "poisoned") return `<div class="candy-event poison-event ${event.dead ? "death-event" : "hit-event"}"><strong class="death-flash">${event.dead ? "ELIMINACJA!" : "TRAFIENIE!"}</strong><b>${nick} trafil na zatrutego cukierka</b><span>${event.dead ? "Umiera i oglada dalsza gre." : `Przetrwal, ale ma ${event.hits}/${event.lives} trafien.`}</span><i></i><i></i><i></i></div>`;
   return `<div class="candy-event safe-event"><b>${nick} zjadl bezpiecznego cukierka</b><span>Kolejka leci dalej.</span><i></i><i></i><i></i></div>`;
 }
 
 export function renderPoisonCandyGame(root, { room, accounts, currentUser }, actions) {
+  stopPoisonCandyTimer();
   const scrollY = window.scrollY;
   const game = normalize(room.game);
   const settings = sanitizePoisonCandySettings(room.settings, room.players.length);
@@ -196,14 +242,17 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
   const isAlive = Boolean(game.alive[currentUser]);
   const isTurn = active === currentUser;
   const needed = settings.poisonedPerPlayer;
+  const poisonLeft = Math.max(0, Math.ceil(((game.phaseEndsAt || Date.now()) - Date.now()) / 1000));
+  const poisonTimer = game.phase === "poisoning" ? `<div class="timer-box ${poisonLeft <= 5 ? "timer-urgent" : ""}"><span class="tiny">AUTO LOSOWANIE</span><b id="candy-poison-timer">${poisonLeft}s</b></div>` : "";
   if (game.phase === "results") Effects.play("roundWin", `${room.roomId}:candy:results`);
   const selectionKey = `poison-candy-selection:${room.roomId}:${currentUser}`;
   let savedSelection = [];
   try { savedSelection = JSON.parse(sessionStorage.getItem(selectionKey) || "[]"); } catch {}
   const selected = new Set(game.poisonChoices[currentUser] ? [] : savedSelection.slice(0, needed));
+  const resultOrder = game.phase === "results" ? [...game.order].sort((a, b) => Number(b === game.result?.winner) - Number(a === game.result?.winner)) : game.order;
   const body = game.phase === "results"
-    ? `<section class="panel center candy-result"><p class="eyebrow">KONIEC GRY</p><h1>${escapeHtml(accounts[game.result?.winner]?.nick || "Nikt")} wygrywa</h1><div class="final-ranking">${game.order.map(uid => `<article><b>${game.alive[uid] ? "WIN" : "OUT"}</b>${mini(accounts[uid])}<strong>${game.alive[uid] ? "ocalal" : "zatruty"}</strong></article>`).join("")}</div><button class="primary" id="candy-lobby">Wroc do lobby</button></section>`
-    : `<section class="poison-candy-stage"><div class="candy-topline"><div><p class="eyebrow">${game.phase === "poisoning" ? "ZATRUWANIE" : "JEDZENIE"}</p><h1>${game.phase === "poisoning" ? "Wybierz zatrute cukierki" : `${escapeHtml(accounts[active]?.nick || "Gracz")} wybiera cukierka`}</h1></div><span class="badge">${livePlayers(game).length} zywych</span></div>${playersRing(game, accounts, active)}<div class="candy-table">${game.candies.map((candy, index) => candyHtml(candy, index, game.candies.length, game, accounts, currentUser, game.phase === "poisoning" ? !game.poisonChoices[currentUser] : isTurn && isAlive, settings)).join("")}</div><div class="candy-event-slot">${eventHtml(game, accounts)}</div>${game.phase === "poisoning" ? (game.poisonChoices[currentUser] ? `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Cukierki zatrute</h3><p>Czekamy jeszcze na ${Math.max(0, room.players.length - Object.keys(game.poisonChoices).length)} graczy.</p></div>` : `<section class="panel candy-action-panel"><h3>Wybierz ${needed}</h3><p class="muted">Tylko ty widzisz swoje zatrute cukierki. Kliknij cukierki na stole i potwierdz.</p><button class="primary" id="candy-poison-submit" disabled>Zatruj wybrane</button></section>`) : (!isAlive ? `<div class="waiting-state"><span class="waiting-pulse">X</span><h3>Odpadasz, ale ogladzasz gre</h3><p>Stol dalej gra do ostatniego zywego gracza.</p></div>` : isTurn ? `<section class="panel candy-action-panel"><h3>Twoja kolej</h3><p class="muted">Wybierz cukierka, ktory nie jest twoim zatrutym.</p></section>` : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Czekasz na ruch gracza</h3><p>Kamera trzyma stol i aktywnego gracza.</p></div>`)}</section>`;
+    ? `<section class="panel center candy-result"><p class="eyebrow">KONIEC GRY</p><h1>${escapeHtml(accounts[game.result?.winner]?.nick || "Nikt")} wygrywa</h1><div class="final-ranking candy-final-ranking">${resultOrder.map(uid => `<article class="${uid === game.result?.winner ? "winner-card" : ""}"><b>${uid === game.result?.winner ? "WIN" : "OUT"}</b>${mini(accounts[uid])}<div class="candy-summary-life">${heartMeter(game, uid, settings)}<strong>${uid === game.result?.winner ? "zwyciezca" : "zatruty"}</strong></div></article>`).join("")}</div><button class="primary" id="candy-lobby">Wroc do lobby</button></section>`
+    : `<section class="poison-candy-stage"><div class="candy-topline"><div><p class="eyebrow">${game.phase === "poisoning" ? "ZATRUWANIE" : "JEDZENIE"}</p><h1>${game.phase === "poisoning" ? "Wybierz zatrute cukierki" : `${escapeHtml(accounts[active]?.nick || "Gracz")} wybiera cukierka`}</h1></div><div class="candy-top-status">${poisonTimer}<span class="badge">${livePlayers(game).length} zywych</span></div></div>${playersRing(game, accounts, active, settings)}<div class="candy-table">${game.candies.map((candy, index) => candyHtml(candy, index, game.candies.length, game, accounts, currentUser, game.phase === "poisoning" ? !game.poisonChoices[currentUser] : isTurn && isAlive, settings)).join("")}</div><div class="candy-event-slot">${eventHtml(game, accounts)}</div>${game.phase === "poisoning" ? (game.poisonChoices[currentUser] ? `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Cukierki zatrute</h3><p>Czekamy jeszcze na ${Math.max(0, room.players.length - Object.keys(game.poisonChoices).length)} graczy. Brakujace wybory po czasie zostana dolosowane.</p></div>` : `<section class="panel candy-action-panel"><h3>Wybierz ${needed}</h3><p class="muted">Tylko ty widzisz swoje zatrute cukierki. Masz 30 sekund, potem gra przyzna brakujace zatrucia losowo.</p><button class="primary" id="candy-poison-submit" disabled>Zatruj wybrane</button></section>`) : (!isAlive ? `<div class="waiting-state"><span class="waiting-pulse">X</span><h3>Odpadasz, ale ogladzasz gre</h3><p>Stol dalej gra do ostatniego zywego gracza.</p></div>` : isTurn ? `<section class="panel candy-action-panel"><h3>Twoja kolej</h3><p class="muted">Wybierz cukierka, ktory nie jest twoim zatrutym.</p></section>` : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Czekasz na ruch gracza</h3><p>Kamera trzyma stol i aktywnego gracza.</p></div>`)}</section>`;
   root.innerHTML = `<main class="page poison-candy-page board-shell">${body}<button class="ghost" id="leave-room">Wyjdz z pokoju</button></main>`;
   requestAnimationFrame(() => window.scrollTo({ top:scrollY, left:0, behavior:"auto" }));
   $("#leave-room").addEventListener("click", actions.leaveRoom);
@@ -227,4 +276,22 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
     Audio.play("candyPick");actions.poisonCandyEat(id);
   }));
   $("#candy-poison-submit")?.addEventListener("click", () => { try { sessionStorage.removeItem(selectionKey); } catch {} actions.poisonCandyPoison([...selected]); });
+  if (game.phase === "poisoning") startPoisonTimer(game, actions);
+}
+function startPoisonTimer(game, actions) {
+  const guard = { phase:game.phase, phaseEndsAt:Number(game.phaseEndsAt || 0) };
+  const tick = () => {
+    const left = Math.max(0, Math.ceil(((guard.phaseEndsAt || Date.now()) - Date.now()) / 1000));
+    const timer = $("#candy-poison-timer");
+    if (timer) {
+      timer.textContent = `${left}s`;
+      timer.parentElement?.classList.toggle("timer-urgent", left <= 5);
+    }
+    if (left <= 0) {
+      stopPoisonCandyTimer();
+      actions.poisonCandyTimeout?.(guard);
+    }
+  };
+  tick();
+  timerId = setInterval(tick, 500);
 }

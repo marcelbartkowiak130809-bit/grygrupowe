@@ -1,4 +1,4 @@
-import { otherQuestionCategories, otherQuestionPairs } from "../content/inne-pytanie/questionPairs.js";
+import { otherQuestionCategories, otherQuestionPairs } from "../content/inne-pytanie/questionPairs.js?v=20260605-2";
 import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260605-5";import{Audio}from"./audio.js";import{Effects}from"./effects.js";
 let timerId,lastCountdown;const now=()=>Date.now(),shuffle=a=>[...a].sort(()=>Math.random()-.5);
 const objectOrEmpty=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
