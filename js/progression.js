@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-5";
+import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-7";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -7,10 +7,10 @@ export const trophyRoad = [
   reward(6, "cosmetic", "levelBronzeFrame", "Ramka Weterana"), reward(8, "cosmetic", "sparkAura", "Male iskry"), reward(10, "cosmetic", "levelVioletNick", "Nick Awansu"),
   reward(12, "money", 350, "350 coinow"), reward(14, "cosmetic", "levelImpTailFrame", "Ogon za level"), reward(15, "cosmetic", "goldFrame", "Zlota ramka"),
   reward(18, "cosmetic", "levelBlazeFrame", "Ramka Zaru"), reward(20, "cosmetic", "levelQuestAura", "Aura Questow"), reward(22, "money", 650, "650 coinow"),
-  reward(26, "cosmetic", "levelCometAura", "Aura Komety"), reward(30, "cosmetic", "rainbowNick", "Rainbow nick"), reward(32, "cosmetic", "levelRoyalIdle", "Idle Levelowy"),
+  reward(26, "cosmetic", "levelCometAura", "Aura Komety"), reward(30, "cosmetic", "rainbowNick", "Rainbow nick"), reward(32, "cosmetic", "royalIdle", "Idle: royal hover"),
   reward(35, "cosmetic", "levelChampionNick", "Nick Czempiona"), reward(38, "cosmetic", "levelChampionWin", "Wygrana Czempiona"), reward(40, "money", 1400, "1400 coinow"),
   reward(42, "cosmetic", "levelShatterLose", "Porazka Shatter"), reward(45, "cosmetic", "levelPrismFrame", "Pryzmatyczna ramka"), reward(50, "cosmetic", "divineNick", "Boski nick"),
-  reward(55, "cosmetic", "levelDemonFrame", "Rogi Arcymistrza"), reward(60, "cosmetic", "levelNovaAura", "Aura Supernowej"), reward(70, "cosmetic", "levelAscendWin", "Ascend za level"),
+  reward(55, "cosmetic", "levelDemonFrame", "Rogi Arcymistrza"), reward(60, "cosmetic", "levelNovaAura", "Aura Supernowej"), reward(70, "cosmetic", "winAscend", "Wygrana: ascend"),
   reward(80, "cosmetic", "levelVoidLose", "Void porazki"), reward(90, "cosmetic", "levelHaloAura", "Aureola Legendy"),
 ];
 
@@ -164,15 +164,31 @@ export function grantProgression(profile = {}, xpGain = 0) {
   const previous = levelProgress(profile), xpKey = profile.nickOnly ? "sessionXp" : "xp", moneyKey = profile.nickOnly ? "sessionMoney" : "money";
   const updated = { ...profile, [xpKey]:previous.xp + Math.max(0, Number(xpGain) || 0) };
   const next = levelProgress(updated), claimed = { ...(profile.claimedLevelRewards || {}) }, owned = { ...(profile.ownedCosmetics || {}) };
-  const unlocked = [];
+  const unlocked = [], rerolls = [];
   let money = 0;
+  if (owned.levelRoyalIdle) owned.royalIdle = true;
+  if (owned.levelAscendWin) owned.winAscend = true;
+  if (updated.selectedIdleAnimation === "levelRoyalIdle") updated.selectedIdleAnimation = "royalIdle";
+  if (updated.selectedWinAnimation === "levelAscendWin") updated.selectedWinAnimation = "winAscend";
+  if (updated.selectedWinAnimation === "winLightning") updated.selectedWinAnimation = "";
+  const grantCosmetic = id => {
+    const rewardCosmetic = cosmetics.find(item => item.id === id);
+    if (!rewardCosmetic) return;
+    if (!owned[id]) { owned[id] = true; return; }
+    const pool = cosmetics.filter(item => item.price > 0 && !item.exclusive && item.rarity === rewardCosmetic.rarity && !owned[item.id]);
+    const replacement = pool[Math.floor(Math.random() * pool.length)];
+    if (replacement) {
+      owned[replacement.id] = true;
+      rerolls.push({ from:id, to:replacement.id, rarity:replacement.rarity });
+    }
+  };
   trophyRoad.forEach(item => {
     if (item.level > next.level || claimed[item.level]) return;
     claimed[item.level] = true; unlocked.push(item);
     if (item.type === "money") money += item.value;
-    if (item.type === "cosmetic") owned[item.value] = true;
+    if (item.type === "cosmetic") grantCosmetic(item.value);
   });
-  return { profile:{ ...updated, [moneyKey]:(Number(updated[moneyKey]) || 0) + money, claimedLevelRewards:claimed, ownedCosmetics:owned }, previousLevel:previous.level, level:next.level, leveledUp:next.level > previous.level, unlocked };
+  return { profile:{ ...updated, [moneyKey]:(Number(updated[moneyKey]) || 0) + money, claimedLevelRewards:claimed, ownedCosmetics:owned, lastLevelRerolls:rerolls }, previousLevel:previous.level, level:next.level, leveledUp:next.level > previous.level, unlocked, rerolls };
 }
 
 function questCard(quest, stats, profile) {
@@ -191,10 +207,17 @@ const rewardPreviewProfile = { nick:"Gracz" };
 export function progressionModal(profile = {}, closeAction, claimAction) {
   const progress = levelProgress(profile), modal = document.createElement("div");
   const stats = normalizeQuestStats(profile), quests = questList(Date.now()), completed = completedQuestRewards(profile), daily = quests.filter(q => q.period === "daily"), weekly = quests.filter(q => q.period === "weekly");
+  const rerolls = Array.isArray(profile.lastLevelRerolls) ? profile.lastLevelRerolls : [];
+  const rerollHtml = rerolls.length ? `<section class="level-reroll-card"><p class="eyebrow">DUPLIKAT ZAMIENIONY</p><div class="level-reroll-strip">${rerolls.map(entry => {
+    const won = cosmetics.find(item => item.id === entry.to), from = cosmetics.find(item => item.id === entry.from);
+    const filler = cosmetics.filter(item => item.rarity === entry.rarity && item.price > 0).slice(0, 6);
+    return `<article><div class="level-reroll-track">${filler.map(item => `<span>${item.name}</span>`).join("")}<b>${won?.name || "Nowy kosmetyk"}</b></div><small>${from?.name || "Duplikat"} -> ${won?.name || "nowy kosmetyk"}</small></article>`;
+  }).join("")}</div></section>` : "";
   modal.className = "modal-backdrop";
   modal.innerHTML = `<section class="modal progression-modal enter" role="dialog" aria-modal="true" aria-labelledby="progression-title">
     <div class="modal-title"><div><p class="eyebrow">DROGA LEVELU</p><h2 id="progression-title">Level ${progress.level}</h2></div><button class="icon-btn" data-close>x</button></div>
     <div class="road-current">${levelBadgeHtml(profile, "large-level-badge")}<div><b>${progress.current}/${progress.needed} XP do kolejnego levelu</b><i><em style="width:${progress.percent}%"></em></i></div></div>
+    ${rerollHtml}
     <div class="progression-body">
       <aside class="progression-side">
         ${statsPanel(profile)}

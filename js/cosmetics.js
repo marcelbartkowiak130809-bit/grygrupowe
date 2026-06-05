@@ -11,6 +11,9 @@ export const cosmetics = [
   item("neonCandy","candy","Neonowy zel",3600,"epic","Swiecacy zelowy cukierek tylko do trybu Zatruty cukierek."),
   item("lavaCandy","candy","Lava karmel",5200,"legendary","Rozgrzany cukierek lawowy tylko do trybu Zatruty cukierek."),
   item("diamondCandy","candy","Diamentowy cukierek",6100,"legendary","Krystaliczny cukierek tylko do trybu Zatruty cukierek."),
+  item("emeraldCandy","candy","Szmaragdowy cukierek",6100,"legendary","Zielony krystaliczny cukierek tylko do trybu Zatruty cukierek."),
+  item("rubyCandy","candy","Rubinowy cukierek",6100,"legendary","Czerwony krystaliczny cukierek tylko do trybu Zatruty cukierek."),
+  item("crystalCandy","candy","Bialy krysztal",6400,"mythic","Bialy krystaliczny cukierek tylko do trybu Zatruty cukierek."),
   item("defaultNick","nick","Zwykły nick",0,"common","Klasyczny wygląd nicku."),
   item("redNick","nick","Czerwony nick",250,"common","Wyrazisty czerwony kolor."),
   item("blueNick","nick","Niebieski nick",250,"common","Spokojny niebieski kolor."),
@@ -145,16 +148,15 @@ export const cosmetics = [
   item("winSpotlight","win","Wygrana: reflektor",2200,"rare","Profilowe pozuje w swietle jak na scenie."),
   item("winConfetti","win","Wygrana: konfetti",2400,"epic","Kolorowy wybuch nad nickiem."),
   item("winFireworks","win","Wygrana: fajerwerki",2900,"epic","Mini fajerwerki przy profilowym."),
-  item("winLightning","win","Wygrana: piorun",3200,"epic","Blyskawica uderza obok zwyciezcy."),
   item("winStageBow","win","Wygrana: uklon",3500,"epic","Profilowe robi szybki uklon."),
   item("winTrophy","win","Wygrana: puchar",3900,"legendary","Puchar wyskakuje nad graczem."),
   item("winHalo","win","Wygrana: aureola",4300,"legendary","Jasny kreg odpala przy zwyciezcy."),
   item("winPortal","win","Wygrana: portal",4700,"legendary","Portal otwiera sie za profilem."),
   item("winLaser","win","Wygrana: laser show",5100,"legendary","Krotkie lasery podswietlaja nick."),
   item("winRoyalRain","win","Wygrana: deszcz pieniędzy",5600,"mythic","Mityczny deszcz banknotów i złota."),
-  item("winMeteor","win","Wygrana: kometa triumfu",6100,"mythic","Goraca kometa przelatuje za zwyciezca bez uderzania w niego."),
+  item("winMeteor","win","Wygrana: kometa triumfu",6100,"mythic","Meteor spada z gory, a zwyciezca unika go i staje na nim."),
   item("winAscend","win","Wygrana: ascend",6800,"mythic","Profilowe unosi sie jak legenda."),
-  item("winDemonKing","win","Wygrana: demon king",7200,"mythic","Czerwony tron cienia za zwyciezca."),
+  item("winDemonKing","win","Wygrana: demon king",7200,"mythic","Rogi, tron i czerwony smiech zwyciezcy."),
 
   item("loseFall","lose","Przegrana: przewrotka",1200,"common","Profilowe traci rownowage i przewraca sie po porazce."),
   item("loseBonk","lose","Przegrana: bonk",1400,"common","Cos spada na avatar i go splaszcza."),
@@ -181,11 +183,9 @@ export const cosmetics = [
   item("levelNovaAura","aura","Aura Supernowej",0,"mythic","Ekskluzywna aura za level 60.",{exclusive:true,requiredLevel:60}),
   item("levelImpTailFrame","frame","Ogon za level",0,"epic","Ekskluzywna diabelska ramka za level 14.",{exclusive:true,requiredLevel:14}),
   item("levelQuestAura","aura","Aura Questow",0,"epic","Ekskluzywna aura za level 20.",{exclusive:true,requiredLevel:20}),
-  item("levelRoyalIdle","idle","Idle Levelowy",0,"legendary","Ekskluzywna animacja idle za level 32.",{exclusive:true,requiredLevel:32}),
   item("levelChampionWin","win","Król przybył",0,"legendary","Ekskluzywna królewska animacja wygranej za level 38.",{exclusive:true,requiredLevel:38}),
   item("levelShatterLose","lose","Porazka Shatter",0,"legendary","Ekskluzywna animacja porazki za level 42.",{exclusive:true,requiredLevel:42}),
   item("levelDemonFrame","frame","Rogi Arcymistrza",0,"mythic","Ekskluzywna demoniczna ramka za level 55.",{exclusive:true,requiredLevel:55}),
-  item("levelAscendWin","win","Ascend za level",0,"mythic","Ekskluzywna animacja wygranej za level 70.",{exclusive:true,requiredLevel:70}),
   item("levelVoidLose","lose","Void porazki",0,"mythic","Ekskluzywna porazka za level 80: avatar rozpada sie w szczeline pustki.",{exclusive:true,requiredLevel:80}),
   item("levelHaloAura","aura","Aureola Legendy",0,"mythic","Ekskluzywna aura za level 90.",{exclusive:true,requiredLevel:90}),
 ];
@@ -198,37 +198,37 @@ export const sortCosmeticsByRarity = (items, options = {}) => {
 };
 
 function animationEffectHtml(id) {
-  if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span>';
-  if (id === "winMeteor") return '<span class="fx-win-comet"></span><span class="fx-comet-spark spark-one"></span><span class="fx-comet-spark spark-two"></span>';
+  if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span><span class="fx-laser laser-e"></span>';
+  if (id === "winMeteor") return '<span class="fx-loss-meteor fx-win-dodge-meteor"></span><span class="fx-impact fx-win-dodge-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
   if (id === "loseMeteorHit") return '<span class="fx-loss-meteor"></span><span class="fx-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
   if (id === "loseBlackHole") return '<span class="fx-black-hole"></span>';
   if (id === "levelVoidLose") return '<span class="fx-void-rift"></span><span class="fx-void-ring"></span>';
-  if (id === "winDemonKing") return '<span class="fx-demon-throne"></span><span class="fx-demon-horns"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
+  if (id === "winDemonKing") return '<span class="fx-demon-throne"></span><span class="fx-demon-crown"></span><span class="fx-demon-horns"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span><span class="fx-ha ha-e">HA</span>';
   if (id === "loseDemonLaugh") return '<span class="fx-demon-shadow"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
   if (id === "winMoney") return '<span class="fx-cash-toss cash-a"></span><span class="fx-cash-toss cash-b"></span><span class="fx-cash-toss cash-c"></span>';
   if (id === "winRoyalRain") return '<span class="fx-money money-a"></span><span class="fx-money money-b"></span><span class="fx-money money-c"></span><span class="fx-money money-d"></span>';
   if (id === "levelChampionWin") return '<span class="fx-royal-mantle"></span><span class="fx-crown"></span>';
-  if (id === "winCrown") return '<span class="fx-crown"></span>';
+  if (id === "winCrown") return '<span class="fx-crown fx-worn-crown"></span>';
   if (id === "loseCrownDrop") return '<span class="fx-falling-crown"></span><span class="fx-crown-dust dust-left"></span><span class="fx-crown-dust dust-right"></span>';
   if (id === "winSpotlight") return '<span class="fx-spotlight"></span>';
-  if (id === "winConfetti") return '<span class="fx-burst burst-a"></span><span class="fx-burst burst-b"></span><span class="fx-burst burst-c"></span><span class="fx-burst burst-d"></span>';
+  if (id === "winConfetti") return '<span class="fx-confetti confetti-a"></span><span class="fx-confetti confetti-b"></span><span class="fx-confetti confetti-c"></span><span class="fx-confetti confetti-d"></span><span class="fx-confetti confetti-e"></span><span class="fx-confetti confetti-f"></span>';
   if (id === "winFireworks") return '<span class="fx-firework fw-a"></span><span class="fx-firework fw-b"></span><span class="fx-firework fw-c"></span>';
-  if (id === "winLightning") return '<span class="fx-win-lightning"></span>';
   if (id === "loseThunder") return '<span class="fx-loss-thunder"></span>';
-  if (id === "winTrophy") return '<span class="fx-trophy"></span>';
+  if (id === "winTrophy") return '<span class="fx-trophy"></span><span class="fx-trophy-shine"></span>';
   if (id === "winAscend" || id === "levelAscendWin") return '<span class="fx-ascend-column"></span><span class="fx-ascend-sparks"></span>';
-  if (id === "winPortal") return '<span class="fx-portal-ring"></span><span class="fx-portal-core"></span>';
-  if (id === "losePortal") return '<span class="fx-exit-portal"></span><span class="fx-portal-core"></span>';
-  if (id === "winHalo") return '<span class="fx-halo-ring"></span>';
+  if (id === "winPortal") return '<span class="fx-rick-portal"></span><span class="fx-gem gem-a"></span><span class="fx-gem gem-b"></span><span class="fx-gem gem-c"></span><span class="fx-portal-money portal-money-a"></span><span class="fx-portal-money portal-money-b"></span>';
+  if (id === "losePortal") return '<span class="fx-exit-portal fx-rick-exit"></span><span class="fx-portal-gun"></span><span class="fx-portal-core"></span>';
+  if (id === "winHalo") return '<span class="fx-halo-ring"></span><span class="fx-halo-rays"></span>';
   if (id === "winStageBow") return '<span class="fx-stage-floor"></span>';
   if (id === "loseFreeze") return '<span class="fx-freeze-pane"></span><span class="fx-ice-crack crack-a"></span><span class="fx-ice-crack crack-b"></span>';
   if (id === "loseBurn") return '<span class="fx-ash ash-a"></span><span class="fx-ash ash-b"></span><span class="fx-ash ash-c"></span>';
-  if (id === "loseCrack" || id === "levelShatterLose") return '<span class="fx-glass-crack"></span>';
+  if (id === "loseCrack") return '<span class="fx-glass-crack"></span><span class="fx-crack-shard shard-a"></span><span class="fx-crack-shard shard-b"></span>';
+  if (id === "levelShatterLose") return '<span class="fx-shatter-pane"></span><span class="fx-shatter-piece shatter-a"></span><span class="fx-shatter-piece shatter-b"></span><span class="fx-shatter-piece shatter-c"></span><span class="fx-shatter-piece shatter-d"></span>';
   if (id === "losePixelBreak") return '<span class="fx-pixels pixel-a"></span><span class="fx-pixels pixel-b"></span><span class="fx-pixels pixel-c"></span><span class="fx-pixels pixel-d"></span>';
   if (id === "loseLetters") return '<span class="fx-letter l-a">N</span><span class="fx-letter l-b">I</span><span class="fx-letter l-c">C</span><span class="fx-letter l-d">K</span>';
-  if (id === "loseDust") return '<span class="fx-dust dust-a"></span><span class="fx-dust dust-b"></span><span class="fx-dust dust-c"></span>';
-  if (id === "loseBonk") return '<span class="fx-weight"></span><span class="fx-bonk-star star-a"></span><span class="fx-bonk-star star-b"></span>';
-  if (id === "loseSquash") return '<span class="fx-squash-press"></span><span class="fx-squash-line line-a"></span><span class="fx-squash-line line-b"></span>';
+  if (id === "loseDust") return '<span class="fx-dust-cloud"></span><span class="fx-dust dust-a"></span><span class="fx-dust dust-b"></span><span class="fx-dust dust-c"></span>';
+  if (id === "loseBonk") return '<span class="fx-bonk-hammer"></span><span class="fx-bonk-star star-a"></span><span class="fx-bonk-star star-b"></span>';
+  if (id === "loseSquash") return '<span class="fx-anvil"></span><span class="fx-squash-line line-a"></span><span class="fx-squash-line line-b"></span>';
   return "";
 }
 

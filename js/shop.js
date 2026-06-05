@@ -1,8 +1,10 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-5";
-import { $, formatClock, icon } from "./utils.js?v=20260605-4";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-7";
+import { $, formatClock, icon } from "./utils.js?v=20260605-5";
 
 let shopTimer;
 export function stopShopTimer() { clearInterval(shopTimer); shopTimer = null; }
+const catalogAnimationsKey = "cosmeticCatalogAnimations";
+const catalogAnimationsEnabled = () => localStorage.getItem(catalogAnimationsKey) !== "off";
 
 const equipped = (profile, id) => [
   profile.selectedNickEffect,
@@ -63,6 +65,7 @@ function groupSection(group, items, profile, idPrefix, options = {}) {
 export function renderShop(root, { profile }, actions) {
   stopShopTimer();
   const rotation = getShopRotation();
+  const animationsOn = catalogAnimationsEnabled();
   const ownedItems = sortCosmeticsByRarity(cosmetics.filter(item => profile.ownedCosmetics?.[item.id]), { rareFirst:true });
   const wardrobeHtml = groups.map(group => groupSection(group, ownedItems, profile, "owned")).join("");
   const catalogHtml = groups.map(group => groupSection(group, cosmetics, profile, "catalog", { catalog:true })).join("");
@@ -85,7 +88,7 @@ export function renderShop(root, { profile }, actions) {
     <section class="panel owned-cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">GARDEROBA</p><h2>Twoje kosmetyki</h2></div><span class="badge">${ownedItems.length}</span></div><p class="muted">Kliknij karte, aby zalozyc efekt. Strzalki pojawiaja sie dopiero gdy w kategorii jest wiecej niz 7 kart.</p>
       <div class="wardrobe-sections">${wardrobeHtml}</div>
     </section>
-    <section class="panel owned-cosmetics-panel cosmetic-catalog" id="cosmetic-catalog"><div class="section-heading"><div><p class="eyebrow">KATALOG</p><h2>Wszystkie kosmetyki</h2></div><span class="badge">${cosmetics.length}</span></div><p class="muted">Najrzadsze sa po prawej stronie karuzeli. Posiadany kosmetyk mozesz zalozyc z katalogu.</p>
+    <section class="panel owned-cosmetics-panel cosmetic-catalog ${animationsOn ? "" : "catalog-animations-off"}" id="cosmetic-catalog"><div class="section-heading"><div><p class="eyebrow">KATALOG</p><h2>Wszystkie kosmetyki</h2></div><div class="catalog-tools"><button class="catalog-animation-toggle ${animationsOn ? "is-on" : ""}" id="catalog-animation-toggle" type="button" aria-pressed="${animationsOn}"><span></span><b>${animationsOn ? "Animacje wlaczone" : "Animacje wylaczone"}</b></button><span class="badge">${cosmetics.length}</span></div></div><p class="muted">Najrzadsze sa po prawej stronie karuzeli. Posiadany kosmetyk mozesz zalozyc z katalogu.</p>
       <div class="wardrobe-sections">${catalogHtml}</div>
     </section>
   </main>`;
@@ -95,9 +98,18 @@ export function renderShop(root, { profile }, actions) {
   shopTimer = setInterval(() => Date.now() >= rotation.endsAt ? actions.refresh() : updateTimer(), 1000);
   $("#back-home").addEventListener("click", actions.goHome);
   $("#open-catalog").addEventListener("click", () => { actions.playSound?.("catalogOpen"); $("#cosmetic-catalog")?.scrollIntoView({ behavior:"smooth", block:"start" }); });
+  $("#catalog-animation-toggle")?.addEventListener("click", event => {
+    const catalog = $("#cosmetic-catalog", root), enabled = catalog?.classList.toggle("catalog-animations-off") === false;
+    localStorage.setItem(catalogAnimationsKey, enabled ? "on" : "off");
+    event.currentTarget.classList.toggle("is-on", enabled);
+    event.currentTarget.setAttribute("aria-pressed", String(enabled));
+    const label = event.currentTarget.querySelector("b");
+    if (label) label.textContent = enabled ? "Animacje wlaczone" : "Animacje wylaczone";
+  });
   root.querySelectorAll("[data-scroll-cosmetics]").forEach(button => button.addEventListener("click", () => {
     const target = $(`#${button.dataset.scrollCosmetics}`, root);
-    target?.scrollBy({ left:Number(button.dataset.dir) * 520, behavior:"smooth" });
+    const animationsOff = Boolean(target?.closest(".catalog-animations-off"));
+    target?.scrollBy({ left:Number(button.dataset.dir) * 520, behavior:animationsOff ? "auto" : "smooth" });
   }));
   root.querySelectorAll("[data-buy]").forEach(button => button.addEventListener("click", () => actions.buyCosmetic(button.dataset.buy)));
   root.querySelectorAll("[data-equip]").forEach(button => button.addEventListener("click", () => { if(!button.classList.contains("equipped-cosmetic")) actions.equipCosmetic(button.dataset.equip); }));

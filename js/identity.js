@@ -1,5 +1,5 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-4";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-5";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
@@ -45,6 +45,7 @@ const settingsWithDefaults = settings => {
   s.gameFlow = ["externalVoice", "browserVoice"].includes(s.gameFlow) ? s.gameFlow : s.gameFlow === "voice" ? "browserVoice" : "normal";
   s.categories = normalizeCategories(s);
   s.category = s.categories[0] || "";
+  if (s.targetScore <= 1) s.newAfterGuess = false;
   return s;
 };
 const roundLimit = (game, settings) => Math.min(99, clampNumber(game.roundsLimit || settings.rounds, 1, 99, settings.rounds));
@@ -265,6 +266,7 @@ export function renderIdentityLobbySettings(room, isHost) {
   const players = Math.max(1, Number(room.players?.length) || 1);
   const totalMinutes = Math.ceil((s.turnTime * s.rounds * players) / 60);
   const extraRoundMinutes = Math.ceil((s.turnTime * players) / 60);
+  const newCharacterDisabled = s.targetScore <= 1;
   const categoryChecks = identityCategoryNames.map(name => `<label class="check"><input data-identity-category="${escapeHtml(name)}" type="checkbox" ${s.categories.includes(name) ? "checked" : ""} ${isHost ? "" : "disabled"}> ${escapeHtml(name)}</label>`).join("");
   const flowNote = s.gameFlow === "browserVoice"
     ? "Voice chat w grze: strona poprosi o mikrofon i sama przelacza, kto moze mowic."
@@ -278,7 +280,7 @@ export function renderIdentityLobbySettings(room, isHost) {
 <label>Gramy do<select data-identity-setting="targetScore" ${isHost ? "" : "disabled"}>${[1,2,3,4,5].map(n => `<option value="${n}" ${s.targetScore === n ? "selected" : ""}>${n} ${n === 1 ? "trafienie" : "trafienia"}</option>`).join("")}</select></label>
 <label>Odpowiedzi<select data-identity-setting="responseMode" ${isHost ? "" : "disabled"}><option value="binary" ${s.responseMode === "binary" ? "selected" : ""}>TAK / NIE</option><option value="extended" ${s.responseMode === "extended" ? "selected" : ""}>TAK / NIE / NIE WIEM / CZESCIOWO</option></select></label>
 <label class="check"><input data-identity-setting="oneGuess" type="checkbox" ${s.oneGuess ? "checked" : ""} ${isHost ? "" : "disabled"}> Jedna proba zgadniecia na ture</label>
-<label class="check"><input data-identity-setting="newAfterGuess" type="checkbox" ${s.newAfterGuess ? "checked" : ""} ${isHost ? "" : "disabled"}> Nowa postac po trafieniu</label>
+<label class="check ${newCharacterDisabled ? "muted" : ""}"><input data-identity-setting="newAfterGuess" type="checkbox" ${s.newAfterGuess ? "checked" : ""} ${isHost && !newCharacterDisabled ? "" : "disabled"}> Nowa postac po trafieniu${newCharacterDisabled ? " (nie dotyczy gry do 1)" : ""}</label>
 <label class="check"><input data-identity-setting="endAfterRounds" type="checkbox" ${s.endAfterRounds ? "checked" : ""} ${isHost ? "" : "disabled"}> Glosowanie po X rundach</label>
 <label class="check"><input data-identity-setting="playerWordsEnabled" type="checkbox" ${s.playerWordsEnabled ? "checked" : ""} ${isHost ? "" : "disabled"}> Hasla graczy</label></div>
 <div class="custom-words"><label>Kategorie hasel - wybierz minimum 3</label><div class="impostor-settings-grid">${categoryChecks}</div></div>
