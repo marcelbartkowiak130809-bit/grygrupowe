@@ -159,7 +159,7 @@ export const cosmetics = [
   item("winDemonKing","win","Wygrana: demon king",7200,"mythic","Rogi, tron i czerwony smiech zwyciezcy."),
 
   item("loseFall","lose","Przegrana: przewrotka",1200,"common","Profilowe traci rownowage i przewraca sie po porazce."),
-  item("loseBonk","lose","Przegrana: bonk",1400,"common","Cos spada na avatar i go splaszcza."),
+  item("loseBonk","lose","Przegrana: bonk",1400,"common","Młotek spada z góry, wali w avatar i spłaszcza go na chwilę."),
   item("loseDust","lose","Przegrana: kurz",1600,"rare","Profilowe znika w chmurce kurzu."),
   item("loseCrack","lose","Przegrana: pekniecie",1900,"rare","Szklo peka na avatarze."),
   item("loseThunder","lose","Przegrana: piorun",2300,"epic","Piorun uderza w przegranego."),
