@@ -5,11 +5,13 @@ const now = () => Date.now();
 
 export function createIdentityVoiceChat(onChange = () => {}) {
   let roomId = "", uid = "", players = [], game = null, stream = null, stopSignals = () => {};
+  let signalsRoomId = "", signalsUid = "";
   let manualMuted = false, micError = "", requesting = false, cleanupStarted = false;
   let lastStateJson = "";
   const peers = new Map(), processedIce = new Set(), remoteAudio = new Map(), offeredPeers = new Set();
 
-  const state = () => ({ supported:hasVoiceSignaling(), connected:Boolean(stream), requesting, error:micError, manualMuted, allowedToSpeak:canSpeak(), remoteCount:remoteAudio.size, peerCount:Math.max(0, players.length - 1) });
+  const connectedPeerCount = () => [...peers.values()].filter(pc => ["connected", "completed"].includes(pc.iceConnectionState) || pc.connectionState === "connected").length;
+  const state = () => ({ supported:hasVoiceSignaling(), connected:Boolean(stream), requesting, error:micError, manualMuted, allowedToSpeak:canSpeak(), remoteCount:connectedPeerCount(), peerCount:Math.max(0, players.length - 1) });
   const emit = () => { const next = JSON.stringify(state()); if (next !== lastStateJson) { lastStateJson = next; onChange(); } };
 
   function canSpeak() {
@@ -66,10 +68,13 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     pc.ontrack = event => {
       const element = audioFor(peerUid);
       element.srcObject = event.streams[0];
+      element.muted = false;
+      element.volume = 1;
       element.play?.().catch(() => {});
       emit();
     };
     pc.onconnectionstatechange = () => { if (["failed","closed","disconnected"].includes(pc.connectionState)) emit(); };
+    pc.oniceconnectionstatechange = () => emit();
     return pc;
   }
 
@@ -101,7 +106,8 @@ export function createIdentityVoiceChat(onChange = () => {}) {
         const key = `${fromUid}:${candidateId}`;
         if (processedIce.has(key)) continue;
         processedIce.add(key);
-        try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch {}
+        if (!pc.remoteDescription) continue;
+        try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); processedIce.add(key); } catch {}
       }
     }
   }
@@ -117,9 +123,11 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     if (!stream) return;
     [...peers.keys()].filter(peerUid => !players.includes(peerUid)).forEach(peerUid => { peers.get(peerUid)?.close(); peers.delete(peerUid); offeredPeers.delete(peerUid); remoteAudio.get(peerUid)?.remove(); remoteAudio.delete(peerUid); });
     players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
-    if (changedRoom) {
+    if (changedRoom || signalsRoomId !== roomId || signalsUid !== uid) {
       stopSignals();
       offeredPeers.clear();
+      signalsRoomId = roomId;
+      signalsUid = uid;
       stopSignals = subscribeVoiceSignals(roomId, uid, snapshot => handleSignals(snapshot).catch(()=>{}));
     }
     await Promise.all(players.filter(peerUid => peerUid !== uid && uid < peerUid).map(createOffer));
@@ -132,7 +140,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     if (cleanupStarted && !roomId) return;
     cleanupStarted = true;
     const oldRoom = roomId, oldUid = uid;
-    stopSignals(); stopSignals = () => {};
+    stopSignals(); stopSignals = () => {}; signalsRoomId = ""; signalsUid = "";
     peers.forEach(pc => pc.close()); peers.clear(); processedIce.clear(); offeredPeers.clear();
     remoteAudio.forEach(element => element.remove()); remoteAudio.clear();
     stream?.getTracks().forEach(track => track.stop()); stream = null;

@@ -204,6 +204,9 @@ export const IdentityEngine = {
       if (scoreDone(game, uid, settings)) closeWordHistory(game, uid, game.round);
       else if (settings.newAfterGuess) { closeWordHistory(game, uid, game.round); assignNewWord(game, uid, settings, customWords); }
       advance(game, settings, customWords);
+    } else if (settings.gameFlow === "externalVoice" && type === "guess") {
+      game.history.push({ ...game.pending, answer: "NIE TRAFIONE" });
+      advance(game, settings, customWords);
     } else {
       game.phase = "responses";
       game.responses = {};
@@ -216,6 +219,11 @@ export const IdentityEngine = {
     if (!["externalVoice", "browserVoice"].includes(settings.gameFlow)) return "Ten pokoj nie jest w trybie glosowym.";
     if (game.phase !== "turn" || game.order[game.turnIndex] !== uid) return "To nie jest twoja tura.";
     game.pending = { uid, text: "Pytanie glosowe", type: "question", correct: false, voice: true };
+    if (settings.gameFlow === "externalVoice") {
+      game.history.push({ ...game.pending, answer: "POZA GRA" });
+      advance(game, settings, {});
+      return null;
+    }
     game.phase = "responses";
     game.responses = {};
     game.repeatUntil = null;
@@ -335,10 +343,11 @@ function normalTurnHtml(me, active, accounts) {
     : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Teraz pyta ${escapeHtml(accounts[active]?.nick || "inny gracz")}</h3><p>Czekaj na pytanie. Potem wybierzesz odpowiedz.</p></div>`;
 }
 
-function voiceTurnHtml(me, active, accounts) {
+function voiceTurnHtml(me, active, accounts, gameFlow) {
+  const external = gameFlow === "externalVoice";
   return me
-    ? `<div class="identity-voice-box"><p class="eyebrow">TRYB GLOSOWY</p><h3>Twoj mikrofon jest teraz aktywny w rozmowie.</h3><p>Zadaj pytanie na glos, a potem kliknij, ze grupa ma odpowiadac. Gdy juz wiesz, wpisz zgadywana postac.</p><button class="primary" id="identity-voice-question">Zadalem pytanie</button><form id="identity-form" class="identity-guess-form"><input id="identity-input" placeholder="wpisz, kim jestes"><button data-identity-type="guess">Zgaduje</button></form></div>`
-    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>Po pytaniu gra przelaczy ekran na odpowiedzi grupy.</p><button id="identity-enable-mic">Polacz mikrofon</button></div>`;
+    ? `<div class="identity-voice-box"><p class="eyebrow">${external ? "GLOS POZA GRA" : "TRYB GLOSOWY"}</p><h3>${external ? "Rozmawiacie poza strona." : "Twoj mikrofon jest teraz aktywny w rozmowie."}</h3><p>${external ? "Zadaj pytanie na Discordzie lub innym komunikatorze. Kliknij po pytaniu, zeby tura poszla dalej, albo wpisz zgadywana postac." : "Zadaj pytanie na glos, a potem kliknij, ze grupa ma odpowiadac. Gdy juz wiesz, wpisz zgadywana postac."}</p><button class="primary" id="identity-voice-question">Zadalem pytanie</button><form id="identity-form" class="identity-guess-form"><input id="identity-input" placeholder="wpisz, kim jestes"><button data-identity-type="guess">Zgaduje</button></form></div>`
+    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>${external ? "Odpowiedzcie poza strona. Gra przejdzie dalej, gdy aktywny gracz kliknie, ze zadal pytanie, albo skonczy sie czas." : "Po pytaniu gra przelaczy ekran na odpowiedzi grupy."}</p>${external ? "" : '<button id="identity-enable-mic">Polacz mikrofon</button>'}</div>`;
 }
 
 function voiceControlsHtml(actions) {
@@ -348,17 +357,18 @@ function voiceControlsHtml(actions) {
   return `<section class="identity-voice-controls ${state.error ? "voice-error" : state.allowedToSpeak && !state.manualMuted ? "voice-speaking" : ""}"><div><p class="eyebrow">VOICE CHAT</p><h3>${escapeHtml(label)}</h3><p>${escapeHtml(detail)}</p></div><div class="choice-row"><button id="identity-enable-voice" ${state.requesting ? "disabled" : ""}>Polacz mikrofon</button><button class="ghost" id="identity-toggle-mic" ${!state.connected ? "disabled" : ""}>${state.manualMuted ? "Odcisz" : "Wycisz"}</button></div></section>`;
 }
 
-function responsesHtml(game, currentUser, accounts, answers) {
+function responsesHtml(game, currentUser, accounts, answers, settings) {
   const active = game.pending?.uid;
   const me = active === currentUser;
+  const browserVoice = settings.gameFlow === "browserVoice";
   const repeatActive = Number(game.repeatUntil || 0) > now();
   if (me) {
-    return `<p>${game.pending?.voice ? "Pytanie zostało zadane na głos." : `Twoje pytanie: <b>${escapeHtml(game.pending?.text || "")}</b>`}</p><div class="waiting-state ${repeatActive ? "repeat-active" : ""}"><span class="waiting-pulse">${repeatActive ? "15" : "..."}</span><h3>${repeatActive ? "Powtórka aktywna" : "Czekamy na odpowiedzi grupy"}</h3><p>${repeatActive ? "Powtórz pytanie na głos. Po chwili grupa znowu odpowie." : "Znajomi odpowiadają teraz na twoje pytanie."}</p><button id="identity-repeat">Możesz powtórzyć?</button></div>`;
+    return `<p>${game.pending?.voice ? "Pytanie zostało zadane na głos." : `Twoje pytanie: <b>${escapeHtml(game.pending?.text || "")}</b>`}</p><div class="waiting-state ${repeatActive ? "repeat-active" : ""}"><span class="waiting-pulse">${repeatActive ? "15" : "..."}</span><h3>${repeatActive ? "Powtórka aktywna" : "Czekamy na odpowiedzi grupy"}</h3><p>${repeatActive ? "Powtórz pytanie na głos. Po chwili grupa znowu odpowie." : "Znajomi odpowiadają teraz na twoje pytanie."}</p>${browserVoice ? '<button id="identity-repeat">Możesz powtórzyć?</button>' : ""}</div>`;
   }
   if (currentUser in game.responses) {
-    return `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Twoja odpowiedź została zapisana</h3><p>Czekamy jeszcze na ${Math.max(0, game.order.length - 1 - Object.keys(game.responses).length)} graczy.</p><button id="identity-repeat">Możesz powtórzyć?</button></div>`;
+    return `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Twoja odpowiedź została zapisana</h3><p>Czekamy jeszcze na ${Math.max(0, game.order.length - 1 - Object.keys(game.responses).length)} graczy.</p>${browserVoice ? '<button id="identity-repeat">Możesz powtórzyć?</button>' : ""}</div>`;
   }
-  return `<p>${game.pending?.voice ? `${escapeHtml(accounts[active]?.nick || "Gracz")} zadał pytanie na głos.` : escapeHtml(game.pending?.text || "")}</p><div class="choice-row">${answers.map(a => `<button data-identity-response="${a}">${a}</button>`).join("")}</div><div class="choice-row"><button id="identity-repeat">Możesz powtórzyć?</button></div>`;
+  return `<p>${game.pending?.voice ? `${escapeHtml(accounts[active]?.nick || "Gracz")} zadał pytanie na głos.` : escapeHtml(game.pending?.text || "")}</p><div class="choice-row">${answers.map(a => `<button data-identity-response="${a}">${a}</button>`).join("")}</div>${browserVoice ? '<div class="choice-row"><button id="identity-repeat">Możesz powtórzyć?</button></div>' : ""}`;
 }
 
 export function renderIdentityGame(root, { room, accounts, currentUser }, actions) {
@@ -376,7 +386,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
     ? `<section class="panel center identity-results"><h1>Koniec gry</h1><div class="final-ranking">${Object.entries(g.scores).sort((a,b) => b[1] - a[1]).map(([uid,n], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${n} pkt</strong></article>`).join("")}</div><h2>Kto kim byl</h2>${resultsHistory(g, accounts)}<button class="primary" id="identity-again">Wroc do lobby</button></section>`
     : g.phase === "extendVote"
       ? `<section class="panel identity-main center"><div class="game-top"><div><p class="eyebrow">DOGRYWKA</p><h1>Dodajemy jeszcze jedną rundę?</h1></div>${timer(g)}</div><p class="muted">Głosowanie kończy grę, jeżeli grupa nie chce dogrywki.</p><div class="choice-row"><button class="primary" data-identity-extend="true">Dodaj rundę</button><button data-identity-extend="false">Kończymy</button></div><div class="vote-details">${Object.entries(g.extendVotes || {}).map(([uid, vote]) => `<span>${escapeHtml(accounts[uid]?.nick || "Gracz")}: ${vote ? "jeszcze jedna" : "koniec"}</span>`).join("")}</div></section>`
-      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts)) : responsesHtml(g, currentUser, accounts, answers)}</section>`;
+      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts, s.gameFlow)) : responsesHtml(g, currentUser, accounts, answers, s)}</section>`;
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 
