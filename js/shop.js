@@ -1,5 +1,5 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-1";
-import { $, formatClock, icon } from "./utils.js?v=20260605-1";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-2";
+import { $, formatClock, icon } from "./utils.js?v=20260605-2";
 
 let shopTimer;
 export function stopShopTimer() { clearInterval(shopTimer); shopTimer = null; }
@@ -24,6 +24,12 @@ const groups = [
   { type:"candy", title:"Cukierki" },
 ];
 
+const defaultCosmetics = {
+  idle:{ id:"defaultIdle", type:"idle", name:"Zwykłe idle", rarity:"common", description:"Bez dodatkowej animacji idle.", defaultOnly:true },
+  win:{ id:"defaultWin", type:"win", name:"Zwykła wygrana", rarity:"common", description:"Bez dodatkowej animacji wygranej.", defaultOnly:true },
+  lose:{ id:"defaultLose", type:"lose", name:"Zwykła przegrana", rarity:"common", description:"Bez dodatkowej animacji przegranej.", defaultOnly:true },
+};
+
 const rail = (id, content, count, side = "owned") => `<div class="cosmetic-carousel ${count > 7 ? "has-carousel-arrows" : "no-carousel-arrows"} ${side === "catalog" ? "catalog-carousel" : "owned-carousel"}">
   <button class="carousel-arrow" data-scroll-cosmetics="${id}" data-dir="-1" aria-label="Przewin w lewo">‹</button>
   <div class="cosmetic-list cosmetic-rail" id="${id}">${content}</div>
@@ -31,9 +37,12 @@ const rail = (id, content, count, side = "owned") => `<div class="cosmetic-carou
 </div>`;
 
 function cosmeticCard(item, profile, { catalog = false } = {}) {
-  const owned = Boolean(profile.ownedCosmetics?.[item.id]), active = equipped(profile, item.id);
+  const owned = item.defaultOnly || Boolean(profile.ownedCosmetics?.[item.id]);
+  const active = item.defaultOnly
+    ? !({ idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type] && profile[{ idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]])
+    : equipped(profile, item.id);
   const disabled = catalog ? !owned : false;
-  const action = owned ? `data-equip="${item.id}"` : "";
+  const action = item.defaultOnly ? `data-equip="${item.id}"` : owned ? `data-equip="${item.id}"` : "";
   const label = active ? "ZALOZONE" : owned ? catalog ? "POSIADANY" : rarityLabels[item.rarity] : rarityLabels[item.rarity];
   return `<button ${action} class="owned-cosmetic-card ${catalog ? "catalog-card" : ""} rarity-${item.rarity} ${owned ? "owned-catalog-card" : "locked-catalog-card"} ${active ? "equipped-cosmetic" : ""}" ${disabled ? "disabled" : ""}>
     ${cosmeticPreview(item, profile, { compact:true })}
@@ -42,8 +51,9 @@ function cosmeticCard(item, profile, { catalog = false } = {}) {
 }
 
 function groupSection(group, items, profile, idPrefix, options = {}) {
-  const sorted = sortCosmeticsByRarity(items.filter(item => item.type === group.type), { rareFirst:idPrefix === "owned" });
-  const content = sorted.map(item => cosmeticCard(item, profile, options)).join("") || '<p class="muted">Brak kosmetykow w tej kategorii.</p>';
+  const base = idPrefix === "owned" && defaultCosmetics[group.type] ? [defaultCosmetics[group.type]] : [];
+  const sorted = [...base, ...sortCosmeticsByRarity(items.filter(item => item.type === group.type), { rareFirst:idPrefix !== "owned" })];
+  const content = sorted.map(item => cosmeticCard(item, profile, options)).join("");
   return `<div class="wardrobe-category">
     <div class="wardrobe-category-title"><h3>${group.title}</h3><span>${sorted.length}</span></div>
     ${rail(`${idPrefix}-${group.type}`, content, sorted.length, idPrefix)}

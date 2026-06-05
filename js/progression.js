@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-1";
+import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260605-2";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -186,6 +186,8 @@ function statsPanel(profile) {
   return `<section class="progression-side-card" data-stats-map='${JSON.stringify(payload)}'><div class="section-heading"><div><p class="eyebrow">STATYSTYKI</p><h3>Twoje gry</h3></div></div><select id="progression-stats-mode">${Object.entries(modeLabels).map(([id,label]) => `<option value="${id}">${label}</option>`).join("")}</select><div class="stats-cards"><span><b data-stat="played">${payload.all.played}</b><small>zagrane</small></span><span><b data-stat="wins">${payload.all.wins}</b><small>wygrane</small></span><span><b data-stat="losses">${payload.all.losses}</b><small>przegrane</small></span></div></section>`;
 }
 
+const rewardPreviewProfile = { nick:"Gracz" };
+
 export function progressionModal(profile = {}, closeAction, claimAction) {
   const progress = levelProgress(profile), modal = document.createElement("div");
   const stats = normalizeQuestStats(profile), quests = questList(Date.now()), completed = completedQuestRewards(profile), daily = quests.filter(q => q.period === "daily"), weekly = quests.filter(q => q.period === "weekly");
@@ -202,7 +204,7 @@ export function progressionModal(profile = {}, closeAction, claimAction) {
       <section class="progression-rewards"><div class="section-heading"><div><p class="eyebrow">NAGRODY</p><h3>Droga levelowa</h3></div></div><div class="trophy-road">${trophyRoad.map(item => {
         const claimed = Boolean(profile.claimedLevelRewards?.[item.level]), unlocked = item.level <= progress.level;
         const cosmetic = item.type === "cosmetic" ? cosmetics.find(entry => entry.id === item.value) : null;
-        return `<article class="road-node ${claimed ? "claimed" : unlocked ? "unlocked" : "locked"}"><span>LVL ${item.level}</span>${cosmetic ? cosmeticPreview(cosmetic, profile, { compact:true, hideType:true, nick:"Gracz" }) : `<div class="coin-reward-preview"><i>$</i><i>$</i><strong>$</strong></div>`}<b>${cosmetic?.name || item.label}</b><small>${claimed ? "Odebrane" : unlocked ? "Odblokowane" : "Przed toba"}</small></article>`;
+        return `<article class="road-node ${claimed ? "claimed" : unlocked ? "unlocked" : "locked"}"><span>LVL ${item.level}</span>${cosmetic ? cosmeticPreview(cosmetic, rewardPreviewProfile, { compact:true, hideType:true, nick:"Gracz" }) : `<div class="coin-reward-preview"><i>$</i><i>$</i><strong>$</strong></div>`}<b>${cosmetic?.name || item.label}</b><small>${claimed ? "Odebrane" : unlocked ? "Odblokowane" : "Przed toba"}</small></article>`;
       }).join("")}</div></section>
     </div>
   </section>`;

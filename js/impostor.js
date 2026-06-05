@@ -1,5 +1,5 @@
 import { impostorCategories, impostorWords } from "../content/impostor/words.js?v=20260604-1";
-import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-1";
+import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-2";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 

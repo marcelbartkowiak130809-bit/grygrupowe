@@ -1,4 +1,4 @@
-import { $, escapeHtml, icon } from "./utils.js?v=20260605-1";
+import { $, escapeHtml, icon } from "./utils.js?v=20260605-2";
 import { getGameMode } from "./games.js?v=20260605-2";
 
 function roomCard(room, mode) {
