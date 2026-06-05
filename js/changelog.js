@@ -1,6 +1,6 @@
 export const changelogEntries = [
   {
-    version: "v2.1.5.beta",
+    version: "v2.1.6.beta",
     date: "2026-06-05",
     title: "Poprawki wygody, pokoi i kosmetyków",
     changes: [

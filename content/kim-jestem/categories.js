@@ -73,4 +73,10 @@ Object.entries(identityMoreExtras).forEach(([category, items]) => {
   identityCategories[category] = [...new Set([...(identityCategories[category] || []), ...items])];
 });
 
+const minecraftBlockAndItemExtras = [
+  "Ziemia","Kamień","Bruk","Trawa","Drewno","Deski","Piasek","Żwir","Glina","Szkło","Obsydian","Bedrock","Netherrack","End Stone","Soul Sand","Glowstone","Prismarine","Latarnia morska","Kwarc","Bazalt","Blackstone","Deepslate","Tuff","Calcite","Miedź","Blok bambusa","Błoto","Cegły błotne","Beton","Terakota","Wełna","Dywan","Drabina","Pochodnia","Latarnia","Ognisko","Biblioteczka","Enchanting Table","Kowadło","Beczka","Lej","Dozownik","Dropper","Observer","Tłok","Lepki tłok","Repeater","Comparator","Dźwignia","Przycisk","Płyta naciskowa","Łóżko","Ender Chest","Shulker Box","Stojak na zbroję","Ramka na przedmiot","Obraz","Doniczka","Kocioł","Statyw alchemiczny","Jukebox","Blok dźwiękowy","Cel","Kilof diamentowy","Miecz diamentowy","Siekiera","Łopata","Motyka","Kusza","Wiadro","Wędka","Kompas","Mapa","Elytra","Perła Endermana","Oko Endera","Mikstura","Trójząb","Maczuga","Pędzel","Luneta","Kozi róg","Zegar","Książka","Zaklęta książka","Nożyce","Krzesiwo","Siodło","Smycz","Name tag","Fajerwerka","Tory","Minecart","Łódka","Jajko smoka","Nether Star","Serce oceanu","Muszla Nautilusa"
+];
+
+identityCategories.Minecraft = [...new Set([...identityCategories.Minecraft, ...minecraftBlockAndItemExtras])];
+
 export const identityCategoryNames=Object.keys(identityCategories);

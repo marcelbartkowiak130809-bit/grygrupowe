@@ -7,7 +7,7 @@ import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, cle
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { gamesList, getGameMode } from "./games.js?v=20260605-2";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-2";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-5";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-6";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-1";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260605-1";
