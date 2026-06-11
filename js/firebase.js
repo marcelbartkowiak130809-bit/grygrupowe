@@ -279,6 +279,30 @@ export async function voteWouldYouRather({ questionId, choice, playerId, persist
   return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
 }
 
+const pollVoterKey = voterId => hashRoomPassword(`poll:${voterId || "anonymous"}`);
+export async function getRemotePollVotes(pollId, voterId = "anonymous") {
+  if (!remoteDatabase) return null;
+  try {
+    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}`));
+    const votes = snapshot.val() || {};
+    return { votes, vote:votes[pollVoterKey(voterId)] || null, source:"firebase" };
+  } catch {
+    return null;
+  }
+}
+export async function voteRemotePoll({ pollId, voterId, optionId }) {
+  if (!remoteDatabase) return false;
+  try {
+    const voteRef = firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`);
+    const current = await firebaseDatabaseApi.get(voteRef);
+    if (current.exists()) return false;
+    await firebaseDatabaseApi.set(voteRef, optionId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function moderationLocal() {
   return readLocal(MODERATION_KEY);
 }

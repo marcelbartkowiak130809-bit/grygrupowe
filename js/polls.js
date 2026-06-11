@@ -1,3 +1,4 @@
+import { getRemotePollVotes, voteRemotePoll } from "./firebase.js?v=20260605-4";
 const pollStorageKey = "udowodnij.pollVotes.v1";
 
 export const polls = [
@@ -17,6 +18,13 @@ const readVotes = () => {
   try { return JSON.parse(localStorage.getItem(pollStorageKey) || "{}"); } catch { return {}; }
 };
 const writeVotes = votes => localStorage.setItem(pollStorageKey, JSON.stringify(votes));
+function writeLocalVote(pollId, voterId, optionId) {
+  const votes = readVotes(), pollVotes = { ...(votes[pollId] || {}) };
+  if (pollVotes[voterId]) return false;
+  pollVotes[voterId] = optionId;
+  writeVotes({ ...votes, [pollId]:pollVotes });
+  return true;
+}
 
 export function activePoll(now = Date.now()) {
   return polls.find(poll => Number(new Date(poll.endsAt)) > now) || null;
@@ -29,21 +37,34 @@ export function latestPoll() {
 export function pollState(poll, voterId, now = Date.now()) {
   if (!poll) return { poll:null, active:false, ended:false, vote:null, totals:{}, total:0, showResults:false };
   const votes = readVotes()[poll.id] || {};
+  return buildPollState(poll, voterId, votes, votes[voterId] || null, "local", now);
+}
+
+function buildPollState(poll, voterId, votes, vote, source, now = Date.now()) {
   const totals = Object.fromEntries(poll.options.map(option => [option.id, 0]));
   Object.values(votes).forEach(optionId => { if (optionId in totals) totals[optionId] += 1; });
   const ended = Number(new Date(poll.endsAt)) <= now;
-  return { poll, active:!ended, ended, vote:votes[voterId] || null, totals, total:Object.values(totals).reduce((sum, value) => sum + value, 0), showResults:ended };
+  return { poll, active:!ended, ended, vote, totals, total:Object.values(totals).reduce((sum, value) => sum + value, 0), showResults:ended, source };
 }
 
-export function votePoll(pollId, voterId, optionId) {
+export async function pollStateOnline(poll, voterId, now = Date.now()) {
+  if (!poll) return pollState(poll, voterId, now);
+  const localVotes = readVotes()[poll.id] || {};
+  await Promise.all(Object.entries(localVotes)
+    .filter(([, optionId]) => poll.options.some(option => option.id === optionId))
+    .map(([localVoterId, optionId]) => voteRemotePoll({ pollId:poll.id, voterId:localVoterId, optionId })));
+  const remote = await getRemotePollVotes(poll.id, voterId);
+  if (remote) return buildPollState(poll, voterId, remote.votes, remote.vote, remote.source, now);
+  return pollState(poll, voterId, now);
+}
+
+export async function votePoll(pollId, voterId, optionId) {
   const poll = polls.find(item => item.id === pollId);
   if (!poll || !voterId || Number(new Date(poll.endsAt)) <= Date.now()) return false;
   if (!poll.options.some(option => option.id === optionId)) return false;
-  const votes = readVotes(), pollVotes = { ...(votes[pollId] || {}) };
-  if (pollVotes[voterId]) return false;
-  pollVotes[voterId] = optionId;
-  writeVotes({ ...votes, [pollId]:pollVotes });
-  return true;
+  const remoteAccepted = await voteRemotePoll({ pollId, voterId, optionId });
+  const localAccepted = writeLocalVote(pollId, voterId, optionId);
+  return remoteAccepted || localAccepted;
 }
 
 export function formatPollTime(endsAt) {

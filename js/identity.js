@@ -1,10 +1,11 @@
-import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260605-1";
+import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260605-2";
 import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-5";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
 let timerId, lastCountdown;
+export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));
 
 export const identityDefaults = {
   category: "",
@@ -27,6 +28,11 @@ const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 const mini = p => playerMiniHtml(p);
 const clampNumber = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
 const minimumCategoryCount = 3;
+const usageFromSettings = settings => settings?.categoryUsage && typeof settings.categoryUsage === "object" && !Array.isArray(settings.categoryUsage) ? { ...settings.categoryUsage } : {};
+const bumpUsage = (usage, category) => {
+  if (category) usage[category] = Number(usage[category] || 0) + 1;
+  return usage;
+};
 const normalizeCategories = settings => {
   let selected = Array.isArray(settings?.categories) ? settings.categories : [];
   if (!selected.length && settings?.category === "Wszystkie") selected = [...identityCategoryNames];
@@ -56,6 +62,10 @@ function pool(settings, customWords) {
   let base = selected.flatMap(name => identityCategories[name] || []);
   const own = Object.values(customWords || {}).flat();
   return [...new Set([...own, ...base])];
+}
+function categoryForWord(word, settings, customWords) {
+  if (Object.values(customWords || {}).flat().includes(word)) return "Wlasne hasla";
+  return normalizeCategories(settings).find(name => (identityCategories[name] || []).includes(word)) || "";
 }
 
 function drawWord(game, uid, settings, customWords) {
@@ -88,17 +98,25 @@ function closeWordHistory(game, uid, endRound = game.round) {
 function assignNewWord(game, uid, settings, customWords) {
   const word = drawWord(game, uid, settings, customWords);
   game.words[uid] = word;
+  const category = categoryForWord(word, settings, customWords);
+  game.wordCategories ||= {};
+  game.wordCategories[uid] = category;
+  game.categoryUsage = bumpUsage(objectOrEmpty(game.categoryUsage), category);
   game.wordHistory[uid] ||= [];
-  game.wordHistory[uid].push({ word, startRound: Math.max(1, Number(game.round) || 1), endRound: null });
+  game.wordHistory[uid].push({ word, category, startRound: Math.max(1, Number(game.round) || 1), endRound: null });
 }
 
 export function createIdentityGame(players, settings, customWords = {}) {
   const s = settingsWithDefaults(settings);
   const words = {};
+  const wordCategories = {};
+  const categoryUsage = usageFromSettings(s);
   const wordHistory = Object.fromEntries(players.map(uid => [uid, []]));
   players.forEach(uid => {
     words[uid] = drawWord({ words, wordHistory }, uid, s, customWords);
-    wordHistory[uid].push({ word: words[uid], startRound: 1, endRound: null });
+    wordCategories[uid] = categoryForWord(words[uid], s, customWords);
+    bumpUsage(categoryUsage, wordCategories[uid]);
+    wordHistory[uid].push({ word: words[uid], category:wordCategories[uid], startRound: 1, endRound: null });
   });
   const order = shuffle(players);
   return {
@@ -108,6 +126,8 @@ export function createIdentityGame(players, settings, customWords = {}) {
     round: 1,
     roundsLimit: s.rounds,
     words,
+    wordCategories,
+    categoryUsage,
     wordHistory,
     history: [],
     responses: {},
@@ -124,6 +144,8 @@ function normalizeIdentityGame(game, players = []) {
   game.extendVotes = objectOrEmpty(game.extendVotes);
   game.scores = objectOrEmpty(game.scores);
   game.words = objectOrEmpty(game.words);
+  game.wordCategories = objectOrEmpty(game.wordCategories);
+  game.categoryUsage = objectOrEmpty(game.categoryUsage);
   game.order = Array.isArray(game.order) ? game.order : (players.length ? [...players] : Object.keys(game.words));
   if (!Number.isFinite(Number(game.turnIndex))) game.turnIndex = 0;
   if (!Number.isFinite(Number(game.round))) game.round = 1;
@@ -275,7 +297,8 @@ export function renderIdentityLobbySettings(room, isHost) {
   const totalMinutes = Math.ceil((s.turnTime * s.rounds * players) / 60);
   const extraRoundMinutes = Math.ceil((s.turnTime * players) / 60);
   const newCharacterDisabled = s.targetScore <= 1;
-  const categoryChecks = identityCategoryNames.map(name => `<label class="check"><input data-identity-category="${escapeHtml(name)}" type="checkbox" ${s.categories.includes(name) ? "checked" : ""} ${isHost ? "" : "disabled"}> ${escapeHtml(name)}</label>`).join("");
+  const usage = room.game?.categoryUsage || room.settings?.categoryUsage || {};
+  const categoryChecks = identityCategoryNames.map(name => `<label class="check category-chip"><span><input data-identity-category="${escapeHtml(name)}" type="checkbox" ${s.categories.includes(name) ? "checked" : ""} ${isHost ? "" : "disabled"}> ${escapeHtml(name)}</span><span class="category-count">${Number(usage[name] || 0)}/${identityCategoryCounts[name] || 0}</span></label>`).join("");
   const flowNote = s.gameFlow === "browserVoice"
     ? "Voice chat w grze: strona poprosi o mikrofon i sama przelacza, kto moze mowic."
     : s.gameFlow === "externalVoice"

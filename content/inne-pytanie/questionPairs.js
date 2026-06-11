@@ -161,4 +161,22 @@ otherQuestionPairs.push(
   {category:"PokĂ©mon i nostalgia",main:"Ile razy wracaĹ‚eĹ› do gry z dzieciĹ„stwa?",impostor:"Ile razy wracaĹ‚eĹ› do bajki z dzieciĹ„stwa?"}
 );
 
+otherQuestionPairs.push(
+  {category:"Gaming",main:"Ile razy wracasz do tej samej gry po przerwie?",impostor:"Ile razy zaczynasz nową grę i jej nie kończysz?"},
+  {category:"Gaming",main:"Ile razy grałeś rankingowo w tym miesiącu?",impostor:"Ile razy grałeś casualowo w tym miesiącu?"},
+  {category:"Internet",main:"Ile razy dziennie sprawdzasz komentarze?",impostor:"Ile razy dziennie sprawdzasz polubienia?"},
+  {category:"Internet",main:"Ile kont masz w różnych aplikacjach?",impostor:"Ile aplikacji masz tylko do logowania?"},
+  {category:"Jedzenie",main:"Ile razy w tygodniu jesz coś na szybko?",impostor:"Ile razy w tygodniu pomijasz normalny posiłek?"},
+  {category:"Jedzenie",main:"Ile razy jadłeś coś o północy?",impostor:"Ile razy robiłeś przekąskę późno w nocy?"},
+  {category:"Znajomi",main:"Ile osób z ekipy zna twoje najgorsze historie?",impostor:"Ile osób z ekipy zna twoje najlepsze historie?"},
+  {category:"Znajomi",main:"Ile razy śmiałeś się z inside joke?",impostor:"Ile razy musiałeś komuś tłumaczyć inside joke?"},
+  {category:"Dziwne pytania",main:"Ile razy rozmawiałeś z przedmiotem?",impostor:"Ile razy nazwałeś jakiś przedmiot po imieniu?"},
+  {category:"Dziwne pytania",main:"Ile razy kliknąłeś coś i od razu pożałowałeś?",impostor:"Ile razy wysłałeś coś i od razu pożałowałeś?"},
+  {category:"Minecraft i Roblox",main:"Ile razy zgubiłeś bazę w Minecraft?",impostor:"Ile razy zgubiłeś ekwipunek w Minecraft?"},
+  {category:"Minecraft i Roblox",main:"Ile razy wydałeś Robuxy na avatar?",impostor:"Ile razy zmieniłeś avatar w Roblox?"},
+  {category:"YouTube",main:"Ile razy obejrzałeś poradnik i dalej nie rozumiałeś?",impostor:"Ile razy obejrzałeś recenzję i dalej nie wiedziałeś?"},
+  {category:"YouTube",main:"Ile razy kliknąłeś film, bo był krótki?",impostor:"Ile razy pominąłeś film, bo był za długi?"},
+  {category:"Relacje",main:"Ile razy ktoś źle odczytał twoją wiadomość?",impostor:"Ile razy ty źle odczytałeś czyjąś wiadomość?"}
+);
+
 export const otherQuestionCategories=[...new Set(otherQuestionPairs.map(item=>item.category))];

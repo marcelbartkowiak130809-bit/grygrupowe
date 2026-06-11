@@ -79,4 +79,21 @@ const minecraftBlockAndItemExtras = [
 
 identityCategories.Minecraft = [...new Set([...identityCategories.Minecraft, ...minecraftBlockAndItemExtras])];
 
+const identityRoomExtras = {
+  "Postacie z bajek":["Królik z Alicji","Chudy","Buzz Astral","Mike Wazowski","Sulley","Maui","Miguel z Coco","Merlin","Robin Hood","Krecik"],
+  "Postacie z filmów":["Shang-Chi","Oppenheimer","Neo z Matrixa","Morpheus","John Rambo","Forrest Gump","Ace Ventura","Beetlejuice","Maximus","Willy Wonka"],
+  "Postacie z gier":["Bayonetta","Kiryu Kazuma","Duke Nukem","GLaDOS","Chell","Pyramid Head","Steve Harrington w grze","Agent 47","Aiden Pearce","Vaas"],
+  "Celebryci i artyści":["Daria Zawiałow","Kaśka Sochacka","Tymek","Malik Montana","Mrozu","Kizo","Sarsa","Tate McRae","Billie Joe Armstrong","Travis Scott"],
+  "Przedmioty":["router","pendrive","karta pamięci","klucz francuski","latarka czołowa","taśma miernicza","zszywacz","dziurkacz","podkładka pod mysz","mata do ćwiczeń"],
+  "Jedzenie":["onigiri","bao","gyoza","mochi","pudding","budyń","kisiel","granola","owsianka","wrap"],
+  "Memy i internet":["delulu","sigma edit","NPC live","rage bait","corecore","fan cam","iceberg video","tierlista","drama alert","clout"],
+  "Minecraft":["Copper Golem","Armadillo","Vault","Trial Spawner","Breeze","Crafter","Heavy Core","Wind Charge","Bogged","Mace"],
+  "Roblox":["Pressure","Dress to Impress judge","Anime Defenders","Anime Last Stand","Type Soul","Bloxburg","Meme Sea","Rivals","Gunfight Arena","The Strongest Battlegrounds"],
+  "Gry popularne":["Balatro","Content Warning","Buckshot Roulette","Manor Lords","Hades II","Alan Wake 2","Elden Ring","Dark Souls","Resident Evil","Tekken"],
+  "Filmy i seriale":["The Last of Us","Fallout","House of the Dragon","The Bear","Suits","Gambit królowej","Umbrella Academy","Cobra Kai","Wiedźmin Netflix","Ahsoka"]
+};
+Object.entries(identityRoomExtras).forEach(([category, items]) => {
+  identityCategories[category] = [...new Set([...(identityCategories[category] || []), ...items])];
+});
+
 export const identityCategoryNames=Object.keys(identityCategories);

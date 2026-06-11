@@ -369,6 +369,33 @@ impostorWords.push(
   { category:"Emocje", main:"zaskoczenie", impostor:"szok" }
 );
 
+impostorWords.push(
+  { category:"Jedzenie", main:"burrito", impostor:"taco" },
+  { category:"Jedzenie", main:"pad thai", impostor:"ramen" },
+  { category:"Jedzenie", main:"brownie", impostor:"muffin" },
+  { category:"Napoje", main:"matcha", impostor:"zielona herbata" },
+  { category:"Napoje", main:"bubble tea", impostor:"shake" },
+  { category:"Dom", main:"suszarka", impostor:"prostownica" },
+  { category:"Dom", main:"kanapa", impostor:"fotel" },
+  { category:"Gry", main:"Helldivers 2", impostor:"Deep Rock Galactic" },
+  { category:"Gry", main:"Dead by Daylight", impostor:"Friday the 13th" },
+  { category:"Gry", main:"Palworld", impostor:"Pokémon" },
+  { category:"Filmy i seriale", main:"Arcane", impostor:"Cyberpunk Edgerunners" },
+  { category:"Filmy i seriale", main:"Loki", impostor:"Moon Knight" },
+  { category:"Muzyka", main:"koncert", impostor:"festiwal" },
+  { category:"Sport", main:"padel", impostor:"tenis" },
+  { category:"Miasta", main:"Mediolan", impostor:"Turyn" },
+  { category:"Kraje", main:"Kanada", impostor:"USA" },
+  { category:"Minecraft", main:"miedź", impostor:"żelazo" },
+  { category:"Minecraft", main:"trial chamber", impostor:"twierdza" },
+  { category:"Roblox", main:"Blade Ball", impostor:"Dodgeball" },
+  { category:"Pokémon", main:"Sylveon", impostor:"Espeon" },
+  { category:"Internet i memy", main:"brainrot", impostor:"shitpost" },
+  { category:"Twórcy internetowi", main:"Klocuch", impostor:"Fangotten" },
+  { category:"Moda", main:"cargo", impostor:"jeansy" },
+  { category:"Emocje", main:"nostalgia", impostor:"tęsknota" }
+);
+
 const normalizeWord = value => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const uniqueImpostorWords = new Map(impostorWords.map(item => [`${normalizeWord(item.category)}|${[normalizeWord(item.main), normalizeWord(item.impostor)].sort().join("|")}`, item]));
 impostorWords.splice(0, impostorWords.length, ...uniqueImpostorWords.values());

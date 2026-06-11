@@ -1,5 +1,5 @@
 import { gamesList } from "./games.js?v=20260605-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, votePoll } from "./polls.js?v=20260604-1";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260605-1";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
 
 const filters = [
@@ -54,8 +54,8 @@ function pollResultsHtml(state) {
   }).join("")}</div>`;
 }
 
-function pollPanelHtml(context = {}) {
-  const poll = visiblePoll(), state = pollState(poll, context.voterId || "anonymous");
+function pollPanelHtml(context = {}, stateOverride = null) {
+  const poll = visiblePoll(), state = stateOverride || pollState(poll, context.voterId || "anonymous");
   if (!poll) return `<section class="platform-poll platform-poll-empty" id="platform-poll"><p class="eyebrow">GŁOSOWANIE</p><h2>Nie ma obecnie żadnego głosowania</h2></section>`;
   const voted = Boolean(state.vote), hot = state.active && !voted;
   return `<section class="platform-poll ${hot ? "poll-hot" : ""} ${voted ? "poll-voted" : ""} ${state.ended ? "poll-ended" : ""}" id="platform-poll" role="button" tabindex="0">
@@ -64,8 +64,8 @@ function pollPanelHtml(context = {}) {
   </section>`;
 }
 
-function openPollModal(context = {}, actions) {
-  const poll = visiblePoll(), state = pollState(poll, context.voterId || "anonymous"), modal = document.createElement("div");
+async function openPollModal(context = {}, actions) {
+  const poll = visiblePoll(), state = await pollStateOnline(poll, context.voterId || "anonymous"), modal = document.createElement("div");
   modal.className = "modal-backdrop";
   if (!poll) {
     modal.innerHTML = `<section class="modal poll-modal enter"><div class="modal-title"><div><p class="eyebrow">GŁOSOWANIE</p><h2>Nie ma obecnie żadnego głosowania</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Wróć później, gdy pojawi się nowe pytanie.</p></section>`;
@@ -76,17 +76,18 @@ function openPollModal(context = {}, actions) {
     </section>`;
   }
   modal.querySelector("[data-close]").addEventListener("click", () => modal.remove());
-  modal.querySelectorAll("[data-poll-option]").forEach(button => button.addEventListener("click", () => {
+  modal.querySelectorAll("[data-poll-option]").forEach(button => button.addEventListener("click", async () => {
     actions.playSound?.("poll");
-    votePoll(poll.id, context.voterId || "anonymous", button.dataset.pollOption);
+    await votePoll(poll.id, context.voterId || "anonymous", button.dataset.pollOption);
     modal.remove();
     actions.refresh();
   }));
   document.body.append(modal);
 }
 
-export function renderPlatform(root, actions, context = {}) {
+export async function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
+  const currentPollState = await pollStateOnline(visiblePoll(), context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page enter">
     <section class="platform-hero">
       <div>
@@ -102,7 +103,7 @@ export function renderPlatform(root, actions, context = {}) {
       </div>
       <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
     </section>
-    ${pollPanelHtml(context)}
+    ${pollPanelHtml(context, currentPollState)}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
@@ -113,7 +114,7 @@ export function renderPlatform(root, actions, context = {}) {
   root.querySelector("#platform-poll")?.addEventListener("click", () => { actions.playSound?.("poll"); openPollModal(context, actions); });
   root.querySelector("#platform-poll")?.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { actions.playSound?.("poll"); openPollModal(context, actions); } });
   const countdown = root.querySelector("[data-poll-countdown]");
-  if (countdown && visiblePoll() && !pollState(visiblePoll(), context.voterId || "anonymous").ended) {
+  if (countdown && visiblePoll() && !currentPollState.ended) {
     pollCountdownTimer = setInterval(() => { if (!countdown.isConnected) return clearInterval(pollCountdownTimer); countdown.textContent = countdownText(countdown.dataset.pollCountdown); }, 1000);
   }
   root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
