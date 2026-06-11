@@ -1,4 +1,4 @@
-import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260605-2";
+import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260611-1";
 import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-5";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
