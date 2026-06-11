@@ -1,5 +1,6 @@
 import { gamesList } from "./games.js?v=20260605-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260605-2";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-1";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
 
 const filters = [
@@ -109,6 +110,7 @@ export async function renderPlatform(root, actions, context = {}) {
       <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
       <div class="games-grid">${gamesList.map(gameCard).join("")}</div>
     </section>
+    ${homeInfoHtml()}
   </main>`;
 
   root.querySelector("#platform-poll")?.addEventListener("click", () => { actions.playSound?.("poll"); openPollModal(context, actions); });
@@ -127,4 +129,6 @@ export async function renderPlatform(root, actions, context = {}) {
     event.preventDefault();
     actions.joinByCode(root.querySelector("#platform-room-code").value, root.querySelector("#platform-room-pass").value);
   });
+  bindPublicLinks(root, actions);
+  activatePublicAds(root, "platform");
 }

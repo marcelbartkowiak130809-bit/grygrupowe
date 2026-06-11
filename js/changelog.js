@@ -1,5 +1,19 @@
 export const changelogEntries = [
   {
+    version: "v2.2.0",
+    date: "2026-06-11",
+    title: "Publiczne strony, pytania i poprawki online",
+    changes: [
+      "Dodano publiczne strony informacyjne: o grze, jak grac, tryby gry, regulamin, polityke prywatnosci i kontakt.",
+      "Dodano stopke z linkami oraz sekcje informacyjna z FAQ na stronie glownej.",
+      "Przygotowano bezpieczna strukture pod Google AdSense tylko na stronach informacyjnych.",
+      "Rozszerzono pule pytan i hasel w trybach Inne pytanie, Impostor i Kim jestem.",
+      "Dodano liczniki uzycia kategorii w pokojach, zeby gracze widzieli ryzyko powtorek.",
+      "Naprawiono wyniki glosowania na stronie glownej, zeby pokazywaly zsumowane glosy.",
+      "Poprawiono licznik online, aby nie zawyzal martwych polaczen.",
+    ],
+  },
+  {
     version: "v2.1.0",
     date: "2026-06-05",
     title: "Poprawki wygody, pokoi i kosmetyków",
