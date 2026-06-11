@@ -376,7 +376,7 @@ function voiceTurnHtml(me, active, accounts, gameFlow) {
 function voiceControlsHtml(actions) {
   const state = actions.identityVoiceState?.() || {};
   const label = state.error ? "Blad mikrofonu" : state.requesting ? "Prosba o mikrofon..." : !state.connected ? "Mikrofon nieaktywny" : state.manualMuted ? "Wyciszony recznie" : state.allowedToSpeak ? "Mikrofon aktywny" : "Wyciszony przez ture";
-  const detail = state.error || (state.connected ? `${state.remoteCount || 0}/${state.peerCount || 0} polaczen audio. Firebase sluzy tylko do WebRTC signalingu, audio nie jest zapisywane.` : "Kliknij, zeby pozwolic stronie na mikrofon.");
+  const detail = state.error || (state.connected ? `${state.remoteCount || 0}/${state.peerCount || 0} polaczen audio. Audio nie jest zapisywane.` : "Kliknij, zeby pozwolic stronie na mikrofon.");
   return `<section class="identity-voice-controls ${state.error ? "voice-error" : state.allowedToSpeak && !state.manualMuted ? "voice-speaking" : ""}"><div><p class="eyebrow">VOICE CHAT</p><h3>${escapeHtml(label)}</h3><p>${escapeHtml(detail)}</p></div><div class="choice-row"><button id="identity-enable-voice" ${state.requesting ? "disabled" : ""}>Polacz mikrofon</button><button class="ghost" id="identity-toggle-mic" ${!state.connected ? "disabled" : ""}>${state.manualMuted ? "Odcisz" : "Wycisz"}</button></div></section>`;
 }
 

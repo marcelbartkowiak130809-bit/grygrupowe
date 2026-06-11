@@ -66,7 +66,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
     pc.onicecandidate = event => {
       if (event.candidate) pushVoiceIceCandidate(roomId, uid, peerUid, event.candidate.toJSON()).then(ok => {
-        if (!ok) { micError = "Nie udalo sie wyslac danych WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
+        if (!ok) { micError = "Nie udalo sie wyslac danych polaczenia audio. Sprobuj odswiezyc pokoj."; emit(); }
       });
     };
     pc.ontrack = event => {
@@ -90,7 +90,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     await pc.setLocalDescription(offer);
     const ok = await setVoiceSignal(roomId, uid, peerUid, "offer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
     if (ok) offeredPeers.add(peerUid);
-    else { micError = "Nie udalo sie wyslac zaproszenia WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
+    else { micError = "Nie udalo sie wyslac zaproszenia audio. Sprobuj odswiezyc pokoj."; emit(); }
   }
 
   async function handleSignals(data = {}) {
@@ -105,7 +105,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         const ok = await setVoiceSignal(roomId, uid, fromUid, "answer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
-        if (!ok) { micError = "Nie udalo sie wyslac odpowiedzi WebRTC do Firebase. Sprawdz reguly voiceSignaling."; emit(); }
+        if (!ok) { micError = "Nie udalo sie wyslac odpowiedzi audio. Sprobuj odswiezyc pokoj."; emit(); }
       }
       if (incoming.answer && pc.signalingState === "have-local-offer") await pc.setRemoteDescription(new RTCSessionDescription(incoming.answer));
       for (const [candidateId, candidate] of Object.entries(incoming.candidates || {})) {
@@ -122,7 +122,7 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     if (!voice || !currentUid) return stop();
     const changedRoom = roomId !== nextRoom.roomId || uid !== currentUid;
     roomId = nextRoom.roomId; uid = currentUid; players = [...(nextRoom.players || [])]; game = nextRoom.game;
-    if (!hasVoiceSignaling()) { micError = "Voice chat przez gre wymaga Firebase Realtime Database i zalogowanego gracza."; emit(); return; }
+    if (!hasVoiceSignaling()) { micError = "Voice chat przez gre wymaga trybu online i zalogowanego gracza."; emit(); return; }
     await ensureMic();
     applyMute();
     if (!stream) return;

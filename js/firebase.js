@@ -401,7 +401,7 @@ export async function syncRoomState(room) {
     const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=saved;saveLocal(LOCAL_ROOMS_KEY,local);
     return { ok:true, room:normalizeRemoteRoom(saved) };
   } catch(error) {
-    return { ok:false, error:error?.code || error?.message || "Nieznany błąd Firebase." };
+    return { ok:false, error:error?.code || error?.message || "Nieznany blad synchronizacji." };
   }
 }
 

@@ -15,10 +15,10 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
   const mode = getGameMode(selectedGameMode);
   const modeRooms = rooms.filter(room => room.gameMode === mode.id && room.status === "lobby");
   const backendNote = onlineBackend === null
-    ? '<section class="online-note">Łączenie z Firebase Realtime Database...</section>'
+    ? '<section class="online-note">Łączenie z trybem online...</section>'
     : onlineBackend
-      ? '<section class="online-note">Tryb online aktywny. Pokoje są synchronizowane między urządzeniami przez Firebase.</section>'
-      : '<section class="warning">Nie udało się połączyć z Firebase. Odśwież stronę. Jeśli problem nie zniknie, sprawdź czy Anonymous Auth jest włączone.</section>';
+      ? '<section class="online-note">Tryb online aktywny. Pokoje są synchronizowane między urządzeniami.</section>'
+      : '<section class="warning">Nie udało się połączyć z trybem online. Odśwież stronę i spróbuj ponownie.</section>';
   root.innerHTML = `<main class="page enter">
     <section class="mode-hero panel">
       <div class="game-symbol game-symbol-${mode.art}">${mode.symbol}</div>

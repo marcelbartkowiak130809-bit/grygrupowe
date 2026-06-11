@@ -3,18 +3,18 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260611-2";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260605-8";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-6";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260611-1";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260605-1";
 import { gamesList, getGameMode } from "./games.js?v=20260605-2";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260611-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260611-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260605-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260611-1";
 import { renderPlatform } from "./platform.js?v=20260611-1";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260611-3";
 import { Router } from "./router.js";
@@ -154,7 +154,7 @@ function restoreFirebaseSession() {
   state.currentUser=null;state.activeRoomId=null;clearSession();return false;
 }
 function ensureRoomSession() {
-  if(!hasOnlineBackend()){message("Brak połączenia z Firebase. Odśwież stronę i sprawdź konfigurację.");return false;}
+  if(!hasOnlineBackend()){message("Brak połączenia z serwerem online. Odśwież stronę.");return false;}
   if(moveCurrentProfile(getFirebaseSession()))return true;
   state.currentUser=null;state.activeRoomId=null;clearSession();message("Zaloguj się ponownie, aby grać online.","info");render();return false;
 }
@@ -315,19 +315,46 @@ function validBirthDate(value) {
   if (Number.isNaN(date.getTime()) || date > new Date()) return "";
   return text;
 }
+function isAdultBirthDate(value) {
+  const birthDate = validBirthDate(value);
+  if (!birthDate) return false;
+  const date = new Date(`${birthDate}T00:00:00`);
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const beforeBirthday = today.getMonth() < date.getMonth() || (today.getMonth() === date.getMonth() && today.getDate() < date.getDate());
+  if (beforeBirthday) age -= 1;
+  return age >= 18;
+}
 const reportableMode = room => Boolean(getGameMode(room?.gameMode).allowReports);
-const adultAcceptedKey = modeId => `adult-warning:${modeId || "global"}`;
 const hasAdultCategory = settings => [settings?.category, ...(Array.isArray(settings?.categories) ? settings.categories : [])].some(item => String(item || "").startsWith("18+"));
 const roomIsAdult = room => Boolean(getGameMode(room?.gameMode).adult || hasAdultCategory(room?.settings));
+function adultBirthDateModal(mode, onConfirm) {
+  const user = profile(), modal=document.createElement("div");modal.className="modal-backdrop";
+  const accountForm = user && !user.nickOnly ? `<form id="adult-birth-form"><label>Data urodzenia</label><input id="adult-birth-date" type="date" required><p class="tiny">Date mozna dodac samodzielnie tylko raz. Pozniejsza zmiana wymaga kontaktu z administracja.</p><button class="primary full">Zapisz date</button></form>` : `<p class="muted">Zaloguj sie na konto i dodaj date urodzenia, zeby wejsc do kategorii 18+.</p><button class="primary full" id="adult-open-auth">Zaloguj / utworz konto</button>`;
+  modal.innerHTML=`<section class="modal confirm-modal enter adult-warning-modal" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">WERYFIKACJA 18+</p><h2>${escapeHtml(mode?.name || "Tryb 18+")}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div>${accountForm}</section>`;
+  modal.querySelector("[data-close]").addEventListener("click",()=>actions.closeModal(modal));
+  modal.querySelector("#adult-open-auth")?.addEventListener("click",()=>{actions.closeModal(modal);actions.openAuth({title:"Dodaj date urodzenia",description:"Kategorie 18+ wymagaja konta z data urodzenia."});});
+  modal.querySelector("#adult-birth-form")?.addEventListener("submit",event=>{event.preventDefault();if(!actions.setOwnBirthDate(modal.querySelector("#adult-birth-date").value))return;actions.closeModal(modal);withAdultWarning(mode,onConfirm,true);});
+  document.body.append(modal);Audio.play("modalOpen");
+}
+function adultBlockedModal(mode) {
+  const modal=document.createElement("div");modal.className="modal-backdrop";
+  modal.innerHTML=`<section class="modal confirm-modal enter adult-warning-modal" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">BRAK DOSTEPU 18+</p><h2>${escapeHtml(mode?.name || "Tryb 18+")}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Ta kategoria jest dostepna tylko dla osob pelnoletnich.</p><div class="modal-actions"><button class="primary" data-close>Rozumiem</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
+  document.body.append(modal);Audio.play("modalOpen");
+}
 function adultWarningModal(mode, onConfirm) {
   const modal=document.createElement("div");modal.className="modal-backdrop";
   modal.innerHTML=`<section class="modal confirm-modal enter adult-warning-modal" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">OSTRZEŻENIE 18+</p><h2>${escapeHtml(mode?.name || "Tryb 18+")}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="muted">Ten wybór może zawierać mocne pytania dla dorosłych: seksualne, imprezowe, alkoholowe albo bardzo prywatne. Wchodź tylko, jeśli masz 18+ i świadomie chcesz grać w taki materiał.</p><div class="modal-actions"><button class="ghost" data-close>Nie wchodzę</button><button class="danger" id="confirm-adult-warning">Mam 18+ i potwierdzam</button></div></section>`;
   modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
-  modal.querySelector("#confirm-adult-warning").addEventListener("click",()=>{sessionStorage.setItem(adultAcceptedKey(mode?.id),"true");actions.closeModal(modal);onConfirm?.();});
+  modal.querySelector("#confirm-adult-warning").addEventListener("click",()=>{actions.closeModal(modal);onConfirm?.();});
   document.body.append(modal);Audio.play("modalOpen");
 }
 function withAdultWarning(mode, onConfirm, force = false) {
-  if(!force || sessionStorage.getItem(adultAcceptedKey(mode?.id))==="true") return onConfirm();
+  if(!force) return onConfirm();
+  const user = profile();
+  if(!user?.birthDate || user.nickOnly) return adultBirthDateModal(mode,onConfirm);
+  if(!isAdultBirthDate(user.birthDate)) return adultBlockedModal(mode);
   adultWarningModal(mode,onConfirm);
 }
 function clearPendingInvite({ clearUrl = false } = {}) {
@@ -816,7 +843,7 @@ const actions = {
     if(!alreadyInRoom && room.status !== "lobby")return fail(room.status === "playing" || room.game ? "Gra w tym pokoju już trwa." : "Ten link jest nieaktualny.");
     if(!alreadyInRoom && room.players.length >= mode.maxPlayers)return fail("Ten pokój jest już pełny.");
     if(await guardBan(room.gameMode))return false;
-    if(roomIsAdult(room)&&sessionStorage.getItem(adultAcceptedKey(room.gameMode))!=="true")return withAdultWarning(mode,()=>actions.joinRoom(roomId,password,options),true);
+    if(roomIsAdult(room)&&!options.adultConfirmed)return withAdultWarning(mode,()=>actions.joinRoom(roomId,password,{...options,adultConfirmed:true}),true);
     if (room.isPrivate && !alreadyInRoom && room.passwordHash !== hashRoomPassword(password)) return options.fromInvite && !password ? invitePasswordModal(room, options.inviteMode) : (message("Złe hasło do pokoju."), false);
     if (!alreadyInRoom) {
       room.players.push(state.currentUser); room.joinedAt={...(room.joinedAt||{}),[state.currentUser]:Date.now()}; room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; touchRoom(room);
@@ -838,7 +865,7 @@ const actions = {
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); render();
   },
   setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","assignTime","candyCount","poisonedPerPlayer","lives"].includes(key)?Number(value):value};touchRoom(room);render();},
-  setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:room.settings.adultWarningAccepted||next.some(item=>String(item).startsWith("18+"))};touchRoom(room);render();};if(addingAdult&&!room.settings.adultWarningAccepted)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
+  setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:next.some(item=>String(item).startsWith("18+"))};touchRoom(room);render();};if(addingAdult)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   saveIdentityWords(text){const room=activeRoom();if(!room||room.gameMode!=="kim-jestem")return;room.customWords??={};room.customWords[state.currentUser]=text.split(",").map(x=>x.trim()).filter(Boolean).slice(0,5);touchRoom(room);message("Hasła zapisane.","info");render();},
   async startGame() {
     const room = activeRoom(), mode = getGameMode(room?.gameMode);
@@ -1062,10 +1089,10 @@ function connectRooms(){
     if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});
   },()=>{
     state.onlineBackend=false;
-    if(profile())message("Firebase odrzucil dostep do pokoi. Zaloguj sie ponownie albo sprawdz reguly bazy.");
+    if(profile())message("Serwer odrzucil dostep do pokoi. Zaloguj sie ponownie.");
     if(["lobby","room","game"].includes(Router.current))render();
   });
 }
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
 window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
-initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current))render();}); render();
+initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))render();}); render();
