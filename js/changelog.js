@@ -6,7 +6,6 @@ export const changelogEntries = [
     changes: [
       "Dodano publiczne strony informacyjne: o grze, jak grac, tryby gry, regulamin, polityke prywatnosci i kontakt.",
       "Dodano stopke z linkami oraz sekcje informacyjna z FAQ na stronie glownej.",
-      "Przygotowano bezpieczna strukture pod Google AdSense tylko na stronach informacyjnych.",
       "Rozszerzono pule pytan i hasel w trybach Inne pytanie, Impostor i Kim jestem.",
       "Dodano liczniki uzycia kategorii w pokojach, zeby gracze widzieli ryzyko powtorek.",
       "Naprawiono wyniki glosowania na stronie glownej, zeby pokazywaly zsumowane glosy.",
@@ -27,7 +26,6 @@ export const changelogEntries = [
       "Rozbudowano i poprawiono efekty kosmetyków wygranej, przegranej, idle oraz nicków.",
       "Dodano ostatnią szansę impostora na zgadnięcie hasła po głosowaniu.",
       "Poprawiono statystyki, kick z pokoju, pola tekstowe i obsługę daty urodzenia.",
-      "Dodano przygotowanie strony pod reklamy Google.",
       "Poprawiono kompatybilność mobilną i kilka problemów z rerenderem UI.",
     ],
   },

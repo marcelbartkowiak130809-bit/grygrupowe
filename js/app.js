@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260604-2";
 import { Audio } from "./audio.js";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260611-1";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260611-2";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260605-8";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260605-6";
@@ -16,9 +16,9 @@ import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } f
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260605-1";
 import { renderPlatform } from "./platform.js?v=20260611-1";
-import { deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260611-1";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260611-3";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260605-6";
+import { playerMini, renderRoom } from "./room.js?v=20260611-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260605-5";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-5";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260605-3";
@@ -30,9 +30,10 @@ saveAccounts(accounts);
 const session=loadSession();
 const validModeIds = new Set(gamesList.map(mode => mode.id));
 const normalizeModeParam = value => { const id = String(value || "").trim().toLowerCase(); return validModeIds.has(id) ? id : ""; };
+const modePath = modeId => `/${encodeURIComponent(modeId || "").replace(/%2F/gi,"")}`;
 function readUrlRoute() {
   try {
-    const params = new URLSearchParams(window.location.search), rawMode = String(params.get("mode") || "").trim().toLowerCase(), room = String(params.get("room") || "").trim().toUpperCase();
+    const params = new URLSearchParams(window.location.search), pathMode = String(window.location.pathname || "").replace(/^\/+|\/+$/g,"").toLowerCase(), rawMode = normalizeModeParam(pathMode) || String(params.get("mode") || "").trim().toLowerCase(), room = String(params.get("room") || "").trim().toUpperCase();
     const mode = normalizeModeParam(rawMode);
     return { mode, room, invalidMode:Boolean(rawMode && !mode) };
   } catch { return { mode:"", room:"", invalidMode:false }; }
@@ -44,8 +45,8 @@ const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRo
 function setUrlRoute(modeId = "", roomId = "") {
   try {
     const url = new URL(window.location.href);
-    url.pathname = "/";
-    if (modeId) url.searchParams.set("mode", modeId); else url.searchParams.delete("mode");
+    url.pathname = modeId ? modePath(modeId) : "/";
+    url.searchParams.delete("mode");
     if (roomId) url.searchParams.set("room", roomId); else url.searchParams.delete("room");
     window.history.replaceState(null, "", url);
   } catch {}
@@ -53,8 +54,8 @@ function setUrlRoute(modeId = "", roomId = "") {
 const setModeUrl = modeId => setUrlRoute(modeId || state.selectedGameMode, "");
 const setRoomUrl = room => room && setUrlRoute(room.gameMode || state.selectedGameMode, room.roomId);
 const roomInviteLink = room => {
-  try { const url = new URL(window.location.href); url.searchParams.set("mode", room.gameMode); url.searchParams.set("room", room.roomId); return url.toString(); }
-  catch { return `${window.location.origin}${window.location.pathname}?mode=${encodeURIComponent(room.gameMode)}&room=${encodeURIComponent(room.roomId)}`; }
+  try { const url = new URL(window.location.href); url.pathname = modePath(room.gameMode); url.searchParams.delete("mode"); url.searchParams.set("room", room.roomId); return url.toString(); }
+  catch { return `${window.location.origin}/${encodeURIComponent(room.gameMode)}?room=${encodeURIComponent(room.roomId)}`; }
 };
 const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
 function signatureGame(game, gameMode, players) {
@@ -1008,14 +1009,14 @@ function render(options = {}) {
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>'; root.insertAdjacentHTML("beforeend",topBar());
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#audio-settings").addEventListener("click",audioModal); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
   const finish = result => {
-    const after = () => { restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";}); };
+    const after = () => { if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";}); };
     if(result?.then)return result.finally(after);
     after();
     return result;
   };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen!=="game") identityVoiceChat.stop();
-  if(screen!=="platform"&&!screen.startsWith("public:"))deactivatePublicAds();
+  if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
   if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous"})); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) return Router.go("platform"); if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
@@ -1061,5 +1062,5 @@ function connectRooms(){
   });
 }
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
-window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);if(Router.current.startsWith("public:"))return Router.go("platform");});
+window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
 initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current))render();}); render();

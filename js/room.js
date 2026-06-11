@@ -6,6 +6,7 @@ import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260605-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1";
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-6";
+import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {
   return playerMiniHtml(profile, "", options);
@@ -35,7 +36,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost)}</section>
-      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button></div></aside>
+      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button></div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">

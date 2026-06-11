@@ -12,11 +12,8 @@ const publicLinks = [
   ["/kontakt", "Kontakt"],
 ];
 
-function adSenseBlock(label = "Reklama") {
-  return `<aside class="adsense-safe-slot" data-adsense-public>
-    <p class="eyebrow">${label}</p>
-    <div>Miejsce przygotowane pod Google AdSense na stronach informacyjnych.</div>
-  </aside>`;
+export function adSenseBlock(label = "Reklama", variant = "inline") {
+  return `<aside class="adsense-safe-slot adsense-${variant}" data-adsense-public aria-label="${label}"></aside>`;
 }
 
 function loadAdSenseScript() {
@@ -30,7 +27,6 @@ function loadAdSenseScript() {
 }
 
 export function activatePublicAds(root, screen = "platform") {
-  if (screen !== "platform" && !adPages.has(screen)) return;
   if (!root.querySelector("[data-adsense-public]")) return;
   loadAdSenseScript();
 }
@@ -127,14 +123,14 @@ const pages = {
     eyebrow:"PRYWATNOSC",
     body:`<p>Podczas korzystania ze strony moga byc przetwarzane dane potrzebne do dzialania gry, takie jak nick, ustawienia konta, awatar, postep, statystyki, wybrane kosmetyki, tresci wpisane w pokojach oraz podstawowe dane techniczne przegladarki.</p>
       <p>Projekt korzysta z Firebase do logowania, synchronizacji pokoi, profili, obecnosci online i wybranych funkcji realtime. Dane techniczne moga byc przetwarzane przez dostawce infrastruktury zgodnie z jego zasadami.</p>
-      <p>Na publicznych stronach informacyjnych projekt moze korzystac z Google AdSense. Oznacza to, ze Google moze uzywac cookies reklamowych i podobnych technologii do wyswietlania oraz mierzenia reklam. Reklamy nie sa przeznaczone do ekranow rozgrywki, lobby, sklepu ani logowania.</p>
-      <p>Kontakt w sprawach prywatnosci: <b>uzupelnij-email@example.com</b>.</p>`,
+      <p>Projekt moze korzystac z Google AdSense. Oznacza to, ze Google moze uzywac cookies reklamowych i podobnych technologii do wyswietlania oraz mierzenia reklam.</p>
+      <p>Kontakt w sprawach prywatnosci: <b>grygrupowe@gmail.com</b>.</p>`,
   },
   "public:kontakt": {
     title:"Kontakt",
     eyebrow:"WIADOMOSC",
     body:`<p>Masz blad, problem z kontem, pomysl na tryb albo propozycje pytan? Tu powinien znalezc sie kontakt do administracji projektu.</p>
-      <p>E-mail kontaktowy: <b>uzupelnij-email@example.com</b></p>
+      <p>E-mail kontaktowy: <b>grygrupowe@gmail.com</b></p>
       <p>Przy zglaszaniu bledu najlepiej opisac, jaki tryb byl uruchomiony, co kliknieto i co dokladnie poszlo nie tak.</p>`,
   },
 };
