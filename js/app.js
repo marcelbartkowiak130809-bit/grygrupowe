@@ -10,7 +10,7 @@ import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpos
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260605-7";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260605-3";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260611-1";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260611-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260605-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
@@ -648,6 +648,7 @@ const actions = {
     if(await guardBan(gameMode))return;
     Router.go("lobby");
   },
+  confirmAdultSolo(onConfirm) { return withAdultWarning(getGameMode("co-wolisz"), onConfirm, true); },
   openAuth(options = {}) {
     const modal = authModal(actions, options); document.body.append(modal); Audio.play("modalOpen");
   },
