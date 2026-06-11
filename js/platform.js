@@ -1,5 +1,5 @@
 import { gamesList } from "./games.js?v=20260605-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260605-1";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260605-2";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
 
 const filters = [

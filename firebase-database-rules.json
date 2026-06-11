@@ -55,6 +55,23 @@
           ".validate": "newData.isNumber() && newData.val() >= 0"
         }
       }
+    },
+    "pollVotes": {
+      "$pollId": {
+        "$voterKey": {
+          ".read": "auth != null",
+          ".write": "auth != null && !data.exists() && newData.isString() && (newData.val() == 'cosmetics' || newData.val() == 'new-mode' || newData.val() == 'questions')"
+        }
+      }
+    },
+    "pollResults": {
+      ".read": true,
+      "$pollId": {
+        "$optionId": {
+          ".write": "auth != null && ($optionId == 'cosmetics' || $optionId == 'new-mode' || $optionId == 'questions') && newData.isNumber() && newData.val() == (data.exists() ? data.val() + 1 : 1)",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
     }
   }
 }

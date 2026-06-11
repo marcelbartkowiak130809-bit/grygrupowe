@@ -1,11 +1,11 @@
-import { getRemotePollVotes, voteRemotePoll } from "./firebase.js?v=20260605-4";
+import { getRemotePollVotes, voteRemotePoll } from "./firebase.js?v=20260605-6";
 const pollStorageKey = "udowodnij.pollVotes.v1";
 
 export const polls = [
   {
-    id: "next-feature-v2-0",
+    id: "next-feature-v2-1-2026-06-12",
     question: "Co następnego powinno zostać dodane?",
-    endsAt: "2026-06-07T20:00:00+02:00",
+    endsAt: "2026-06-12T20:00:00+02:00",
     options: [
       { id: "cosmetics", label: "Więcej kosmetyków!" },
       { id: "new-mode", label: "Nowy tryb" },
@@ -37,12 +37,22 @@ export function latestPoll() {
 export function pollState(poll, voterId, now = Date.now()) {
   if (!poll) return { poll:null, active:false, ended:false, vote:null, totals:{}, total:0, showResults:false };
   const votes = readVotes()[poll.id] || {};
-  return buildPollState(poll, voterId, votes, votes[voterId] || null, "local", now);
+  return buildPollStateFromVotes(poll, votes, votes[voterId] || null, "local", now);
 }
 
-function buildPollState(poll, voterId, votes, vote, source, now = Date.now()) {
-  const totals = Object.fromEntries(poll.options.map(option => [option.id, 0]));
+function emptyTotals(poll) {
+  return Object.fromEntries(poll.options.map(option => [option.id, 0]));
+}
+
+function buildPollStateFromVotes(poll, votes, vote, source, now = Date.now()) {
+  const totals = emptyTotals(poll);
   Object.values(votes).forEach(optionId => { if (optionId in totals) totals[optionId] += 1; });
+  return buildPollStateFromTotals(poll, totals, vote, source, now);
+}
+
+function buildPollStateFromTotals(poll, incomingTotals, vote, source, now = Date.now()) {
+  const totals = emptyTotals(poll);
+  poll.options.forEach(option => totals[option.id] = Number(incomingTotals?.[option.id] || 0));
   const ended = Number(new Date(poll.endsAt)) <= now;
   return { poll, active:!ended, ended, vote, totals, total:Object.values(totals).reduce((sum, value) => sum + value, 0), showResults:ended, source };
 }
@@ -54,7 +64,7 @@ export async function pollStateOnline(poll, voterId, now = Date.now()) {
     .filter(([, optionId]) => poll.options.some(option => option.id === optionId))
     .map(([localVoterId, optionId]) => voteRemotePoll({ pollId:poll.id, voterId:localVoterId, optionId })));
   const remote = await getRemotePollVotes(poll.id, voterId);
-  if (remote) return buildPollState(poll, voterId, remote.votes, remote.vote, remote.source, now);
+  if (remote) return buildPollStateFromTotals(poll, remote.totals, remote.vote || localVotes[voterId] || null, remote.source, now);
   return pollState(poll, voterId, now);
 }
 

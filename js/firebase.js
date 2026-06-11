@@ -12,6 +12,7 @@ let firebaseDatabaseApi;
 let serverTimeOffset = 0;
 let localPresenceTimer;
 let remotePresenceStop = () => {};
+const PRESENCE_TTL_MS = 90000;
 
 const clientPresenceId = () => {
   let id = sessionStorage.getItem("udowodnij_presence_client");
@@ -106,7 +107,7 @@ function localPresenceUserKey(userKey) {
 function localPresenceCount() {
   const now = Date.now(), data = readLocal(LOCAL_PRESENCE_KEY), users = new Set();
   Object.entries(data).forEach(([userKey, clients]) => {
-    const activeClients = Object.fromEntries(Object.entries(clients || {}).filter(([, item]) => now - Number(item?.seenAt || 0) < 75000));
+    const activeClients = Object.fromEntries(Object.entries(clients || {}).filter(([, item]) => now - Number(item?.seenAt || 0) < PRESENCE_TTL_MS));
     if (Object.keys(activeClients).length) { data[userKey] = activeClients; users.add(userKey); }
     else delete data[userKey];
   });
@@ -145,14 +146,29 @@ export function subscribeOnlineCount(callback) {
   const emit = count => {
     const now = Date.now();
     if (count === lastCount) return;
-    if (count > 100 && now - lastLargeUpdate < 60000) { lastCount = count; return; }
+    if (count > 100 && lastCount > 100 && now - lastLargeUpdate < 60000) return;
     lastCount = count; if (count > 100) lastLargeUpdate = now; callback(count);
   };
   if (remoteDatabase) {
-    return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, "presence"), snapshot => {
-      const users = snapshot.val() || {};
-      emit(Object.values(users).filter(user => Object.keys(user?.clients || {}).length).length);
-    }, () => emit(localPresenceCount()));
+    const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, "presence");
+    const handleSnapshot = snapshot => {
+      const now = serverNow(), users = snapshot.val() || {};
+      let count = 0;
+      Object.entries(users).forEach(([userKey, user]) => {
+        const clients = user?.clients || {};
+        const active = Object.entries(clients).filter(([, item]) => now - Number(item?.seenAt || 0) < PRESENCE_TTL_MS);
+        if (active.length) count += 1;
+        Object.entries(clients).forEach(([clientId, item]) => {
+          if (now - Number(item?.seenAt || 0) >= PRESENCE_TTL_MS * 2) {
+            firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `presence/${userKey}/clients/${clientId}`)).catch(()=>{});
+          }
+        });
+      });
+      emit(count);
+    };
+    const stopRemote = firebaseDatabaseApi.onValue(presenceRef, handleSnapshot, () => emit(localPresenceCount()));
+    const timer = setInterval(() => firebaseDatabaseApi.get(presenceRef).then(handleSnapshot).catch(() => emit(localPresenceCount())), 60000);
+    return () => { clearInterval(timer); stopRemote(); };
   }
   emit(localPresenceCount());
   const storage = event => { if (event.key === LOCAL_PRESENCE_KEY) emit(localPresenceCount()); };
@@ -280,23 +296,25 @@ export async function voteWouldYouRather({ questionId, choice, playerId, persist
 }
 
 const pollVoterKey = voterId => hashRoomPassword(`poll:${voterId || "anonymous"}`);
+const pollOptionIds = ["cosmetics", "new-mode", "questions"];
 export async function getRemotePollVotes(pollId, voterId = "anonymous") {
   if (!remoteDatabase) return null;
   try {
-    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}`));
-    const votes = snapshot.val() || {};
-    return { votes, vote:votes[pollVoterKey(voterId)] || null, source:"firebase" };
+    const [resultsSnapshot, voteSnapshot] = await Promise.all([
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollResults/${pollId}`)),
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`)).catch(() => null),
+    ]);
+    return { totals:resultsSnapshot.val() || {}, vote:voteSnapshot?.val?.() || null, source:"firebase" };
   } catch {
     return null;
   }
 }
 export async function voteRemotePoll({ pollId, voterId, optionId }) {
-  if (!remoteDatabase) return false;
+  if (!remoteDatabase || !pollOptionIds.includes(optionId)) return false;
   try {
     const voteRef = firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`);
-    const current = await firebaseDatabaseApi.get(voteRef);
-    if (current.exists()) return false;
     await firebaseDatabaseApi.set(voteRef, optionId);
+    await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase, `pollResults/${pollId}/${optionId}`), current => (Number(current) || 0) + 1);
     return true;
   } catch {
     return false;
