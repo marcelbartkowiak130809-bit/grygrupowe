@@ -5,7 +5,7 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260612-2";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260612-4";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
-import { gamesList, getGameMode } from "./games.js?v=20260612-7";
+import { gamesList, getGameMode } from "./games.js?v=20260612-8";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260611-1";
@@ -16,11 +16,11 @@ import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } f
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260612-6";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
-import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-1";
-import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-1";
-import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260612-1";
+import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
+import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
+import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260612-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260612-1";
-import { renderPlatform } from "./platform.js?v=20260612-3";
+import { renderPlatform } from "./platform.js?v=20260612-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260612-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260612-7";
@@ -684,8 +684,9 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.order)) { game.order = []; changed = true; }
     game.order = game.order.filter(uid => players.includes(uid));
     if (!Array.isArray(game.history)) { game.history = []; changed = true; }
-    game.history = game.history.filter(row => players.includes(row.uid));
+    game.history = game.history.filter(row => players.includes(row.uid)).map(row => ({ ...row, accepted:Array.isArray(row.accepted) ? row.accepted : [], rejected:Array.isArray(row.rejected) ? row.rejected : [], raw:Array.isArray(row.raw) ? row.raw : [], points:Number(row.points) || 0 }));
     if (game.activeUid && !players.includes(game.activeUid)) { game.activeUid = players[0] || ""; changed = true; }
+    if (game.phase === "turn" && !game.phaseEndsAt) { game.phase = "prepare"; game.phaseEndsAt = Date.now() + 3000; changed = true; }
   }
   if (room.gameMode === "zegar") {
     const beforeScores = JSON.stringify(game.scores || {});
@@ -1088,8 +1089,10 @@ const actions = {
   closestTruthNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>ClosestTruthEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   rankingSubmit(order){return mutateRoomGame((game,room)=>RankingEngine.submit(game,state.currentUser,order,room.players,room.settings),{sound:"submit",after:settleRankingResult});},
   rankingNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>RankingEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
+  fiveSecondsAdvance(expected={}){return mutateRoomGame((game,room)=>FiveSecondsEngine.advance(game,room.players,room.settings,expected),{sound:"turn"});},
   fiveSecondsAnswer(text, expected={}){return mutateRoomGame((game,room)=>FiveSecondsEngine.answer(game,state.currentUser,text,room.players,room.settings,expected),{sound:"submit",after:settleFiveSecondsResult});},
   fiveSecondsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="5-sekund")return;return mutateRoomGame((game,current)=>FiveSecondsEngine.timeout(game,current.players,current.settings,expected),{sound:"turn",after:settleFiveSecondsResult});},
+  clockStart(expected={}){return mutateRoomGame((game,room)=>ClockEngine.start(game,room.players,room.settings,expected),{sound:"turn"});},
   clockStop(expected={}){return mutateRoomGame((game,room)=>ClockEngine.stop(game,state.currentUser,room.players,room.settings,expected),{sound:"submit",after:settleClockResult});},
   clockTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zegar")return;return mutateRoomGame((game,current)=>ClockEngine.timeout(game,current.players,current.settings,expected),{sound:"roundEnd",after:settleClockResult});},
   clockNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>ClockEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},

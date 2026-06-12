@@ -8,9 +8,9 @@ import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.j
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-6";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
-import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-1";
-import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-1";
-import { clockDefaults, renderClockGame } from "./clock.js?v=20260612-1";
+import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
+import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
+import { clockDefaults, renderClockGame } from "./clock.js?v=20260612-2";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -165,7 +165,7 @@ export const gamesRegistry = {
     supportsSolo: false,
     symbol: "💣",
     art: "bomb",
-    audience: "everyone",
+    audience: "crew",
     badges: ["new"],
     render: renderBombGame,
     defaultSettings: bombDefaults,
@@ -201,7 +201,7 @@ export const gamesRegistry = {
     supportsSolo: false,
     symbol: "#",
     art: "ranking",
-    audience: "everyone",
+    audience: "crew",
     badges: ["new"],
     render: renderRankingGame,
     defaultSettings: rankingDefaults,

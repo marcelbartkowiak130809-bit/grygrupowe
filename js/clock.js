@@ -3,8 +3,10 @@ import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
 let timerId;
+let lastCountdown;
 
 const now = () => Date.now();
+const countdownMs = 5000;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
@@ -28,13 +30,14 @@ function targetMs() {
 }
 
 function createRound(players, settings, round, scores = {}) {
-  const startedAt = now();
+  const createdAt = now();
   return {
-    phase:"running",
+    phase:"countdown",
     round,
     targetMs:targetMs(),
-    startedAt,
-    roundEndsAt:startedAt + 20000,
+    countdownEndsAt:createdAt + countdownMs,
+    startedAt:null,
+    roundEndsAt:null,
     stops:{},
     scores:{ ...Object.fromEntries(players.map(uid => [uid, 0])), ...scores },
     ranking:[],
@@ -80,6 +83,17 @@ function finishRound(game, players, settings) {
 }
 
 export const ClockEngine = {
+  start(game, players, rawSettings, expected = {}) {
+    sanitizeClockSettings(rawSettings);
+    normalize(game, players);
+    if (game.phase !== "countdown") return;
+    if (expected.countdownEndsAt && Number(game.countdownEndsAt || 0) !== Number(expected.countdownEndsAt)) return "Runda juz sie zmienila.";
+    const startedAt = Math.max(now(), Number(game.countdownEndsAt || now()));
+    game.phase = "running";
+    game.startedAt = startedAt;
+    game.roundEndsAt = startedAt + 20000;
+    return null;
+  },
   stop(game, uid, players, rawSettings, expected = {}) {
     const settings = sanitizeClockSettings(rawSettings);
     normalize(game, players);
@@ -140,6 +154,24 @@ function runningStage(room, accounts, currentUser, game) {
   </section>`;
 }
 
+function countdownStage(room, accounts, game) {
+  const left = Math.max(0, Math.ceil((Number(game.countdownEndsAt || now()) - now()) / 1000));
+  return `<section class="clock-stage">
+    <div class="clock-head"><div><p class="eyebrow">RUNDA ${Number(game.round) || 1}</p><h1>Znajdz ${Math.round(Number(game.targetMs || 0) / 1000)} sekund</h1></div><div class="clock-done" id="clock-countdown">${left}</div></div>
+    <div class="clock-table">
+      <div class="clock-face clock-stopped">
+        <span class="clock-glow"></span><i class="clock-hand hour"></i><i class="clock-hand minute"></i><i class="clock-hand second"></i><b></b>
+      </div>
+      <div class="clock-side">
+        <p class="eyebrow">START ZA CHWILE</p>
+        <h3>Przeczytaj cel i przygotuj STOP.</h3>
+        <p class="muted">Zegar ruszy dokladnie po odliczaniu.</p>
+      </div>
+    </div>
+    <div class="truth-answer-grid">${room.players.map(uid => `<article>${playerMiniHtml(accounts[uid])}<b>gotowy</b></article>`).join("")}</div>
+  </section>`;
+}
+
 function resultStage(room, accounts, game) {
   const maxMs = Math.max(Number(game.roundEndsAt || 0) - Number(game.startedAt || 0), Number(game.targetMs || 0), ...arrayOrEmpty(game.ranking).map(row => Number(row.elapsedMs) || 0), 1);
   const targetPct = Math.max(0, Math.min(100, Number(game.targetMs || 0) / maxMs * 100));
@@ -169,13 +201,30 @@ function summaryStage(room, accounts, game) {
 export function renderClockGame(root, { room, accounts, currentUser }, actions) {
   stopClockTimer();
   const game = normalize(room.game, room.players);
-  const stage = game.phase === "running" ? runningStage(room, accounts, currentUser, game) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
+  const stage = game.phase === "countdown" ? countdownStage(room, accounts, game) : game.phase === "running" ? runningStage(room, accounts, currentUser, game) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
   root.innerHTML = `<main class="page clock-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
   $("#clock-stop")?.addEventListener("click", () => actions.clockStop({ startedAt:game.startedAt }));
   $("#clock-next-round")?.addEventListener("click", actions.clockNextRound);
   $("#clock-lobby")?.addEventListener("click", actions.returnToRoom);
+  if (game.phase === "countdown") startClockCountdown(game, actions);
   if (game.phase === "running") startClockTimer(game, actions);
+}
+
+function startClockCountdown(game, actions) {
+  const guard = { countdownEndsAt:Number(game.countdownEndsAt || 0) };
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((guard.countdownEndsAt - now()) / 1000));
+    const el = $("#clock-countdown");
+    if (el) el.textContent = String(left);
+    if (left > 0 && left <= 3 && lastCountdown !== left) { lastCountdown = left; Audio.play("countdown"); }
+    if (now() >= guard.countdownEndsAt) {
+      stopClockTimer();
+      actions.clockStart?.(guard);
+    }
+  };
+  tick();
+  timerId = setInterval(tick, 300);
 }
 
 function startClockTimer(game, actions) {
@@ -192,4 +241,5 @@ function startClockTimer(game, actions) {
 export function stopClockTimer() {
   clearInterval(timerId);
   timerId = null;
+  lastCountdown = null;
 }

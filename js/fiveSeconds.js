@@ -4,8 +4,11 @@ import { Effects } from "./effects.js";
 
 let timerId;
 let tickBeat = 0;
+let lastCountdown = 0;
 
 const now = () => Date.now();
+const prepareMs = 3000;
+const promptMs = 2000;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -57,9 +60,9 @@ function makeTurn(players, settings, turnNumber, scores = {}, history = [], orde
   const nextOrder = safeOrder.length ? safeOrder : shuffle(players);
   const player = nextOrder[0] || players[0] || "";
   const category = categoryForTurn(settings);
-  const startedAt = now();
+  const createdAt = now();
   return {
-    phase:"turn",
+    phase:"prepare",
     turnNumber,
     round:Math.floor((turnNumber - 1) / Math.max(1, players.length)) + 1,
     order:nextOrder.slice(1),
@@ -70,8 +73,10 @@ function makeTurn(players, settings, turnNumber, scores = {}, history = [], orde
     scores:{ ...Object.fromEntries(players.map(uid => [uid, 0])), ...scores },
     history:arrayOrEmpty(history),
     current:null,
-    startedAt,
-    phaseEndsAt:startedAt + Number(settings.answerTime) * 1000,
+    startedAt:null,
+    phaseEndsAt:createdAt + prepareMs,
+    prepareEndsAt:createdAt + prepareMs,
+    promptEndsAt:createdAt + prepareMs + promptMs,
   };
 }
 
@@ -130,6 +135,23 @@ function finishTurn(game, players, settings, text = "", reason = "answer") {
 }
 
 export const FiveSecondsEngine = {
+  advance(game, players, rawSettings, expected = {}) {
+    const settings = sanitizeFiveSecondsSettings(rawSettings);
+    normalize(game, players);
+    if (!["prepare","prompt"].includes(game.phase)) return;
+    if (expected.phase && expected.phase !== game.phase) return "Faza gry juz sie zmienila.";
+    if (expected.phaseEndsAt && Number(game.phaseEndsAt || 0) !== Number(expected.phaseEndsAt)) return "Tura juz sie zmienila.";
+    if (game.phase === "prepare") {
+      game.phase = "prompt";
+      game.phaseEndsAt = Number(game.promptEndsAt || now() + promptMs);
+      return null;
+    }
+    const startedAt = Math.max(now(), Number(game.promptEndsAt || now()));
+    game.phase = "turn";
+    game.startedAt = startedAt;
+    game.phaseEndsAt = startedAt + Number(settings.answerTime) * 1000;
+    return null;
+  },
   answer(game, uid, text, players, rawSettings, expected = {}) {
     const settings = sanitizeFiveSecondsSettings(rawSettings);
     normalize(game, players);
@@ -157,7 +179,8 @@ export function renderFiveSecondsLobbySettings(room, isHost) {
     <label>Liczba rund<select data-five-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,8,10,12,15,20].map(n => `<option value="${n}" ${settings.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
     <div class="most-category-box"><b>Kategorie</b><small>zadania: wymien 3 odpowiedzi</small><div class="multi-category-list">${fiveSecondsCategories.map(category => {
       const disabled = !isHost || selected.includes(category.id) && selected.length <= 1;
-      return `<label class="check category-chip"><input data-five-category="${category.id}" type="checkbox" ${selected.includes(category.id) ? "checked" : ""} ${disabled ? "disabled" : ""}> <span>${escapeHtml(category.name)}</span></label>`;
+      const count = category.id === "random" ? fiveSecondsCategories.filter(item => item.id !== "random").reduce((sum, item) => sum + item.words.length, 0) : category.words.length;
+      return `<label class="check category-chip"><input data-five-category="${category.id}" type="checkbox" ${selected.includes(category.id) ? "checked" : ""} ${disabled ? "disabled" : ""}> <span>${escapeHtml(category.name)}</span><span class="category-count">${count}</span></label>`;
     }).join("")}</div></div>
   </div>`;
 }
@@ -170,7 +193,22 @@ function answerField(game, currentUser) {
 function latestResult(game, accounts) {
   const entry = game.history?.[game.history.length - 1];
   if (!entry) return "";
-  return `<aside class="five-last-result"><p class="eyebrow">OSTATNIA TURA</p>${playerMiniHtml(accounts[entry.uid])}<strong>+${entry.points} pkt</strong><small>${entry.accepted.length}/3 poprawne: ${entry.accepted.map(escapeHtml).join(", ") || "brak"}</small></aside>`;
+  const accepted = arrayOrEmpty(entry.accepted);
+  return `<aside class="five-last-result"><p class="eyebrow">OSTATNIA TURA</p>${playerMiniHtml(accounts[entry.uid])}<strong>+${Number(entry.points) || 0} pkt</strong><small>${accepted.length}/3 poprawne: ${accepted.map(escapeHtml).join(", ") || "brak"}</small></aside>`;
+}
+
+function prepStage(room, accounts, game) {
+  const left = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - now()) / 1000));
+  const reveal = game.phase === "prompt";
+  return `<section class="five-stage" style="--danger:${reveal ? 62 : 24}">
+    <div class="five-head"><div><p class="eyebrow">RUNDA ${game.round}</p><h1>${reveal ? `Wymien 3 ${escapeHtml(game.prompt)}` : "Przygotuj sie"}</h1></div><div class="five-timer ${left <= 2 ? "timer-urgent" : ""}" id="five-turn-timer">${left}</div></div>
+    <div class="five-table">
+      <div class="five-player-now"><p class="eyebrow">ZARAZ GRA</p>${playerMiniHtml(accounts[game.activeUid])}<strong>${escapeHtml(accounts[game.activeUid]?.nick || "Gracz")}</strong></div>
+      <div class="five-pressure"><i></i><i></i><b>${reveal ? "CZYTAJ" : "START"}</b></div>
+      ${latestResult(game, accounts)}
+    </div>
+    <div class="waiting-state five-waiting"><span class="waiting-pulse">${reveal ? "TEMAT" : "READY"}</span><h3>${reveal ? escapeHtml(game.categoryName) : "Mentalne przygotowanie"}</h3><p>${reveal ? "Za chwile ruszy czas odpowiedzi." : "Temat pojawi sie po 3 sekundach."}</p></div>
+  </section>`;
 }
 
 function gameStage(room, accounts, currentUser, game) {
@@ -197,8 +235,8 @@ function summaryStage(room, accounts, game) {
 export function renderFiveSecondsGame(root, { room, accounts, currentUser }, actions) {
   stopFiveSecondsTimer();
   const game = normalize(room.game, room.players);
-  const stage = game.phase === "turn" ? gameStage(room, accounts, currentUser, game) : summaryStage(room, accounts, game);
-  root.innerHTML = `<main class="page five-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { activeUid:game.phase === "turn" ? game.activeUid : "", scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
+  const stage = ["prepare","prompt"].includes(game.phase) ? prepStage(room, accounts, game) : game.phase === "turn" ? gameStage(room, accounts, currentUser, game) : summaryStage(room, accounts, game);
+  root.innerHTML = `<main class="page five-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { activeUid:["prepare","prompt","turn"].includes(game.phase) ? game.activeUid : "", scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
   $("#five-answer-form")?.addEventListener("submit", event => {
     event.preventDefault();
@@ -206,11 +244,11 @@ export function renderFiveSecondsGame(root, { room, accounts, currentUser }, act
   });
   $("#five-answer-input")?.focus();
   $("#five-lobby")?.addEventListener("click", actions.returnToRoom);
-  if (game.phase === "turn") startFiveSecondsTimer(game, actions);
+  if (["prepare","prompt","turn"].includes(game.phase)) startFiveSecondsTimer(game, actions);
 }
 
 function startFiveSecondsTimer(game, actions) {
-  const guard = { phaseEndsAt:Number(game.phaseEndsAt || 0), activeUid:game.activeUid };
+  const guard = { phase:game.phase, phaseEndsAt:Number(game.phaseEndsAt || 0), activeUid:game.activeUid };
   const tick = () => {
     const left = Math.max(0, Math.ceil((guard.phaseEndsAt - now()) / 1000));
     const timer = $("#five-turn-timer");
@@ -220,10 +258,11 @@ function startFiveSecondsTimer(game, actions) {
       timer.closest(".five-stage")?.style.setProperty("--danger", String(Math.max(0, Math.min(100, 100 - left * 20))));
     }
     tickBeat = (tickBeat + 1) % 2;
-    if (tickBeat && left > 0 && left <= 3) Audio.play("countdown");
+    if (tickBeat && left > 0 && left <= 3 && lastCountdown !== left) { lastCountdown = left; Audio.play("countdown"); }
     if (left <= 0) {
       stopFiveSecondsTimer();
-      actions.fiveSecondsTimeout?.({ phaseEndsAt:guard.phaseEndsAt, activeUid:guard.activeUid, text:$("#five-answer-input")?.value || "" });
+      if (guard.phase === "turn") actions.fiveSecondsTimeout?.({ phaseEndsAt:guard.phaseEndsAt, activeUid:guard.activeUid, text:$("#five-answer-input")?.value || "" });
+      else actions.fiveSecondsAdvance?.({ phase:guard.phase, phaseEndsAt:guard.phaseEndsAt, activeUid:guard.activeUid });
     }
   };
   tick();
@@ -234,4 +273,5 @@ export function stopFiveSecondsTimer() {
   clearInterval(timerId);
   timerId = null;
   tickBeat = 0;
+  lastCountdown = 0;
 }

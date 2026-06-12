@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260612-7";
+import { getGameMode } from "./games.js?v=20260612-8";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
@@ -8,9 +8,9 @@ import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1"
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-6";
 import { renderBombLobbySettings } from "./bomb.js?v=20260612-6";
 import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3";
-import { renderRankingLobbySettings } from "./ranking.js?v=20260612-1";
-import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-1";
-import { renderClockLobbySettings } from "./clock.js?v=20260612-1";
+import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
+import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
+import { renderClockLobbySettings } from "./clock.js?v=20260612-2";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {

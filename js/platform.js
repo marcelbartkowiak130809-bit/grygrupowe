@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260612-7";
+import { gamesList } from "./games.js?v=20260612-8";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260612-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
