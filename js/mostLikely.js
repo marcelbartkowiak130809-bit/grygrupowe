@@ -124,14 +124,15 @@ export const MostLikelyEngine = {
   },
 };
 
-export function renderMostLikelyLobbySettings(room, isHost) {
+export function renderMostLikelyLobbySettings(room, isHost, options = {}) {
   const s = { ...mostLikelyDefaults, ...room.settings };
   const selected = selectedCategories(s);
+  const adultLocked = Boolean(options.adultLocked);
   return `<div class="impostor-settings-grid">
     <label>Czas na pytanie <b>${s.questionTime}s</b><input data-most-setting="questionTime" type="range" min="15" max="60" step="5" value="${s.questionTime}" ${isHost ? "" : "disabled"}></label>
     <label>Czas głosowania <b>${s.voteTime}s</b><input data-most-setting="voteTime" type="range" min="10" max="30" step="5" value="${s.voteTime}" ${isHost ? "" : "disabled"}></label>
     <label>Liczba rund<select data-most-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,8,10,12,16].map(n => `<option ${s.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-    <div class="most-category-box"><b>Kategorie</b><small>minimum ${minSelectedCategories}, bez limitu</small><div class="multi-category-list">${mostLikelyCategories.map(category => `<label class="check category-chip"><input data-most-category="${escapeHtml(category)}" type="checkbox" ${selected.includes(category) ? "checked" : ""} ${!isHost || selected.length <= minSelectedCategories && selected.includes(category) ? "disabled" : ""}> ${escapeHtml(category)}</label>`).join("")}</div></div>
+    <div class="most-category-box"><b>Kategorie</b><small>minimum ${minSelectedCategories}, bez limitu${adultLocked ? " - 18+ zablokowane przez wiek graczy" : ""}</small><div class="multi-category-list">${mostLikelyCategories.map(category => { const adult = category.startsWith("18+"), disabled = !isHost || adult && adultLocked || selected.length <= minSelectedCategories && selected.includes(category); return `<label class="check category-chip ${adult && adultLocked ? "adult-disabled" : ""}"><input data-most-category="${escapeHtml(category)}" type="checkbox" ${selected.includes(category) ? "checked" : ""} ${disabled ? "disabled" : ""}> ${escapeHtml(category)}</label>`; }).join("")}</div></div>
     <label class="check"><input data-most-setting="playerQuestions" type="checkbox" ${s.playerQuestions ? "checked" : ""} ${isHost ? "" : "disabled"}> Pytania od graczy</label>
     <label class="check"><input data-most-setting="usePool" type="checkbox" ${s.usePool ? "checked" : ""} ${isHost ? "" : "disabled"}> Gotowa pula pytań</label>
     <label class="check"><input data-most-setting="allowSelfVote" type="checkbox" ${s.allowSelfVote ? "checked" : ""} ${isHost ? "" : "disabled"}> Można głosować na siebie</label>

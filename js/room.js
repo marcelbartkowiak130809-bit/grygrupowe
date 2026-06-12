@@ -1,9 +1,9 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260605-2";
+import { getGameMode } from "./games.js?v=20260612-1";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
-import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260605-1";
+import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1";
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-6";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
@@ -12,12 +12,12 @@ export function playerMini(profile = {}, options = {}) {
   return playerMiniHtml(profile, "", options);
 }
 
-function settingsHtml(mode, room, isHost) {
+function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "udowodnij") return `<p class="muted">Po starcie gry nie da sie zmienic czasu.</p><div class="time-pills">${[15,30,45,60].map(time => `<button data-room-time="${time}" ${isHost ? "" : "disabled"} class="${room.settings.answerTime === time ? "active" : ""}">${time}s</button>`).join("")}</div>`;
   if (mode.id === "impostor") return renderImpostorLobbySettings(room, isHost);
   if (mode.id === "kim-jestem") return renderIdentityLobbySettings(room, isHost);
   if (mode.id === "inne-pytanie") return renderOtherQuestionLobbySettings(room, isHost);
-  if (mode.id === "kto-najpredzej") return renderMostLikelyLobbySettings(room, isHost);
+  if (mode.id === "kto-najpredzej") return renderMostLikelyLobbySettings(room, isHost, { adultLocked: actions.roomHasNonAdultPlayer?.(room) });
   if (mode.id === "test-znajomosci") return renderFriendshipLobbySettings(room, isHost);
   if (mode.id === "zatruty-cukierek") return renderPoisonCandyLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
@@ -35,13 +35,13 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">
-      <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost)}</section>
+      <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}</section>
       <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button></div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
-      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"}</p>
+      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} <span class="age-badge age-${accounts[uid]?.adultStatus || room.playerProfiles?.[uid]?.adultStatus || "unknown"}">${(accounts[uid]?.adultStatus || room.playerProfiles?.[uid]?.adultStatus) === "adult" ? "18+" : "&lt;18"}</span></p>
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>

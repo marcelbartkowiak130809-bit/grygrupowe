@@ -2,8 +2,8 @@ import { renderGame } from "./game.js?v=20260605-1";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260605-5";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260605-7";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20260605-2";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260605-1";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20260612-1";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
 
@@ -82,7 +82,7 @@ export const gamesRegistry = {
     id: "co-wolisz",
     name: "Co wolisz?",
     description: "Wybieraj jedną z dwóch opcji i porównuj swoje odpowiedzi z innymi graczami.",
-    adult: true,
+    adult: false,
     help: ["Dostajesz pytanie z dwiema opcjami.", "Wybierasz jedną odpowiedź.", "Od razu widzisz wynik głosowania.", "To tryb solo, bez pokoju."],
     players: "Tryb solo",
     minPlayers: 1,
