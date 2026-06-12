@@ -7,7 +7,10 @@ import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=2026
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-6";
-import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-1";
+import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
+import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-1";
+import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-1";
+import { clockDefaults, renderClockGame } from "./clock.js?v=20260612-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -160,7 +163,7 @@ export const gamesRegistry = {
     maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,
-    symbol: "B",
+    symbol: "💣",
     art: "bomb",
     audience: "everyone",
     badges: ["new"],
@@ -184,6 +187,60 @@ export const gamesRegistry = {
     badges: ["new"],
     render: renderClosestTruthGame,
     defaultSettings: closestTruthDefaults,
+  },
+  ranking: {
+    id: "ranking",
+    name: "RANKING",
+    description: "Ukladajcie listy po swojemu i sprawdzajcie, kto mysli najbardziej jak grupa.",
+    help: ["Kazdy dostaje te sama liste elementow.", "Przeciagacie elementy, ukladajac ranking od najlepszego do najslabszego.", "Po rundzie gra tworzy ranking grupowy ze srednich pozycji.", "Im bardziej twoja lista pasuje do grupowej, tym wiecej punktow dostajesz."],
+    allowReports: true,
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "#",
+    art: "ranking",
+    audience: "everyone",
+    badges: ["new"],
+    render: renderRankingGame,
+    defaultSettings: rankingDefaults,
+  },
+  "5-sekund": {
+    id: "5-sekund",
+    name: "5 SEKUND",
+    description: "Masz kilka sekund, zeby wymienic trzy rzeczy z podanej kategorii.",
+    help: ["Gra pokazuje zadanie typu: wymien 3 zwierzeta.", "Aktywny gracz ma 5, 10 albo 15 sekund na wpisanie odpowiedzi.", "Po czasie odpowiedz blokuje sie i tura przechodzi dalej.", "Pelna odpowiedz daje 3 punkty, czesciowa mniej."],
+    allowReports: true,
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "5",
+    art: "five",
+    audience: "everyone",
+    badges: ["new"],
+    render: renderFiveSecondsGame,
+    defaultSettings: fiveSecondsDefaults,
+  },
+  zegar: {
+    id: "zegar",
+    name: "ZEGAR",
+    description: "Wyczuj czas bez patrzenia na licznik i zatrzymaj zegar najblizej celu.",
+    help: ["Gra losuje czas od 3 do 15 sekund.", "Kazdy widzi swoj stylowy zegar, ale nie widzi aktualnego czasu.", "Gdy czujesz, ze cel minal, naciskasz STOP.", "Po komplecie stopow widzicie wspolna os czasu i roznice od wyniku."],
+    allowReports: true,
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "⌚",
+    art: "clock",
+    audience: "everyone",
+    badges: ["new"],
+    render: renderClockGame,
+    defaultSettings: clockDefaults,
   },
 };
 

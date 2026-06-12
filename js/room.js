@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260612-3";
+import { getGameMode } from "./games.js?v=20260612-7";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
@@ -7,11 +7,25 @@ import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1";
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-6";
 import { renderBombLobbySettings } from "./bomb.js?v=20260612-6";
-import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-1";
+import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3";
+import { renderRankingLobbySettings } from "./ranking.js?v=20260612-1";
+import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-1";
+import { renderClockLobbySettings } from "./clock.js?v=20260612-1";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {
   return playerMiniHtml(profile, "", options);
+}
+
+function lobbyAgeStatus(uid, room, accounts) {
+  const status = room.playerProfiles?.[uid]?.adultStatus || accounts[uid]?.adultStatus || "unknown";
+  return ["adult", "minor"].includes(status) ? status : "unknown";
+}
+
+function lobbyAgeBadge(uid, room, accounts) {
+  const status = lobbyAgeStatus(uid, room, accounts);
+  const label = status === "adult" ? "18+" : status === "minor" ? "&lt;18" : "-";
+  return `<span class="age-badge age-${status}">${label}</span>`;
 }
 
 function settingsHtml(mode, room, isHost, actions) {
@@ -24,6 +38,9 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "zatruty-cukierek") return renderPoisonCandyLobbySettings(room, isHost);
   if (mode.id === "bomba") return renderBombLobbySettings(room, isHost);
   if (mode.id === "najblizej-prawdy") return renderClosestTruthLobbySettings(room, isHost);
+  if (mode.id === "ranking") return renderRankingLobbySettings(room, isHost);
+  if (mode.id === "5-sekund") return renderFiveSecondsLobbySettings(room, isHost);
+  if (mode.id === "zegar") return renderClockLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
 
@@ -45,7 +62,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
-      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} <span class="age-badge age-${accounts[uid]?.adultStatus || room.playerProfiles?.[uid]?.adultStatus || "unknown"}">${(accounts[uid]?.adultStatus || room.playerProfiles?.[uid]?.adultStatus) === "adult" ? "18+" : "&lt;18"}</span></p>
+      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}</p>
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
@@ -72,6 +89,11 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-bomb-category]").forEach(input => input.addEventListener("change", () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory))));
   root.querySelectorAll("[data-truth-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-truth-category]").forEach(input => input.addEventListener("change", () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory))));
+  root.querySelectorAll("[data-ranking-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-ranking-category]").forEach(input => input.addEventListener("change", () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory))));
+  root.querySelectorAll("[data-five-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-five-category]").forEach(input => input.addEventListener("change", () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory))));
+  root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));
