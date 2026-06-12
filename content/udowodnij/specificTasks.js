@@ -115,3 +115,172 @@ export const specificTasks = {
     task("body_bones","Wymień kości lub części szkieletu człowieka","czaszka|kręgosłup|żebro|miednica|łopatka|obojczyk|mostek|kość ramienna|kość promieniowa|kość łokciowa|kość udowa|rzepka|piszczel|strzałka|żuchwa|szczęka|paliczek|kość ogonowa|kość krzyżowa"),
   ],
 };
+
+const addSpecificTasks = (category, items) => {
+  specificTasks[category] = [...(specificTasks[category] || []), ...items];
+};
+
+addSpecificTasks("jobs", [
+  task("jobs_medical","Wymien zawody medyczne","lekarz|pielegniarka|ratownik medyczny|chirurg|dentysta|ortodonta|farmaceuta|fizjoterapeuta|psycholog|psychiatra|radiolog|anestezjolog|polozna|dietetyk|optometrysta"),
+  task("jobs_school","Wymien zawody zwiazane ze szkola","nauczyciel|dyrektor|pedagog|psycholog szkolny|bibliotekarz|wozny|sekretarka|korepetytor|wykladowca|profesor|trener|opiekun swietlicy"),
+  task("jobs_food","Wymien zawody zwiazane z jedzeniem","kucharz|kelner|barista|cukiernik|piekarz|barman|szef kuchni|dostawca jedzenia|dietetyk|sommelier|rzeznik|sprzedawca"),
+  task("jobs_services","Wymien zawody uslugowe","fryzjer|kosmetyczka|mechanik|hydraulik|elektryk|krawiec|szewc|taksowkarz|kurier|ochroniarz|sprzatacz|listonosz|fotograf"),
+  task("jobs_art","Wymien zawody kreatywne","aktor|muzyk|piosenkarz|malarz|grafik|projektant|architekt|pisarz|rezyser|montazysta|fotograf|tancerz|ilustrator|designer"),
+]);
+
+addSpecificTasks("hobbies", [
+  task("hobbies_sport","Wymien hobby zwiazane z ruchem","bieganie|jazda na rowerze|plywanie|silownia|taniec|wspinaczka|rolki|deskorolka|joga|pilka nozna|koszykowka|siatkowka|tenis"),
+  task("hobbies_home","Wymien hobby, ktore mozna robic w domu","czytanie|rysowanie|gotowanie|pieczenie|gry planszowe|gry komputerowe|ukladanie puzzli|modelarstwo|szydelkowanie|ogladanie filmow|pisanie|kolekcjonowanie"),
+  task("hobbies_creative","Wymien kreatywne hobby","fotografia|malowanie|rysowanie|pisanie|spiewanie|gra na gitarze|taniec|robienie bizuterii|origami|ceramika|montaz filmow|grafika komputerowa"),
+  task("hobbies_collecting","Wymien rzeczy, ktore ludzie kolekcjonuja","znaczki|monety|karty pokemon|figurki|ksiazki|plyty|winyle|komiksy|buty|magnesy|kamienie|modele samochodow|plakaty"),
+  task("hobbies_outdoor","Wymien hobby na dworze","wedkowanie|biwakowanie|spacery|geocaching|ogrodnictwo|jazda konna|obserwacja ptakow|kajaki|narty|snowboard|grillowanie|fotografia przyrody"),
+]);
+
+addSpecificTasks("travel", [
+  task("travel_places","Wymien miejsca, do ktorych mozna pojechac na wakacje","morze|gory|jezioro|las|miasto|stolica|wyspa|camping|hotel|apartament|park rozrywki|aquapark|zamek|muzeum"),
+  task("travel_items","Wymien rzeczy, ktore pakuje sie na wyjazd","walizka|plecak|paszport|dowod osobisty|bilet|ladowarka|powerbank|recznik|kosmetyczka|ubrania|buty|okulary przeciwsloneczne|krem z filtrem|aparat"),
+  task("travel_transport","Wymien sposoby podrozowania","samolot|pociag|autobus|samochod|prom|rower|autostop|kamper|metro|tramwaj|taksowka|statek|motocykl"),
+  task("travel_city","Wymien rzeczy, ktore zwiedza sie w miescie","rynek|muzeum|zamek|kosciol|katedra|pomnik|park|stare miasto|galeria|teatr|most|wieza widokowa|fontanna"),
+  task("travel_hotel","Wymien rzeczy kojarzace sie z hotelem","recepcja|pokoj|karta do pokoju|winda|sniadanie|basen|spa|recznik|lobby|walizka|klimatyzacja|mini bar|room service"),
+]);
+
+addSpecificTasks("transport", [
+  task("transport_city","Wymien pojazdy komunikacji miejskiej","autobus|tramwaj|metro|trolejbus|pociag|kolejka|taxi|hulajnoga|rower miejski|minibus|bus|skm|kolej podmiejska"),
+  task("transport_emergency","Wymien pojazdy sluzb ratunkowych","karetka|radiowoz|woz strazacki|helikopter ratunkowy|ambulans|motocykl policyjny|lodz ratunkowa|samochod strazy miejskiej|samochod techniczny"),
+  task("transport_parts","Wymien czesci samochodu","kierownica|silnik|opona|felga|hamulec|sprzeglo|skrzynia biegow|lusterko|szyba|drzwi|bagaznik|maska|reflektor|zderzak"),
+  task("transport_station","Wymien rzeczy na dworcu lub lotnisku","peron|tor|biletomat|tablica odjazdow|bramka|odprawa|bagaz|walizka|kontrola bezpieczenstwa|terminal|hala|poczekalnia|kasownik"),
+]);
+
+addSpecificTasks("clothes", [
+  task("clothes_winter","Wymien ubrania zimowe","kurtka|plaszcz|czapka|szalik|rekawiczki|sweter|bluza|kozaki|termoaktywna koszulka|komin|nauszniki|snowboots"),
+  task("clothes_summer","Wymien ubrania letnie","koszulka|t-shirt|spodenki|sukienka|sandaly|klapki|czapka z daszkiem|okulary przeciwsloneczne|top|stroj kapielowy|kapielowki|lniana koszula"),
+  task("clothes_formal","Wymien eleganckie ubrania","garnitur|koszula|marynarka|krawat|muszka|sukienka|spodnica|plaszcz|eleganckie buty|szpilki|kamizelka|garsonka"),
+  task("clothes_patterns","Wymien wzory na ubraniach","paski|kratka|kropki|panterka|moro|kwiaty|nadruk|logo|zygzak|pepita|tie dye|geometryczny wzor"),
+]);
+
+addSpecificTasks("nature", [
+  task("nature_landforms","Wymien formy terenu","gora|dolina|wzgorze|plaza|klif|jaskinia|kanion|wyspa|polwysep|rownina|pustynia|wydma|wulkan"),
+  task("nature_water","Wymien naturalne zbiorniki lub cieki wodne","rzeka|jezioro|morze|ocean|staw|strumien|potok|wodospad|zatoka|laguna|bagno|mokradlo"),
+  task("nature_animals_places","Wymien miejsca, gdzie zyja zwierzeta","las|sawanna|dzungla|ocean|rzeka|gory|pustynia|farma|laka|jaskinia|rafa koralowa|bagno|arktyka"),
+  task("nature_seasons","Wymien rzeczy kojarzace sie z porami roku","snieg|liscie|kwiaty|upal|deszcz|mroz|kasztany|wakacje|ferie|grzyby|burza|tulipany|dynia"),
+]);
+
+addSpecificTasks("drinks", [
+  task("drinks_energy","Wymien energetyki albo napoje izotoniczne","monster|red bull|tiger|black|burn|rockstar|oshee|powerade|gatorade|4move|be power|dzik|hell|prime"),
+  task("drinks_fruit","Wymien smaki sokow lub napojow owocowych","pomaranczowy|jablkowy|multiwitamina|porzeczkowy|winogronowy|ananasowy|brzoskwiniowy|mango|truskawkowy|malinowy|wisniowy|grejpfrutowy"),
+  task("drinks_coffee","Wymien rodzaje kawy","espresso|americano|latte|cappuccino|flat white|macchiato|mocha|cold brew|frappe|kawa mrozona|ristretto|lungo"),
+  task("drinks_bar","Wymien napoje, ktore mozna zamowic w barze","cola|lemoniada|woda|sok|herbata|kawa|mocktail|tonik|piwo bezalkoholowe|shake|smoothie|ice tea|oranzada"),
+]);
+
+addSpecificTasks("body", [
+  task("body_face","Wymien czesci twarzy","oko|nos|usta|warga|broda|policzek|czolo|brew|rzesa|ucho|zab|jezyk|podbrodek"),
+  task("body_limbs","Wymien czesci rak lub nog","ramie|lokiec|nadgarstek|dlon|palec|kciuk|udo|kolano|lydka|kostka|stopa|pieta|paznokiec"),
+  task("body_senses","Wymien zmysly albo rzeczy z nimi zwiazane","wzrok|sluch|smak|wech|dotyk|oko|ucho|jezyk|nos|skora|zapach|dzwiek|kolor"),
+  task("body_muscles","Wymien miesnie albo partie treningowe","biceps|triceps|klatka piersiowa|plecy|brzuch|nogi|lydki|barki|posladki|przedramie|czworoglowy|dwuglowy"),
+]);
+
+addSpecificTasks("countries", [
+  task("countries_europe","Wymien panstwa Europy","polska|niemcy|francja|hiszpania|portugalia|wlochy|czechy|slowacja|ukraina|litwa|lotwa|estonia|norwegia|szwecja|finlandia|dania|grecja|chorwacja|rumunia|bulgaria|austria|szwajcaria|belgia|holandia|irlandia"),
+  task("countries_asia","Wymien panstwa Azji","chiny|japonia|korea poludniowa|indie|tajlandia|wietnam|indonezja|malezja|singapur|filipiny|turcja|iran|irak|izrael|arabia saudyjska|katar|zjednoczone emiraty arabskie|mongolia|nepal"),
+  task("countries_africa","Wymien panstwa Afryki","egipt|maroko|tunezja|algieria|rpa|kenia|nigeria|ghana|etiopia|senegal|kamerun|tanzania|uganda|madagaskar|libia|sudan|somalia|angola"),
+  task("countries_americas","Wymien panstwa obu Ameryk","usa|kanada|meksyk|brazylia|argentyna|chile|peru|kolumbia|wenezuela|urugwaj|paragwaj|boliwia|ekwador|kuba|panama|kostaryka|jamajka"),
+]);
+
+addSpecificTasks("cities", [
+  task("cities_poland","Wymien polskie miasta","warszawa|krakow|lodz|wroclaw|poznan|gdansk|szczecin|bydgoszcz|lublin|bialystok|katowice|gdynia|czestochowa|radom|torun|rzeszow|kielce|gliwice|zabrze|olsztyn"),
+  task("cities_europe","Wymien europejskie miasta poza Polska","berlin|paryz|londyn|rzym|madryt|barcelona|lizbona|praga|wieden|budapeszt|amsterdam|bruksela|dublin|oslo|sztokholm|helsinki|ateny|wenecja|mediolan"),
+  task("cities_usa","Wymien miasta w USA","nowy jork|los angeles|chicago|houston|phoenix|filadelfia|san antonio|san diego|dallas|san francisco|las vegas|miami|boston|seattle|atlanta|detroit"),
+  task("cities_world","Wymien wielkie miasta swiata","tokio|seul|pekin|szanghaj|bangkok|singapur|dubaj|delhi|mumbai|sydney|melbourne|kair|meksyk|sao paulo|rio de janeiro|toronto"),
+]);
+
+addSpecificTasks("brands", [
+  task("brands_food","Wymien marki jedzenia lub napojow","coca cola|pepsi|sprite|fanta|lays|pringles|kinder|milka|nestle|mcdonalds|kfc|burger king|subway|starbucks|dominos|pizza hut|wedel|tymbark"),
+  task("brands_cars","Wymien marki samochodow","toyota|volkswagen|bmw|audi|mercedes|ford|opel|skoda|kia|hyundai|renault|peugeot|citroen|fiat|tesla|porsche|ferrari|lamborghini|volvo"),
+  task("brands_games","Wymien marki lub firmy zwiazane z grami","sony|playstation|xbox|nintendo|steam|epic games|riot games|blizzard|ubisoft|ea|rockstar|mojang|roblox|supercell|valve|activision"),
+  task("brands_shops","Wymien sklepy lub sieci handlowe","biedronka|lidl|zabka|kaufland|carrefour|auchan|netto|rossmann|hebe|media expert|rtv euro agd|empik|ikea|decathlon|action"),
+]);
+
+addSpecificTasks("tech", [
+  task("tech_phone_apps","Wymien aplikacje na telefon","instagram|tiktok|youtube|messenger|whatsapp|discord|spotify|netflix|gmail|maps|google maps|snapchat|telegram|allegro|vinted|revolut"),
+  task("tech_parts","Wymien czesci komputera","procesor|karta graficzna|ram|dysk ssd|dysk hdd|plyta glowna|zasilacz|obudowa|chlodzenie|wentylator|monitor|klawiatura|mysz|karta sieciowa"),
+  task("tech_gadgets","Wymien gadzety technologiczne","smartwatch|sluchawki bezprzewodowe|powerbank|dron|kamera sportowa|czytnik ebookow|tablet graficzny|gimbal|lokalizator|opaska sportowa|projektor|vr"),
+  task("tech_websites","Wymien znane strony internetowe","google|youtube|facebook|wikipedia|reddit|twitch|netflix|allegro|olx|amazon|spotify|x|twitter|discord|github|onet|wp"),
+]);
+
+addSpecificTasks("games", [
+  task("games_sandbox","Wymien gry sandbox albo survival","minecraft|terraria|roblox|gmod|garry's mod|rust|ark|the forest|sons of the forest|subnautica|valheim|dont starve|project zomboid"),
+  task("games_shooters","Wymien strzelanki","counter strike|cs2|valorant|fortnite|call of duty|battlefield|apex legends|overwatch|rainbow six siege|pubg|doom|halo|destiny|team fortress 2"),
+  task("games_party","Wymien gry imprezowe lub do grania ze znajomymi","among us|jackbox|gartic phone|scribbl|fall guys|stumble guys|overcooked|gang beasts|pummel party|mario party|keep talking and nobody explodes"),
+  task("games_rpg","Wymien gry RPG lub z otwartym swiatem","skyrim|the witcher|wiedzmin|fallout|elden ring|dark souls|baldur's gate|cyberpunk|gta|red dead redemption|zelda|genshin impact|diablo"),
+]);
+
+addSpecificTasks("roblox", [
+  task("roblox_popular","Wymien popularne gry Roblox","adopt me|brookhaven|blox fruits|doors|dress to impress|blade ball|pet simulator 99|arsenal|jailbreak|murder mystery 2|tower of hell|fisch|bedwars"),
+  task("roblox_simulators","Wymien symulatory na Robloxie","bee swarm simulator|pet simulator x|pet simulator 99|vehicle simulator|restaurant tycoon 2|theme park tycoon 2|anime simulator|clicker simulator|strongman simulator|speed simulator"),
+  task("roblox_anime","Wymien gry Roblox z anime lub walkami","blox fruits|anime adventures|anime defenders|anime fighters|the strongest battlegrounds|shindo life|king legacy|all star tower defense|jujutsu shenanigans"),
+  task("roblox_fashion","Wymien gry Roblox o modzie lub avatarach","dress to impress|royale high|catalog avatar creator|fashion famous|avatar outfit creator|berry avenue|brookhaven|adopt me"),
+]);
+
+addSpecificTasks("minecraft", [
+  task("minecraft_ores","Wymien rudy lub surowce w Minecraft","wegiel|zelazo|miedz|zloto|redstone|lapis lazuli|diament|emerald|szmaragd|netherite|kwarc|ametyst|obsydian"),
+  task("minecraft_tools","Wymien narzedzia w Minecraft","kilof|lopata|siekiera|motyka|miecz|wedka|nozyce|krzesiwo|kompas|mapa|luk|kusza|tarcza|wiadro"),
+  task("minecraft_food","Wymien jedzenie w Minecraft","chleb|jablko|zlote jablko|marchewka|ziemniak|stek|kurczak|wieprzowina|baranina|ciastko|ciasto|arbuz|dyniowe ciasto|zupa grzybowa"),
+  task("minecraft_redstone","Wymien rzeczy zwiazane z redstonem","redstone|pochodnia redstone|repeater|komparator|tlok|lepki tlok|dzwignia|przycisk|plyta naciskowa|obserwator|dozownik|wyrzutnik|hopper"),
+]);
+
+addSpecificTasks("internet", [
+  task("internet_video","Wymien platformy do ogladania filmow lub streamow","youtube|twitch|netflix|disney plus|hbo max|max|prime video|canal plus|player|polsat box go|tiktok|kick|viaplay"),
+  task("internet_chat","Wymien aplikacje do pisania lub rozmow","messenger|whatsapp|discord|telegram|signal|snapchat|teamspeak|skype|google meet|zoom|teams|facetime|slack"),
+  task("internet_terms","Wymien slowa kojarzace sie z internetem","link|hashtag|post|komentarz|like|subskrypcja|stream|czat|profil|avatar|login|haslo|ban|spam|mem|viral"),
+  task("internet_games","Wymien rzeczy kojarzace sie z graniem online","ping|lag|serwer|lobby|matchmaking|ranked|skin|nick|klan|voice chat|ban|cheater|update|patch|battle pass"),
+]);
+
+addSpecificTasks("animals", [
+  task("animals_pets","Wymien zwierzeta domowe","pies|kot|chomik|swinka morska|krolik|papuga|kanarek|zolw|rybka|fretka|szczur|mysz|gekon|agama|szynszyla"),
+  task("animals_dangerous","Wymien niebezpieczne zwierzeta","lew|tygrys|niedzwiedz|rekin|krokodyl|waz|anakonda|skorpion|pajak|hipopotam|nosorozec|wilk|hiena|komar"),
+]);
+
+addSpecificTasks("fruits", [
+  task("fruits_yellow","Wymien zolte lub pomaranczowe owoce","banan|cytryna|pomarancza|mandarynka|mango|ananas|morela|brzoskwinia|nektarynka|papaja|marakuja|melon"),
+  task("fruits_stone","Wymien owoce pestkowe","sliwka|brzoskwinia|morela|nektarynka|wisnia|czeresnia|mango|awokado|daktyl|oliwka"),
+]);
+
+addSpecificTasks("food", [
+  task("food_breakfast","Wymien rzeczy jedzone na sniadanie","kanapka|jajecznica|platki|owsianka|tost|jajko|parowka|jogurt|musli|omlet|nalesniki|twarozek|bulka|ser|szynka"),
+  task("food_pizza","Wymien dodatki do pizzy","ser|pepperoni|szynka|pieczarki|cebula|papryka|oliwki|kukurydza|ananas|kurczak|salami|boczek|rukola|jalapeno|pomidor"),
+]);
+
+addSpecificTasks("school", [
+  task("school_exams","Wymien rzeczy kojarzace sie z egzaminem","test|kartkowka|sprawdzian|matura|egzamin osmioklasisty|arkusz|odpowiedz|punkt|ocena|sciaga|dzwonek|stres"),
+  task("school_rooms","Wymien pomieszczenia w szkole","klasa|sala gimnastyczna|biblioteka|sekretariat|gabinet dyrektora|swietlica|korytarz|szatnia|stolowka|toaleta|pracownia|boisko"),
+]);
+
+addSpecificTasks("music", [
+  task("music_polish","Wymien polskich wykonawcow muzycznych","sanah|dawid podsiadlo|mata|taco hemingway|quebonafide|kizo|bedoes|doda|mrozu|kwiat jabloni|margaret|lanberry|smolasty|young leosia"),
+  task("music_popstars","Wymien zagranicznych wykonawcow pop","taylor swift|ariana grande|billie eilish|dua lipa|the weeknd|ed sheeran|justin bieber|rihanna|beyonce|lady gaga|bruno mars|olivia rodrigo"),
+]);
+
+addSpecificTasks("sport", [
+  task("sport_equipment","Wymien sprzet sportowy","pilka|rakieta|kij|bramka|siatka|hantle|sztanga|mata|kask|rolki|lyzwy|narty|deskorolka|rower|rekawice bokserskie"),
+  task("sport_events","Wymien wydarzenia sportowe","mundial|euro|liga mistrzow|olimpiada|igrzyska olimpijskie|super bowl|wimbledon|tour de france|fame mma|k_sw|nba finals|grand prix"),
+]);
+
+addSpecificTasks("movies", [
+  task("movies_superheroes","Wymien superbohaterow filmowych","spider-man|batman|superman|iron man|thor|hulk|kapitan ameryka|wonder woman|aquaman|flash|doctor strange|black panther|deadpool"),
+  task("movies_horror","Wymien horrory lub postacie z horrorow","it|pennywise|krzyk|scream|freddy krueger|jason|michael myers|annabelle|obecnosc|the conjuring|smile|laleczka chucky|saw"),
+]);
+
+addSpecificTasks("everyday", [
+  task("everyday_kitchen","Wymien rzeczy, ktore mozna znalezc w kuchni","garnek|patelnia|talerz|kubek|szklanka|widelec|noz|lyzka|lodowka|piekarnik|mikrofalowka|czajnik|blender|deska do krojenia"),
+  task("everyday_bag","Wymien rzeczy, ktore nosi sie w plecaku lub torbie","telefon|portfel|klucze|ladowarka|sluchawki|zeszyt|dlugopis|butelka wody|kanapka|chusteczki|powerbank|legitymacja"),
+]);
+
+addSpecificTasks("vegetables", [
+  task("vegetables_soup","Wymien warzywa dobre do zupy","marchewka|pietruszka|seler|por|ziemniak|cebula|czosnek|kapusta|pomidor|brokul|kalafior|burak|groszek|fasolka"),
+  task("vegetables_salad","Wymien warzywa do salatki","pomidor|ogorek|salata|papryka|cebula|kukurydza|oliwki|rukola|roszponka|rzodkiewka|marchewka|kapusta|awokado"),
+]);
+
+addSpecificTasks("pokemon", [
+  task("pokemon_electric","Wymien elektryczne Pokemony","pikachu|raichu|pichu|magnemite|magneton|voltorb|electrode|electabuzz|jolteon|zapdos|mareep|flaaffy|ampharos|luxray|rotom"),
+  task("pokemon_water","Wymien wodne Pokemony","squirtle|wartortle|blastoise|psyduck|golduck|poliwag|poliwhirl|poliwrath|tentacool|tentacruel|slowpoke|slowbro|magikarp|gyarados|lapras|vaporeon|totodile|mudkip"),
+]);
