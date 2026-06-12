@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260605-2";
+import { gamesList } from "./games.js?v=20260612-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260605-2";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
@@ -93,7 +93,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY DLA ZNAJOMYCH</p>
-        <h1>Jedna ekipa.<br><span>Osiem sposobów</span> na dobry wieczór.</h1>
+        <h1>Jedna ekipa.<br><span>Dziewiec sposobow</span> na dobry wieczor.</h1>
         <p>Wybierz tryb, zaproś znajomych kodem pokoju i zacznijcie grać. Bez instalowania czegokolwiek.</p>
         <form class="platform-join" id="platform-join-form">
           <div><p class="eyebrow">MASZ JUŻ POKÓJ?</p><strong>Dołącz kodem pokoju</strong></div>

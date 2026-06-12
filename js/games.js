@@ -6,6 +6,7 @@ import { renderWouldYouRather } from "./wouldYouRather.js?v=20260612-1";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
+import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-2";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -146,6 +147,24 @@ export const gamesRegistry = {
     badges: ["new"],
     render: renderPoisonCandyGame,
     defaultSettings: poisonCandyDefaults,
+  },
+  bomba: {
+    id: "bomba",
+    name: "BOMBA",
+    description: "Podawajcie odpowiedzi po kolei, zanim ukryty timer wysadzi bombe na stole.",
+    help: ["Host wybiera rundy, punkty, czas odpowiedzi i minimum trzy kategorie.", "Gra losuje kategorie, a gracze po kolei wpisuja odpowiedzi.", "Nie wolno powtarzac odpowiedzi ani oddawac pustej tury.", "Po wybuchu gracz z bomba przegrywa runde, a pozostali dostaja punkty."],
+    allowReports: true,
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "B",
+    art: "bomb",
+    audience: "everyone",
+    badges: ["new"],
+    render: renderBombGame,
+    defaultSettings: bombDefaults,
   },
 };
 
