@@ -1,4 +1,4 @@
-import { getRemotePollVotes, voteRemotePoll } from "./firebase.js?v=20260605-6";
+import { getRemotePollVotes, voteRemotePoll } from "./firebase.js?v=20260612-4";
 const pollStorageKey = "udowodnij.pollVotes.v1";
 
 export const polls = [

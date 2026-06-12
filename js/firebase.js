@@ -310,11 +310,17 @@ const pollOptionIds = ["cosmetics", "new-mode", "questions"];
 export async function getRemotePollVotes(pollId, voterId = "anonymous") {
   if (!remoteDatabase) return null;
   try {
-    const [resultsSnapshot, voteSnapshot] = await Promise.all([
+    const [votesSnapshot, resultsSnapshot, voteSnapshot] = await Promise.all([
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}`)).catch(() => null),
       firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollResults/${pollId}`)),
       firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`)).catch(() => null),
     ]);
-    return { totals:resultsSnapshot.val() || {}, vote:voteSnapshot?.val?.() || null, source:"firebase" };
+    const votes = votesSnapshot?.val?.() || {};
+    const totals = {};
+    Object.values(votes).forEach(optionId => {
+      if (pollOptionIds.includes(optionId)) totals[optionId] = (totals[optionId] || 0) + 1;
+    });
+    return { totals:Object.keys(totals).length ? totals : resultsSnapshot.val() || {}, vote:voteSnapshot?.val?.() || null, source:"firebase" };
   } catch {
     return null;
   }
@@ -323,6 +329,8 @@ export async function voteRemotePoll({ pollId, voterId, optionId }) {
   if (!remoteDatabase || !pollOptionIds.includes(optionId)) return false;
   try {
     const voteRef = firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`);
+    const previous = await firebaseDatabaseApi.get(voteRef).catch(() => null);
+    if (previous?.exists?.()) return false;
     await firebaseDatabaseApi.set(voteRef, optionId);
     await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase, `pollResults/${pollId}/${optionId}`), current => (Number(current) || 0) + 1);
     return true;
