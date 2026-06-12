@@ -1,12 +1,13 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260612-2";
+import { getGameMode } from "./games.js?v=20260612-3";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
 import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20260605-1";
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20260605-6";
-import { renderBombLobbySettings } from "./bomb.js?v=20260612-2";
+import { renderBombLobbySettings } from "./bomb.js?v=20260612-6";
+import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-1";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {
@@ -22,6 +23,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "test-znajomosci") return renderFriendshipLobbySettings(room, isHost);
   if (mode.id === "zatruty-cukierek") return renderPoisonCandyLobbySettings(room, isHost);
   if (mode.id === "bomba") return renderBombLobbySettings(room, isHost);
+  if (mode.id === "najblizej-prawdy") return renderClosestTruthLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
 
@@ -68,6 +70,8 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-candy-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-bomb-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-bomb-category]").forEach(input => input.addEventListener("change", () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory))));
+  root.querySelectorAll("[data-truth-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-truth-category]").forEach(input => input.addEventListener("change", () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory))));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));

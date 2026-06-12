@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260605-8";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260612-2";
 import { $, formatClock, icon } from "./utils.js?v=20260605-5";
 
 let shopTimer;
@@ -11,6 +11,7 @@ const equipped = (profile, id) => [
   profile.selectedAvatarFrame,
   profile.selectedAura,
   profile.selectedCandySkin,
+  profile.selectedBombSkin,
   profile.selectedIdleAnimation,
   profile.selectedWinAnimation,
   profile.selectedLoseAnimation,
@@ -24,6 +25,7 @@ const groups = [
   { type:"win", title:"Wygrane" },
   { type:"lose", title:"Przegrane" },
   { type:"candy", title:"Cukierki" },
+  { type:"bomb", title:"Bomby" },
 ];
 
 const defaultCosmetics = {

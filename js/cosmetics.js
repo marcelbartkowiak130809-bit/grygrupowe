@@ -2,6 +2,17 @@ const item = (id, type, name, price, rarity, description, options = {}) => ({ id
 export const rarityLabels = { common:"Common", rare:"Rare", epic:"Epic", legendary:"Legendary", mythic:"Mythic" };
 
 export const cosmetics = [
+  item("defaultBomb","bomb","Klasyczna bomba",0,"common","Domyslna bomba do trybu BOMBA."),
+  item("mintBomb","bomb","Mietowy ladunek",900,"common","Jasna bomba z chlodnym blyskiem i lekkim wybuchem."),
+  item("chocoBomb","bomb","Kakao bomba",1200,"common","Czekoladowa obudowa i cieply karmelowy rozblysk."),
+  item("fizzyBomb","bomb","Musujaca bomba",1800,"rare","Kolorowy kwasny ladunek z iskrami jak napoj gazowany."),
+  item("jellyBomb","bomb","Zelkowy zapalnik",2200,"rare","Miekka przezroczysta bomba z kleistym rozpryskiem."),
+  item("colaBomb","bomb","Cola pressure",2600,"rare","Ciemna syczaca bomba z bursztynowa fala wybuchu."),
+  item("neonBomb","bomb","Neon core",3900,"epic","Neonowy rdzen i laserowy rozblysk przy wybuchu."),
+  item("lavaBomb","bomb","Lava shell",5600,"legendary","Rozgrzana skorupa, ognisty wybuch i iskry lawy."),
+  item("diamondBomb","bomb","Diamentowa bomba",6800,"legendary","Niebieskawy wybuch i odlatujace krysztalowe odlamki."),
+  item("emeraldBomb","bomb","Szmaragdowy rdzen",6800,"legendary","Zielony krystaliczny wybuch z ostrymi drobinami."),
+  item("rubyBomb","bomb","Rubinowa bomba",7200,"mythic","Czerwony mityczny rozblysk z rubinowymi odlamkami."),
   item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
   item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
@@ -233,6 +244,13 @@ function animationEffectHtml(id) {
 }
 
 export function cosmeticPreview(item, profile = {}, options = {}) {
+  if (item.type === "bomb") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-bomb">
+      <div class="shop-bomb bomb-skin-${item.id}"><span></span><b></b></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">BOMBA</small>'}
+    </div>`;
+  }
   if (item.type === "candy") {
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-candy">
       <div class="shop-candy candy-${item.id}"><span></span></div>

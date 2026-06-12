@@ -6,7 +6,8 @@ import { renderWouldYouRather } from "./wouldYouRather.js?v=20260612-1";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
-import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-2";
+import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-6";
+import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -165,6 +166,24 @@ export const gamesRegistry = {
     badges: ["new"],
     render: renderBombGame,
     defaultSettings: bombDefaults,
+  },
+  "najblizej-prawdy": {
+    id: "najblizej-prawdy",
+    name: "NAJBLIZEJ PRAWDY",
+    description: "Strzelajcie liczby i sprawdzajcie, kto byl najblizej prawdziwej odpowiedzi.",
+    help: ["Gra pokazuje pytanie liczbowe z wybranej kategorii.", "Kazdy wpisuje jedna liczbe, bez podgladania odpowiedzi innych.", "Po komplecie odpowiedzi widzicie prawidlowa liczbe, roznice i ranking rundy.", "Najblizsza odpowiedz dostaje najwiecej punktow, kolejne miejsca mniej."],
+    allowReports: true,
+    players: "2-8 osob",
+    minPlayers: 2,
+    maxPlayers: 8,
+    supportsLobby: true,
+    supportsSolo: false,
+    symbol: "~",
+    art: "truth",
+    audience: "everyone",
+    badges: ["new"],
+    render: renderClosestTruthGame,
+    defaultSettings: closestTruthDefaults,
   },
 };
 

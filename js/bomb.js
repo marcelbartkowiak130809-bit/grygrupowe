@@ -26,6 +26,9 @@ export const bombDefaults = {
   rounds:8,
   targetScore:7,
   answerTime:20,
+  timeMode:"shared",
+  showExplosionTime:false,
+  bombSkinMode:"roundFair",
   categories:["animals","games","food","countries","movies","characters","brands","sport"],
 };
 
@@ -41,6 +44,9 @@ export function sanitizeBombSettings(raw = {}) {
     rounds:clamp(raw.rounds || bombDefaults.rounds, 3, 20),
     targetScore:clamp(raw.targetScore || bombDefaults.targetScore, 3, 25),
     answerTime:clamp(raw.answerTime || bombDefaults.answerTime, 8, 45),
+    timeMode:raw.timeMode === "individual" ? "individual" : "shared",
+    showExplosionTime:Boolean(raw.showExplosionTime),
+    bombSkinMode:raw.bombSkinMode === "currentHolder" ? "currentHolder" : "roundFair",
     categories,
   };
 }
@@ -55,18 +61,30 @@ function answerKey(value) {
 }
 
 function bombWindowMs(players, settings) {
-  const base = Math.max(9000, Number(settings.answerTime) * 1000 * Math.max(1.8, players.length * .65));
+  const shared = settings.timeMode === "shared";
+  const base = shared
+    ? Math.max(14000, Number(settings.answerTime) * 1000 * Math.max(1.35, players.length * .9))
+    : Math.max(9000, Number(settings.answerTime) * 1000 * Math.max(1.8, players.length * .65));
   return {
-    min:Math.round(base * .55),
-    max:Math.round(base * 1.65),
+    min:Math.round(base * (shared ? .95 : .55)),
+    max:Math.round(base * (shared ? 1.65 : 1.65)),
   };
 }
 
-function createRound(players, settings, round, scores = {}) {
+function drawBombSkinOwner(players, previousPool = []) {
+  let pool = arrayOrEmpty(previousPool).filter(uid => players.includes(uid));
+  if (!pool.length) pool = shuffle(players);
+  const owner = pool[0] || players[0] || "";
+  return { owner, pool:pool.slice(1) };
+}
+
+function createRound(players, settings, round, scores = {}, previousSkinPool = []) {
   const category = chosenCategory(settings);
   const window = bombWindowMs(players, settings);
   const order = shuffle(players);
   const startedAt = now();
+  const explodesAt = startedAt + window.min + Math.floor(Math.random() * (window.max - window.min + 1));
+  const skinDraw = drawBombSkinOwner(players, previousSkinPool);
   return {
     phase:"answering",
     round,
@@ -76,9 +94,14 @@ function createRound(players, settings, round, scores = {}) {
     usedAnswers:[],
     answers:[],
     scores:{ ...Object.fromEntries(players.map(uid => [uid, 0])), ...scores },
+    timeMode:settings.timeMode,
+    showExplosionTime:settings.showExplosionTime,
+    bombSkinMode:settings.bombSkinMode,
+    bombSkinOwner:skinDraw.owner,
+    bombSkinPool:skinDraw.pool,
     startedAt,
-    explodesAt:startedAt + window.min + Math.floor(Math.random() * (window.max - window.min + 1)),
-    phaseEndsAt:startedAt + Number(settings.answerTime) * 1000,
+    explodesAt,
+    phaseEndsAt:settings.timeMode === "shared" ? explodesAt : startedAt + Number(settings.answerTime) * 1000,
     result:null,
   };
 }
@@ -108,7 +131,7 @@ function finishRound(game, players, loser, reason = "boom") {
   const winners = players.filter(uid => uid !== loser);
   winners.forEach(uid => game.scores[uid] = Number(game.scores[uid] || 0) + 1);
   game.phase = "roundResult";
-  game.result = { loser, winners, reason, at:now() };
+  game.result = { loser, winners, reason, at:now(), bombSkinOwner:game.bombSkinMode === "currentHolder" ? loser : game.bombSkinOwner };
   game.phaseEndsAt = null;
 }
 
@@ -125,7 +148,8 @@ function finishGameIfNeeded(game, settings) {
 
 function nextTurn(game, settings) {
   game.turnIndex = (Number(game.turnIndex) + 1) % Math.max(1, game.order.length);
-  game.phaseEndsAt = now() + Number(settings.answerTime) * 1000;
+  if (settings.timeMode === "individual") game.phaseEndsAt = now() + Number(settings.answerTime) * 1000;
+  else game.phaseEndsAt = Number(game.explodesAt || game.phaseEndsAt || now());
 }
 
 export const BombEngine = {
@@ -166,7 +190,7 @@ export const BombEngine = {
     const settings = sanitizeBombSettings(rawSettings);
     normalize(game, players);
     if (game.phase !== "roundResult") return "Najpierw musi wybuchnac bomba.";
-    Object.assign(game, createRound(players, settings, Number(game.round || 1) + 1, game.scores));
+    Object.assign(game, createRound(players, settings, Number(game.round || 1) + 1, game.scores, game.bombSkinPool));
     return null;
   },
 };
@@ -178,6 +202,9 @@ export function renderBombLobbySettings(room, isHost) {
     <label>Liczba rund<select data-bomb-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,8,10,12,15,20].map(n => `<option value="${n}" ${settings.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
     <label>Punkty do wygranej<select data-bomb-setting="targetScore" ${isHost ? "" : "disabled"}>${[3,5,7,10,12,15,20,25].map(n => `<option value="${n}" ${settings.targetScore === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
     <label>Czas na odpowiedz <b>${settings.answerTime}s</b><input data-bomb-setting="answerTime" type="range" min="8" max="45" step="1" value="${settings.answerTime}" ${isHost ? "" : "disabled"}></label>
+    <label>Tryb czasu<select data-bomb-setting="timeMode" ${isHost ? "" : "disabled"}><option value="shared" ${settings.timeMode === "shared" ? "selected" : ""}>Wspolna bomba</option><option value="individual" ${settings.timeMode === "individual" ? "selected" : ""}>Indywidualny czas</option></select></label>
+    <label>Skin bomby<select data-bomb-setting="bombSkinMode" ${isHost ? "" : "disabled"}><option value="roundFair" ${settings.bombSkinMode === "roundFair" ? "selected" : ""}>Losowy gracz na runde</option><option value="currentHolder" ${settings.bombSkinMode === "currentHolder" ? "selected" : ""}>Aktualny gracz</option></select></label>
+    <label class="check bomb-toggle-setting"><input data-bomb-setting="showExplosionTime" type="checkbox" ${settings.showExplosionTime ? "checked" : ""} ${isHost ? "" : "disabled"}> Widoczny czas wybuchu</label>
     <div class="most-category-box"><b>Kategorie</b><small>minimum ${minCategories}, baza: ${bombCategories.reduce((sum, category) => sum + category.words.length, 0)} slow</small><div class="multi-category-list">${bombCategories.map(category => {
       const disabled = !isHost || selected.includes(category.id) && selected.length <= minCategories;
       return `<label class="check category-chip"><input data-bomb-category="${category.id}" type="checkbox" ${selected.includes(category.id) ? "checked" : ""} ${disabled ? "disabled" : ""}> <span>${escapeHtml(category.name)}</span><span class="category-count">${category.words.length}</span></label>`;
@@ -185,9 +212,24 @@ export function renderBombLobbySettings(room, isHost) {
   </div>`;
 }
 
-function timerText(game) {
-  const left = Math.max(0, Math.ceil(((game.phaseEndsAt || now()) - now()) / 1000));
+function timerLeft(game, settings) {
+  const target = settings.showExplosionTime ? game.explodesAt : game.phaseEndsAt;
+  return Math.max(0, Math.ceil(((target || now()) - now()) / 1000));
+}
+
+function timerText(game, settings) {
+  const left = timerLeft(game, settings);
   return `${left}s`;
+}
+
+function timerBox(game, settings) {
+  const left = timerLeft(game, settings);
+  if (!settings.showExplosionTime) {
+    const label = settings.timeMode === "shared" ? "WSPOLNA BOMBA" : "UKRYTY WYBUCH";
+    return `<div class="timer-box bomb-hidden-timer ${left <= 5 ? "timer-urgent" : ""}"><span class="tiny">${label}</span><b id="bomb-turn-timer" data-hidden-time="1">???</b></div>`;
+  }
+  const label = settings.timeMode === "shared" ? "DO WYBUCHU" : "WYBUCH";
+  return `<div class="timer-box ${left <= 5 ? "timer-urgent" : ""}"><span class="tiny">${label}</span><b id="bomb-turn-timer">${timerText(game, settings)}</b></div>`;
 }
 
 function answerStack(game) {
@@ -195,18 +237,26 @@ function answerStack(game) {
   return latest.length ? latest.map(answer => `<span>${escapeHtml(answer.raw)}</span>`).join("") : '<span class="muted">Jeszcze cisza przy stole.</span>';
 }
 
+function bombSkinId(game, settings, accounts, active) {
+  const owner = settings.bombSkinMode === "currentHolder" ? active : game.bombSkinOwner || active;
+  return accounts[owner]?.selectedBombSkin || "defaultBomb";
+}
+
 function bombStage(room, accounts, currentUser) {
   const game = normalize(room.game, room.players);
+  const settings = sanitizeBombSettings(room.settings);
   const category = categoryMap[game.categoryId] || bombCategories[0];
   const active = activeUid(game);
   const elapsed = Math.max(0, now() - Number(game.startedAt || now()));
   const danger = Math.min(100, Math.round(elapsed / Math.max(1, Number(game.explodesAt || now()) - Number(game.startedAt || now())) * 100));
   if (game.phase === "answering") {
-    return `<section class="bomb-stage" style="--danger:${danger}">
-      <div class="bomb-head"><div><p class="eyebrow">KATEGORIA</p><h1>${escapeHtml(category.name)}</h1></div><div class="timer-box ${Number(timerText(game).replace("s","")) <= 5 ? "timer-urgent" : ""}"><span class="tiny">TURA</span><b id="bomb-turn-timer">${timerText(game)}</b></div></div>
+    const modeLabel = settings.timeMode === "shared" ? "Wspolna bomba" : "Indywidualny czas";
+    const skin = bombSkinId(game, settings, accounts, active);
+    return `<section class="bomb-stage ${settings.showExplosionTime ? "bomb-time-visible" : "bomb-time-hidden"}" style="--danger:${danger}">
+      <div class="bomb-head"><div><p class="eyebrow">KATEGORIA - ${modeLabel}</p><h1>${escapeHtml(category.name)}</h1></div>${timerBox(game, settings)}</div>
       <div class="bomb-table">
         <div class="bomb-answer-feed"><p class="eyebrow">PODANE</p>${answerStack(game)}</div>
-        <div class="bomb-core-wrap ${danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>BOMBA</b></div><div class="bomb-shadow"></div></div>
+        <div class="bomb-core-wrap bomb-skin-${skin} ${danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>BOMBA</b></div><div class="bomb-shadow"></div></div>
         <div class="bomb-current-player"><p class="eyebrow">TERAZ</p>${playerMiniHtml(accounts[active])}<strong>${escapeHtml(accounts[active]?.nick || "Gracz")}</strong><small>${room.players.indexOf(active) + 1}/${room.players.length}</small></div>
       </div>
       ${active === currentUser ? `<form id="bomb-answer-form" class="bomb-answer-form"><input id="bomb-answer-input" placeholder="Szybko, wpisz odpowiedz..." autocomplete="off" autofocus><button class="primary">Podaj dalej</button></form>` : `<div class="waiting-state"><span class="waiting-pulse">tik</span><h3>Czekamy na odpowiedz</h3><p>Bomba jest przy graczu ${escapeHtml(accounts[active]?.nick || "Gracz")}.</p></div>`}
@@ -214,8 +264,10 @@ function bombStage(room, accounts, currentUser) {
   }
   if (game.phase === "roundResult") {
     const loser = game.result?.loser;
+    const resultSkinOwner = game.result?.bombSkinOwner;
+    const skin = game.result?.bombSkin || (resultSkinOwner ? accounts[resultSkinOwner]?.selectedBombSkin || "defaultBomb" : bombSkinId(game, settings, accounts, loser));
     Effects.play("roundFail", `${room.roomId}:bomb:${game.round}:${loser}`);
-    return `<section class="bomb-stage bomb-exploded"><p class="eyebrow">WYBUCH</p><h1>${escapeHtml(accounts[loser]?.nick || "Gracz")} przegrywa runde</h1><div class="bomb-blast"><i></i><i></i><i></i><b>BOOM</b></div><p class="money-pop">Pozostali gracze dostaja po 1 punkcie.</p><div class="result-player-grid">${room.players.map(uid => `<article class="${uid !== loser ? "winner-card" : ""}">${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-next-round">Nastepna runda</button></section>`;
+    return `<section class="bomb-stage bomb-exploded bomb-explosion-${skin}"><p class="eyebrow">WYBUCH</p><h1>${escapeHtml(accounts[loser]?.nick || "Gracz")} przegrywa runde</h1><div class="bomb-blast bomb-blast-${skin}"><i></i><i></i><i></i><span></span><span></span><span></span><span></span><span></span><span></span><b>BOOM</b></div><p class="money-pop">Pozostali gracze dostaja po 1 punkcie.</p><div class="result-player-grid">${room.players.map(uid => `<article class="${uid !== loser ? "winner-card" : ""}">${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-next-round">Nastepna runda</button></section>`;
   }
   const max = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   const winners = room.players.filter(uid => Number(game.scores?.[uid] || 0) === max);
@@ -238,22 +290,25 @@ export function renderBombGame(root, { room, accounts, currentUser }, actions) {
   $("#bomb-answer-input")?.focus();
   $("#bomb-next-round")?.addEventListener("click", actions.bombNextRound);
   $("#bomb-lobby")?.addEventListener("click", actions.returnToRoom);
-  if (game.phase === "answering") startBombTimer(game, actions);
+  if (game.phase === "answering") startBombTimer(game, settings, actions);
 }
 
-function startBombTimer(game, actions) {
+function startBombTimer(game, settings, actions) {
   const guard = { phaseEndsAt:Number(game.phaseEndsAt || 0), explodesAt:Number(game.explodesAt || 0), activeUid:activeUid(game) };
   const tick = () => {
     const current = now();
-    const left = Math.max(0, Math.ceil((guard.phaseEndsAt - current) / 1000));
+    const responseLeft = Math.max(0, Math.ceil((guard.phaseEndsAt - current) / 1000));
+    const explosionLeft = Math.max(0, Math.ceil((guard.explodesAt - current) / 1000));
+    const visibleLeft = settings.showExplosionTime ? explosionLeft : responseLeft;
     const timer = $("#bomb-turn-timer");
     if (timer) {
-      timer.textContent = `${left}s`;
-      timer.parentElement?.classList.toggle("timer-urgent", left <= 5);
+      timer.textContent = settings.showExplosionTime ? `${visibleLeft}s` : "???";
+      timer.parentElement?.classList.toggle("timer-urgent", (settings.showExplosionTime ? visibleLeft : explosionLeft) <= 5);
     }
     tickBeat = (tickBeat + 1) % 2;
-    if (tickBeat && left > 0 && left <= 5) Audio.play("countdown");
-    if (left <= 0 || current >= guard.explodesAt) {
+    const tickLimit = settings.showExplosionTime ? visibleLeft : explosionLeft;
+    if (tickBeat && tickLimit > 0 && tickLimit <= 5) Audio.play("countdown");
+    if (responseLeft <= 0 || current >= guard.explodesAt) {
       stopBombTimer();
       actions.bombTimeout?.(guard);
     }
