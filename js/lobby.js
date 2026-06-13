@@ -19,7 +19,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
     : onlineBackend
       ? '<section class="online-note">Tryb online aktywny. Pokoje są synchronizowane między urządzeniami.</section>'
       : '<section class="warning">Nie udało się połączyć z trybem online. Odśwież stronę i spróbuj ponownie.</section>';
-  root.innerHTML = `<main class="page enter">
+  root.innerHTML = `<main class="page lobby-page enter">
     <section class="mode-hero panel">
       <div class="game-symbol game-symbol-${mode.art}">${mode.symbol}</div>
       <div><p class="eyebrow">WYBRANY TRYB</p><h1>${mode.name}</h1><p class="muted">${mode.description}</p><span class="players-count">${icon("users", 17)} ${mode.players}</span></div>

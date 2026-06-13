@@ -50,7 +50,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const canReport = Boolean(mode.allowReports);
   const inviteLink = actions.inviteLink?.(room) || "";
   room.viewerUid = currentUser;
-  root.innerHTML = `<main class="page enter">
+  root.innerHTML = `<main class="page room-page enter">
     <section class="panel room-header">
       <div><p class="eyebrow">${mode.symbol} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>

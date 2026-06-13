@@ -2,6 +2,7 @@ import { gamesList } from "./games.js?v=20260612-8";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260612-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260605-5";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260613-1";
 
 const filters = [
   ["all", "Wszystkie"],
@@ -30,18 +31,25 @@ function badgeTag(type) {
 }
 
 function gameCard(mode) {
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""}" data-mode-category="${modeCategory(mode)}">
+  const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-      <span>${mode.symbol}</span>
+      <span>${locked ? "???" : mode.symbol}</span>
+      ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
     </div>
     <div class="game-card-content">
       <div class="game-card-top">${categoryTag(mode)}${(mode.badges || []).map(badgeTag).join("")}</div>
       <h2>${mode.name}</h2>
       <p class="muted">${mode.description}</p>
-      <div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Zagraj</button></div>
+      ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}
+      <div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button></div>
     </div>
   </article>`;
+}
+
+function lockedModeTitle(mode, unlock) {
+  return `${mode.name} odblokuje sie ${unlock.label}`;
 }
 
 function visiblePoll() {

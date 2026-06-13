@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260604-2";
 import { Audio } from "./audio.js";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260611-2";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260613-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260612-2";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, voteWouldYouRather } from "./firebase.js?v=20260612-4";
@@ -19,14 +19,15 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260612-2";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260612-1";
-import { renderPlatform } from "./platform.js?v=20260612-4";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260613-1";
+import { renderPlatform } from "./platform.js?v=20260613-1";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260612-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260612-7";
+import { playerMini, renderRoom } from "./room.js?v=20260613-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260612-2";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-5";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260612-2";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260613-1";
 
 const root = $("#app");
 const accounts = loadAccounts();
@@ -467,8 +468,10 @@ async function handlePendingInvite() {
 function routeFromUrlIfNeeded() {
   if (state.pendingInviteRoom) { handlePendingInvite(); return true; }
   if (initialUrlRoute.mode && !state.activeRoomId) {
+    const mode = getGameMode(initialUrlRoute.mode);
+    if (isModeLocked(mode.id)) { setUrlRoute("", ""); message(lockedModeMessage(mode), "info"); Router.go("platform"); return true; }
     state.selectedGameMode = initialUrlRoute.mode; persistSession(); setModeUrl(state.selectedGameMode);
-    const mode = getGameMode(state.selectedGameMode), destination = mode.supportsSolo && !mode.supportsLobby ? "solo" : "lobby";
+    const destination = mode.supportsSolo && !mode.supportsLobby ? "solo" : "lobby";
     if (profile()) Router.go(destination);
     else if (!state.inviteAuthPrompted && !document.querySelector(".auth-modal")) { state.inviteAuthPrompted = true; state.afterLogin = destination; actions.openAuth({ title:`Zaloguj się, aby zagrać w ${mode.name}` }); }
     return true;
@@ -792,8 +795,9 @@ const actions = {
     actions.joinRoom(code,password);
   },
   async selectGame(gameMode) {
-    state.selectedGameMode = gameMode;persistSession();setModeUrl(gameMode);
     const mode=getGameMode(gameMode);
+    if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info");
+    state.selectedGameMode = gameMode;persistSession();setModeUrl(gameMode);
     if (mode.supportsSolo && !mode.supportsLobby) return withAdultWarning(mode,()=>Router.go("solo"),Boolean(mode.adult));
     if (!profile()) { state.afterLogin = "lobby"; return actions.openAuth({ title: `Zaloguj się, aby zagrać w ${getGameMode(gameMode).name}` }); }
     if(await guardBan(gameMode))return;
@@ -931,7 +935,7 @@ const actions = {
     context.drawImage(image,x,y,side,side,0,0,160,160);updateProfile({avatarImage:canvas.toDataURL("image/jpeg",.78)});message("Zdjęcie profilowe zapisane.","info");
   },
   removeAvatar(){updateProfile({avatarImage:""});message("Zdjęcie profilowe usunięte.","info");},
-  openCreateRoom() { const modal = createRoomModal(getGameMode(state.selectedGameMode), actions); document.body.append(modal); Audio.play("modalOpen"); },
+  openCreateRoom() { const mode = getGameMode(state.selectedGameMode); if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info"); const modal = createRoomModal(mode, actions); document.body.append(modal); Audio.play("modalOpen"); },
   closeModal(modal) { modal.remove(); Audio.play("modalClose"); },
   inviteLink(roomId = state.activeRoomId) { const room = typeof roomId === "object" ? roomId : state.rooms.find(item=>item.roomId===roomId) || activeRoom(); return room ? roomInviteLink(room) : ""; },
   async copyInviteLink(roomId = state.activeRoomId) {
@@ -950,6 +954,7 @@ const actions = {
   async createRoom({ name, password, settings, isPrivate }) {
     if(!ensureRoomSession()||!profile())return false;
     const now = Date.now(); const mode = getGameMode(state.selectedGameMode);
+    if(isModeLocked(mode.id)){message(lockedModeMessage(mode),"info");return false;}
     if(await guardBan(mode.id))return false;
     const room = { roomId: uid(), gameMode: mode.id, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
       isPrivate, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings, createdAt: now, updatedAt: now, game: null };
@@ -963,6 +968,7 @@ const actions = {
     if(!code)return fail("Nie można dołączyć do tego pokoju.");
     const resolved=await resolveRoomForJoin(code); if(!resolved.ok)return fail(resolved.missing?"Ten pokój nie istnieje.":"Nie można dołączyć do tego pokoju.");
     const room = resolved.room, mode = getGameMode(room.gameMode), alreadyInRoom = room.players.includes(state.currentUser);
+    if(isModeLocked(mode.id))return fail(lockedModeMessage(mode));
     if(options.inviteMode && room.gameMode !== options.inviteMode)return fail("Ten link prowadzi do innego trybu gry.");
     if(room.deleted || room.closed || room.status === "closed")return fail("Ten pokój został zamknięty.");
     if(!alreadyInRoom && room.status !== "lobby")return fail(room.status === "playing" || room.game ? "Gra w tym pokoju już trwa." : "Ten link jest nieaktualny.");
