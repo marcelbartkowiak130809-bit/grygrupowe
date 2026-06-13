@@ -84,10 +84,17 @@ function sharePanelHtml() {
         <button class="ghost" type="button" id="copy-site-link">${icon("copy", 17)} Kopiuj link</button>
       </div>
     </div>
-    <div class="share-qr-card">
+    <div class="share-qr-card" id="copy-site-qr" role="button" tabindex="0" title="Kliknij, aby skopiowac QR jako obraz">
       <img src="./assets/images/site-qr.png?v=20260613-1" alt="Kod QR do strony gry">
     </div>
   </section>`;
+}
+
+async function copyQrImageToClipboard(fallbackUrl) {
+  if (!navigator.clipboard || typeof ClipboardItem === "undefined") throw new Error("image clipboard unsupported");
+  const response = await fetch("./assets/images/site-qr.png?v=20260613-1");
+  const blob = await response.blob();
+  await navigator.clipboard.write([new ClipboardItem({ [blob.type || "image/png"]: blob })]);
 }
 
 async function openPollModal(context = {}, actions) {
@@ -170,6 +177,15 @@ export async function renderPlatform(root, actions, context = {}) {
       else await navigator.clipboard?.writeText(url);
       actions.playSound?.("success");
     } catch {}
+  });
+  const copyQr = async () => {
+    try { await copyQrImageToClipboard(shareUrl()); }
+    catch { try { await navigator.clipboard?.writeText(shareUrl()); } catch {} }
+    actions.playSound?.("success");
+  };
+  root.querySelector("#copy-site-qr")?.addEventListener("click", copyQr);
+  root.querySelector("#copy-site-qr")?.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); copyQr(); }
   });
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");

@@ -20,7 +20,7 @@ import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ran
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260612-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260613-1";
-import { renderPlatform } from "./platform.js?v=20260613-3";
+import { renderPlatform } from "./platform.js?v=20260613-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260612-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260613-1";
@@ -1197,6 +1197,7 @@ function render(options = {}) {
     return result;
   };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
+  view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")}`;
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
