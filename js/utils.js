@@ -95,11 +95,13 @@ export function uid(prefix = "") {
 const icons = {
   audio: '<path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 9.5a4 4 0 0 1 0 5"/><path d="M17.5 7a7 7 0 0 1 0 10"/>',
   crown: '<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7Z"/><path d="M5 20h14"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   lock: '<rect width="16" height="12" x="4" y="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   logout: '<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 19V5a2 2 0 0 0-2-2h-6"/>',
   play: '<path d="m5 3 14 9-14 9V3Z"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
   shop: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
   scroll: '<path d="M8 21h10a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h9"/><path d="M8 21a3 3 0 0 1 0-6h1"/><path d="M18 9a3 3 0 0 0 0-6H7a3 3 0 0 0-3 3v12"/><path d="M7 3a3 3 0 0 1 0 6"/>',
   sparkles: '<path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9Z"/><path d="m5 18-.7 1.3L3 20l1.3.7L5 22l.7-1.3L7 20l-1.3-.7Z"/><path d="m19 16-.7 1.3L17 18l1.3.7L19 20l.7-1.3L21 18l-1.3-.7Z"/>',

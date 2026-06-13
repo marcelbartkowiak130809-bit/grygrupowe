@@ -1,7 +1,7 @@
 import { gamesList } from "./games.js?v=20260612-8";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260612-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
-import { escapeHtml, icon } from "./utils.js?v=20260605-5";
+import { escapeHtml, icon } from "./utils.js?v=20260613-1";
 import { modeUnlockInfo } from "./upcomingModes.js?v=20260613-1";
 
 const filters = [
@@ -73,6 +73,23 @@ function pollPanelHtml(context = {}, stateOverride = null) {
   </section>`;
 }
 
+function sharePanelHtml() {
+  return `<section class="platform-share-panel">
+    <div class="share-copy">
+      <p class="eyebrow">UDOSTEPNIJ STRONE</p>
+      <h2>Pokaz ekipie QR i grajcie od razu</h2>
+      <p class="muted">Kod prowadzi prosto na strone gry. Dobry na Discorda, telefon albo szybkie zaproszenie przy stole.</p>
+      <div class="share-actions">
+        <button class="primary" type="button" id="share-site-link">${icon("share", 17)} Udostepnij</button>
+        <button class="ghost" type="button" id="copy-site-link">${icon("copy", 17)} Kopiuj link</button>
+      </div>
+    </div>
+    <div class="share-qr-card">
+      <img src="./assets/images/site-qr.png?v=20260613-1" alt="Kod QR do strony gry">
+    </div>
+  </section>`;
+}
+
 async function openPollModal(context = {}, actions) {
   const poll = visiblePoll(), state = await pollStateOnline(poll, context.voterId || "anonymous"), modal = document.createElement("div");
   modal.className = "modal-backdrop";
@@ -113,6 +130,7 @@ export async function renderPlatform(root, actions, context = {}) {
       <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
     </section>
     ${pollPanelHtml(context, currentPollState)}
+    ${sharePanelHtml()}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
@@ -133,9 +151,25 @@ export async function renderPlatform(root, actions, context = {}) {
     root.querySelectorAll("[data-mode-category]").forEach(card => card.classList.toggle("hidden-game-card", filter !== "all" && card.dataset.modeCategory !== filter));
   }));
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
+    const button = card.querySelector("[data-play-mode]");
+    if (button) actions.selectGame(button.dataset.playMode);
+  }));
   root.querySelector("#platform-join-form").addEventListener("submit", event => {
     event.preventDefault();
     actions.joinByCode(root.querySelector("#platform-room-code").value, root.querySelector("#platform-room-pass").value);
+  });
+  const shareUrl = () => window.location.origin + window.location.pathname;
+  root.querySelector("#copy-site-link")?.addEventListener("click", async () => {
+    try { await navigator.clipboard?.writeText(shareUrl()); actions.playSound?.("success"); } catch {}
+  });
+  root.querySelector("#share-site-link")?.addEventListener("click", async () => {
+    const url = shareUrl();
+    try {
+      if (navigator.share) await navigator.share({ title: "Udowodnij! - Gry dla znajomych", text: "Wbijaj do gry dla ekipy.", url });
+      else await navigator.clipboard?.writeText(url);
+      actions.playSound?.("success");
+    } catch {}
   });
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");

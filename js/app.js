@@ -20,12 +20,12 @@ import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ran
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260612-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260613-1";
-import { renderPlatform } from "./platform.js?v=20260613-1";
+import { renderPlatform } from "./platform.js?v=20260613-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260612-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260613-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260612-2";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260605-5";
+import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260613-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260612-2";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260613-1";
 
