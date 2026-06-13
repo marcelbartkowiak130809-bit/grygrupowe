@@ -181,6 +181,18 @@ const questList = now => {
   ];
 };
 
+const pickQuestSet = (items, key, count = 3) => [...items]
+  .sort((a, b) => hashSeed(`${key}:${a.id}`) - hashSeed(`${key}:${b.id}`))
+  .slice(0, count);
+
+const activeQuestList = now => {
+  const quests = questList(now), d = dayKey(now), w = weekKey(now);
+  return [
+    ...pickQuestSet(quests.filter(quest => quest.period === "daily"), d, 3),
+    ...pickQuestSet(quests.filter(quest => quest.period === "weekly"), w, 3),
+  ];
+};
+
 function questValue(stats, quest) {
   const box = stats[quest.period] || blankStats("");
   if (quest.metric === "mode") return Number(box.modes?.[quest.mode]) || 0;
@@ -231,7 +243,7 @@ export function noteQuestEvent(profile = {}, event = {}, now = Date.now()) {
 
 export function completedQuestRewards(profile = {}, now = Date.now()) {
   const stats = normalizeQuestStats(profile, now), claimed = profile.claimedQuestRewards || {};
-  return questList(now).filter(quest => !claimed[quest.id] && questValue(stats, quest) >= quest.target);
+  return activeQuestList(now).filter(quest => !claimed[quest.id] && questValue(stats, quest) >= quest.target);
 }
 
 export function claimCompletedQuestRewards(profile = {}, now = Date.now()) {
@@ -315,12 +327,11 @@ const rewardPreviewProfile = { nick:"Gracz" };
 
 export function progressionModal(profile = {}, closeAction, claimAction) {
   const progress = levelProgress(profile), modal = document.createElement("div");
-  const stats = normalizeQuestStats(profile), quests = questList(Date.now()), completed = completedQuestRewards(profile), daily = quests.filter(q => q.period === "daily"), weekly = quests.filter(q => q.period === "weekly");
+  const stats = normalizeQuestStats(profile), quests = activeQuestList(Date.now()), completed = completedQuestRewards(profile), daily = quests.filter(q => q.period === "daily"), weekly = quests.filter(q => q.period === "weekly");
   const rerolls = Array.isArray(profile.lastLevelRerolls) ? profile.lastLevelRerolls : [];
   const rerollHtml = rerolls.length ? `<section class="level-reroll-card"><p class="eyebrow">DUPLIKAT ZAMIENIONY</p><div class="level-reroll-strip">${rerolls.map(entry => {
     const won = cosmetics.find(item => item.id === entry.to), from = cosmetics.find(item => item.id === entry.from);
-    const filler = cosmetics.filter(item => item.rarity === entry.rarity && item.price > 0).slice(0, 6);
-    return `<article><div class="level-reroll-track">${filler.map(item => `<span>${item.name}</span>`).join("")}<b>${won?.name || "Nowy kosmetyk"}</b></div><small>${from?.name || "Duplikat"} -> ${won?.name || "nowy kosmetyk"}</small></article>`;
+    return `<article><div class="level-reroll-track"><span>${from?.name || "Duplikat"}</span><b>${won?.name || "Nowy kosmetyk"}</b></div><small>${from?.name || "Duplikat"} -> ${won?.name || "nowy kosmetyk"}</small></article>`;
   }).join("")}</div></section>` : "";
   modal.className = "modal-backdrop";
   modal.innerHTML = `<section class="modal progression-modal enter" role="dialog" aria-modal="true" aria-labelledby="progression-title">
