@@ -10,6 +10,17 @@ const countdownMs = 5000;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
+const clockSkin = profile => profile?.selectedClockSkin || "defaultClock";
+
+function clockFaceHtml(profile, extraClass = "") {
+  return `<div class="clock-face clock-skin-${clockSkin(profile)} ${extraClass}">
+    <span class="clock-glow"></span><i class="clock-hand hour"></i><i class="clock-hand minute"></i><i class="clock-hand second"></i><b></b>
+  </div>`;
+}
+
+function miniClockHtml(profile) {
+  return `<span class="mini-clock-skin clock-skin-${clockSkin(profile)}"><i></i><b></b></span>`;
+}
 
 export const clockDefaults = {
   rounds:8,
@@ -141,9 +152,7 @@ function runningStage(room, accounts, currentUser, game) {
   return `<section class="clock-stage">
     <div class="clock-head"><div><p class="eyebrow">RUNDA ${Number(game.round) || 1}</p><h1>Znajdz ${Math.round(Number(game.targetMs || 0) / 1000)} sekund</h1></div><div class="clock-done">${done}/${room.players.length}</div></div>
     <div class="clock-table">
-      <div class="clock-face ${stopped ? "clock-stopped" : ""}">
-        <span class="clock-glow"></span><i class="clock-hand hour"></i><i class="clock-hand minute"></i><i class="clock-hand second"></i><b></b>
-      </div>
+      ${clockFaceHtml(accounts[currentUser], stopped ? "clock-stopped" : "")}
       <div class="clock-side">
         <p class="eyebrow">TWOJ ZEGAR</p>
         ${playerMiniHtml(accounts[currentUser])}
@@ -154,14 +163,12 @@ function runningStage(room, accounts, currentUser, game) {
   </section>`;
 }
 
-function countdownStage(room, accounts, game) {
+function countdownStage(room, accounts, currentUser, game) {
   const left = Math.max(0, Math.ceil((Number(game.countdownEndsAt || now()) - now()) / 1000));
   return `<section class="clock-stage">
     <div class="clock-head"><div><p class="eyebrow">RUNDA ${Number(game.round) || 1}</p><h1>Znajdz ${Math.round(Number(game.targetMs || 0) / 1000)} sekund</h1></div><div class="clock-done" id="clock-countdown">${left}</div></div>
     <div class="clock-table">
-      <div class="clock-face clock-stopped">
-        <span class="clock-glow"></span><i class="clock-hand hour"></i><i class="clock-hand minute"></i><i class="clock-hand second"></i><b></b>
-      </div>
+      ${clockFaceHtml(accounts[currentUser], "clock-stopped")}
       <div class="clock-side">
         <p class="eyebrow">START ZA CHWILE</p>
         <h3>Przeczytaj cel i przygotuj STOP.</h3>
@@ -182,7 +189,7 @@ function resultStage(room, accounts, game) {
       ${arrayOrEmpty(game.ranking).map((row, index) => {
         const pct = Math.max(0, Math.min(100, Number(row.elapsedMs || 0) / maxMs * 100));
         return `<article class="${index === 0 ? "closest" : ""}" style="--pos:${pct};--delay:${index}">
-          <span></span>${playerMiniHtml(accounts[row.uid])}<strong>${secondsText(row.elapsedMs)}</strong><small>roznica ${secondsText(row.differenceMs)} ${row.points ? "+1 pkt" : ""}</small>
+          <span></span><div class="clock-axis-player">${miniClockHtml(accounts[row.uid])}${playerMiniHtml(accounts[row.uid])}</div><strong>${secondsText(row.elapsedMs)}</strong><small>roznica ${secondsText(row.differenceMs)} ${row.points ? "+1 pkt" : ""}</small>
         </article>`;
       }).join("")}
     </div>
@@ -201,7 +208,7 @@ function summaryStage(room, accounts, game) {
 export function renderClockGame(root, { room, accounts, currentUser }, actions) {
   stopClockTimer();
   const game = normalize(room.game, room.players);
-  const stage = game.phase === "countdown" ? countdownStage(room, accounts, game) : game.phase === "running" ? runningStage(room, accounts, currentUser, game) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
+  const stage = game.phase === "countdown" ? countdownStage(room, accounts, currentUser, game) : game.phase === "running" ? runningStage(room, accounts, currentUser, game) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
   root.innerHTML = `<main class="page clock-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
   $("#clock-stop")?.addEventListener("click", () => actions.clockStop({ startedAt:game.startedAt }));

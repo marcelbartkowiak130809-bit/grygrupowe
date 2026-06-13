@@ -13,6 +13,19 @@ export const cosmetics = [
   item("diamondBomb","bomb","Diamentowa bomba",6800,"legendary","Niebieskawy wybuch i odlatujace krysztalowe odlamki."),
   item("emeraldBomb","bomb","Szmaragdowy rdzen",6800,"legendary","Zielony krystaliczny wybuch z ostrymi drobinami."),
   item("rubyBomb","bomb","Rubinowa bomba",7200,"mythic","Czerwony mityczny rozblysk z rubinowymi odlamkami."),
+  item("defaultClock","clock","Klasyczny zegar",0,"common","Domyslny zegar do trybu ZEGAR."),
+  item("mintClock","clock","Mietowy zegar",700,"common","Jasna mietowa tarcza zegara."),
+  item("blueClock","clock","Niebieski zegar",850,"common","Chlodny niebieski zegar z czysta tarcza."),
+  item("roseClock","clock","Rozowy zegar",900,"common","Rozowo-fioletowa tarcza w lekkim stylu neonowym."),
+  item("amberClock","clock","Bursztynowy zegar",950,"common","Cieply zolto-pomaranczowy zegar."),
+  item("violetClock","clock","Fioletowy zegar",1400,"rare","Gleboka fioletowa tarcza z miekkim blaskiem."),
+  item("limeClock","clock","Limonkowy zegar",1500,"rare","Zielony neonowy zegar do szybkich rund."),
+  item("neonClock","clock","Neonowy zegar",2200,"rare","Cyjanowo-rozowy zegar z mocniejsza poswiata."),
+  item("cyberClock","clock","Cyber zegar",3200,"epic","Ciemna tarcza i elektryczny ring."),
+  item("prismClock","clock","Pryzmatyczny zegar",3600,"epic","Kolorowa tarcza z pryzmatycznym polyskiem."),
+  item("auroraClock","clock","Zegar zorzy",5200,"legendary","Zegar z plynaca aura zorzy wokol tarczy."),
+  item("flameClock","clock","Plonacy zegar",5800,"legendary","Rozgrzana tarcza z plomieniami na obrzezu."),
+  item("voidClock","clock","Zegar pustki",6900,"mythic","Ciemny zegar z mityczna aura pustki."),
   item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
   item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
@@ -249,6 +262,13 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
       <div class="shop-bomb bomb-skin-${item.id}"><span></span><b></b></div>
       <span class="nick">${escapeAttr(item.name)}</span>
       ${options.hideType ? "" : '<small class="preview-type">BOMBA</small>'}
+    </div>`;
+  }
+  if (item.type === "clock") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-clock">
+      <div class="shop-clock clock-skin-${item.id}"><i></i><b></b></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">ZEGAR</small>'}
     </div>`;
   }
   if (item.type === "candy") {

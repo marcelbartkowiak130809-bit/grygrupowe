@@ -10,7 +10,7 @@ import { bombDefaults, renderBombGame } from "./bomb.js?v=20260612-6";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
-import { clockDefaults, renderClockGame } from "./clock.js?v=20260612-2";
+import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -158,11 +158,11 @@ export const gamesRegistry = {
     description: "Podawajcie odpowiedzi po kolei, zanim ukryty timer wysadzi bombe na stole.",
     help: ["Host wybiera rundy, punkty, czas odpowiedzi i minimum trzy kategorie.", "Gra losuje kategorie, a gracze po kolei wpisuja odpowiedzi.", "Nie wolno powtarzac odpowiedzi ani oddawac pustej tury.", "Po wybuchu gracz z bomba przegrywa runde, a pozostali dostaja punkty."],
     allowReports: true,
-    players: "2-8 osob",
-    minPlayers: 2,
+    players: "1-8 osob",
+    minPlayers: 1,
     maxPlayers: 8,
     supportsLobby: true,
-    supportsSolo: false,
+    supportsSolo: true,
     symbol: "💣",
     art: "bomb",
     audience: "crew",

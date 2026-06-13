@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260612-8";
+import { gamesList } from "./games.js?v=20260613-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260612-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
@@ -39,7 +39,7 @@ function gameCard(mode) {
       ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
     </div>
     <div class="game-card-content">
-      <div class="game-card-top">${categoryTag(mode)}${(mode.badges || []).map(badgeTag).join("")}</div>
+      <div class="game-card-top">${categoryTag(mode)}${mode.supportsSolo && mode.supportsLobby ? '<span class="tag game-badge game-badge-solo">Tryb solo</span>' : ""}${(mode.badges || []).map(badgeTag).join("")}</div>
       <h2>${mode.name}</h2>
       <p class="muted">${mode.description}</p>
       ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}

@@ -1,22 +1,28 @@
-import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260612-2";
+import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260613-1";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
 export const trophyRoad = [
   reward(2, "money", 100, "100 coinow"), reward(3, "cosmetic", "blueNick", "Niebieski nick"), reward(4, "money", 150, "150 coinow"),
-  reward(6, "cosmetic", "levelBronzeFrame", "Ramka Weterana"), reward(8, "cosmetic", "sparkAura", "Male iskry"), reward(10, "cosmetic", "levelVioletNick", "Nick Awansu"),
-  reward(12, "money", 350, "350 coinow"), reward(14, "cosmetic", "levelImpTailFrame", "Ogon za level"), reward(15, "cosmetic", "goldFrame", "Zlota ramka"),
-  reward(18, "cosmetic", "levelBlazeFrame", "Ramka Zaru"), reward(20, "cosmetic", "levelQuestAura", "Aura Questow"), reward(22, "money", 650, "650 coinow"),
-  reward(26, "cosmetic", "levelCometAura", "Aura Komety"), reward(30, "cosmetic", "rainbowNick", "Rainbow nick"), reward(32, "cosmetic", "royalIdle", "Idle: royal hover"),
-  reward(35, "cosmetic", "levelChampionNick", "Nick Czempiona"), reward(38, "cosmetic", "levelChampionWin", "Wygrana Czempiona"), reward(40, "money", 1400, "1400 coinow"),
-  reward(42, "cosmetic", "levelShatterLose", "Porazka Shatter"), reward(45, "cosmetic", "levelPrismFrame", "Pryzmatyczna ramka"), reward(50, "cosmetic", "divineNick", "Boski nick"),
-  reward(55, "cosmetic", "levelDemonFrame", "Rogi Arcymistrza"), reward(60, "cosmetic", "levelNovaAura", "Aura Supernowej"), reward(70, "cosmetic", "winAscend", "Wygrana: ascend"),
-  reward(80, "cosmetic", "levelVoidLose", "Void porazki"), reward(90, "cosmetic", "levelHaloAura", "Aureola Legendy"),
+  reward(5, "cosmetic", "defaultCandy", "Mietowka"), reward(6, "cosmetic", "levelBronzeFrame", "Ramka Weterana"), reward(8, "cosmetic", "sparkAura", "Male iskry"),
+  reward(10, "cosmetic", "levelVioletNick", "Nick Awansu"), reward(12, "money", 350, "350 coinow"), reward(14, "cosmetic", "levelImpTailFrame", "Ogon za level"),
+  reward(15, "cosmetic", "goldFrame", "Zlota ramka"), reward(17, "money", 500, "500 coinow"), reward(18, "cosmetic", "levelBlazeFrame", "Ramka Zaru"),
+  reward(20, "cosmetic", "levelQuestAura", "Aura Questow"), reward(22, "money", 650, "650 coinow"), reward(24, "cosmetic", "mintBomb", "Mietowy ladunek"),
+  reward(26, "cosmetic", "levelCometAura", "Aura Komety"), reward(28, "cosmetic", "mintClock", "Mietowy zegar"), reward(30, "cosmetic", "rainbowNick", "Rainbow nick"),
+  reward(32, "cosmetic", "royalIdle", "Idle: royal hover"), reward(34, "money", 1000, "1000 coinow"), reward(35, "cosmetic", "levelChampionNick", "Nick Czempiona"),
+  reward(38, "cosmetic", "levelChampionWin", "Wygrana Czempiona"), reward(40, "money", 1400, "1400 coinow"), reward(42, "cosmetic", "levelShatterLose", "Porazka Shatter"),
+  reward(45, "cosmetic", "levelPrismFrame", "Pryzmatyczna ramka"), reward(48, "cosmetic", "chocoCandy", "Czekoladka"), reward(50, "cosmetic", "divineNick", "Boski nick"),
+  reward(55, "cosmetic", "levelDemonFrame", "Rogi Arcymistrza"), reward(58, "money", 2200, "2200 coinow"), reward(60, "cosmetic", "levelNovaAura", "Aura Supernowej"),
+  reward(65, "cosmetic", "neonClock", "Neonowy zegar"), reward(70, "cosmetic", "winAscend", "Wygrana: ascend"), reward(75, "cosmetic", "fizzyCandy", "Kwasna rolka"),
+  reward(80, "cosmetic", "levelVoidLose", "Void porazki"), reward(85, "cosmetic", "neonBomb", "Neon core"), reward(90, "money", 4200, "4200 coinow"),
+  reward(100, "cosmetic", "auroraClock", "Zegar zorzy"), reward(110, "cosmetic", "lavaBomb", "Lava shell"), reward(120, "cosmetic", "levelHaloAura", "Aureola Legendy"),
+  reward(135, "money", 9000, "9000 coinow"), reward(150, "cosmetic", "divineAura", "Boska aura"),
 ];
 
 const modeLabels = {
   all:"Wszystkie tryby", udowodnij:"Udowodnij", impostor:"Impostor", "kim-jestem":"Kim jestem", "inne-pytanie":"Inne pytanie",
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
+  bomba:"Bomba", "najblizej-prawdy":"Najblizej Prawdy", ranking:"Ranking", "5-sekund":"5 Sekund", zegar:"Zegar",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
 
@@ -31,7 +37,7 @@ export function profileXp(profile = {}) {
 
 export function levelForXp(xp = 0) {
   let level = 1;
-  while (level < 100 && Number(xp) >= xpForLevel(level + 1)) level += 1;
+  while (level < 150 && Number(xp) >= xpForLevel(level + 1)) level += 1;
   return level;
 }
 
@@ -65,15 +71,15 @@ const weekKey = now => {
   const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - day);
   return `${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`;
 };
-const blankStats = key => ({ key, modes:{}, wins:{}, bought:0, spent:0 });
+const blankStats = key => ({ key, modes:{}, wins:{}, streak:0, bestStreak:0, modeStreaks:{}, clockUnder10:0, bought:0, spent:0 });
 const blankGameStats = () => ({ played:0, wins:0, losses:0, modes:{} });
 const modeStats = stats => ({ played:0, wins:0, losses:0, ...stats });
 
 function normalizeQuestStats(profile = {}, now = Date.now()) {
   const stats = profile.questStats || {}, dailyKey = dayKey(now), weeklyKey = weekKey(now);
   return {
-    daily: stats.daily?.key === dailyKey ? { ...blankStats(dailyKey), ...stats.daily, modes:{ ...(stats.daily.modes || {}) }, wins:{ ...(stats.daily.wins || {}) } } : blankStats(dailyKey),
-    weekly: stats.weekly?.key === weeklyKey ? { ...blankStats(weeklyKey), ...stats.weekly, modes:{ ...(stats.weekly.modes || {}) }, wins:{ ...(stats.weekly.wins || {}) } } : blankStats(weeklyKey),
+    daily: stats.daily?.key === dailyKey ? { ...blankStats(dailyKey), ...stats.daily, modes:{ ...(stats.daily.modes || {}) }, wins:{ ...(stats.daily.wins || {}) }, modeStreaks:{ ...(stats.daily.modeStreaks || {}) } } : blankStats(dailyKey),
+    weekly: stats.weekly?.key === weeklyKey ? { ...blankStats(weeklyKey), ...stats.weekly, modes:{ ...(stats.weekly.modes || {}) }, wins:{ ...(stats.weekly.wins || {}) }, modeStreaks:{ ...(stats.weekly.modeStreaks || {}) } } : blankStats(weeklyKey),
   };
 }
 
@@ -83,15 +89,95 @@ function normalizeGameStats(profile = {}) {
   return base;
 }
 
+function hashSeed(text) {
+  let hash = 2166136261;
+  for (const char of String(text)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); }
+  return hash >>> 0;
+}
+
+function pickWeighted(seed, table) {
+  const total = table.reduce((sum, item) => sum + item.weight, 0), roll = hashSeed(seed) % total;
+  let cursor = 0;
+  return table.find(item => (cursor += item.weight) > roll)?.reward || table[0].reward;
+}
+
+function cosmeticReward(seed, rarities) {
+  const pool = cosmetics.filter(item => item.price > 0 && !item.exclusive && rarities.includes(item.rarity));
+  const item = pool[hashSeed(seed) % Math.max(1, pool.length)];
+  return item ? { type:"cosmetic", value:item.id, rarity:item.rarity } : { type:"money", value:300 };
+}
+
+function questReward(seed, period, difficulty) {
+  const daily = {
+    easy:[
+      { weight:94, reward:{ type:"money", value:160 + hashSeed(`${seed}:m`) % 120 } },
+      { weight:3, reward:cosmeticReward(seed, ["common"]) },
+      { weight:3, reward:{ type:"levelPercent", value:.5 } },
+    ],
+    medium:[
+      { weight:76, reward:{ type:"money", value:260 + hashSeed(`${seed}:m`) % 220 } },
+      { weight:9, reward:cosmeticReward(seed, ["common"]) },
+      { weight:10, reward:{ type:"levelPercent", value:.5 } },
+      { weight:5, reward:{ type:"money", value:650 } },
+    ],
+    hard:[
+      { weight:62, reward:{ type:"money", value:520 + hashSeed(`${seed}:m`) % 420 } },
+      { weight:12, reward:cosmeticReward(seed, ["common", "rare"]) },
+      { weight:18, reward:{ type:"levelPercent", value:.5 } },
+      { weight:8, reward:{ type:"money", value:1100 } },
+    ],
+  };
+  const weekly = {
+    easy:[
+      { weight:70, reward:{ type:"money", value:900 + hashSeed(`${seed}:m`) % 700 } },
+      { weight:18, reward:{ type:"levelPercent", value:.5 } },
+      { weight:10, reward:cosmeticReward(seed, ["rare"]) },
+      { weight:2, reward:{ type:"level", value:1 } },
+    ],
+    medium:[
+      { weight:52, reward:{ type:"money", value:1700 + hashSeed(`${seed}:m`) % 1400 } },
+      { weight:20, reward:{ type:"levelPercent", value:.5 } },
+      { weight:16, reward:cosmeticReward(seed, ["rare", "epic"]) },
+      { weight:10, reward:{ type:"level", value:1 } },
+      { weight:2, reward:cosmeticReward(seed, ["legendary"]) },
+    ],
+    hard:[
+      { weight:38, reward:{ type:"money", value:3200 + hashSeed(`${seed}:m`) % 2800 } },
+      { weight:18, reward:{ type:"levelPercent", value:.5 } },
+      { weight:18, reward:cosmeticReward(seed, ["epic"]) },
+      { weight:18, reward:{ type:"level", value:1 } },
+      { weight:5, reward:cosmeticReward(seed, ["legendary"]) },
+      { weight:3, reward:{ type:"level", value:2 } },
+    ],
+  };
+  return pickWeighted(seed, (period === "weekly" ? weekly : daily)[difficulty]);
+}
+
+const q = (id, period, title, target, metric, image, difficulty, extra = {}) => ({
+  id, period, title, target, metric, image, ...extra, reward:questReward(id, period, difficulty),
+});
+
 const questList = now => {
   const d = dayKey(now), w = weekKey(now);
   return [
-    { id:`daily-play-impostor-${d}`, period:"daily", title:"Zagraj w Impostora", target:1, metric:"mode", mode:"impostor", reward:{ type:"money", value:180 }, image:"$" },
-    { id:`daily-win-any-${d}`, period:"daily", title:"Wygraj 1 gre", target:1, metric:"anyWin", reward:{ type:"money", value:300 }, image:"WIN" },
-    { id:`daily-buy-${d}`, period:"daily", title:"Kup 1 kosmetyk", target:1, metric:"bought", reward:{ type:"money", value:220 }, image:"+" },
-    { id:`weekly-identity-${w}`, period:"weekly", title:"Zagraj 3 razy w Kim jestem", target:3, metric:"mode", mode:"kim-jestem", reward:{ type:"levelPercent", value:.5 }, image:"0.5" },
-    { id:`weekly-win-3-${w}`, period:"weekly", title:"Wygraj 3 gry", target:3, metric:"anyWin", reward:{ type:"level", value:1 }, image:"LVL" },
-    { id:`weekly-spend-${w}`, period:"weekly", title:"Wydaj 2500 coinow", target:2500, metric:"spent", reward:{ type:"money", value:3000 }, image:"$$" },
+    q(`daily-play-bomb-${d}`,"daily","Zagraj w tryb Bomba",1,"mode","BOMB","easy",{mode:"bomba"}),
+    q(`daily-play-clock-${d}`,"daily","Zagraj w Zegar",2,"mode","TIME","easy",{mode:"zegar"}),
+    q(`daily-win-new-${d}`,"daily","Wygraj gre w nowym trybie",1,"newModeWin","WIN","medium"),
+    q(`daily-win-2-any-${d}`,"daily","Wygraj 2 gry",2,"anyWin","2W","medium"),
+    q(`daily-play-5-any-${d}`,"daily","Zagraj 5 gier lacznie",5,"anyMode","PLAY","hard"),
+    q(`daily-win-bomb-${d}`,"daily","Wygraj gre w Bombie",1,"winMode","BOOM","medium",{mode:"bomba"}),
+    q(`daily-clock-precision-${d}`,"daily","Zatrzymaj Zegar z roznica ponizej 0.01 s",1,"clockUnder10","0.01","hard"),
+    q(`daily-buy-${d}`,"daily","Kup 1 kosmetyk",1,"bought","+","easy"),
+    q(`weekly-win-bomb-2-${w}`,"weekly","Wygraj 2 gry w Bombie",2,"winMode","B2","easy",{mode:"bomba"}),
+    q(`weekly-play-clock-4-${w}`,"weekly","Zagraj 4 gry w Zegar",4,"mode","TIME","easy",{mode:"zegar"}),
+    q(`weekly-win-five-5-${w}`,"weekly","Wygraj 5 gier w 5 Sekund",5,"winMode","5W","medium",{mode:"5-sekund"}),
+    q(`weekly-play-truth-7-${w}`,"weekly","Zagraj 7 gier w Najblizej Prawdy",7,"mode","NUM","medium",{mode:"najblizej-prawdy"}),
+    q(`weekly-ranking-5-${w}`,"weekly","Wygraj 5 gier w Rankingu",5,"winMode","RANK","medium",{mode:"ranking"}),
+    q(`weekly-win-streak-5-${w}`,"weekly","Wygraj 5 razy pod rzad",5,"bestStreak","STK","hard"),
+    q(`weekly-bomb-streak-3-${w}`,"weekly","Wygraj 3 razy pod rzad w Bombie",3,"modeStreak","B3","hard",{mode:"bomba"}),
+    q(`weekly-win-15-any-${w}`,"weekly","Wygraj 15 gier lacznie",15,"anyWin","15W","hard"),
+    q(`weekly-play-15-any-${w}`,"weekly","Zagraj 15 gier lacznie",15,"anyMode","15","medium"),
+    q(`weekly-spend-${w}`,"weekly","Wydaj 2500 coinow",2500,"spent","$$","medium"),
   ];
 };
 
@@ -101,12 +187,17 @@ function questValue(stats, quest) {
   if (quest.metric === "anyMode") return Object.values(box.modes || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
   if (quest.metric === "winMode") return Number(box.wins?.[quest.mode]) || 0;
   if (quest.metric === "anyWin") return Object.values(box.wins || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
+  if (quest.metric === "newModeWin") return ["bomba","najblizej-prawdy","ranking","5-sekund","zegar"].reduce((sum, mode) => sum + (Number(box.wins?.[mode]) || 0), 0);
+  if (quest.metric === "bestStreak") return Number(box.bestStreak) || 0;
+  if (quest.metric === "modeStreak") return Number(box.modeStreaks?.[quest.mode]) || 0;
+  if (quest.metric === "clockUnder10") return Number(box.clockUnder10) || 0;
   return Number(box[quest.metric]) || 0;
 }
 
 function questRewardLabel(quest) {
   if (quest.reward.type === "money") return `${quest.reward.value} coinow`;
   if (quest.reward.type === "level") return `+${quest.reward.value} level`;
+  if (quest.reward.type === "cosmetic") return cosmetics.find(item => item.id === quest.reward.value)?.name || "kosmetyk";
   return `+${quest.reward.value} levela`;
 }
 
@@ -115,7 +206,16 @@ export function noteQuestEvent(profile = {}, event = {}, now = Date.now()) {
   ["daily", "weekly"].forEach(period => {
     if (event.type === "mode" && event.mode) {
       questStats[period].modes[event.mode] = (Number(questStats[period].modes[event.mode]) || 0) + 1;
-      if (event.result === "win") questStats[period].wins[event.mode] = (Number(questStats[period].wins[event.mode]) || 0) + 1;
+      if (event.result === "win") {
+        questStats[period].wins[event.mode] = (Number(questStats[period].wins[event.mode]) || 0) + 1;
+        questStats[period].streak = (Number(questStats[period].streak) || 0) + 1;
+        questStats[period].bestStreak = Math.max(Number(questStats[period].bestStreak) || 0, questStats[period].streak);
+        questStats[period].modeStreaks[event.mode] = (Number(questStats[period].modeStreaks?.[event.mode]) || 0) + 1;
+      } else {
+        questStats[period].streak = 0;
+        questStats[period].modeStreaks[event.mode] = 0;
+      }
+      if (event.mode === "zegar" && Number(event.clockDifferenceMs) <= 10) questStats[period].clockUnder10 = (Number(questStats[period].clockUnder10) || 0) + 1;
     }
     if (event.type === "bought") questStats[period].bought = (Number(questStats[period].bought) || 0) + 1;
     if (event.type === "spent") questStats[period].spent = (Number(questStats[period].spent) || 0) + Math.max(0, Number(event.amount) || 0);
@@ -136,11 +236,20 @@ export function completedQuestRewards(profile = {}, now = Date.now()) {
 
 export function claimCompletedQuestRewards(profile = {}, now = Date.now()) {
   const completed = completedQuestRewards(profile, now), xpKey = profile.nickOnly ? "sessionXp" : "xp", moneyKey = profile.nickOnly ? "sessionMoney" : "money";
-  let updated = { ...profile, questStats:normalizeQuestStats(profile, now), claimedQuestRewards:{ ...(profile.claimedQuestRewards || {}) } };
+  let updated = { ...profile, questStats:normalizeQuestStats(profile, now), claimedQuestRewards:{ ...(profile.claimedQuestRewards || {}) }, ownedCosmetics:{ ...(profile.ownedCosmetics || {}) } };
   let money = 0, xpGain = 0;
+  const grantCosmetic = id => {
+    const rewardCosmetic = cosmetics.find(item => item.id === id);
+    if (!rewardCosmetic) return;
+    if (!updated.ownedCosmetics[id]) { updated.ownedCosmetics[id] = true; return; }
+    const pool = cosmetics.filter(item => item.price > 0 && !item.exclusive && item.rarity === rewardCosmetic.rarity && !updated.ownedCosmetics[item.id]);
+    const replacement = pool[hashSeed(`${id}:${now}`) % Math.max(1, pool.length)];
+    if (replacement) updated.ownedCosmetics[replacement.id] = true;
+  };
   completed.forEach(quest => {
     updated.claimedQuestRewards[quest.id] = true;
     if (quest.reward.type === "money") money += quest.reward.value;
+    else if (quest.reward.type === "cosmetic") grantCosmetic(quest.reward.value);
     else {
       const progress = levelProgress({ ...updated, [xpKey]:(Number(updated[xpKey]) || 0) + xpGain });
       const span = xpForLevel(progress.level + 1) - xpForLevel(progress.level);
