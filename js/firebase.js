@@ -315,12 +315,13 @@ export async function getRemotePollVotes(pollId, voterId = "anonymous") {
       firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollResults/${pollId}`)),
       firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`)).catch(() => null),
     ]);
-    const votes = votesSnapshot?.val?.() || {};
+    const votes = votesSnapshot?.val?.() || {}, savedTotals = resultsSnapshot.val() || {};
     const totals = {};
     Object.values(votes).forEach(optionId => {
       if (pollOptionIds.includes(optionId)) totals[optionId] = (totals[optionId] || 0) + 1;
     });
-    return { totals:Object.keys(totals).length ? totals : resultsSnapshot.val() || {}, vote:voteSnapshot?.val?.() || null, source:"firebase" };
+    pollOptionIds.forEach(optionId => totals[optionId] = Math.max(Number(totals[optionId] || 0), Number(savedTotals[optionId] || 0)));
+    return { totals, vote:voteSnapshot?.val?.() || null, source:"firebase" };
   } catch {
     return null;
   }

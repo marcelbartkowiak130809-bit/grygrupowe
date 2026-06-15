@@ -1,5 +1,5 @@
-import { gamesList } from "./games.js?v=20260613-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260612-1";
+import { gamesList } from "./games.js?v=20260613-3";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260615-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
 import { modeUnlockInfo } from "./upcomingModes.js?v=20260613-1";
