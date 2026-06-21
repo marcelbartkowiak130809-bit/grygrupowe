@@ -28,6 +28,7 @@ export const bombDefaults = {
   answerTime:20,
   timeMode:"shared",
   showExplosionTime:false,
+  visibleBombState:true,
   bombSkinMode:"roundFair",
   categories:["animals","games","food","countries","movies","characters","brands","sport"],
 };
@@ -46,6 +47,7 @@ export function sanitizeBombSettings(raw = {}) {
     answerTime:clamp(raw.answerTime || bombDefaults.answerTime, 8, 45),
     timeMode:raw.timeMode === "individual" ? "individual" : "shared",
     showExplosionTime:Boolean(raw.showExplosionTime),
+    visibleBombState:raw.visibleBombState !== false,
     bombSkinMode:raw.bombSkinMode === "currentHolder" ? "currentHolder" : "roundFair",
     categories,
   };
@@ -205,6 +207,7 @@ export function renderBombLobbySettings(room, isHost) {
     <label>Tryb czasu<select data-bomb-setting="timeMode" ${isHost ? "" : "disabled"}><option value="shared" ${settings.timeMode === "shared" ? "selected" : ""}>Wspolna bomba</option><option value="individual" ${settings.timeMode === "individual" ? "selected" : ""}>Indywidualny czas</option></select></label>
     <label>Skin bomby<select data-bomb-setting="bombSkinMode" ${isHost ? "" : "disabled"}><option value="roundFair" ${settings.bombSkinMode === "roundFair" ? "selected" : ""}>Losowy gracz na runde</option><option value="currentHolder" ${settings.bombSkinMode === "currentHolder" ? "selected" : ""}>Aktualny gracz</option></select></label>
     <label class="check bomb-toggle-setting"><input data-bomb-setting="showExplosionTime" type="checkbox" ${settings.showExplosionTime ? "checked" : ""} ${isHost ? "" : "disabled"}> Widoczny czas wybuchu</label>
+    <label class="check bomb-toggle-setting"><input data-bomb-setting="visibleBombState" type="checkbox" ${settings.visibleBombState ? "checked" : ""} ${isHost ? "" : "disabled"}> Widoczna zmiana stanu bomby</label>
     <div class="most-category-box"><b>Kategorie</b><small>minimum ${minCategories}, baza: ${bombCategories.reduce((sum, category) => sum + category.words.length, 0)} slow</small><div class="multi-category-list">${bombCategories.map(category => {
       const disabled = !isHost || selected.includes(category.id) && selected.length <= minCategories;
       return `<label class="check category-chip"><input data-bomb-category="${category.id}" type="checkbox" ${selected.includes(category.id) ? "checked" : ""} ${disabled ? "disabled" : ""}> <span>${escapeHtml(category.name)}</span><span class="category-count">${category.words.length}</span></label>`;
@@ -249,14 +252,15 @@ function bombStage(room, accounts, currentUser) {
   const active = activeUid(game);
   const elapsed = Math.max(0, now() - Number(game.startedAt || now()));
   const danger = Math.min(100, Math.round(elapsed / Math.max(1, Number(game.explodesAt || now()) - Number(game.startedAt || now())) * 100));
+  const visualDanger = settings.visibleBombState ? danger : 0;
   if (game.phase === "answering") {
     const modeLabel = settings.timeMode === "shared" ? "Wspolna bomba" : "Indywidualny czas";
     const skin = bombSkinId(game, settings, accounts, active);
-    return `<section class="bomb-stage ${settings.showExplosionTime ? "bomb-time-visible" : "bomb-time-hidden"}" style="--danger:${danger}">
+    return `<section class="bomb-stage ${settings.showExplosionTime ? "bomb-time-visible" : "bomb-time-hidden"}" style="--danger:${visualDanger}">
       <div class="bomb-head"><div><p class="eyebrow">KATEGORIA - ${modeLabel}</p><h1>${escapeHtml(category.name)}</h1></div>${timerBox(game, settings)}</div>
       <div class="bomb-table">
         <div class="bomb-answer-feed"><p class="eyebrow">PODANE</p>${answerStack(game)}</div>
-        <div class="bomb-core-wrap bomb-skin-${skin} ${danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>BOMBA</b></div><div class="bomb-shadow"></div></div>
+        <div class="bomb-core-wrap bomb-skin-${skin} ${settings.visibleBombState && danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>BOMBA</b></div><div class="bomb-shadow"></div></div>
         <div class="bomb-current-player"><p class="eyebrow">TERAZ</p>${playerMiniHtml(accounts[active])}<strong>${escapeHtml(accounts[active]?.nick || "Gracz")}</strong><small>${room.players.indexOf(active) + 1}/${room.players.length}</small></div>
       </div>
       ${active === currentUser ? `<form id="bomb-answer-form" class="bomb-answer-form"><input id="bomb-answer-input" placeholder="Szybko, wpisz odpowiedz..." autocomplete="off" autofocus><button class="primary">Podaj dalej</button></form>` : `<div class="waiting-state"><span class="waiting-pulse">tik</span><h3>Czekamy na odpowiedz</h3><p>Bomba jest przy graczu ${escapeHtml(accounts[active]?.nick || "Gracz")}.</p></div>`}
@@ -306,7 +310,7 @@ function startBombTimer(game, settings, actions) {
       timer.parentElement?.classList.toggle("timer-urgent", (settings.showExplosionTime ? visibleLeft : explosionLeft) <= 5);
     }
     tickBeat = (tickBeat + 1) % 2;
-    const tickLimit = settings.showExplosionTime ? visibleLeft : explosionLeft;
+    const tickLimit = settings.showExplosionTime ? visibleLeft : settings.visibleBombState ? explosionLeft : responseLeft;
     if (tickBeat && tickLimit > 0 && tickLimit <= 5) Audio.play("countdown");
     if (responseLeft <= 0 || current >= guard.explodesAt) {
       stopBombTimer();

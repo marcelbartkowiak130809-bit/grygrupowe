@@ -9,7 +9,7 @@ const filters = [
   ["original", "Oryginalna gra"],
   ["everyone", "Gra dla kazdego"],
   ["crew", "Gra dla ekipy"],
-  ["solo", "Tryb solo"],
+  ["solo", "TRYB SOLO"],
 ];
 let pollCountdownTimer;
 
@@ -17,6 +17,10 @@ function modeCategory(mode) {
   if (mode.featured) return "original";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
+}
+
+function modeFilterTags(mode) {
+  return [modeCategory(mode), mode.supportsSolo ? "solo" : ""].filter(Boolean).join(" ");
 }
 
 function categoryTag(mode) {
@@ -32,14 +36,14 @@ function badgeTag(type) {
 
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
       <span>${locked ? "???" : mode.symbol}</span>
       ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
     </div>
     <div class="game-card-content">
-      <div class="game-card-top">${categoryTag(mode)}${mode.supportsSolo && mode.supportsLobby ? '<span class="tag game-badge game-badge-solo">Tryb solo</span>' : ""}${(mode.badges || []).map(badgeTag).join("")}</div>
+      <div class="game-card-top">${categoryTag(mode)}${mode.supportsSolo && mode.supportsLobby ? '<span class="tag game-badge game-badge-solo">TRYB SOLO</span>' : ""}${(mode.badges || []).map(badgeTag).join("")}</div>
       <h2>${mode.name}</h2>
       <p class="muted">${mode.description}</p>
       ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}
@@ -77,24 +81,14 @@ function sharePanelHtml() {
   return `<section class="platform-share-panel">
     <div class="share-copy">
       <p class="eyebrow">UDOSTEPNIJ STRONE</p>
-      <h2>Pokaz ekipie QR i grajcie od razu</h2>
-      <p class="muted">Kod prowadzi prosto na strone gry. Dobry na Discorda, telefon albo szybkie zaproszenie przy stole.</p>
+      <h2>Zapros ekipę do gry</h2>
+      <p class="muted">Udostepnij link znajomym albo skopiuj go i wyslij tam, gdzie umawiacie gre.</p>
       <div class="share-actions">
         <button class="primary" type="button" id="share-site-link">${icon("share", 17)} Udostepnij</button>
         <button class="ghost" type="button" id="copy-site-link">${icon("copy", 17)} Kopiuj link</button>
       </div>
     </div>
-    <div class="share-qr-card" id="copy-site-qr" role="button" tabindex="0" title="Kliknij, aby skopiowac QR jako obraz">
-      <img src="./assets/images/site-qr.png?v=20260613-1" alt="Kod QR do strony gry">
-    </div>
   </section>`;
-}
-
-async function copyQrImageToClipboard(fallbackUrl) {
-  if (!navigator.clipboard || typeof ClipboardItem === "undefined") throw new Error("image clipboard unsupported");
-  const response = await fetch("./assets/images/site-qr.png?v=20260613-1");
-  const blob = await response.blob();
-  await navigator.clipboard.write([new ClipboardItem({ [blob.type || "image/png"]: blob })]);
 }
 
 async function openPollModal(context = {}, actions) {
@@ -155,7 +149,10 @@ export async function renderPlatform(root, actions, context = {}) {
   root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
     const filter = button.dataset.gameFilter;
     root.querySelectorAll("[data-game-filter]").forEach(item => item.classList.toggle("active", item === button));
-    root.querySelectorAll("[data-mode-category]").forEach(card => card.classList.toggle("hidden-game-card", filter !== "all" && card.dataset.modeCategory !== filter));
+    root.querySelectorAll("[data-mode-category]").forEach(card => {
+      const tags = String(card.dataset.modeTags || card.dataset.modeCategory || "").split(/\s+/);
+      card.classList.toggle("hidden-game-card", filter !== "all" && !tags.includes(filter));
+    });
   }));
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
@@ -177,15 +174,6 @@ export async function renderPlatform(root, actions, context = {}) {
       else await navigator.clipboard?.writeText(url);
       actions.playSound?.("success");
     } catch {}
-  });
-  const copyQr = async () => {
-    try { await copyQrImageToClipboard(shareUrl()); }
-    catch { try { await navigator.clipboard?.writeText(shareUrl()); } catch {} }
-    actions.playSound?.("success");
-  };
-  root.querySelector("#copy-site-qr")?.addEventListener("click", copyQr);
-  root.querySelector("#copy-site-qr")?.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); copyQr(); }
   });
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");

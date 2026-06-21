@@ -14,13 +14,13 @@ import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wou
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
-import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260612-6";
+import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260621-1";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260613-2";
-import { renderPlatform } from "./platform.js?v=20260615-1";
+import { renderPlatform } from "./platform.js?v=20260621-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260613-2";
@@ -503,7 +503,8 @@ async function guardBan(modeId = "") {
   return true;
 }
 function shouldCloseLonelyFinishedRoom(room) {
-  return room?.players?.length === 1 && (room.status !== "lobby" || Boolean(room.game) || Boolean(room.everStarted));
+  const mode = getGameMode(room?.gameMode);
+  return mode.minPlayers > 1 && room?.players?.length === 1 && (room.status !== "lobby" || Boolean(room.game) || Boolean(room.everStarted));
 }
 function showRoomClosedNotice() {
   if (document.querySelector("[data-room-closed-modal]")) return;
