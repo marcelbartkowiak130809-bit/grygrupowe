@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260615-2";
+import { gamesList } from "./games.js?v=20260804-1";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260615-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
@@ -10,10 +10,12 @@ const filters = [
   ["everyone", "Gra dla kazdego"],
   ["crew", "Gra dla ekipy"],
   ["solo", "TRYB SOLO"],
+  ["pokemon", "POKEMONY"],
 ];
 let pollCountdownTimer;
 
 function modeCategory(mode) {
+  if (mode.audience === "pokemon") return "pokemon";
   if (mode.featured) return "original";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
@@ -25,7 +27,7 @@ function modeFilterTags(mode) {
 
 function categoryTag(mode) {
   const category = modeCategory(mode);
-  const labels = { original:"ORYGINALNA GRA", solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO" };
+  const labels = { original:"ORYGINALNA GRA", solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
 

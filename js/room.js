@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260615-2";
+import { getGameMode } from "./games.js?v=20260804-1";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
@@ -11,6 +11,7 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3"
 import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260613-1";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-1";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {
@@ -41,6 +42,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "ranking") return renderRankingLobbySettings(room, isHost);
   if (mode.id === "5-sekund") return renderFiveSecondsLobbySettings(room, isHost);
   if (mode.id === "zegar") return renderClockLobbySettings(room, isHost);
+  if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
 
@@ -94,6 +96,8 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-five-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-five-category]").forEach(input => input.addEventListener("change", () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory))));
   root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-pokemon-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));

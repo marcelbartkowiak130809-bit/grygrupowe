@@ -17,6 +17,18 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v3.1.0",
+      date: "2026-08-04",
+      title: "POKEMONY",
+      changes: [
+        "Dodano kategorię POKEMONY z pięcioma nowymi trybami gry.",
+        "Dodano lokalną bazę 1025 Pokémonów z numerami National Dex, typami, generacjami, BST i liniami ewolucji.",
+        "Dodano tryby Najbliższy numer Pokédex, Ostatnia litera, Evolution Race, Licytacja Teamu i Typy i szybka odpowiedź.",
+        "Dodano ustawienia generacji, timerów, budżetu aukcji i wielkości drużyny.",
+        "Nowe tryby działają responsywnie na telefonach i komputerach oraz automatycznie kończą fazy po czasie.",
+      ],
+    },
+    {
       version: "v3.0.0",
       date: "2026-06-13",
       title: "Swiezy start 3.0.0",
