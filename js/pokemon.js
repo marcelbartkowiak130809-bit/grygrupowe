@@ -12,7 +12,7 @@ const filteredDex = settings => pokemonDex.filter(item => {
 });
 const scoreMap = players => Object.fromEntries(players.map(uid => [uid, 0]));
 const phaseEnd = seconds => Date.now() + Math.max(3, Number(seconds) || 15) * 1000;
-const pokemon = text => byName.get(clean(text));
+const pokemon = text => { const key = clean(text); return byName.get(key) || pokemonDex.find(item => clean(item.name).startsWith(key)); };
 const label = item => item ? `${item.name} (#${item.id})` : "Nieznany Pokémon";
 
 export const pokemonDefaults = {
@@ -40,18 +40,21 @@ export function createPokemonGame(mode, players, settings) {
 }
 
 function finishDex(game, players) {
+  game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
   const target = pokemonDex.find(item => item.id === game.target);
   const ranking = players.map(uid => ({ uid, answer:game.answers[uid] || null, difference:game.answers[uid] ? Math.abs(game.answers[uid].id - target.id) : Infinity })).sort((a,b) => a.difference - b.difference);
   ranking.forEach((row, index) => { if (Number.isFinite(row.difference)) game.scores[row.uid] += Math.max(1, players.length - index); });
   game.ranking = ranking; game.phase = "result";
 }
 function finishEvolution(game, players) {
+  game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
   const base = pokemonDex.find(item => item.id === game.baseId);
   const ranking = players.map(uid => ({ uid, answer:game.answers[uid] || null, correct:Boolean(game.answers[uid] && game.answers[uid].evolutionChain === base.evolutionChain && game.answers[uid].id !== base.id) }));
   ranking.forEach(row => { if (row.correct) game.scores[row.uid] += 1; });
   game.ranking = ranking; game.phase = "result";
 }
 function finishTypes(game, players) {
+  game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
   const picked = Object.values(game.selectedTypes);
   const ranking = players.map(uid => ({ uid, answer:game.answers[uid] || null, correct:Boolean(game.answers[uid] && picked.every(type => game.answers[uid].types.includes(type))) }));
   const winner = ranking.find(row => row.correct); if (winner) game.scores[winner.uid] += 1;
@@ -72,6 +75,7 @@ function settleAuction(game, players) {
 export const PokemonEngine = {
   answer(game, uid, text, players, settings) {
     const item = pokemon(text); if (!item) return "Wpisz poprawną nazwę Pokémona.";
+    game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
     const pool = candidates(settings); if (!pool.some(row => row.id === item.id)) return "Ten Pokémon nie jest dostępny w wybranych generacjach.";
     if (game.mode === "pokemon-dex") { if (game.answers[uid]) return "Odpowiedź została już wysłana."; game.answers[uid] = item; if (Object.keys(game.answers).length >= players.length) finishDex(game, players); return; }
     if (game.mode === "pokemon-evolution") { if (game.answers[uid]) return "Odpowiedź została już wysłana."; game.answers[uid] = item; if (Object.keys(game.answers).length >= players.length) finishEvolution(game, players); return; }

@@ -324,9 +324,12 @@ function statsPanel(profile) {
 }
 
 const rewardPreviewProfile = { nick:"Gracz" };
+function nextDailyReset(now = new Date()) { const date = new Date(now); date.setDate(date.getDate() + 1); date.setHours(0, 0, 0, 0); return date; }
+function nextWeeklyReset(now = new Date()) { const date = new Date(now), days = ((8 - date.getDay()) % 7) || 7; date.setDate(date.getDate() + days); date.setHours(0, 0, 0, 0); return date; }
+function resetCountdown(target) { const total = Math.max(0, target - Date.now()), seconds = Math.floor(total / 1000), days = Math.floor(seconds / 86400), hours = Math.floor(seconds % 86400 / 3600), minutes = Math.floor(seconds % 3600 / 60), rest = seconds % 60, clock = [hours, minutes, rest].map(value => String(value).padStart(2, "0")).join(":"); return days ? `${days}d ${clock}` : clock; }
 
 export function progressionModal(profile = {}, closeAction, claimAction) {
-  const progress = levelProgress(profile), modal = document.createElement("div");
+  const progress = levelProgress(profile), modal = document.createElement("div"), dailyReset = nextDailyReset(), weeklyReset = nextWeeklyReset();
   const stats = normalizeQuestStats(profile), quests = activeQuestList(Date.now()), completed = completedQuestRewards(profile), daily = quests.filter(q => q.period === "daily"), weekly = quests.filter(q => q.period === "weekly");
   const rerolls = Array.isArray(profile.lastLevelRerolls) ? profile.lastLevelRerolls : [];
   const rerollHtml = rerolls.length ? `<section class="level-reroll-card"><p class="eyebrow">DUPLIKAT ZAMIENIONY</p><div class="level-reroll-strip">${rerolls.map(entry => {
@@ -341,8 +344,8 @@ export function progressionModal(profile = {}, closeAction, claimAction) {
     <div class="progression-body">
       <aside class="progression-side">
         ${statsPanel(profile)}
-        <section class="progression-side-card quest-board ${completed.length ? "has-completed-quests" : ""}"><div class="section-heading"><div><p class="eyebrow">DAILY</p><h3>Odświeża się o 00:00</h3></div>${completed.length ? `<button class="primary" id="claim-quests">Odbierz ${completed.length}</button>` : ""}</div><div class="quest-grid">${daily.map(quest => questCard(quest, stats, profile)).join("")}</div></section>
-        <section class="progression-side-card quest-board"><div class="section-heading"><div><p class="eyebrow">WEEKLY</p><h3>Reset w poniedziałek 00:00</h3></div><span class="badge">lepsze nagrody</span></div><div class="quest-grid">${weekly.map(quest => questCard(quest, stats, profile)).join("")}</div></section>
+        <section class="progression-side-card quest-board ${completed.length ? "has-completed-quests" : ""}"><div class="section-heading"><div><p class="eyebrow">DAILY</p><h3 class="quest-reset-countdown" data-quest-reset="${dailyReset.getTime()}" data-quest-reset-kind="daily">Reset za --:--:--</h3></div>${completed.length ? `<button class="primary" id="claim-quests">Odbierz ${completed.length}</button>` : ""}</div><div class="quest-grid">${daily.map(quest => questCard(quest, stats, profile)).join("")}</div></section>
+        <section class="progression-side-card quest-board"><div class="section-heading"><div><p class="eyebrow">WEEKLY</p><h3 class="quest-reset-countdown" data-quest-reset="${weeklyReset.getTime()}" data-quest-reset-kind="weekly">Reset za --:--:--</h3></div><span class="badge">lepsze nagrody</span></div><div class="quest-grid">${weekly.map(quest => questCard(quest, stats, profile)).join("")}</div></section>
       </aside>
       <section class="progression-rewards"><div class="section-heading"><div><p class="eyebrow">NAGRODY</p><h3>Droga levelowa</h3></div></div><div class="trophy-road">${trophyRoad.map(item => {
         const claimed = Boolean(profile.claimedLevelRewards?.[item.level]), unlocked = item.level <= progress.level;
@@ -351,7 +354,9 @@ export function progressionModal(profile = {}, closeAction, claimAction) {
       }).join("")}</div></section>
     </div>
   </section>`;
-  modal.querySelector("[data-close]").addEventListener("click", () => closeAction(modal));
+  const updateResetCountdowns = () => modal.querySelectorAll("[data-quest-reset]").forEach(node => { if (Number(node.dataset.questReset) <= Date.now()) node.dataset.questReset = (node.dataset.questResetKind === "weekly" ? nextWeeklyReset() : nextDailyReset()).getTime(); node.textContent = `Reset za ${resetCountdown(Number(node.dataset.questReset))}`; });
+  updateResetCountdowns(); const resetTimer = window.setInterval(updateResetCountdowns, 1000);
+  modal.querySelector("[data-close]").addEventListener("click", () => { window.clearInterval(resetTimer); closeAction(modal); });
   modal.querySelector("#claim-quests")?.addEventListener("click", () => { modal.querySelectorAll(".quest-board").forEach(board => board.classList.add("quest-claiming")); setTimeout(() => claimAction?.(modal), 650); });
   modal.querySelector("#progression-stats-mode")?.addEventListener("change", event => {
     const panel = event.target.closest("[data-stats-map]"), stats = JSON.parse(panel?.dataset.statsMap || "{}")[event.target.value] || {};
