@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260605-5";
-import { getGameMode } from "./games.js?v=20260804-2";
+import { getGameMode } from "./games.js?v=20260804-4";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7 };

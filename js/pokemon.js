@@ -19,7 +19,7 @@ export const pokemonDefaults = {
   "pokemon-dex": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, rounds:5 },
   "pokemon-last-letter": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, rounds:10 },
   "pokemon-evolution": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, difficulty:"any", rounds:5 },
-  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, auctionCount:12, strongOnly:false, legendaries:true, mythicals:true },
+  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true },
   "pokemon-types": { generations:[1,2,3,4,5,6,7,8,9], selectTime:10, answerTime:15, rounds:5 },
 };
 
@@ -32,8 +32,9 @@ export function createPokemonGame(mode, players, settings) {
   if (mode === "pokemon-last-letter") return { mode, phase:"chain", round:1, scores, order:[...players], turnIndex:0, chain:[], usedIds:[], phaseEndsAt:phaseEnd(settings.answerTime) };
   if (mode === "pokemon-evolution") { const base = pickTarget(settings); return { mode, phase:"answers", round:1, scores, baseId:base.id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] }; }
   if (mode === "pokemon-auction") {
-    const items = [...candidates(settings)].sort(() => Math.random() - .5).slice(0, Math.max(4, Number(settings.auctionCount) || 12));
-    return { mode, phase:"auction", round:1, scores, teamSize:Number(settings.teamSize) || 6, items:items.map(item => item.id), auctionIndex:0, budgets:Object.fromEntries(players.map(uid => [uid, Number(settings.budget) || 50])), teams:Object.fromEntries(players.map(uid => [uid, []])), currentBid:0, highestBidder:"", passed:[], phaseEndsAt:phaseEnd(10) };
+    const teamSize = Number(settings.teamSize) || 6;
+    const items = [...candidates(settings)].sort(() => Math.random() - .5).slice(0, Math.max(4, teamSize * players.length));
+    return { mode, phase:"auction", round:1, scores, teamSize, items:items.map(item => item.id), auctionIndex:0, budgets:Object.fromEntries(players.map(uid => [uid, Number(settings.budget) || 50])), teams:Object.fromEntries(players.map(uid => [uid, []])), currentBid:0, highestBidder:"", passed:[], phaseEndsAt:phaseEnd(10) };
   }
   return { mode:"pokemon-types", phase:"choose", round:1, scores, selectedTypes:{}, blockedPairs:[], answers:{}, phaseEndsAt:phaseEnd(settings.selectTime) };
 }
@@ -57,9 +58,12 @@ function finishTypes(game, players) {
   game.ranking = ranking; game.phase = "result";
 }
 function settleAuction(game, players) {
-  if (game.highestBidder) { const item = pokemonDex.find(row => row.id === game.items[game.auctionIndex]); game.budgets[game.highestBidder] -= game.currentBid; game.teams[game.highestBidder].push(item.id); }
+  game.teams = game.teams || {};
+  game.budgets = game.budgets || {};
+  players.forEach(uid => { if (!Array.isArray(game.teams[uid])) game.teams[uid] = []; if (!Number.isFinite(Number(game.budgets[uid]))) game.budgets[uid] = 0; });
+  if (game.highestBidder) { const item = pokemonDex.find(row => row.id === game.items?.[game.auctionIndex]); if (item && game.teams[game.highestBidder]) { game.budgets[game.highestBidder] -= game.currentBid; game.teams[game.highestBidder].push(item.id); } }
   game.auctionIndex += 1; game.currentBid = 0; game.highestBidder = ""; game.passed = [];
-  if (game.auctionIndex >= game.items.length || players.every(uid => game.teams[uid].length >= game.teamSize)) {
+  if (game.auctionIndex >= (game.items?.length || 0) || players.every(uid => game.teams[uid].length >= game.teamSize)) {
     const ranking = players.map(uid => ({ uid, bst:game.teams[uid].reduce((sum,id) => sum + (pokemonDex.find(row => row.id === id)?.bst || 0), 0), team:game.teams[uid] })).sort((a,b) => b.bst - a.bst);
     ranking.forEach((row,index) => { if (index === 0) game.scores[row.uid] += 3; }); game.ranking = ranking; game.phase = "result";
   } else game.phaseEndsAt = phaseEnd(10);
@@ -126,6 +130,7 @@ function card(item, showBst = false) { return `<div class="pokemon-card">${sprit
 
 export function renderPokemonGame(root, { room, accounts, currentUser }, actions) {
   const game = room.game, settings = room.settings || pokemonDefaults[game.mode], current = game.mode === "pokemon-last-letter" ? game.order[game.turnIndex] : currentUser;
+  window.clearInterval(renderPokemonGame.countdown);
   let body = "";
   if (game.phase === "result") { root.innerHTML = `<main class="page pokemon-game-page enter">${resultMarkup(game, accounts, actions, game.mode === "pokemon-auction" ? "Wynik aukcji" : "Wyniki rundy")}</main>`; root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound); return; }
   if (game.mode === "pokemon-dex") { const target = pokemonDex.find(item => item.id === game.target); body = `<p class="eyebrow">NAJBLIŻSZY NUMER POKEDEX</p><h1>Znajdź Pokémona najbliżej numeru</h1><div class="pokemon-target">#${target.id}</div><p class="muted">Wpisz nazwę, ale nie podawaj numeru Dex.</p>${timerMarkup(game)}${formMarkup("answer")}`; }
@@ -134,14 +139,14 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   if (game.mode === "pokemon-auction") { const item = pokemonDex.find(row => row.id === game.items[game.auctionIndex]); const budget = game.budgets[currentUser] || 0; body = `<p class="eyebrow">LICYTACJA TEAMU POKÉMONÓW</p><h1>Aukcja ${game.auctionIndex + 1}/${game.items.length}</h1>${card(item)}<p class="muted">Twoja oferta: ${game.currentBid}$ · Budżet: ${budget}$</p>${timerMarkup(game)}<form class="pokemon-bid-form"><input id="pokemon-bid" type="number" min="${game.currentBid + 1}" max="${budget}" placeholder="Oferta"><button class="primary" type="submit">Licytuj</button><button class="ghost" id="pokemon-pass" type="button">Pas</button></form>`; }
   if (game.mode === "pokemon-types") { body = game.phase === "choose" ? `<p class="eyebrow">WYBÓR TYPÓW I SZYBKA ODPOWIEDŹ</p><h1>Wybierz typ</h1><p class="muted">Każdy gracz wybiera jeden typ. Potem znajdźcie wspólnego Pokémona.</p>${timerMarkup(game)}<div class="pokemon-types">${pokemonTypes.map(type => `<button data-pokemon-type="${type}" ${game.selectedTypes[currentUser] ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div>` : `<p class="eyebrow">ODPOWIEDŹ</p><h1>Znajdź Pokémona tych typów</h1><div class="pokemon-picked-types">${Object.values(game.selectedTypes).map(type => `<span>${typeNames[type]}</span>`).join("")}</div>${timerMarkup(game)}${formMarkup("answer")}`; }
   root.innerHTML = `<main class="page pokemon-game-page enter"><section class="panel pokemon-panel">${body}</section></main>`;
-  if (game.mode === "pokemon-auction") body = body.replace("</form>", `${auctionStatusMarkup(game, accounts, currentUser)}</form>`);
+  if (game.mode === "pokemon-auction") { body = body.replace("Twoja oferta:", "Aktualna oferta:"); body = body.replace("</form>", `${auctionStatusMarkup(game, accounts, currentUser)}</form>`); }
   const expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt, round:game.round, mode:game.mode };
   const form = root.querySelector("[data-pokemon-form]"); form?.addEventListener("submit", event => { event.preventDefault(); actions.pokemonAnswer(root.querySelector("#pokemon-answer").value, expected); });
   root.querySelectorAll("[data-pokemon-type]").forEach(button => button.addEventListener("click", () => actions.pokemonSelectType(button.dataset.pokemonType, expected)));
   root.querySelector(".pokemon-bid-form")?.addEventListener("submit", event => { event.preventDefault(); actions.pokemonBid(root.querySelector("#pokemon-bid").value, expected); });
   root.querySelector("#pokemon-pass")?.addEventListener("click", () => actions.pokemonPass(expected));
   root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound);
-  window.clearTimeout(renderPokemonGame.timer); renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - Date.now() + 50));
+  window.clearTimeout(renderPokemonGame.timer); window.clearInterval(renderPokemonGame.countdown); renderPokemonGame.countdown = window.setInterval(() => { const timer = root.querySelector("[data-pokemon-countdown]"); if (timer) timer.textContent = `${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s`; }, 250); renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - Date.now() + 50));
 }
 
 export function renderPokemonLobbySettings(room, isHost) {
@@ -149,7 +154,8 @@ export function renderPokemonLobbySettings(room, isHost) {
   const generations = [1,2,3,4,5,6,7,8,9].map(generation => `<label class="check"><input data-pokemon-generation="${generation}" type="checkbox" ${(!s.generations || s.generations.includes(generation)) ? "checked" : ""} ${isHost ? "" : "disabled"}> Gen ${generation}</label>`).join("");
   const common = `<label>Czas odpowiedzi <input data-pokemon-setting="answerTime" type="number" min="5" max="60" value="${s.answerTime || 15}" ${isHost ? "" : "disabled"}></label>${room.gameMode === "pokemon-types" ? `<label>Czas wyboru typu <input data-pokemon-setting="selectTime" type="number" min="5" max="30" value="${s.selectTime || 10}" ${isHost ? "" : "disabled"}></label>` : ""}<label>Liczba rund <input data-pokemon-setting="rounds" type="number" min="1" max="20" value="${s.rounds || 5}" ${isHost ? "" : "disabled"}></label><div><p class="tiny">GENERACJE</p><div class="pokemon-types">${generations}</div></div>`;
   const auction = room.gameMode === "pokemon-auction" ? `<label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Pokémonów w teamie <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${s.teamSize || 6}" ${isHost ? "" : "disabled"}></label><label>Pokémonów na aukcji <input data-pokemon-setting="auctionCount" type="number" min="4" max="30" value="${s.auctionCount || 12}" ${isHost ? "" : "disabled"}></label><label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label>` : "";
-  return `<div class="pokemon-settings">${common}${auction}<p class="tiny">Wszystkie fazy mają automatyczny limit czasu, więc brak ruchu nie zatrzyma pokoju.</p></div>`;
+  const auctionDisplay = auction.replace(/<label>.*?data-pokemon-setting="auctionCount".*?<\/label>/, '<p class="tiny">Liczba Pokémonów na aukcji: rozmiar teamu × liczba graczy.</p>');
+  return `<div class="pokemon-settings">${common}${auctionDisplay}<p class="tiny">Wszystkie fazy mają automatyczny limit czasu, więc brak ruchu nie zatrzyma pokoju.</p></div>`;
 }
 
-export function stopPokemonTimer() { window.clearTimeout(renderPokemonGame.timer); renderPokemonGame.timer = null; }
+export function stopPokemonTimer() { window.clearTimeout(renderPokemonGame.timer); window.clearInterval(renderPokemonGame.countdown); renderPokemonGame.timer = null; renderPokemonGame.countdown = null; }
