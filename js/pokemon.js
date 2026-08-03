@@ -104,7 +104,21 @@ export const PokemonEngine = {
   nextRound(game, players, settings) { if (game.phase !== "result") return "Runda jeszcze się nie zakończyła."; if (game.mode === "pokemon-dex") { game.round += 1; game.target = pickTarget(settings, game.usedTargets).id; game.usedTargets.push(game.target); game.answers = {}; game.ranking = []; game.phase = "answers"; game.phaseEndsAt = phaseEnd(settings.answerTime); } else if (game.mode === "pokemon-evolution") { game.round += 1; game.baseId = pickTarget(settings).id; game.answers = {}; game.ranking = []; game.phase = "answers"; game.phaseEndsAt = phaseEnd(settings.answerTime); } else if (game.mode === "pokemon-types") { game.round += 1; game.selectedTypes = {}; game.answers = {}; game.ranking = []; game.phase = "choose"; game.phaseEndsAt = phaseEnd(settings.selectTime); } else game.phase = "result"; }
 };
 
+const pokemonAuctionPass = PokemonEngine.pass;
+PokemonEngine.pass = (game, uid, players) => {
+  game.passed = Array.isArray(game.passed) ? game.passed : [];
+  game.teams = game.teams || Object.fromEntries(players.map(player => [player, []]));
+  game.budgets = game.budgets || Object.fromEntries(players.map(player => [player, 0]));
+  return pokemonAuctionPass(game, uid, players);
+};
+
 function timerMarkup(game) { return `<div class="pokemon-timer" data-pokemon-countdown="${game.phaseEndsAt}">${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div>`; }
+function auctionStatusMarkup(game, accounts, currentUser) {
+  const leader = game.highestBidder ? accounts[game.highestBidder]?.nick || "Gracz" : "Brak oferty";
+  const passed = (Array.isArray(game.passed) ? game.passed : []).map(uid => accounts[uid]?.nick || "Gracz");
+  const leading = game.highestBidder === currentUser;
+  return `<div class="pokemon-auction-status ${leading ? "is-leading" : ""}"><strong>${leading ? "Prowadzisz aukcję" : game.highestBidder ? "Aktualnie wygrywa" : "Nikt jeszcze nie prowadzi"}</strong><span>${game.highestBidder ? `${escapeHtml(leader)} · ${game.currentBid}$` : "Złóż pierwszą ofertę"}</span>${passed.length ? `<small>Spasowali: ${escapeHtml(passed.join(", "))}</small>` : ""}</div>`;
+}
 function formMarkup(id, placeholder = "Nazwa Pokémona") { return `<form class="pokemon-answer-form" data-pokemon-form="${id}"><input id="pokemon-answer" autocomplete="off" placeholder="${placeholder}"><button class="primary" type="submit">Odpowiedz</button></form>`; }
 function sprite(item, className = "") { return `<img class="${className}" src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">`; }
 function resultMarkup(game, accounts, actions, title = "Wyniki rundy") { const rows = (game.ranking || []).map(row => { const team = Array.isArray(row.team) ? `<div class="pokemon-mini-team">${row.team.map(id => { const item = pokemonDex.find(pokemon => pokemon.id === id); return item ? sprite(item) : ""; }).join("")}</div>` : ""; return `<div class="pokemon-result-row"><div><b>${escapeHtml(accounts[row.uid]?.nick || "Gracz")}</b>${team}</div><span>${row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : row.bst != null ? `${row.bst} BST` : row.difference != null ? (Number.isFinite(row.difference) ? `różnica ${row.difference}` : "brak odpowiedzi") : row.correct ? "trafienie" : "-"}</span></div>`; }).join(""); return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE</p><h1>${title}</h1><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div><button class="primary" id="pokemon-next">Następna runda</button></section>`; }
@@ -120,6 +134,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   if (game.mode === "pokemon-auction") { const item = pokemonDex.find(row => row.id === game.items[game.auctionIndex]); const budget = game.budgets[currentUser] || 0; body = `<p class="eyebrow">LICYTACJA TEAMU POKÉMONÓW</p><h1>Aukcja ${game.auctionIndex + 1}/${game.items.length}</h1>${card(item)}<p class="muted">Twoja oferta: ${game.currentBid}$ · Budżet: ${budget}$</p>${timerMarkup(game)}<form class="pokemon-bid-form"><input id="pokemon-bid" type="number" min="${game.currentBid + 1}" max="${budget}" placeholder="Oferta"><button class="primary" type="submit">Licytuj</button><button class="ghost" id="pokemon-pass" type="button">Pas</button></form>`; }
   if (game.mode === "pokemon-types") { body = game.phase === "choose" ? `<p class="eyebrow">WYBÓR TYPÓW I SZYBKA ODPOWIEDŹ</p><h1>Wybierz typ</h1><p class="muted">Każdy gracz wybiera jeden typ. Potem znajdźcie wspólnego Pokémona.</p>${timerMarkup(game)}<div class="pokemon-types">${pokemonTypes.map(type => `<button data-pokemon-type="${type}" ${game.selectedTypes[currentUser] ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div>` : `<p class="eyebrow">ODPOWIEDŹ</p><h1>Znajdź Pokémona tych typów</h1><div class="pokemon-picked-types">${Object.values(game.selectedTypes).map(type => `<span>${typeNames[type]}</span>`).join("")}</div>${timerMarkup(game)}${formMarkup("answer")}`; }
   root.innerHTML = `<main class="page pokemon-game-page enter"><section class="panel pokemon-panel">${body}</section></main>`;
+  if (game.mode === "pokemon-auction") body = body.replace("</form>", `${auctionStatusMarkup(game, accounts, currentUser)}</form>`);
   const expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt, round:game.round, mode:game.mode };
   const form = root.querySelector("[data-pokemon-form]"); form?.addEventListener("submit", event => { event.preventDefault(); actions.pokemonAnswer(root.querySelector("#pokemon-answer").value, expected); });
   root.querySelectorAll("[data-pokemon-type]").forEach(button => button.addEventListener("click", () => actions.pokemonSelectType(button.dataset.pokemonType, expected)));

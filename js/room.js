@@ -1,5 +1,6 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
 import { getGameMode } from "./games.js?v=20260804-2";
+import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
@@ -13,6 +14,9 @@ import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260613-1";
 import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-2";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
+
+const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7 };
+function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : mode.symbol; }
 
 export function playerMini(profile = {}, options = {}) {
   return playerMiniHtml(profile, "", options);
@@ -54,7 +58,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page room-page enter">
     <section class="panel room-header">
-      <div><p class="eyebrow">${mode.symbol} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
+      <div><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">

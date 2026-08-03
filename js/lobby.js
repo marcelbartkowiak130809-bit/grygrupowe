@@ -1,5 +1,9 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260605-5";
 import { getGameMode } from "./games.js?v=20260804-2";
+import { pokemonDex } from "./pokemonData.js?v=20260804-2";
+
+const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7 };
+function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : mode.symbol; }
 
 function roomCard(room, mode) {
   const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "browserVoice" || room.settings?.gameFlow === "voice" ? "Voice chat w grze" : room.settings?.gameFlow === "externalVoice" ? "Glos poza gra" : "Tryb tekstowy"}</span>` : "";
@@ -21,7 +25,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
       : '<section class="warning">Nie udało się połączyć z trybem online. Odśwież stronę i spróbuj ponownie.</section>';
   root.innerHTML = `<main class="page lobby-page enter">
     <section class="mode-hero panel">
-      <div class="game-symbol game-symbol-${mode.art}">${mode.symbol}</div>
+      <div class="game-symbol game-symbol-${mode.art}">${modeVisual(mode)}</div>
       <div><p class="eyebrow">WYBRANY TRYB</p><h1>${mode.name}</h1><p class="muted">${mode.description}</p><span class="players-count">${icon("users", 17)} ${mode.players}</span></div>
       <div class="mode-hero-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="change-mode">Zmień tryb</button></div>
     </section>

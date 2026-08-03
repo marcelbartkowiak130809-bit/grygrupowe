@@ -19,12 +19,12 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-2";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-1";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-3";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-2";
 import { renderPlatform } from "./platform.js?v=20260804-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260804-1";
+import { playerMini, renderRoom } from "./room.js?v=20260804-2";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260613-1";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260613-2";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260613-2";
