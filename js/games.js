@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-1";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-2";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -244,19 +244,19 @@ export const gamesRegistry = {
     defaultSettings: clockDefaults,
   },
   "pokemon-dex": {
-    id: "pokemon-dex", name: "NAJBLIŻSZY NUMER POKEDEX", description: "Wpisz Pokémona z numerem jak najbliższym wylosowanemu celowi.", help: ["Gra losuje numer National Dex.", "Wpisz nazwę Pokémona, bez podawania numeru.", "Najmniejsza różnica wygrywa rundę."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"#", art:"pokemon", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-dex"],
+    id: "pokemon-dex", name: "NAJBLIŻSZY NUMER POKEDEX", description: "Wpisz Pokémona z numerem jak najbliższym wylosowanemu celowi.", help: ["Gra losuje numer National Dex.", "Wpisz nazwę Pokémona, bez podawania numeru.", "Najmniejsza różnica wygrywa rundę."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"#", art:"pokemon-dex", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-dex"],
   },
   "pokemon-last-letter": {
-    id: "pokemon-last-letter", name: "OSTATNIA LITERA", description: "Budujcie łańcuch Pokémonów, pilnując ostatniej litery.", help: ["Pierwszy gracz podaje dowolnego Pokémona.", "Następny musi zacząć od ostatniej litery poprzedniej nazwy.", "Powtórki są niedozwolone."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↗", art:"pokemon", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-last-letter"],
+    id: "pokemon-last-letter", name: "OSTATNIA LITERA", description: "Budujcie łańcuch Pokémonów, pilnując ostatniej litery.", help: ["Pierwszy gracz podaje dowolnego Pokémona.", "Następny musi zacząć od ostatniej litery poprzedniej nazwy.", "Powtórki są niedozwolone."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↗", art:"pokemon-letter", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-last-letter"],
   },
   "pokemon-evolution": {
-    id: "pokemon-evolution", name: "EVOLUTION RACE", description: "Znajdź kolejną lub końcową ewolucję szybciej od innych.", help: ["Gra pokazuje bazowego Pokémona.", "Wpisz nazwę Pokémona z tej samej linii ewolucji.", "Każda odpowiedź ma limit czasu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↻", art:"pokemon", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-evolution"],
+    id: "pokemon-evolution", name: "EVOLUTION RACE", description: "Znajdź kolejną lub końcową ewolucję szybciej od innych.", help: ["Gra pokazuje bazowego Pokémona.", "Wpisz nazwę Pokémona z tej samej linii ewolucji.", "Każda odpowiedź ma limit czasu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↻", art:"pokemon-evolution", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-evolution"],
   },
   "pokemon-auction": {
-    id: "pokemon-auction", name: "LICYTACJA TEAMU", description: "Licytuj Pokémony i zbuduj drużynę z najwyższym BST.", help: ["Każdy gracz dostaje ten sam budżet.", "Pokémony są wystawiane po kolei, a każda oferta ma limit czasu.", "BST zostaje ujawnione dopiero po zakończeniu aukcji."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"$", art:"pokemon", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-auction"],
+    id: "pokemon-auction", name: "LICYTACJA TEAMU", description: "Licytuj Pokémony i zbuduj drużynę z najwyższym BST.", help: ["Każdy gracz dostaje ten sam budżet.", "Pokémony są wystawiane po kolei, a każda oferta ma limit czasu.", "BST zostaje ujawnione dopiero po zakończeniu aukcji."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"$", art:"pokemon-auction", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-auction"],
   },
   "pokemon-types": {
-    id: "pokemon-types", name: "TYPY I SZYBKA ODPOWIEDŹ", description: "Wybierzcie typy i znajdźcie Pokémona pasującego do kombinacji.", help: ["Każdy gracz wybiera jeden typ.", "Po ujawnieniu kombinacji wpisujecie poprawnego Pokémona.", "Brakująca kombinacja odblokowuje ponowny wybór."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"✦", art:"pokemon", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-types"],
+    id: "pokemon-types", name: "TYPY I SZYBKA ODPOWIEDŹ", description: "Wybierzcie typy i znajdźcie Pokémona pasującego do kombinacji.", help: ["Każdy gracz wybiera jeden typ.", "Po ujawnieniu kombinacji wpisujecie poprawnego Pokémona.", "Brakująca kombinacja odblokowuje ponowny wybór."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"✦", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-types"],
   },
 };
 

@@ -1,4 +1,5 @@
-import { gamesList } from "./games.js?v=20260804-1";
+import { gamesList } from "./games.js?v=20260804-2";
+import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260615-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
@@ -13,6 +14,7 @@ const filters = [
   ["pokemon", "POKEMONY"],
 ];
 let pollCountdownTimer;
+const POLLS_ENABLED = false;
 
 function modeCategory(mode) {
   if (mode.audience === "pokemon") return "pokemon";
@@ -36,12 +38,18 @@ function badgeTag(type) {
   return labels[type] ? `<span class="tag game-badge game-badge-${type}">${labels[type]}</span>` : "";
 }
 
+const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7 };
+function visualSymbol(mode) {
+  const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
+  return item ? `<img src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">` : mode.symbol;
+}
+
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-      <span>${locked ? "???" : mode.symbol}</span>
+      <span>${locked ? "???" : mode.audience === "pokemon" ? visualSymbol(mode) : mode.symbol}</span>
       ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
     </div>
     <div class="game-card-content">
@@ -70,6 +78,7 @@ function pollResultsHtml(state) {
 }
 
 function pollPanelHtml(context = {}, stateOverride = null) {
+  if (!POLLS_ENABLED) return "";
   const poll = visiblePoll(), state = stateOverride || pollState(poll, context.voterId || "anonymous");
   if (!poll) return `<section class="platform-poll platform-poll-empty" id="platform-poll"><p class="eyebrow">GŁOSOWANIE</p><h2>Nie ma obecnie żadnego głosowania</h2></section>`;
   const voted = Boolean(state.vote), hot = state.active && !voted;
@@ -116,7 +125,7 @@ async function openPollModal(context = {}, actions) {
 
 export async function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
-  const currentPollState = await pollStateOnline(visiblePoll(), context.voterId || "anonymous");
+  const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page enter">
     <section class="platform-hero">
       <div>

@@ -216,6 +216,12 @@ export async function clearVoiceSignals(roomId, uid = "") {
     return true;
   } catch { return false; }
 }
+export async function loadPresenceUsers() {
+  if (remoteDatabase) {
+    try { const data=(await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,"presence"))).val() || {}; const now=serverNow(); return Object.fromEntries(Object.entries(data).filter(([,item])=>Object.values(item?.clients||{}).some(client=>now-Number(client?.seenAt||0)<PRESENCE_TTL_MS)).map(([uid])=>[uid,true])); } catch { return {}; }
+  }
+  const now=Date.now(), data=readLocal(LOCAL_PRESENCE_KEY); return Object.fromEntries(Object.entries(data).filter(([,item])=>Object.values(item||{}).some(client=>now-Number(client?.seenAt||0)<PRESENCE_TTL_MS)).map(([uid])=>[uid,true]));
+}
 
 function readLocal(key) {
   try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
@@ -232,7 +238,7 @@ function adultStatusForProfile(profile = {}) {
   return age >= 18 ? "adult" : "minor";
 }
 const publicProfile = profile => ({ nick:profile.nick, avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:adultStatusForProfile(profile), xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", updatedAt:Date.now() });
-const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, ...(profile.ownedCosmetics || {}) }, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
+const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, ...(profile.ownedCosmetics || {}) }, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
 export async function loadRemoteProfile(uid) {
   if (!remoteDatabase || !uid) return null;
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`))).val() || null; }
@@ -303,6 +309,30 @@ export async function voteWouldYouRather({ questionId, choice, playerId, persist
   const votes=readLocal(WOULD_YOU_RATHER_VOTES_KEY), item=votes[questionId] || {a:0,b:0};
   item[choice]=(item[choice]||0)+1;votes[questionId]=item;saveLocal(WOULD_YOU_RATHER_VOTES_KEY,votes);
   return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
+}
+export async function loadPublicProfiles() {
+  if (!remoteDatabase) return {};
+  try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {}; } catch { return {}; }
+}
+export async function updateRemoteProfileFields(uid, patch = {}) {
+  if (!remoteDatabase || !uid || !Object.keys(patch).length) return false;
+  try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }
+}
+export async function loadFriendRequestBucket(uid) {
+  if (!remoteDatabase || !uid) return {};
+  try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${uid}`))).val() || {}; } catch { return {}; }
+}
+export async function loadFriendRequest(targetUid, requestId) {
+  if (!remoteDatabase || !targetUid || !requestId) return null;
+  try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${requestId}`))).val() || null; } catch { return null; }
+}
+export async function setFriendRequest(targetUid, request) {
+  if (!remoteDatabase || !targetUid || !request?.id) return false;
+  try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${request.id}`), request); return true; } catch { return false; }
+}
+export async function updateFriendRequest(targetUid, requestId, patch = {}) {
+  if (!remoteDatabase || !targetUid || !requestId) return false;
+  try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${requestId}`), patch); return true; } catch { return false; }
 }
 
 const pollVoterKey = voterId => hashRoomPassword(`poll:${voterId || "anonymous"}`);

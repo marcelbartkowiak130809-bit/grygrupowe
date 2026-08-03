@@ -17,6 +17,19 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v3.2.0",
+      date: "2026-08-04",
+      title: "FRIEND REQUESTS",
+      changes: [
+        "Dodano kompletny system znajomych inspirowany lobby gier multiplayer.",
+        "Dodano wyszukiwanie graczy po nicku oraz zaproszenia do znajomych.",
+        "Dodano listy znajomych, otrzymanych zaproszeń i wysłanych zaproszeń.",
+        "Dodano zapraszanie znajomych do lobby oraz prośby o dołączenie do gry.",
+        "Dodano statusy online, offline i w grze oraz oznaczenia znajomych w lobby.",
+        "Dodano animowane powiadomienia i licznik nowych zaproszeń.",
+      ],
+    },
+    {
       version: "v3.1.0",
       date: "2026-08-04",
       title: "POKEMONY",

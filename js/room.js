@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260804-1";
+import { getGameMode } from "./games.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
@@ -11,7 +11,7 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3"
 import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260613-1";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-1";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-2";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 
 export function playerMini(profile = {}, options = {}) {
@@ -59,12 +59,12 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}</section>
-      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button></div>${adSenseBlock("Reklama", "lobby")}</aside>
+      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button><button class="ghost" id="invite-friend">Zaproś znajomego</button></div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
-      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}</p>
+      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}${uid !== currentUser && accounts[currentUser]?.friends?.includes(uid) ? '<span class="friend-lobby-mark" title="Znajomy">♥</span>' : ""}</p>
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
@@ -75,6 +75,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelector("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
   root.querySelector("#copy-invite-link")?.addEventListener("click", () => actions.copyInviteLink(room.roomId));
   root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
+  root.querySelector("#invite-friend")?.addEventListener("click", () => actions.openFriends({ inviteMode:true }));
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
   root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));

@@ -14,6 +14,15 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
+    "friendRequests": {
+      "$targetUid": {
+        ".read": "auth != null && auth.uid == $targetUid",
+        "$requestId": {
+          ".read": "auth != null && (auth.uid == $targetUid || data.child('fromUid').val() == auth.uid)",
+          ".write": "auth != null && ((auth.uid == $targetUid && newData.child('toUid').val() == $targetUid) || (newData.child('fromUid').val() == auth.uid && newData.child('toUid').val() == $targetUid) || (!newData.exists() && (auth.uid == $targetUid || data.child('fromUid').val() == auth.uid)))"
+        }
+      }
+    },
     "presence": {
       ".read": true,
       "$uid": {
