@@ -133,6 +133,7 @@ const roomRosterSnapshots=new Map();
 const roomPhaseSnapshots=new Map();
 let lastRenderedScreenSignature="";
 let stopRoomsSubscription=()=>{};
+let activeRoomPollTimer=null;
 let stopOnlineSubscription=()=>{};
 let stopPresence=()=>{};
 let lastRenderedRoute="";
@@ -1266,6 +1267,7 @@ function render(options = {}) {
 }
 function connectRooms(){
   stopRoomsSubscription();
+  clearInterval(activeRoomPollTimer);
   state.onlineBackend=hasOnlineBackend()?null:false;
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
@@ -1294,6 +1296,7 @@ function connectRooms(){
     if(profile())message("Serwer odrzucil dostep do pokoi. Zaloguj sie ponownie.");
     if(["lobby","room","game"].includes(Router.current))render();
   });
+  activeRoomPollTimer=setInterval(async()=>{const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;const playersChanged=JSON.stringify(remote.room.players)!==JSON.stringify(local.players);if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});}},2000);
 }
 async function checkFriendNotifications() {
   const user=profile(); if(!user)return;
