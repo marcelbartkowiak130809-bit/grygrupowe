@@ -129,8 +129,8 @@ export async function renderPlatform(root, actions, context = {}) {
   root.innerHTML = `<main class="page platform-page enter">
     <section class="platform-hero">
       <div>
-        <p class="eyebrow">GRY DLA ZNAJOMYCH</p>
-        <h1>Jedna ekipa.<br><span>Trzynascie sposobow</span> na dobry wieczor.</h1>
+        <p class="eyebrow">GRY GRUPOWE</p>
+        <h1>Jedna ekipa.<br><span>Wiele sposobów</span> na dobry wieczór.</h1>
         <p>Wybierz tryb, zaproś znajomych kodem pokoju i zacznijcie grać. Bez instalowania czegokolwiek.</p>
         <form class="platform-join" id="platform-join-form">
           <div><p class="eyebrow">MASZ JUŻ POKÓJ?</p><strong>Dołącz kodem pokoju</strong></div>
@@ -181,7 +181,7 @@ export async function renderPlatform(root, actions, context = {}) {
   root.querySelector("#share-site-link")?.addEventListener("click", async () => {
     const url = shareUrl();
     try {
-      if (navigator.share) await navigator.share({ title: "Udowodnij! - Gry dla znajomych", text: "Wbijaj do gry dla ekipy.", url });
+      if (navigator.share) await navigator.share({ title: "Gry grupowe", text: "Wbijaj do gry dla ekipy.", url });
       else await navigator.clipboard?.writeText(url);
       actions.playSound?.("success");
     } catch {}
