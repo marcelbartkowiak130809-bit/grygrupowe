@@ -78,7 +78,7 @@ export const gamesRegistry = {
     maxPlayers: 10,
     supportsLobby: true,
     supportsSolo: false,
-    symbol: "✦",
+    symbol: "🤔",
     art: "question",
     audience: "everyone",
     render: renderOtherQuestionGame,
