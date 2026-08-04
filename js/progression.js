@@ -1,5 +1,4 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260804-1";
-import { gamesList } from "./games.js?v=20260804-8";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -24,8 +23,11 @@ const modeLabels = {
   all:"Wszystkie tryby", udowodnij:"Udowodnij", impostor:"Impostor", "kim-jestem":"Kim jestem", "inne-pytanie":"Inne pytanie",
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
   bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
+  "pokemon-dex":"NAJBLIŻSZY NUMER POKEDEX", "pokemon-last-letter":"OSTATNIA LITERA", "pokemon-evolution":"EVOLUTION RACE",
+  "pokemon-auction":"LICYTACJA TEAMU", "pokemon-types":"TYPY NA START", "pokemon-match-type":"DOPASUJ TYP",
+  wavelength:"WAVELENGTH", quiz:"QUIZ", mathematics:"MATEMATYKA", marker:"MARKER", sequence:"ZGADNIJ SEKWENCJĘ",
+  family:"FAMILIADA", "word-chain":"ŁAŃCUCH SŁÓW",
 };
-Object.assign(modeLabels, Object.fromEntries(gamesList.map(mode => [mode.id, mode.name])));
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
 
 export function xpForLevel(level) {
