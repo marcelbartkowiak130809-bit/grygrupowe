@@ -28,7 +28,7 @@ import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-3";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-5";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-9";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-10";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260804-5";

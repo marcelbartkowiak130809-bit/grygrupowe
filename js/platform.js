@@ -8,6 +8,8 @@ import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260804
 
 const filters = [
   ["all", "WSZYSTKIE"],
+  ["new", "NOWE"],
+  ["popular", "POPULARNE"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
@@ -33,7 +35,7 @@ export function renderPokemonModes(root, actions, context = {}) {
 }
 
 function modeFilterTags(mode) {
-  return [modeCategory(mode), mode.supportsSolo ? "solo" : ""].filter(Boolean).join(" ");
+  return [modeCategory(mode), mode.supportsSolo ? "solo" : "", ...(mode.badges || [])].filter(Boolean).join(" ");
 }
 
 function categoryTag(mode) {
