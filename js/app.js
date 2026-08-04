@@ -1031,17 +1031,53 @@ function animateHostSettingChange(value) {
   lastRenderedScreenSignature = currentScreenSignature();
 }
 
+let topbarModalRequest = 0;
+let topbarModalPendingId = "";
+function dismissTopbarModal(modal) {
+  const closeButton = modal?.querySelector("[data-close], [data-friends-close]");
+  if (closeButton) closeButton.click();
+  else { modal?.remove(); Audio.play("modalClose"); }
+}
+function beginTopbarModal(id) {
+  if (topbarModalPendingId === id && !document.querySelector(`.modal-backdrop[data-topbar-modal="${id}"]`)) {
+    topbarModalPendingId = "";
+    topbarModalRequest += 1;
+    return null;
+  }
+  const current = document.querySelector(".modal-backdrop[data-topbar-modal]");
+  if (current?.dataset.topbarModal === id) {
+    dismissTopbarModal(current);
+    topbarModalPendingId = "";
+    topbarModalRequest += 1;
+    return null;
+  }
+  document.querySelectorAll(".modal-backdrop").forEach(modal => {
+    dismissTopbarModal(modal);
+  });
+  topbarModalPendingId = id;
+  return ++topbarModalRequest;
+}
+function finishTopbarModal(modal, id, request = topbarModalRequest) {
+  topbarModalPendingId = "";
+  if (!modal || request !== topbarModalRequest) {
+    dismissTopbarModal(modal);
+    return null;
+  }
+  modal.dataset.topbarModal = id;
+  return modal;
+}
+
   const actions = {
   playSound(name) { Audio.play(name); },
   toggleTheme() { const next = lightThemeEnabled() ? "dark" : "light"; localStorage.setItem(THEME_STORAGE_KEY, next); applyTheme(next); render({forceEnter:true}); },
-  openSettings() { settingsModal(); },
+  openSettings() { const request=beginTopbarModal("open-settings"); if (!request) return; finishTopbarModal(settingsModal(), "open-settings", request); },
   refresh: render,
-  goPlatform() { if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
+  goPlatform() { document.querySelectorAll(".modal-backdrop").forEach(dismissTopbarModal); if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
   goPokemonModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/pokemony";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("pokemon-select"); },
   goPublicPage(path) { const screen=Router.publicScreenFromPath(path); if(!screen)return actions.goPlatform(); window.history.pushState(null,"",path); Router.go(screen); },
   goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },
-  openShop() { const room=activeRoom();state.shopReturnScreen=room?(room.status==="lobby"?"room":"game"):(Router.current==="shop"?state.shopReturnScreen:Router.current);Audio.play("shopOpen");Router.go("shop"); },
+  openShop() { document.querySelectorAll(".modal-backdrop").forEach(dismissTopbarModal); const room=activeRoom();state.shopReturnScreen=room?(room.status==="lobby"?"room":"game"):(Router.current==="shop"?state.shopReturnScreen:Router.current);Audio.play("shopOpen");Router.go("shop"); },
   async openFriends(options={}) { await refreshFriendsData(); friendsModal({ ...options, account:profile(), directory:friendDirectorySnapshot(), rooms:friendRooms(), presence:friendPresence, actions:{...actions, getAccount:()=>profile(), getFriendDirectory:()=>friendDirectorySnapshot(), getRooms:friendRooms, getPresence:()=>friendPresence, refreshFriendsData} }); },
   getAccount:()=>profile(), getFriendDirectory:()=>friendDirectorySnapshot(), getRooms:friendRooms, getPresence:()=>friendPresence,
   searchFriends, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, inviteFriend, requestJoinFriend, acceptGameInvite, acceptJoinRequest,
@@ -1525,6 +1561,25 @@ function animateHostSettingChange(value) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
+function wrapTopbarAction(id, original) {
+  return async (...args) => {
+    const request = beginTopbarModal(id);
+    if (!request) return;
+    const result = original(...args);
+    if (result?.then) await result;
+    const modal = [...document.querySelectorAll(".modal-backdrop")].reverse().find(item => !item.dataset.topbarModal);
+    finishTopbarModal(modal, id, request);
+    return result;
+  };
+}
+actions.openAccount = wrapTopbarAction("account", actions.openAccount);
+actions.openLuckySpin = wrapTopbarAction("open-lucky-spin", actions.openLuckySpin);
+actions.openEquipment = wrapTopbarAction("open-equipment", actions.openEquipment);
+actions.openProgression = wrapTopbarAction("open-progression", actions.openProgression);
+actions.openReportModal = wrapTopbarAction("open-report", actions.openReportModal);
+actions.openFriends = wrapTopbarAction("open-friends", actions.openFriends);
+actions.openChangelog = wrapTopbarAction("open-changelog", () => changelogModal());
+
 function audioModal() {
   const settings = Audio.settings, modal = document.createElement("div"); modal.className = "modal-backdrop";
   modal.innerHTML = `<section class="modal audio-modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">AUDIO</p><h2>Ustawienia dźwięku</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Music Volume <span id="music-value">${Math.round(settings.musicVolume*100)}%</span></label><input id="music-volume" type="range" min="0" max="1" step="0.01" value="${settings.musicVolume}"><label>SFX Volume <span id="sfx-value">${Math.round(settings.sfxVolume*100)}%</span></label><input id="sfx-volume" type="range" min="0" max="1" step="0.01" value="${settings.sfxVolume}"><label class="check"><input id="mute-all" type="checkbox" ${settings.muted?"checked":""}> Mute All</label><p class="tiny">Ambient: ${Audio.currentTrack}. Ustawienia zapisują się automatycznie.</p></section>`;
@@ -1591,7 +1646,7 @@ function settingsModal() {
   modal.innerHTML = `<section class="modal settings-modal enter" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="modal-title"><div><p class="eyebrow">PREFERENCJE</p><h2 id="settings-title">Ustawienia</h2></div><button class="icon-btn" data-close aria-label="Zamknij">${icon("x",18)}</button></div><div class="settings-group"><h3>Wygląd</h3><label class="settings-toggle"><span><b>Jasny motyw</b><small>Zmień wygląd całej strony, lobby i gier.</small></span><input id="settings-theme" type="checkbox" ${lightThemeEnabled()?"checked":""}></label></div><div class="settings-group"><h3>Dźwięk</h3><label>Muzyka <span id="settings-music-value">${Math.round(audio.musicVolume*100)}%</span></label><input id="settings-music" type="range" min="0" max="1" step="0.01" value="${audio.musicVolume}"><label>Efekty dźwiękowe <span id="settings-sfx-value">${Math.round(audio.sfxVolume*100)}%</span></label><input id="settings-sfx" type="range" min="0" max="1" step="0.01" value="${audio.sfxVolume}"><label class="settings-toggle"><span><b>Wycisz wszystkie dźwięki</b><small>Wyłącza muzykę i efekty dźwiękowe.</small></span><input id="settings-muted" type="checkbox" ${audio.muted?"checked":""}></label></div><div class="settings-group"><h3>Sekwencja</h3><label class="settings-toggle"><span><b>Tryb daltonisty</b><small>Pokazuje nazwy kolorów na klockach sekwencji.</small></span><input id="settings-colorblind" type="checkbox" ${user?.colorblindMode?"checked":""} ${user?"":"disabled"}></label>${user?"":"<p class=\"tiny\">Zaloguj się, aby zapisać to ustawienie.</p>"}</div></section>`;
   const close=()=>actions.closeModal(modal); modal.querySelector("[data-close]").addEventListener("click",close); modal.addEventListener("click",event=>{if(event.target===modal)close();});
   $("#settings-theme",modal).addEventListener("change",event=>{const next=event.target.checked?"light":"dark";localStorage.setItem(THEME_STORAGE_KEY,next);applyTheme(next);render({forceEnter:true});});
-  $("#settings-music",modal).addEventListener("input",event=>{Audio.setMusicVolume(event.target.value);$("#settings-music-value",modal).textContent=`${Math.round(event.target.value*100)}%`;}); $("#settings-sfx",modal).addEventListener("input",event=>{Audio.setSfxVolume(event.target.value);$("#settings-sfx-value",modal).textContent=`${Math.round(event.target.value*100)}%`;}); $("#settings-muted",modal).addEventListener("change",event=>Audio.setMuted(event.target.checked)); $("#settings-colorblind",modal).addEventListener("change",event=>actions.setColorblindMode(event.target.checked)); document.body.append(modal); Audio.play("modalOpen");
+  $("#settings-music",modal).addEventListener("input",event=>{Audio.setMusicVolume(event.target.value);$("#settings-music-value",modal).textContent=`${Math.round(event.target.value*100)}%`;}); $("#settings-sfx",modal).addEventListener("input",event=>{Audio.setSfxVolume(event.target.value);$("#settings-sfx-value",modal).textContent=`${Math.round(event.target.value*100)}%`;}); $("#settings-muted",modal).addEventListener("change",event=>Audio.setMuted(event.target.checked)); $("#settings-colorblind",modal).addEventListener("change",event=>actions.setColorblindMode(event.target.checked)); document.body.append(modal); Audio.play("modalOpen"); return modal;
 }
 function scheduleRoomBot(room) {
   if(!room?.game||room.hostUid!==state.currentUser||!botIds(room).length)return;
@@ -1749,6 +1804,13 @@ async function checkFriendNotifications(bucket = null) {
   }
 }
 function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
+document.addEventListener("click", event => {
+  const changelogButton = event.target.closest?.("#open-changelog");
+  if (!changelogButton) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  actions.openChangelog();
+}, true);
 document.addEventListener("click", event => {
   const backdrop = event.target.closest?.(".modal-backdrop");
   if (!backdrop || event.target !== backdrop) return;
