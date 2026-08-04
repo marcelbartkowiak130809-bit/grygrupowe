@@ -463,6 +463,14 @@ function settleQuizResult(room) {
   const scores=room.game.scores||{}, max=Math.max(0,...Object.values(scores).map(Number)), winners=room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0);
   room.players.forEach(uid=>addPlayerMoney(uid,25+Number(scores[uid]||0)*5+(winners.includes(uid)?40:0))); const leaderboard=JSON.parse(localStorage.getItem("quizLeaderboard")||"{}");winners.forEach(uid=>{const nick=state.accounts[uid]?.nick||uid;leaderboard[nick]=(Number(leaderboard[nick])||0)+1;});localStorage.setItem("quizLeaderboard",JSON.stringify(leaderboard)); rewardRoomXp(room,30,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
+function settleAllResults(room) {
+  settleProveResult(room); settleImpostorResult(room); settleOtherQuestionResult(room); settleMostLikelyResult(room); settleFriendshipResult(room); settlePoisonCandyResult(room); settleBombResult(room); settleClosestTruthResult(room); settleRankingResult(room); settleFiveSecondsResult(room); settleClockResult(room); settleIdentityResult(room); settleBetResult(room); settlePokemonResult(room); settleWavelengthResult(room); settleQuizResult(room);
+}
+function trackFinishedGame(room) {
+  const game=room?.game, rewarded=Boolean(game?.rewarded || game?.result?.rewarded);
+  if(!game?.siteGameId || !rewarded || room.hostUid!==state.currentUser)return;
+  trackSiteEvent({type:"gameFinished",eventId:`game:${game.siteGameId}`,modeId:room.gameMode,minutes:Math.max(1,Math.ceil((serverNow()-Number(game.startedAt||serverNow()))/60000))});
+}
 function message(text, type = "error") {
   Audio.play(type === "error" ? "error" : "notification");
   const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = text; document.body.append(toast);
@@ -1628,7 +1636,7 @@ function render(options = {}) {
   if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) return Router.go("platform"); if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
-    const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); repairGameStateForPlayers(room); settleBetResult(room); settlePokemonResult(room); settleWavelengthResult(room); settleQuizResult(room); if(room.game?.rewarded&&room.game?.siteGameId) trackSiteEvent({type:"gameFinished",eventId:`game:${room.game.siteGameId}`,modeId:room.gameMode,minutes:Math.max(0,Math.round((serverNow()-Number(room.game.startedAt||serverNow()))/60000))}); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
+    const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); repairGameStateForPlayers(room); settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
     try {
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       renderQuickReactions(view, room, state.accounts, actions);
