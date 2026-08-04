@@ -32,7 +32,7 @@ import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-9";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260804-5";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260804-2";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260613-3";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260804-3";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
