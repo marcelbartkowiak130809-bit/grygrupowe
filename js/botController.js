@@ -13,7 +13,7 @@ import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260613-1";
 import { PokemonEngine } from "./pokemon.js?v=20260804-15";
-import { WavelengthEngine } from "./wavelength.js?v=20260804-1";
+import { WavelengthEngine } from "./wavelength.js?v=20260804-2";
 import { QuizEngine } from "./quiz.js?v=20260804-2";
 import { MathematicsEngine } from "./mathematics.js?v=20260804-2";
 import { MarkerEngine } from "./marker.js?v=20260804-1";
@@ -245,7 +245,7 @@ export function botMutation(room) {
         break;
       case "wavelength":
         if (game.phase === "clue" && players[Number(game.describerIndex || 0) % Math.max(1, players.length)] === bot) return g => WavelengthEngine.clue(g, bot, "Cos umiarkowanego", players, settings);
-        if (game.phase === "guess") return g => WavelengthEngine.move(g, 50);
+        if (game.phase === "guess") return g => WavelengthEngine.move(g, bot, 50);
         break;
       case "quiz":
         if (game.variant === "casual" && game.phase === "question" && isMissing(game.answers, bot)) return g => QuizEngine.answer(g, bot, correct() ? 0 : 1, players, settings);
