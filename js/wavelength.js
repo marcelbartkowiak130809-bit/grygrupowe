@@ -1,0 +1,84 @@
+import { escapeHtml } from "./utils.js?v=20260613-2";
+
+export const wavelengthDefaults = { rounds:8, roundTime:60 };
+const pairs = [
+  ["Gorące","Zimne"],["Bogaty","Biedny"],["Śmieszne","Poważne"],["Szybkie","Wolne"],["Jasne","Ciemne"],["Głośne","Ciche"],["Łatwe","Trudne"],["Stare","Nowe"],["Blisko","Daleko"],["Duże","Małe"],["Wysokie","Niskie"],["Ciężkie","Lekkie"],["Słodkie","Gorzkie"],["Mokre","Suche"],["Miękkie","Twarde"],["Pełne","Puste"],["Otwarte","Zamknięte"],["Dzień","Noc"],["Lato","Zima"],["Miasto","Wieś"],["Formalne","Luźne"],["Bezpieczne","Ryzykowne"],["Zdrowe","Niezdrowe"],["Popularne","Niszowe"],["Tanie","Drogie"],["Spokojne","Chaotyczne"],["Przyjazne","Wrogie"],["Realistyczne","Fantastyczne"],["Nowoczesne","Klasyczne"],["Eleganckie","Kiczowate"],["Praktyczne","Niepraktyczne"],["Pożyteczne","Bezużyteczne"],["Szczęśliwe","Smutne"],["Odważne","Tchórzliwe"],["Mądre","Głupie"],["Czyste","Brudne"],["Szerokie","Wąskie"],["Długie","Krótkie"],["Wysuszone","Wilgotne"],["Naturalne","Sztuczne"],["Widoczne","Ukryte"],["Zwyczajne","Dziwne"],["Prawdopodobne","Nieprawdopodobne"],["Wygodne","Niewygodne"],["Słabe","Mocne"],["Młode","Dojrzałe"],["Poranne","Wieczorne"],["Samotne","Towarzyskie"],["Zwycięskie","Przegrane"],["Królewskie","Zwyczajne"],["Ciepłe","Chłodne"],["Ciasne","Przestronne"],["Radosne","Ponure"],["Skomplikowane","Proste"],["Poważne","Żartobliwe"]
+];
+const randomPair = () => pairs[Math.floor(Math.random() * pairs.length)];
+const phaseEnd = seconds => Date.now() + Math.max(30, Math.min(120, Number(seconds) || 60)) * 1000;
+const scoreFor = difference => Math.max(0, Math.round(100 - Math.abs(Number(difference) || 0) * 2));
+
+export function createWavelengthGame(players, settings) {
+  return { mode:"wavelength", phase:"clue", round:1, scores:Object.fromEntries(players.map(uid => [uid, 0])), pair:randomPair(), target:Math.floor(Math.random() * 101), position:50, clue:"", describerIndex:0, phaseEndsAt:phaseEnd(settings.roundTime), roundResult:null };
+}
+
+function finishRound(game, players, settings) {
+  const difference = Math.abs(Number(game.position) - Number(game.target));
+  const points = scoreFor(difference);
+  game.scores = game.scores || Object.fromEntries(players.map(uid => [uid, 0]));
+  players.forEach(uid => { game.scores[uid] = Number(game.scores[uid]) || 0; });
+  const describer = players[game.describerIndex] || players[0];
+  game.scores[describer] += points;
+  game.roundResult = { target:game.target, position:game.position, difference, points, describer };
+  game.phase = "result";
+  game.finished = Number(game.round) >= Math.max(5, Math.min(20, Number(settings.rounds) || 8));
+}
+
+export const WavelengthEngine = {
+  clue(game, uid, text, players, settings) {
+    if (game.phase !== "clue" || players[game.describerIndex] !== uid) return "Teraz podpowiada inny gracz.";
+    const clue = String(text || "").trim().slice(0, 120);
+    const forbidden = game.pair.some(word => clue.toLocaleLowerCase("pl-PL").includes(word.toLocaleLowerCase("pl-PL")));
+    if (!clue || /\d/.test(clue) || forbidden) return "Podpowiedź nie może zawierać liczb ani nazw skrajności.";
+    game.clue = clue; game.phase = "guess";
+  },
+  move(game, position) {
+    if (game.phase !== "guess") return "Najpierw podajcie podpowiedź.";
+    game.position = Math.max(0, Math.min(100, Number(position) || 0));
+  },
+  confirm(game, uid, players, settings) {
+    if (game.phase !== "guess" || players[0] !== uid) return "Tylko host może zatwierdzić ustawienie.";
+    finishRound(game, players, settings);
+  },
+  timeout(game, players, settings) {
+    if (game.phase === "result") return;
+    finishRound(game, players, settings);
+  },
+  nextRound(game, players, settings) {
+    if (game.phase !== "result") return "Runda jeszcze się nie zakończyła.";
+    if (game.finished) return;
+    game.round += 1; game.pair = randomPair(); game.target = Math.floor(Math.random() * 101); game.position = 50; game.clue = ""; game.roundResult = null; game.describerIndex = (game.describerIndex + 1) % players.length; game.phase = "clue"; game.phaseEndsAt = phaseEnd(settings.roundTime);
+  }
+};
+
+function scaleMarkup(game, canMove, canConfirm, showTarget = false) {
+  const target = game.phase === "result" || showTarget ? `<span class="wavelength-target" style="left:${game.target}%"></span>` : "";
+  return `<div class="wavelength-scale"><div class="wavelength-scale-labels"><b>${escapeHtml(game.pair[1])}</b><b>${escapeHtml(game.pair[0])}</b></div><div class="wavelength-track">${target}<span class="wavelength-position" style="left:${game.position}%"></span></div>${canMove ? `<input class="wavelength-slider" data-wavelength-slider type="range" min="0" max="100" value="${game.position}">` : ""}<output data-wavelength-position>${game.position}%</output></div>${canConfirm ? `<button class="primary" data-wavelength-confirm>Zatwierdź ustawienie</button>` : ""}`;
+}
+
+function resultMarkup(game, accounts, actions) {
+  const result = game.roundResult || {}, name = escapeHtml(accounts[result.describer]?.nick || "Opisujący");
+  const standings=Object.entries(game.scores||{}).sort(([,a],[,b])=>Number(b)-Number(a));
+  const ranking=standings.map(([uid,score],index)=>`<div class="wavelength-ranking-row"><span>${index+1}. ${escapeHtml(accounts[uid]?.nick||"Gracz")}</span><b>${Number(score)||0} pkt</b></div>`).join("");
+  const podium=game.finished ? `<div class="wavelength-podium">${standings.slice(0,3).map(([uid,score],index)=>`<div class="wavelength-podium-place place-${index+1}"><strong>${index+1}</strong><b>${escapeHtml(accounts[uid]?.nick||"Gracz")}</b><span>${Number(score)||0} pkt</span></div>`).join("")}</div>` : "";
+  return `<section class="panel wavelength-panel enter"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}</p><h1>Cel został odsłonięty</h1><div class="wavelength-reveal">${scaleMarkup(game, false, false)}</div><p class="wavelength-clue">„${escapeHtml(game.clue || "Brak podpowiedzi")}" · ${name}</p><div class="wavelength-result-stats"><b>Odległość: ${result.difference ?? "-"}</b><strong>+${result.points ?? 0} pkt</strong></div>${podium}<div class="wavelength-ranking"><p class="eyebrow">RANKING</p>${ranking}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p><button class="primary" id="wavelength-lobby">Wróć do lobby</button>` : `<button class="primary" id="wavelength-next">Następna runda</button>`}</section>`;
+}
+
+export function renderWavelengthGame(root, { room, accounts, currentUser }, actions) {
+  const game = room.game, settings = room.settings || wavelengthDefaults, players = room.players || [], host = players[0] === currentUser, describer = players[game.describerIndex] === currentUser;
+  window.clearTimeout(renderWavelengthGame.timer); window.clearInterval(renderWavelengthGame.countdown);
+  if (game.phase === "result") { root.innerHTML = `<main class="page wavelength-page">${resultMarkup(game, accounts, actions)}</main>`; root.querySelector("#wavelength-next")?.addEventListener("click", actions.wavelengthNext); root.querySelector("#wavelength-lobby")?.addEventListener("click", actions.returnToRoom); return; }
+  const pair = `<div class="wavelength-pair"><span>${escapeHtml(game.pair[1])}</span><span>↔</span><span>${escapeHtml(game.pair[0])}</span></div>`;
+  const clue = game.clue ? `<div class="wavelength-clue">„${escapeHtml(game.clue)}”</div>` : "";
+  const clueForm = describer && game.phase === "clue" ? `<form class="wavelength-clue-form"><input id="wavelength-clue" maxlength="120" placeholder="Jedno słowo lub krótkie zdanie"><button class="primary">Podaj podpowiedź</button></form>` : game.phase === "clue" ? `<p class="muted">Opisujący przygotowuje podpowiedź.</p>` : "";
+  const canMove = !describer && game.phase === "guess";
+  root.innerHTML = `<main class="page wavelength-page enter"><section class="panel wavelength-panel"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}/${settings.rounds || 8}</p><h1>${game.phase === "clue" ? (describer ? "Wymyśl podpowiedź" : "Słuchajcie podpowiedzi") : "Wspólnie ustawcie wskaźnik"}</h1>${describer && game.phase === "clue" ? `<p class="wavelength-secret">Ukryty cel: ${game.target}%</p>` : ""}${pair}${clue}<p class="muted">${game.phase === "clue" ? "Nie używaj liczb ani nazw skrajności." : "Im bliżej ukrytego celu, tym więcej punktów."}</p>${clueForm}${game.phase === "guess" ? scaleMarkup(game, canMove, host, describer) : `<div class="wavelength-wait">Skala pojawi się po podpowiedzi.</div>`}<div class="wavelength-timer" data-wavelength-countdown>${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div></section></main>`;
+  root.querySelector(".wavelength-clue-form")?.addEventListener("submit", event => { event.preventDefault(); actions.wavelengthClue(root.querySelector("#wavelength-clue").value, { phase:game.phase, phaseEndsAt:game.phaseEndsAt }); });
+  const slider=root.querySelector("[data-wavelength-slider]"), output=root.querySelector("[data-wavelength-position]"); slider?.addEventListener("input", () => { output.textContent=`${slider.value}%`; root.querySelector(".wavelength-position").style.left=`${slider.value}%`; }); slider?.addEventListener("change", () => actions.wavelengthMove(Number(slider.value), { phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
+  root.querySelector("[data-wavelength-confirm]")?.addEventListener("click", () => actions.wavelengthConfirm({ phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
+  renderWavelengthGame.countdown=window.setInterval(()=>{const node=root.querySelector("[data-wavelength-countdown]");if(node)node.textContent=`${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s`;},250); renderWavelengthGame.timer=window.setTimeout(()=>actions.wavelengthTimeout({phase:game.phase,phaseEndsAt:game.phaseEndsAt}),Math.max(100,game.phaseEndsAt-Date.now()+50));
+}
+
+export function renderWavelengthLobbySettings(room, isHost) { const settings=room.settings || wavelengthDefaults; return `<div class="wavelength-settings"><label>Liczba rund <input data-wavelength-setting="rounds" type="number" min="5" max="20" value="${settings.rounds || 8}" ${isHost ? "" : "disabled"}></label><label>Czas rundy <input data-wavelength-setting="roundTime" type="number" min="30" max="120" value="${settings.roundTime || 60}" ${isHost ? "" : "disabled"}> s</label><p class="tiny">Każda runda losuje nową parę przeciwieństw i ukryty cel.</p></div>`; }
+
+export function stopWavelengthTimer() { window.clearTimeout(renderWavelengthGame.timer); window.clearInterval(renderWavelengthGame.countdown); }

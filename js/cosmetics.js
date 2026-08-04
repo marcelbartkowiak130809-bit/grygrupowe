@@ -2,7 +2,7 @@ const item = (id, type, name, price, rarity, description, options = {}) => ({ id
 export const rarityLabels = { common:"Common", rare:"Rare", epic:"Epic", legendary:"Legendary", mythic:"Mythic" };
 
 export const cosmetics = [
-  item("defaultBomb","bomb","Klasyczna bomba",0,"common","Domyslna bomba do trybu BOMBA."),
+  item("defaultBomb","bomb","Klasyczna bomba",0,"common","Domyslna bomba do trybu Bomba."),
   item("mintBomb","bomb","Mietowy ladunek",900,"common","Jasna bomba z chlodnym blyskiem i lekkim wybuchem."),
   item("chocoBomb","bomb","Kakao bomba",1200,"common","Czekoladowa obudowa i cieply karmelowy rozblysk."),
   item("fizzyBomb","bomb","Musujaca bomba",1800,"rare","Kolorowy kwasny ladunek z iskrami jak napoj gazowany."),
@@ -13,7 +13,7 @@ export const cosmetics = [
   item("diamondBomb","bomb","Diamentowa bomba",6800,"legendary","Niebieskawy wybuch i odlatujace krysztalowe odlamki."),
   item("emeraldBomb","bomb","Szmaragdowy rdzen",6800,"legendary","Zielony krystaliczny wybuch z ostrymi drobinami."),
   item("rubyBomb","bomb","Rubinowa bomba",7200,"mythic","Czerwony mityczny rozblysk z rubinowymi odlamkami."),
-  item("defaultClock","clock","Klasyczny zegar",0,"common","Domyslny zegar do trybu ZEGAR."),
+  item("defaultClock","clock","Klasyczny zegar",0,"common","Domyslny zegar do trybu Zegar."),
   item("mintClock","clock","Mietowy zegar",700,"common","Jasna mietowa tarcza zegara."),
   item("blueClock","clock","Niebieski zegar",850,"common","Chlodny niebieski zegar z czysta tarcza."),
   item("roseClock","clock","Rozowy zegar",900,"common","Rozowo-fioletowa tarcza w lekkim stylu neonowym."),
@@ -26,6 +26,16 @@ export const cosmetics = [
   item("auroraClock","clock","Zegar zorzy",5200,"legendary","Zegar z plynaca aura zorzy wokol tarczy."),
   item("flameClock","clock","Plonacy zegar",5800,"legendary","Rozgrzana tarcza z plomieniami na obrzezu."),
   item("voidClock","clock","Zegar pustki",6900,"mythic","Ciemny zegar z mityczna aura pustki."),
+  item("defaultMarker","marker","Czarny marker",0,"common","Domyślny marker do trybu MARKER."),
+  item("redMarker","marker","Czerwony marker",180,"common","Czerwony marker do trybu MARKER."),
+  item("blueMarker","marker","Niebieski marker",220,"common","Niebieski marker do trybu MARKER."),
+  item("neonMarker","marker","Neonowy marker",420,"rare","Cyjanowa neonowa poświata markera."),
+  item("rainbowMarker","marker","Tęczowy marker",650,"epic","Tęczowy marker z animowanym kolorem."),
+  item("defaultSequence","sequence","Klasyczne pola",0,"common","Domyślne pola do trybu Zgadnij sekwencję."),
+  item("neonSequence","sequence","Neonowe pola",180,"common","Neonowe pola sekwencji."),
+  item("matteSequence","sequence","Matowe pola",160,"common","Matowe pola sekwencji."),
+  item("stripeSequence","sequence","Paski",220,"rare","Pola z paskowanym wykończeniem."),
+  item("gradientSequence","sequence","Gradientowe pola",320,"rare","Pola z kolorowym gradientem."),
   item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
   item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
@@ -261,14 +271,14 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-bomb">
       <div class="shop-bomb bomb-skin-${item.id}"><span></span><b></b></div>
       <span class="nick">${escapeAttr(item.name)}</span>
-      ${options.hideType ? "" : '<small class="preview-type">BOMBA</small>'}
+      ${options.hideType ? "" : '<small class="preview-type">Bomba</small>'}
     </div>`;
   }
   if (item.type === "clock") {
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-clock">
       <div class="shop-clock clock-skin-${item.id}"><i></i><b></b></div>
       <span class="nick">${escapeAttr(item.name)}</span>
-      ${options.hideType ? "" : '<small class="preview-type">ZEGAR</small>'}
+      ${options.hideType ? "" : '<small class="preview-type">Zegar</small>'}
     </div>`;
   }
   if (item.type === "candy") {

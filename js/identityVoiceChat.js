@@ -1,4 +1,4 @@
-import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260605-2";
+import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20260804-3";
 
 const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }] };
 const now = () => Date.now();

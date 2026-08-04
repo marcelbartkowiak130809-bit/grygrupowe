@@ -440,8 +440,9 @@ export async function syncRoomState(room) {
   try {
     const payload = {
       roomId:room.roomId, gameMode:room.gameMode, name:room.name || "Pokój dla ekipy", isPrivate:Boolean(room.isPrivate), passwordHash:room.passwordHash || "", hostUid:room.hostUid || null,
+      roomType:room.roomType === "betting" ? "betting" : "standard", entryFee:room.roomType === "betting" ? Math.max(0, Number(room.entryFee) || 0) : 0,
       players:Object.fromEntries((room.players || []).map(uid=>[uid,{ nick:room.playerProfiles?.[uid]?.nick || "Gracz", avatarImage:room.playerProfiles?.[uid]?.avatarImage || "", nickOnly:Boolean(room.playerProfiles?.[uid]?.nickOnly), adultStatus:room.playerProfiles?.[uid]?.adultStatus || "unknown", money:Number(room.playerProfiles?.[uid]?.money)||0, sessionMoney:Number(room.playerProfiles?.[uid]?.sessionMoney)||0, xp:Number(room.playerProfiles?.[uid]?.xp)||0, sessionXp:Number(room.playerProfiles?.[uid]?.sessionXp)||0, joinedAt:room.joinedAt?.[uid] || room.createdAt, connected:true, selectedNickEffect:room.playerProfiles?.[uid]?.selectedNickEffect || "defaultNick", selectedAvatarFrame:room.playerProfiles?.[uid]?.selectedAvatarFrame || "defaultFrame", selectedAura:room.playerProfiles?.[uid]?.selectedAura || "noAura", selectedCandySkin:room.playerProfiles?.[uid]?.selectedCandySkin || "defaultCandy", selectedBombSkin:room.playerProfiles?.[uid]?.selectedBombSkin || "defaultBomb", selectedClockSkin:room.playerProfiles?.[uid]?.selectedClockSkin || "defaultClock", selectedIdleAnimation:room.playerProfiles?.[uid]?.selectedIdleAnimation || "", selectedWinAnimation:room.playerProfiles?.[uid]?.selectedWinAnimation || "", selectedLoseAnimation:room.playerProfiles?.[uid]?.selectedLoseAnimation || "" }])),
-      status:room.status, settings:room.settings || {}, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
+      status:room.status, settings:room.settings || {}, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, pendingEntryFees:room.pendingEntryFees || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
       gameState:room.game || null, chat:room.game?.chat || [],
     };
     let saved=payload;
@@ -459,7 +460,23 @@ export async function syncRoomState(room) {
   }
 }
 
-const normalizeRemoteRoom=room=>({ ...room, game:room.gameState || null, players:Object.keys(room.players || {}), playerProfiles:room.players || {}, joinedAt:Object.fromEntries(Object.entries(room.players || {}).map(([uid,item])=>[uid,item.joinedAt])) });
+function normalizeFirebaseValue(value) {
+  if (Array.isArray(value)) return value.map(normalizeFirebaseValue);
+  if (!value || typeof value !== "object") return value;
+  const keys = Object.keys(value);
+  const numericKeys = keys.length && keys.every(key => /^\d+$/.test(key));
+  if (numericKeys) {
+    const max = Math.max(...keys.map(Number));
+    if (max < 10000) return Array.from({ length:max + 1 }, (_, index) => normalizeFirebaseValue(value[index]));
+  }
+  return Object.fromEntries(keys.map(key => [key, normalizeFirebaseValue(value[key])]));
+}
+
+const normalizeRemoteRoom=room=>{
+  const normalized=normalizeFirebaseValue(room || {});
+  const players=normalized.players || {};
+  return { ...normalized, game:normalizeFirebaseValue(normalized.gameState || null), players:Object.keys(players), playerProfiles:players, joinedAt:Object.fromEntries(Object.entries(players).map(([uid,item])=>[uid,item?.joinedAt])) };
+};
 
 export async function loadRemoteRoom(roomId) {
   const code = String(roomId || "").trim().toUpperCase();
@@ -486,10 +503,10 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
     const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
     const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
       if(!current?.gameState){mutationError="Stan gry nie jest dostępny.";return;}
-      const game=JSON.parse(JSON.stringify(current.gameState));
+      const game=normalizeFirebaseValue(JSON.parse(JSON.stringify(current.gameState)));
       mutationError=mutate(game,current)||"";
       if(mutationError)return;
-      return {...current,gameState:game,chat:game.chat||[],updatedAt:Math.max(Date.now(),Number(current.updatedAt||0)+1)};
+      return {...current,gameState:game,chat:game.chat||[],updatedAt:Math.max(serverNow(),Number(current.updatedAt||0)+1)};
     });
     if(!result.committed)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
     const value=result.snapshot.val();

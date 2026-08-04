@@ -13,6 +13,8 @@ const equipped = (profile, id) => [
   profile.selectedCandySkin,
   profile.selectedBombSkin,
   profile.selectedClockSkin,
+  profile.selectedMarkerSkin,
+  profile.selectedSequenceSkin,
   profile.selectedIdleAnimation,
   profile.selectedWinAnimation,
   profile.selectedLoseAnimation,
@@ -28,9 +30,12 @@ const groups = [
   { type:"candy", title:"Cukierki" },
   { type:"bomb", title:"Bomby" },
   { type:"clock", title:"Zegary" },
+  { type:"marker", title:"Markery" },
+  { type:"sequence", title:"Pola sekwencji" },
 ];
 
 const defaultCosmetics = {
+  sequence:{ id:"defaultSequence", type:"sequence", name:"Klasyczne pola", rarity:"common", description:"Domyślne pola sekwencji.", defaultOnly:true },
   idle:{ id:"defaultIdle", type:"idle", name:"Zwykłe idle", rarity:"common", description:"Bez dodatkowej animacji idle.", defaultOnly:true },
   win:{ id:"defaultWin", type:"win", name:"Zwykła wygrana", rarity:"common", description:"Bez dodatkowej animacji wygranej.", defaultOnly:true },
   lose:{ id:"defaultLose", type:"lose", name:"Zwykła przegrana", rarity:"common", description:"Bez dodatkowej animacji przegranej.", defaultOnly:true },

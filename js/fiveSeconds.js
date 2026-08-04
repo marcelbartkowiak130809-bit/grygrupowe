@@ -218,7 +218,7 @@ function gameStage(room, accounts, currentUser, game) {
     <div class="five-head"><div><p class="eyebrow">RUNDA ${game.round} - ${escapeHtml(game.categoryName)}</p><h1>Wymien 3 ${escapeHtml(game.prompt)}</h1></div><div class="five-timer ${left <= 3 ? "timer-urgent" : ""}" id="five-turn-timer">${left}</div></div>
     <div class="five-table">
       <div class="five-player-now"><p class="eyebrow">TERAZ</p>${playerMiniHtml(accounts[game.activeUid])}<strong>${escapeHtml(accounts[game.activeUid]?.nick || "Gracz")}</strong></div>
-      <div class="five-pressure"><i></i><i></i><b>5 SEKUND</b></div>
+      <div class="five-pressure"><i></i><i></i><b>5 sekund</b></div>
       ${latestResult(game, accounts)}
     </div>
     ${answerField(game, currentUser)}

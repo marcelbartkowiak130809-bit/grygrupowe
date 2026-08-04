@@ -22,6 +22,8 @@ const sfx = {
   modalOpen: [360, 0.08, "sine", 0.24],
   modalClose: [280, 0.07, "sine", 0.2],
   choice: [510, 0.12, "triangle", 0.7],
+  toggleOn: [580, 0.07, "sine", 0.28],
+  toggleOff: [300, 0.07, "sine", 0.22],
   submit: [480, 0.08, "triangle", 0.34],
   clue: [560, 0.09, "sine", 0.42],
   chat: [690, 0.055, "sine", 0.2],

@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260804-5";
+import { getGameMode } from "./games.js?v=20260804-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
@@ -12,14 +12,22 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3"
 import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260613-1";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-2";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-14";
+import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260804-1";
+import { renderQuizLobbySettings } from "./quiz.js?v=20260804-2";
+import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260804-1";
+import { renderMarkerLobbySettings } from "./marker.js?v=20260804-1";
+import { renderSequenceLobbySettings } from "./sequence.js?v=20260804-1";
+import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260804-2";
+import { renderWordChainLobbySettings } from "./wordChain.js?v=20260804-1";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
+import { BOT_DIFFICULTIES, isBotId, roomAllowsBots } from "./bots.js?v=20260804-1";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : mode.symbol; }
 
 export function playerMini(profile = {}, options = {}) {
-  return playerMiniHtml(profile, "", options);
+  return `${profile?.isBot ? '<span class="bot-player-mark" title="Bot">🤖</span>' : ""}${playerMiniHtml(profile, "", options)}`;
 }
 
 function lobbyAgeStatus(uid, room, accounts) {
@@ -46,6 +54,13 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "ranking") return renderRankingLobbySettings(room, isHost);
   if (mode.id === "5-sekund") return renderFiveSecondsLobbySettings(room, isHost);
   if (mode.id === "zegar") return renderClockLobbySettings(room, isHost);
+  if (mode.id === "wavelength") return renderWavelengthLobbySettings(room, isHost);
+  if (mode.id === "quiz") return renderQuizLobbySettings(room, isHost);
+  if (mode.id === "mathematics") return renderMathematicsLobbySettings(room, isHost);
+  if (mode.id === "marker") return renderMarkerLobbySettings(room, isHost);
+  if (mode.id === "sequence") return renderSequenceLobbySettings(room, isHost);
+  if (mode.id === "family") return renderFamilyLobbySettings(room, isHost);
+  if (mode.id === "word-chain") return renderWordChainLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -53,17 +68,22 @@ function settingsHtml(mode, room, isHost, actions) {
 export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const mode = getGameMode(room.gameMode);
   const isHost = room.hostUid === currentUser;
+  const competitiveQuiz = mode.id === "quiz" && room.settings?.quizVariant === "competitive";
+  const inviteFriendButton = competitiveQuiz ? "" : '<button class="ghost" id="invite-friend">Zaproś znajomego</button>';
   const canReport = Boolean(mode.allowReports);
+  const canAddBots = roomAllowsBots(room, mode) && isHost;
+  const botDifficulty = room.settings?.botDifficulty || "normal";
+  const openSlots = Math.max(0, mode.maxPlayers - room.players.length);
   const inviteLink = actions.inviteLink?.(room) || "";
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page room-page enter">
     <section class="panel room-header">
-      <div><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
+      <div><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈ ZAKŁADY · " + Number(room.entryFee || 0).toLocaleString("pl-PL") + "$" : "● STANDARD"}</span><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}</section>
-      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button><button class="ghost" id="invite-friend">Zaproś znajomego</button></div>${adSenseBlock("Reklama", "lobby")}</aside>
+      <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button>${inviteFriendButton}</div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
@@ -72,11 +92,14 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
+    ${openSlots ? `<section class="player-grid bot-slots">${Array.from({length:openSlots},()=>`<article class="player-card empty-player-slot"><div class="empty-slot-icon">${icon("users", 22)}</div><p class="muted">Wolne miejsce</p>${canAddBots ? '<div class="empty-slot-actions"><button class="ghost" data-add-bot>🤖 Dodaj bota</button><button class="ghost" data-invite-slot>Zaproś gracza</button></div>' : ""}</article>`).join("")}</section>` : ""}
+    ${isHost && room.status === "lobby" && room.isPrivate ? `<section class="bot-settings panel-subtle"><div><p class="eyebrow">BOTY</p><strong>Poziom trudności</strong><p class="tiny">Dotyczy botów dodanych do tego pokoju.</p></div><select id="bot-difficulty">${BOT_DIFFICULTIES.map(item=>`<option value="${item.id}" ${item.id===botDifficulty?"selected":""}>${item.label}</option>`).join("")}</select></section>` : ""}
     <section class="room-actions">${isHost ? `<button class="primary big" id="start-game" ${room.players.length < mode.minPlayers ? "disabled" : ""}>${icon("play", 20)} Start gry</button>` : '<p class="muted">Czekamy, az host rozpocznie gre.</p>'}
       ${room.players.length < mode.minPlayers ? `<p class="muted">Do startu potrzeba minimum ${mode.minPlayers} graczy.</p>` : ""}</section>
   </main>`;
   root.querySelector("#leave-room").addEventListener("click", () => actions.leaveRoom());
   root.querySelector("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
+  if (mode.id === "ranking") actions.showRankingIntro?.();
   root.querySelector("#copy-invite-link")?.addEventListener("click", () => actions.copyInviteLink(room.roomId));
   root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
   root.querySelector("#invite-friend")?.addEventListener("click", () => actions.openFriends({ inviteMode:true }));
@@ -103,8 +126,19 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-pokemon-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
+  root.querySelectorAll("[data-wavelength-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value)));
+  root.querySelectorAll("[data-quiz-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.quizSetting, input.value)));
+  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.value)));
+  root.querySelectorAll("[data-math-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory))));
+  root.querySelectorAll("[data-marker-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.markerSetting, input.value)));
+  root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
+  root.querySelectorAll("[data-add-bot]").forEach(button => button.addEventListener("click", () => actions.addBot()));
+  root.querySelectorAll("[data-invite-slot]").forEach(button => button.addEventListener("click", () => actions.openFriends({ inviteMode:true })));
+  root.querySelector("#bot-difficulty")?.addEventListener("change", event => actions.setBotDifficulty(event.target.value));
   root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));
   root.querySelector("#start-game")?.addEventListener("click", actions.startGame);
 }

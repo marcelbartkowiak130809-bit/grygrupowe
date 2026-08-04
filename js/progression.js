@@ -22,7 +22,7 @@ export const trophyRoad = [
 const modeLabels = {
   all:"Wszystkie tryby", udowodnij:"Udowodnij", impostor:"Impostor", "kim-jestem":"Kim jestem", "inne-pytanie":"Inne pytanie",
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
-  bomba:"Bomba", "najblizej-prawdy":"Najblizej Prawdy", ranking:"Ranking", "5-sekund":"5 Sekund", zegar:"Zegar",
+  bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
 
@@ -170,8 +170,8 @@ const questList = now => {
     q(`daily-buy-${d}`,"daily","Kup 1 kosmetyk",1,"bought","+","easy"),
     q(`weekly-win-bomb-2-${w}`,"weekly","Wygraj 2 gry w Bombie",2,"winMode","B2","easy",{mode:"bomba"}),
     q(`weekly-play-clock-4-${w}`,"weekly","Zagraj 4 gry w Zegar",4,"mode","TIME","easy",{mode:"zegar"}),
-    q(`weekly-win-five-5-${w}`,"weekly","Wygraj 5 gier w 5 Sekund",5,"winMode","5W","medium",{mode:"5-sekund"}),
-    q(`weekly-play-truth-7-${w}`,"weekly","Zagraj 7 gier w Najblizej Prawdy",7,"mode","NUM","medium",{mode:"najblizej-prawdy"}),
+    q(`weekly-win-five-5-${w}`,"weekly","Wygraj 5 gier w 5 sekund",5,"winMode","5W","medium",{mode:"5-sekund"}),
+    q(`weekly-play-truth-7-${w}`,"weekly","Zagraj 7 gier w Najbliżej prawdy",7,"mode","NUM","medium",{mode:"najblizej-prawdy"}),
     q(`weekly-ranking-5-${w}`,"weekly","Wygraj 5 gier w Rankingu",5,"winMode","RANK","medium",{mode:"ranking"}),
     q(`weekly-win-streak-5-${w}`,"weekly","Wygraj 5 razy pod rzad",5,"bestStreak","STK","hard"),
     q(`weekly-bomb-streak-3-${w}`,"weekly","Wygraj 3 razy pod rzad w Bombie",3,"modeStreak","B3","hard",{mode:"bomba"}),

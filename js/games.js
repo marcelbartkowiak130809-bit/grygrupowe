@@ -11,7 +11,14 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-2";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-14";
+import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260804-1";
+import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260804-2";
+import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260804-1";
+import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260804-1";
+import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260804-1";
+import { familyDefaults, renderFamilyGame } from "./family.js?v=20260804-1";
+import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260804-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -155,7 +162,7 @@ export const gamesRegistry = {
   },
   bomba: {
     id: "bomba",
-    name: "BOMBA",
+    name: "Bomba",
     description: "Podawajcie odpowiedzi po kolei, zanim ukryty timer wysadzi bombe na stole.",
     help: ["Host wybiera rundy, punkty, czas odpowiedzi i minimum trzy kategorie.", "Gra losuje kategorie, a gracze po kolei wpisuja odpowiedzi.", "Nie wolno powtarzac odpowiedzi ani oddawac pustej tury.", "Po wybuchu gracz z bomba przegrywa runde, a pozostali dostaja punkty."],
     allowReports: true,
@@ -173,7 +180,7 @@ export const gamesRegistry = {
   },
   "najblizej-prawdy": {
     id: "najblizej-prawdy",
-    name: "NAJBLIZEJ PRAWDY",
+    name: "Najbliżej prawdy",
     description: "Strzelajcie liczby i sprawdzajcie, kto byl najblizej prawdziwej odpowiedzi.",
     help: ["Gra pokazuje pytanie liczbowe z wybranej kategorii.", "Kazdy wpisuje jedna liczbe, bez podgladania odpowiedzi innych.", "Po komplecie odpowiedzi widzicie prawidlowa liczbe, roznice i ranking rundy.", "Najblizsza odpowiedz dostaje najwiecej punktow, kolejne miejsca mniej."],
     allowReports: true,
@@ -191,12 +198,12 @@ export const gamesRegistry = {
   },
   ranking: {
     id: "ranking",
-    name: "RANKING",
+    name: "Ranking",
     description: "Ukladajcie listy po swojemu i sprawdzajcie, kto mysli najbardziej jak grupa.",
     help: ["Kazdy dostaje te sama liste elementow.", "Przeciagacie elementy, ukladajac ranking od najlepszego do najslabszego.", "Po rundzie gra tworzy ranking grupowy ze srednich pozycji.", "Im bardziej twoja lista pasuje do grupowej, tym wiecej punktow dostajesz."],
     allowReports: true,
-    players: "2-8 osob",
-    minPlayers: 2,
+    players: "3-8 osob",
+    minPlayers: 3,
     maxPlayers: 8,
     supportsLobby: true,
     supportsSolo: false,
@@ -209,7 +216,7 @@ export const gamesRegistry = {
   },
   "5-sekund": {
     id: "5-sekund",
-    name: "5 SEKUND",
+    name: "5 sekund",
     description: "Masz kilka sekund, zeby wymienic trzy rzeczy z podanej kategorii.",
     help: ["Gra pokazuje zadanie typu: wymien 3 zwierzeta.", "Aktywny gracz ma 5, 10 albo 15 sekund na wpisanie odpowiedzi.", "Po czasie odpowiedz blokuje sie i tura przechodzi dalej.", "Pelna odpowiedz daje 3 punkty, czesciowa mniej."],
     allowReports: true,
@@ -227,7 +234,7 @@ export const gamesRegistry = {
   },
   zegar: {
     id: "zegar",
-    name: "ZEGAR",
+    name: "Zegar",
     description: "Wyczuj czas bez patrzenia na licznik i zatrzymaj zegar najblizej celu.",
     help: ["Gra losuje czas od 3 do 15 sekund.", "Kazdy widzi swoj stylowy zegar, ale nie widzi aktualnego czasu.", "Gdy czujesz, ze cel minal, naciskasz STOP.", "Po komplecie stopow widzicie wspolna os czasu i roznice od wyniku."],
     allowReports: true,
@@ -260,6 +267,27 @@ export const gamesRegistry = {
   },
   "pokemon-match-type": {
     id: "pokemon-match-type", name: "DOPASUJ TYP", description: "Rozpoznaj wszystkie typy pokazanego Pokémona szybciej od innych.", help: ["Wszyscy widzą tego samego Pokémona.", "Zaznacz wszystkie jego typy.", "Błędna odpowiedź zabiera serce."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◈", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-match-type"],
+  },
+  wavelength: {
+    id: "wavelength", name: "WAVELENGTH", description: "Naprowadź ekipę na ukryty punkt między dwoma przeciwieństwami.", help: ["Opisujący widzi ukryty cel i podaje jedno słowo lub krótkie zdanie.", "Pozostali wspólnie ustawiają wskaźnik na skali.", "Host zatwierdza ustawienie, a wynik zależy od odległości od celu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◌", art:"wavelength", audience:"everyone", badges:["new"], render:renderWavelengthGame, defaultSettings:wavelengthDefaults,
+  },
+  quiz: {
+    id: "quiz", name: "QUIZ", description: "Sprawdźcie wiedzę w trybie Casual albo zmierzcie się w teleturniejowej rywalizacji.", help: ["Najpierw wybierzcie wariant Casual albo Rywalizacja.", "Casual pozwala hostowi ustawić liczbę i czas pytań.", "Rywalizacja dobiera graczy do szybkiego meczu 2–4 osób."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"?", art:"quiz", audience:"everyone", badges:["new"], render:renderQuizGame, defaultSettings:quizDefaults,
+  },
+  mathematics: {
+    id: "mathematics", name: "MATEMATYKA", description: "Rozwiązujcie proceduralnie generowane zadania i ścigajcie się o poprawne odpowiedzi.", help: ["Host wybiera liczbę pytań, czas, sposób odpowiedzi i typy zadań.", "Pytania rosną z poziomem trudności wraz z numerem pytania.", "Pierwsza poprawna odpowiedź daje punkt."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"∑", art:"mathematics", audience:"everyone", badges:["new"], render:renderMathematicsGame, defaultSettings:mathematicsDefaults,
+  },
+  marker: {
+    id: "marker", name: "MARKER", description: "Znajdź liczby na wspólnej planszy i zakreśl je szybciej od przeciwnika.", help: ["Wybierz liczbę na wspólnej planszy.", "Przeciwnik szuka liczby, a Ty pokrywasz własne pole markerem.", "System sprawdza faktyczne pokrycie pola, więc samo kliknięcie nie wystarczy."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"✎", art:"marker", audience:"everyone", badges:["new"], render:renderMarkerGame, defaultSettings:markerDefaults,
+  },
+  sequence: {
+    id: "sequence", name: "ZGADNIJ SEKWENCJĘ", description: "Twórzcie tajne sekwencje kolorów i łamcie kod przeciwnika.", help: ["Każdy gracz tworzy własną sekwencję dla przeciwnika.", "Po każdej próbie widzicie tylko liczbę kolorów na poprawnym miejscu.", "Nie pokazujemy, które pozycje są prawidłowe."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"◎", art:"sequence", audience:"everyone", badges:["new"], render:renderSequenceGame, defaultSettings:sequenceDefaults,
+  },
+  family: {
+    id: "family", name: "FAMILIADA", description: "Odgadujcie najpopularniejsze odpowiedzi i zdobywajcie punkty z tablicy.", help: ["Gra losuje pytanie i odpowiedzi z ukrytej tablicy.", "Po każdej odpowiedzi pokazujemy tylko miejsce i wartość trafienia.", "Host wybiera sposób zmiany gracza oraz liczbę rund."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"★", art:"family", audience:"everyone", badges:["new"], render:renderFamilyGame, defaultSettings:familyDefaults,
+  },
+  "word-chain": {
+    id: "word-chain", name: "ŁAŃCUCH SŁÓW", description: "Budujcie łańcuch słów, pilnując ostatniej litery.", help: ["Pierwsze słowo jest losowane z dużego słownika.", "Każde kolejne słowo zaczyna się ostatnią literą poprzedniego.", "Host może włączyć język angielski oraz kontrolowane powtórki."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↔", art:"word-chain", audience:"everyone", badges:["new"], render:renderWordChainGame, defaultSettings:wordChainDefaults,
   },
 };
 

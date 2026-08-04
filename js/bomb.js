@@ -228,7 +228,7 @@ function timerText(game, settings) {
 function timerBox(game, settings) {
   const left = timerLeft(game, settings);
   if (!settings.showExplosionTime) {
-    const label = settings.timeMode === "shared" ? "WSPOLNA BOMBA" : "UKRYTY WYBUCH";
+    const label = settings.timeMode === "shared" ? "Wspólna bomba" : "Ukryty wybuch";
     return `<div class="timer-box bomb-hidden-timer ${left <= 5 ? "timer-urgent" : ""}"><span class="tiny">${label}</span><b id="bomb-turn-timer" data-hidden-time="1">???</b></div>`;
   }
   const label = settings.timeMode === "shared" ? "DO WYBUCHU" : "WYBUCH";
@@ -260,7 +260,7 @@ function bombStage(room, accounts, currentUser) {
       <div class="bomb-head"><div><p class="eyebrow">KATEGORIA - ${modeLabel}</p><h1>${escapeHtml(category.name)}</h1></div>${timerBox(game, settings)}</div>
       <div class="bomb-table">
         <div class="bomb-answer-feed"><p class="eyebrow">PODANE</p>${answerStack(game)}</div>
-        <div class="bomb-core-wrap bomb-skin-${skin} ${settings.visibleBombState && danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>BOMBA</b></div><div class="bomb-shadow"></div></div>
+        <div class="bomb-core-wrap bomb-skin-${skin} ${settings.visibleBombState && danger > 72 ? "bomb-danger" : ""}"><div class="bomb-fuse"><i></i></div><div class="bomb-core"><span></span><b>Bomba</b></div><div class="bomb-shadow"></div></div>
         <div class="bomb-current-player"><p class="eyebrow">TERAZ</p>${playerMiniHtml(accounts[active])}<strong>${escapeHtml(accounts[active]?.nick || "Gracz")}</strong><small>${room.players.indexOf(active) + 1}/${room.players.length}</small></div>
       </div>
       ${active === currentUser ? `<form id="bomb-answer-form" class="bomb-answer-form"><input id="bomb-answer-input" placeholder="Szybko, wpisz odpowiedz..." autocomplete="off" autofocus><button class="primary">Podaj dalej</button></form>` : `<div class="waiting-state"><span class="waiting-pulse">tik</span><h3>Czekamy na odpowiedz</h3><p>Bomba jest przy graczu ${escapeHtml(accounts[active]?.nick || "Gracz")}.</p></div>`}

@@ -1,9 +1,9 @@
-import { gamesList } from "./games.js?v=20260804-5";
+import { gamesList } from "./games.js?v=20260804-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260615-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260613-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260804-2";
 
 const filters = [
   ["all", "Wszystkie"],
@@ -54,16 +54,16 @@ function gameCard(mode) {
     </div>
     <div class="game-card-content">
       <div class="game-card-top">${categoryTag(mode)}${mode.supportsSolo && mode.supportsLobby ? '<span class="tag game-badge game-badge-solo">TRYB SOLO</span>' : ""}${(mode.badges || []).map(badgeTag).join("")}</div>
-      <h2>${mode.name}</h2>
-      <p class="muted">${mode.description}</p>
+      <h2>${locked ? "Nadchodzący tryb" : mode.name}</h2>
+      <p class="muted">${locked ? "Nowa rozgrywka pojawi się wkrótce." : mode.description}</p>
       ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}
-      <div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button></div>
+      <div class="game-card-activity"><span>${mode.activity?.players||0} graczy</span><span>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button></div>
     </div>
   </article>`;
 }
 
 function lockedModeTitle(mode, unlock) {
-  return `${mode.name} odblokuje sie ${unlock.label}`;
+  return `Nowy tryb odblokuje sie ${unlock.label}`;
 }
 
 function visiblePoll() {
@@ -123,8 +123,16 @@ async function openPollModal(context = {}, actions) {
   document.body.append(modal);
 }
 
+function openRandomRoomModal(actions){
+  const saved=JSON.parse(localStorage.getItem("randomRoomFilters")||"null")||gamesList.map(game=>game.id);
+  const modal=document.createElement("div");modal.className="modal-backdrop random-room-modal";
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">LOSOWA GRA</p><h2>Dołącz do pokoju</h2></div><button class="icon-btn" data-close>×</button></div><p class="muted">Wybierz tryby, do których chcesz dołączać.</p><div class="random-room-filters">${gamesList.map(game=>`<label><input type="checkbox" data-random-mode="${game.id}" ${saved.includes(game.id)?"checked":""}> ${escapeHtml(game.name)}</label>`).join("")}</div><div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="random-room-submit">Szukaj pokoju</button></div></section>`;
+  const close=()=>modal.remove();modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",close));modal.querySelector("#random-room-submit").addEventListener("click",async()=>{const modes=[...modal.querySelectorAll("[data-random-mode]:checked")].map(input=>input.dataset.randomMode);if(!modes.length)return actions.playSound?.("error");localStorage.setItem("randomRoomFilters",JSON.stringify(modes));const button=modal.querySelector("#random-room-submit");button.disabled=true;button.textContent="Szukam…";modal.querySelector(".modal").classList.add("random-room-searching");await new Promise(resolve=>setTimeout(resolve,650));const joined=await actions.joinRandomRoom(modes);if(joined)close();else{button.disabled=false;button.textContent="Szukaj pokoju";modal.querySelector(".modal").classList.remove("random-room-searching");}});document.body.append(modal);actions.playSound?.("modalOpen");
+}
+
 export async function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
+  const activityStats=context.activityStats||window.__activityStats||{};
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page enter">
     <section class="platform-hero">
@@ -138,6 +146,7 @@ export async function renderPlatform(root, actions, context = {}) {
           <input id="platform-room-pass" placeholder="hasło, jeśli prywatny" autocomplete="off">
           <button class="primary">${icon("userPlus", 17)} Dołącz</button>
         </form>
+        <button class="ghost random-room-button" id="random-room">Dołącz do losowego pokoju</button>
       </div>
       <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
     </section>
@@ -146,7 +155,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
-      <div class="games-grid">${gamesList.map(gameCard).join("")}</div>
+      <div class="games-grid">${gamesList.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -174,6 +183,7 @@ export async function renderPlatform(root, actions, context = {}) {
     event.preventDefault();
     actions.joinByCode(root.querySelector("#platform-room-code").value, root.querySelector("#platform-room-pass").value);
   });
+  root.querySelector("#random-room")?.addEventListener("click", () => openRandomRoomModal(actions));
   const shareUrl = () => window.location.origin + window.location.pathname;
   root.querySelector("#copy-site-link")?.addEventListener("click", async () => {
     try { await navigator.clipboard?.writeText(shareUrl()); actions.playSound?.("success"); } catch {}

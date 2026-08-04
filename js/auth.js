@@ -29,6 +29,7 @@ export function accountModal(profile, actions) {
     <div class="account-summary"><div><span class="muted">Status</span><b>${profile.nickOnly?"Gosc":"Konto zapisane"}</b></div><div><span class="muted">${profile.nickOnly?"Coiny sesyjne":"Coiny"}</span><b>$${profile.nickOnly?profile.sessionMoney||0:profile.money||0}</b></div></div>
     ${profile.nickOnly ? "" : birthSection}
     <section class="avatar-editor"><div>${avatarHtml(profile,"account-avatar")}<div><b>Zdjecie profilowe</b><p class="muted">Ramki i aury beda widoczne wokol zdjecia.</p></div></div><label class="file-button">Wybierz zdjecie<input id="avatar-file" type="file" accept="image/*"></label>${profile.avatarImage?'<button class="ghost" id="remove-avatar">Usun zdjecie</button>':""}</section>
+    <label class="check account-colorblind-setting"><input id="colorblind-mode" type="checkbox" ${profile.colorblindMode?"checked":""}> Tryb daltonisty dla sekwencji</label>
     ${profile.nickOnly?'<p class="guest-note"><b>Zaloguj sie na konto, zeby zapisywac coiny i kupowac efekty.</b></p>':`<details class="password-box"><summary>Zmien haslo</summary><form id="password-form"><label for="new-password">Nowe haslo</label><input id="new-password" type="password" placeholder="minimum 3 znaki"><button class="primary full">Zapisz nowe haslo</button></form></details>`}
     <div class="account-actions">${profile.nickOnly?'<button class="primary" id="upgrade-account">Zaloguj sie na konto</button>':`<button class="ghost" id="open-inbox">Inbox${inboxCount ? ` (${inboxCount})` : ""}</button>${isAdmin?'<button class="primary" id="open-admin-panel">Panel admina</button>':""}`}<button class="danger" id="account-logout">Wyloguj</button></div>
   </section>`;
@@ -39,6 +40,7 @@ export function accountModal(profile, actions) {
   $("#open-inbox",backdrop)?.addEventListener("click",()=>{close();actions.openInbox();});
   $("#open-admin-panel",backdrop)?.addEventListener("click",()=>{close();actions.openAdminPanel();});
   $("#birth-change-request",backdrop)?.addEventListener("click",()=>{close();actions.openBirthDateRequest();});
+  $("#colorblind-mode",backdrop)?.addEventListener("change",event=>actions.setColorblindMode(event.target.checked));
   $("#birth-add-form",backdrop)?.addEventListener("submit",event=>{event.preventDefault();if(actions.setOwnBirthDate($("#birth-add-date",backdrop).value))close();});
   return backdrop;
 }

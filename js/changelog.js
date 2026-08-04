@@ -1,11 +1,11 @@
 import { modeUnlockInfo } from "./upcomingModes.js?v=20260613-1";
 
 const stagedModes = [
-  { id: "bomba", name: "BOMBA" },
-  { id: "najblizej-prawdy", name: "NAJBLIZEJ PRAWDY" },
-  { id: "ranking", name: "RANKING" },
-  { id: "5-sekund", name: "5 SEKUND" },
-  { id: "zegar", name: "ZEGAR" },
+  { id: "bomba", name: "Bomba" },
+  { id: "najblizej-prawdy", name: "Najbliżej prawdy" },
+  { id: "ranking", name: "Ranking" },
+  { id: "5-sekund", name: "5 sekund" },
+  { id: "zegar", name: "Zegar" },
 ];
 
 function unlockedModeChanges(now = Date.now()) {
@@ -16,6 +16,28 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version: "v4.0.0",
+      date: "2026-08-04",
+      title: "Nowy rytm GryGrupowe",
+      changes: [
+        "Odświeżono główny ekran, nawigację, przyciski i karty trybów.",
+        "Dodano nowy układ informacji o pokojach, aktywności i szybkich akcjach.",
+        "Dodano wspólny system botów działający w prywatnych pokojach.",
+        "Boty mają cztery poziomy trudności, opóźnienia reakcji i zmienne style gry.",
+        "Dodano boty do odpowiedzi tekstowych, wyborów, timerów, głosowań i ruchów specjalnych.",
+        "Dodano automatyczne oznaczenia botów oraz wygodniejsze wolne sloty w lobby.",
+        "Dodano zmniejszenie nagród bankowych zależne od liczby botów.",
+        "Wyniki zakładów między prawdziwymi graczami pozostają bez zmian.",
+        "Rozbudowano tryby Pokémon o wspólną obsługę faz, timerów i podpowiedzi.",
+        "Dodano Wavelength, Quiz, Matematyka, Marker, Zgadnij sekwencję, Familiada i Łańcuch słów.",
+        "Dodano nowe tryby typów Pokémonów, Evolution Race i aukcji drużyn.",
+        "Dodano efekty, animacje i responsywne widoki dla nowych rozgrywek.",
+        "Poprawiono działanie pokoi prywatnych, zaproszeń i synchronizacji między urządzeniami.",
+        "Przygotowano system automatycznego odblokowywania kolejnych trybów co trzy dni.",
+        "Wszystkie nowe tryby pozostają tymczasowo dostępne do testów.",
+      ],
+    },
     {
       version: "v3.2.0",
       date: "2026-08-04",
@@ -52,8 +74,8 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano udostepnianie strony z kodem QR i kopiowaniem QR jako grafiki.",
         "Dodano animacje przejsc w lobby, sklepie, questach i widokach strony.",
         "Dodano kosmetyki bomb, cukierkow i zegarow oraz nowe efekty wizualne w wybranych trybach.",
-        "Rozbudowano tryb ZEGAR o gre od 1 osoby, tag trybu solo i nagrody za precyzje w solo.",
-        "Dodano zarabianie i progres dla nowych trybow: Bomba, Najblizej Prawdy, Ranking, 5 Sekund i Zegar.",
+        "Rozbudowano tryb Zegar o gre od 1 osoby, tag trybu solo i nagrody za precyzje w solo.",
+        "Dodano zarabianie i progres dla nowych trybow: Bomba, Najbliżej prawdy, Ranking, 5 sekund i Zegar.",
         "Rozbudowano questy daily i weekly o nowe tryby, serie zwyciestw i wyzwania precyzji zegara.",
         "Rozszerzono droge levelowa do 150 poziomu i dodano nagrody z nowych kosmetykow.",
         "Poprawiono czytelnosc kodu pokoju, akcji zapraszania i listy graczy.",
