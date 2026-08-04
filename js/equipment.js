@@ -36,6 +36,7 @@ function itemCard(item, profile, onUse) {
 export function equipmentModal(profile = {}, closeAction, onUse) {
   const modal = document.createElement("div");
   modal.className = "modal-backdrop";
+  const ownedPotions = potionEquipment.filter(item => (Number(profile.potionInventory?.[item.id]) || 0) > 0);
   const boosts = [
     ["coinBooster", "🪙 Monety"], ["xpBooster", "⭐ XP"],
   ].filter(([key]) => Number(profile[key]?.expiresAt) > Date.now());
@@ -43,7 +44,7 @@ export function equipmentModal(profile = {}, closeAction, onUse) {
     <div class="modal-title"><div><p class="eyebrow">PLECAK</p><h2 id="equipment-title">Twój ekwipunek</h2></div><button class="icon-btn" data-close aria-label="Zamknij">×</button></div>
     <p class="muted equipment-intro">Potki zdobywasz z codziennego koła. Użyj ich, aby aktywować czasowy boost — lepsza potka działa mocniej i dłużej.</p>
     <section class="equipment-loadout"><div class="section-heading"><div><p class="eyebrow">AKTYWNE BOOSTY</p><h3>Teraz działają</h3></div><span class="badge">${boosts.length}</span></div><div class="active-boost-list">${boosts.length ? boosts.map(([key,label]) => `<span class="active-boost"><b>${label}</b><small>Pozostało ${Math.max(0, Math.ceil((Number(profile[key].expiresAt)-Date.now())/60000))} min</small></span>`).join("") : `<p class="muted">Nie masz teraz aktywnych boostów.</p>`}</div></section>
-    <section class="equipment-collection"><div class="section-heading"><div><p class="eyebrow">KOLEKCJA POTEK</p><h3>Potki</h3></div><span class="badge">${Object.values(profile.potionInventory || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)} szt.</span></div><div class="equipment-grid">${potionEquipment.map(item => itemCard(item, profile, onUse)).join("")}</div></section>
+    <section class="equipment-collection"><div class="section-heading"><div><p class="eyebrow">KOLEKCJA POTEK</p><h3>Potki</h3></div><span class="badge">${Object.values(profile.potionInventory || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)} szt.</span></div>${ownedPotions.length ? `<div class="equipment-grid">${ownedPotions.map(item => itemCard(item, profile, onUse)).join("")}</div>` : `<div class="empty-equipment-state"><span>🎒</span><b>Ekwipunek jest pusty</b><small>Zdobywaj potki, kręcąc codziennym Lucky Spin.</small></div>`}</section>
   </section>`;
   const close = () => closeAction?.(modal);
   modal.querySelector("[data-close]").addEventListener("click", close);
