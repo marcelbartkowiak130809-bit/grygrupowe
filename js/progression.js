@@ -279,12 +279,14 @@ export function claimCompletedQuestRewards(profile = {}, now = Date.now()) {
 }
 
 export function levelProgressButtonHtml(profile = {}) {
-  const progress = levelProgress(profile), completed = completedQuestRewards(profile).length;
+  const progress = levelProgress(profile), completed = completedQuestRewards(profile).length, pendingLevelReward = trophyRoad.some(item => item.level <= progress.level && !profile.claimedLevelRewards?.[item.level]), hasNewQuestCycle = profile.questSeenKey !== questNotificationKey();
   return `<button class="level-progress-button" id="open-progression" type="button" aria-label="Droga levelowa, level ${progress.level}">
-    ${levelBadgeHtml(profile)}${completed ? `<span class="quest-ready-badge">${completed}</span>` : ""}
+    ${levelBadgeHtml(profile)}${completed || pendingLevelReward || hasNewQuestCycle ? `<span class="quest-ready-badge" aria-label="Nowe nagrody lub questy"></span>` : ""}
     <span class="level-progress-copy"><b>${progress.current}/${progress.needed} XP</b><i><em style="width:${progress.percent}%"></em></i></span>
   </button>`;
 }
+
+export function questNotificationKey(now = Date.now()) { return `${dayKey(now)}:${weekKey(now)}`; }
 
 export function grantProgression(profile = {}, xpGain = 0) {
   const previous = levelProgress(profile), xpKey = profile.nickOnly ? "sessionXp" : "xp", moneyKey = profile.nickOnly ? "sessionMoney" : "money";

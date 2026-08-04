@@ -21,6 +21,7 @@ const formatRemaining = milliseconds => {
   const hours = Math.floor(total / 3600), minutes = Math.floor((total % 3600) / 60), seconds = total % 60;
   return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
 };
+export const isLuckySpinAvailable = (profile = {}, now = Date.now()) => !Number(profile.luckySpin?.nextSpinAt) || Number(profile.luckySpin.nextSpinAt) <= now;
 
 function rewardText(reward) {
   const item = REWARD_BY_ID[reward?.id];
