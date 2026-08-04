@@ -334,6 +334,11 @@ export async function updateFriendRequest(targetUid, requestId, patch = {}) {
   if (!remoteDatabase || !targetUid || !requestId) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${requestId}`), patch); return true; } catch { return false; }
 }
+export function subscribeFriendRequests(uid, onChange) {
+  if (!remoteDatabase || !uid || typeof onChange !== "function") return () => {};
+  const ref = firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${uid}`);
+  return firebaseDatabaseApi.onValue(ref, snapshot => onChange(snapshot.val() || {}), () => onChange({}));
+}
 
 const pollVoterKey = voterId => hashRoomPassword(`poll:${voterId || "anonymous"}`);
 const pollOptionIds = ["cosmetics", "new-mode", "questions"];

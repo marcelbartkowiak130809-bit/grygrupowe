@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-2";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260613-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
 import { gamesList, getGameMode } from "./games.js?v=20260804-5";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
@@ -19,7 +19,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-6";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-10";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-2";
 import { renderPlatform } from "./platform.js?v=20260804-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -30,7 +30,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260804-3";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260613-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-1";
-import { loadPresenceUsers } from "./firebase.js?v=20260804-1";
+import { loadPresenceUsers } from "./firebase.js?v=20260804-2";
 
 const root = $("#app");
 const accounts = loadAccounts();
@@ -50,6 +50,7 @@ function readUrlRoute() {
 const initialUrlRoute = readUrlRoute();
 const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.room?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, shopReturnScreen:null, onlineCount:1 };
 let friendDirectory = {};
+let stopFriendRequestsSubscription = () => {};
 let friendPresence = {};
 let friendPollTimer = null;
 const friendSeenNotifications = new Set();
@@ -718,6 +719,22 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
     game.ranking = game.ranking.filter(row => players.includes(row.uid));
   }
+  if (room.gameMode === "pokemon-last-letter") {
+    const order = keepPlayers(game.order);
+    if (JSON.stringify(order) !== JSON.stringify(game.order || [])) { game.order = order; changed = true; }
+    if (!Array.isArray(game.chain)) { game.chain = []; changed = true; }
+    if (!Array.isArray(game.usedIds)) { game.usedIds = []; changed = true; }
+    if (game.turnIndex >= Math.max(1, game.order.length)) { game.turnIndex = 0; changed = true; }
+  }
+  if (room.gameMode === "pokemon-types") {
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!game.selectedTypes || typeof game.selectedTypes !== "object" || Array.isArray(game.selectedTypes)) { game.selectedTypes = {}; changed = true; }
+    if (!Array.isArray(game.blockedPairs)) { game.blockedPairs = []; changed = true; }
+    if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
+    if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
+  }
   return changed;
 }
 function announceRoomRoster(room) {
@@ -802,7 +819,7 @@ function friendRequests(account) { return { incoming:{}, outgoing:{}, ...(accoun
 function friendDirectorySnapshot() { return { ...friendDirectory, ...Object.fromEntries(Object.entries(state.accounts).map(([uid,account])=>[uid,account])) }; }
 function friendRooms() { return state.rooms.map(room=>{const mode=getGameMode(room.gameMode);return {...room,modeName:mode.name,maxPlayers:mode.maxPlayers||room.maxPlayers||8};}); }
 function persistFriendAccount(uid) { const account=state.accounts[uid]; if(!account)return false; account.friendRequests=friendRequests(account); account.friends=Array.isArray(account.friends)?account.friends:[]; saveAccounts(state.accounts); if(uid===state.currentUser)syncPlayerProfile(uid,account); return true; }
-async function pushFriendRequest(targetUid, request) { const target=state.accounts[targetUid] || friendDirectory[targetUid] || {}; const remote=await loadRemoteProfile(targetUid), remoteBucket=await loadFriendRequestBucket(targetUid); const next={...friendRequests(target),...friendRequests(remote),incoming:{...(friendRequests(target).incoming||{}),...(friendRequests(remote).incoming||{}),...remoteBucket}}; const duplicate=Object.values(next.incoming||{}).find(item=>!item.status&&item.type===request.type&&item.fromUid===request.fromUid); if(duplicate)return false; next.incoming={...(next.incoming||{}),[request.id]:request}; if(state.accounts[targetUid]){state.accounts[targetUid].friendRequests=next;persistFriendAccount(targetUid);} await setFriendRequest(targetUid,request); return true; }
+async function pushFriendRequest(targetUid, request) { const target=state.accounts[targetUid] || friendDirectory[targetUid] || {}; const remote=await loadRemoteProfile(targetUid), remoteBucket=await loadFriendRequestBucket(targetUid); const next={...friendRequests(target),...friendRequests(remote),incoming:{...(friendRequests(target).incoming||{}),...(friendRequests(remote).incoming||{}),...remoteBucket}}; const duplicate=Object.values(next.incoming||{}).find(item=>!item.status&&item.type===request.type&&item.fromUid===request.fromUid); if(duplicate)return false; next.incoming={...(next.incoming||{}),[request.id]:request}; if(state.accounts[targetUid]){state.accounts[targetUid].friendRequests=next;persistFriendAccount(targetUid);} const saved=await setFriendRequest(targetUid,request); return hasOnlineBackend() ? saved : true; }
 async function refreshFriendDirectory() { const remote=await loadPublicProfiles(); friendDirectory={...remote,...state.accounts}; return friendDirectory; }
 async function searchFriends(nick) { await refreshFriendDirectory(); const needle=normalizeNick(nick); if(!needle)return []; return Object.entries(friendDirectory).filter(([uid,item])=>uid!==state.currentUser&&normalizeNick(item?.nick).includes(needle)).slice(0,12).map(([uid,item])=>({uid,...item})); }
 async function sendFriendRequest(targetUid) {
@@ -904,6 +921,7 @@ const actions = {
     });
     await Promise.allSettled(roomUpdates);
     state.rooms = state.rooms.filter(room => room.players.length);
+    stopFriendRequestsSubscription(); stopFriendRequestsSubscription=()=>{};
     await logoutAuth();
     state.currentUser = null; state.activeRoomId = null;clearPendingInvite({clearUrl:true});clearSession();refreshPresence(); Router.go("platform");
   },
@@ -1149,8 +1167,8 @@ const actions = {
   clockNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>ClockEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   pokemonAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta odpowiedź jest już spóźniona.";return PokemonEngine.answer(game,state.currentUser,text,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-answer-${Date.now()}`);return ok;});},
   pokemonSelectType(type, expected={}){return mutateRoomGame((game,room)=>{if(game.phaseEndsAt!==expected.phaseEndsAt)return "Wybór typu jest już zamknięty.";return PokemonEngine.selectType(game,state.currentUser,type,room.players,room.settings);},{sound:"choice"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-type-${Date.now()}`);return ok;});},
-  pokemonBid(amount){return mutateRoomGame((game,room)=>PokemonEngine.bid(game,state.currentUser,amount,room.players),{sound:"bid"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-bid-${Date.now()}`);return ok;});},
-  pokemonPass(){return mutateRoomGame((game,room)=>PokemonEngine.pass(game,state.currentUser,room.players),{sound:"turn"}).then(ok=>{if(ok)Effects.play("reveal",`pokemon-pass-${Date.now()}`);return ok;});},
+  pokemonBid(amount){return mutateRoomGame((game,room)=>PokemonEngine.bid(game,state.currentUser,amount,room.players),{sound:"bid"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-bid-${Date.now()}`);return ok;});},
+  pokemonPass(){return mutateRoomGame((game,room)=>PokemonEngine.pass(game,state.currentUser,room.players),{sound:"turn"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-pass-${Date.now()}`);return ok;});},
   pokemonTimeout(expected={}){const room=activeRoom();if(!room?.game||room.game.mode?.startsWith("pokemon")!==true)return;return mutateRoomGame((game,current)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";PokemonEngine.timeout(game,expected.activeUid||state.currentUser,current.players,current.settings);},{sound:"turn"}).then(ok=>{if(ok)Effects.play("roundFail",`pokemon-timeout-${Date.now()}`);return ok;});},
   pokemonNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>PokemonEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   friendshipAnswer(text){return mutateRoomGame((game,room)=>FriendshipTestEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
@@ -1298,11 +1316,11 @@ function connectRooms(){
   });
   activeRoomPollTimer=setInterval(async()=>{const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;const playersChanged=JSON.stringify(remote.room.players)!==JSON.stringify(local.players);if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});}},2000);
 }
-async function checkFriendNotifications() {
+async function checkFriendNotifications(bucket = null) {
   const user=profile(); if(!user)return;
   const local=loadAccounts(); if(local[state.currentUser])state.accounts[state.currentUser]={...state.accounts[state.currentUser],...local[state.currentUser]};
   const remote=await loadRemoteProfile(state.currentUser); if(remote){state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote};}
-  const remoteRequests=await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
+  const remoteRequests=bucket || await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
   requests.incoming={...requests.incoming,...Object.fromEntries(Object.entries(remoteRequests).filter(([,request])=>!request?.status).map(([id,request])=>[id,request]))};
   account.friendRequests=requests; persistFriendAccount(state.currentUser);
   let friendStateChanged=false;
@@ -1313,7 +1331,7 @@ async function checkFriendNotifications() {
   incoming.forEach(request=>{if(!friendSeenNotifications.has(request.id)){friendSeenNotifications.add(request.id);showFriendNotification(request,{directory:friendDirectorySnapshot(),actions});}});
   if(incoming.length || friendStateChanged)render({preserveDrafts:true});
 }
-function startFriendWatcher() { clearInterval(friendPollTimer); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
+function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
 window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
 initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))render();}); render();

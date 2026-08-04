@@ -12,6 +12,7 @@ const themes = {
   reveal: { className:"fx-reveal", title:"REVEAL", subtitle:"Sprawdźmy odpowiedź", sound:"reveal", particles:14 },
   voteResult: { className:"fx-vote", title:"WERDYKT", subtitle:"Głosy zostały policzone", sound:"voteHit", particles:18 },
   choice: { className:"fx-choice", title:"WYBRANO", subtitle:"Głos zapisany", sound:"choice", particles:12 },
+  auctionBid: { className:"fx-auction", title:"PODBICIE!", subtitle:"Oferta zaktualizowana", sound:"bid", particles:16 },
 };
 
 function particle(index) {
