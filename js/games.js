@@ -256,7 +256,10 @@ export const gamesRegistry = {
     id: "pokemon-auction", name: "LICYTACJA TEAMU", description: "Licytuj Pokémony i zbuduj drużynę z najwyższym BST.", help: ["Każdy gracz dostaje ten sam budżet.", "Pokémony są wystawiane po kolei, a każda oferta ma limit czasu.", "BST zostaje ujawnione dopiero po zakończeniu aukcji."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"$", art:"pokemon-auction", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-auction"],
   },
   "pokemon-types": {
-    id: "pokemon-types", name: "TYPY I SZYBKA ODPOWIEDŹ", description: "Wybierzcie typy i znajdźcie Pokémona pasującego do kombinacji.", help: ["Każdy gracz wybiera jeden typ.", "Po ujawnieniu kombinacji wpisujecie poprawnego Pokémona.", "Brakująca kombinacja odblokowuje ponowny wybór."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"✦", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-types"],
+    id: "pokemon-types", name: "TYPY NA START", description: "Wybierzcie typy i znajdźcie Pokémona pasującego do kombinacji.", help: ["Każdy gracz wybiera jeden typ.", "Po ujawnieniu kombinacji wpisujecie poprawnego Pokémona.", "Brakująca kombinacja odblokowuje ponowny wybór."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"✦", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-types"],
+  },
+  "pokemon-match-type": {
+    id: "pokemon-match-type", name: "DOPASUJ TYP", description: "Rozpoznaj wszystkie typy pokazanego Pokémona szybciej od innych.", help: ["Wszyscy widzą tego samego Pokémona.", "Zaznacz wszystkie jego typy.", "Błędna odpowiedź zabiera serce."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◈", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-match-type"],
   },
 };
 

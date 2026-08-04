@@ -5,7 +5,7 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260613-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, startPresence, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
-import { gamesList, getGameMode } from "./games.js?v=20260804-5";
+import { gamesList, getGameMode } from "./games.js?v=20260804-6";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260611-1";
@@ -19,12 +19,12 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-2";
-import { renderPlatform } from "./platform.js?v=20260804-3";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-13";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-3";
+import { renderPlatform } from "./platform.js?v=20260804-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260804-2";
+import { playerMini, renderRoom } from "./room.js?v=20260804-3";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260613-1";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260613-2";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260804-3";
@@ -380,7 +380,7 @@ function settleIdentityResult(room) {
 function settlePokemonResult(room) {
   if (room?.gameMode?.startsWith("pokemon-") !== true || room.game?.phase !== "result" || !room.game.finished || room.game.rewarded) return;
   const scores=room.game.scores || {}, max=Math.max(0,...Object.values(scores).map(Number)), winners=room.gameMode==="pokemon-last-letter"&&room.game.winner?[room.game.winner]:room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0), rounds=Math.max(1,Number(room.gameMode==="pokemon-last-letter" ? room.settings?.hearts : room.settings?.rounds)||5);
-  const base={"pokemon-dex":25,"pokemon-last-letter":20,"pokemon-evolution":30,"pokemon-types":25,"pokemon-auction":45}[room.gameMode] || 25;
+  const base={"pokemon-dex":25,"pokemon-last-letter":20,"pokemon-evolution":30,"pokemon-types":25,"pokemon-match-type":25,"pokemon-auction":45}[room.gameMode] || 25;
   room.players.forEach(uid=>addPlayerMoney(uid,base + rounds*8 + Number(scores[uid]||0)*12 + (winners.includes(uid)?50:0)));
   rewardRoomXp(room,35 + rounds*4,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
@@ -747,6 +747,16 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.blockedPairs)) { game.blockedPairs = []; changed = true; }
     if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
     if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
+  }
+  if (room.gameMode === "pokemon-match-type") {
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!game.hearts || typeof game.hearts !== "object" || Array.isArray(game.hearts)) { game.hearts = {}; changed = true; }
+    const defaultHearts = Math.max(1, Math.min(5, Number(room.settings?.hearts) || 3));
+    players.forEach(uid => { if (!Number.isFinite(Number(game.hearts[uid]))) { game.hearts[uid] = defaultHearts; changed = true; } });
+    if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
   }
   if (room.gameMode === "pokemon-dex" && game.phase === "result" && Number(game.round) >= Math.max(1, Number(room.settings?.rounds) || 5) && !game.finished) { game.finished = true; changed = true; }
   return changed;
@@ -1181,6 +1191,7 @@ const actions = {
   clockTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zegar")return;return mutateRoomGame((game,current)=>ClockEngine.timeout(game,current.players,current.settings,expected),{sound:"roundEnd",after:settleClockResult});},
   clockNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>ClockEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   pokemonAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta odpowiedź jest już spóźniona.";return PokemonEngine.answer(game,state.currentUser,text,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-answer-${Date.now()}`);return ok;});},
+  pokemonMatchType(types, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta runda jest już zakończona.";return PokemonEngine.matchType(game,state.currentUser,types,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-match-type-${Date.now()}`);return ok;});},
   pokemonSelectType(type, expected={}){return mutateRoomGame((game,room)=>{if(game.phaseEndsAt!==expected.phaseEndsAt)return "Wybór typu jest już zamknięty.";return PokemonEngine.selectType(game,state.currentUser,type,room.players,room.settings);},{sound:"choice"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-type-${Date.now()}`);return ok;});},
   pokemonBid(amount){return mutateRoomGame((game,room)=>PokemonEngine.bid(game,state.currentUser,amount,room.players),{sound:"bid"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-bid-${Date.now()}`);return ok;});},
   pokemonPass(){return mutateRoomGame((game,room)=>PokemonEngine.pass(game,state.currentUser,room.players),{sound:"turn"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-pass-${Date.now()}`);return ok;});},
@@ -1339,6 +1350,16 @@ async function checkFriendNotifications(bucket = null) {
   requests.incoming={...requests.incoming,...Object.fromEntries(Object.entries(remoteRequests).filter(([,request])=>!request?.status).map(([id,request])=>[id,request]))};
   account.friendRequests=requests; persistFriendAccount(state.currentUser);
   let friendStateChanged=false;
+  for (const [requestId, request] of Object.entries(requests.incoming)) {
+    if (!request?.roomId || !["gameInvite", "joinRequest"].includes(request.type)) continue;
+    const localRoom=state.rooms.find(room=>room.roomId===request.roomId);
+    const roomResult=localRoom ? {ok:true,room:localRoom} : await loadRemoteRoom(request.roomId);
+    if ((roomResult.ok && roomResult.room && roomResult.room.status !== "lobby") || roomResult.missing) {
+      delete requests.incoming[requestId];
+      await updateFriendRequest(state.currentUser,requestId,{status:"cancelled",updatedAt:Date.now()});
+      friendStateChanged=true;
+    }
+  }
   for (const request of Object.values(requests.outgoing)) { const remoteRequest=await loadFriendRequest(request.toUid,request.id); if (!remoteRequest || ["rejected","cancelled"].includes(remoteRequest.status)) { delete requests.outgoing[request.id]; friendStateChanged=true; } else if (remoteRequest.status === "accepted") { if(request.type === "joinRequest" && !activeRoom()) actions.joinRoom(request.roomId,"",{fromInvite:true,inviteMode:request.gameMode}); else account.friends=[...new Set([...(account.friends||[]),request.toUid])]; delete requests.outgoing[request.id]; friendStateChanged=true; } }
   account.friendRequests=requests; persistFriendAccount(state.currentUser);
   const incoming=Object.values(friendRequests(profile()).incoming);
