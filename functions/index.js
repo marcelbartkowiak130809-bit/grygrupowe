@@ -13,17 +13,17 @@ const BOOSTER_DURATION_MS = 6 * 60 * 60 * 1000;
 const REWARDS = [
   { id: "coins-small", tier: "weak", wheelIndex: 0, type: "coins", amount: 100 },
   { id: "xp-small", tier: "weak", wheelIndex: 1, type: "xp", amount: 50 },
-  { id: "coins-i", tier: "weak", wheelIndex: 0, type: "potion", itemId: "coins-i" },
-  { id: "xp-i", tier: "weak", wheelIndex: 2, type: "potion", itemId: "xp-i" },
-  { id: "coins-medium", tier: "medium", wheelIndex: 3, type: "coins", amount: 300 },
-  { id: "xp-medium", tier: "medium", wheelIndex: 4, type: "xp", amount: 150 },
-  { id: "coin-booster", tier: "medium", wheelIndex: 5, type: "coinBooster", multiplier: 2, durationMs: BOOSTER_DURATION_MS },
-  { id: "coins-ii", tier: "medium", wheelIndex: 3, type: "potion", itemId: "coins-ii" },
-  { id: "xp-ii", tier: "medium", wheelIndex: 4, type: "potion", itemId: "xp-ii" },
-  { id: "coins-large", tier: "strong", wheelIndex: 6, type: "coins", amount: 750 },
-  { id: "coins-iii", tier: "strong", wheelIndex: 6, type: "potion", itemId: "coins-iii" },
-  { id: "xp-iii", tier: "strong", wheelIndex: 7, type: "potion", itemId: "xp-iii" },
-  { id: "xp-booster", tier: "strong", wheelIndex: 8, type: "xpBooster", multiplier: 3, durationMs: 12 * 60 * 60 * 1000 },
+  { id: "coins-i", tier: "weak", wheelIndex: 2, type: "potion", itemId: "coins-i" },
+  { id: "xp-i", tier: "weak", wheelIndex: 3, type: "potion", itemId: "xp-i" },
+  { id: "coins-medium", tier: "medium", wheelIndex: 4, type: "coins", amount: 300 },
+  { id: "xp-medium", tier: "medium", wheelIndex: 5, type: "xp", amount: 150 },
+  { id: "coin-booster", tier: "medium", wheelIndex: 6, type: "coinBooster", multiplier: 2, durationMs: BOOSTER_DURATION_MS },
+  { id: "coins-ii", tier: "medium", wheelIndex: 7, type: "potion", itemId: "coins-ii" },
+  { id: "xp-ii", tier: "medium", wheelIndex: 8, type: "potion", itemId: "xp-ii" },
+  { id: "coins-large", tier: "strong", wheelIndex: 9, type: "coins", amount: 750 },
+  { id: "coins-iii", tier: "strong", wheelIndex: 10, type: "potion", itemId: "coins-iii" },
+  { id: "xp-iii", tier: "strong", wheelIndex: 11, type: "potion", itemId: "xp-iii" },
+  { id: "xp-booster", tier: "strong", wheelIndex: 12, type: "xpBooster", multiplier: 3, durationMs: 12 * 60 * 60 * 1000 },
 ];
 const TIER_WEIGHTS = { weak: 70, medium: 25, strong: 5 };
 const TIER_REWARDS = Object.fromEntries(Object.keys(TIER_WEIGHTS).map(tier => [tier, REWARDS.filter(reward => reward.tier === tier)]));
@@ -40,7 +40,7 @@ function spinId() {
 function drawReward() {
   let tierCursor = crypto.randomInt(0, Object.values(TIER_WEIGHTS).reduce((sum, weight) => sum + weight, 0));
   let tier = "strong";
-  for (const [candidate, weight] of Object.entries(weights)) {
+  for (const [candidate, weight] of Object.entries(TIER_WEIGHTS)) {
     tierCursor -= weight;
     if (tierCursor < 0) { tier = candidate; break; }
   }

@@ -3,11 +3,15 @@ import { escapeHtml } from "./utils.js?v=20260613-2";
 const REWARD_ORDER = [
   { id:"coins-small", tier:"weak", emoji:"🪙", label:"100 monet", short:"100" },
   { id:"xp-small", tier:"weak", emoji:"⭐", label:"50 XP", short:"XP" },
-  { id:"xp-i", tier:"weak", emoji:"⭐", label:"Potka XP I", short:"XP I" },
+  { id:"coins-i", tier:"weak", emoji:"🧪", label:"Potka monet I", short:"$ I" },
+  { id:"xp-i", tier:"weak", emoji:"🧪", label:"Potka XP I", short:"XP I" },
   { id:"coins-medium", tier:"medium", emoji:"💰", label:"300 monet", short:"300" },
   { id:"xp-medium", tier:"medium", emoji:"✨", label:"150 XP", short:"XP" },
   { id:"coin-booster", tier:"medium", emoji:"🪙", label:"Booster monet 2×", short:"2× $" },
+  { id:"coins-ii", tier:"medium", emoji:"🧪", label:"Potka monet II", short:"$ II" },
+  { id:"xp-ii", tier:"medium", emoji:"🧪", label:"Potka XP II", short:"XP II" },
   { id:"coins-large", tier:"strong", emoji:"💎", label:"750 monet", short:"750" },
+  { id:"coins-iii", tier:"strong", emoji:"🧪", label:"Potka monet III", short:"$ III" },
   { id:"xp-iii", tier:"strong", emoji:"⭐", label:"Potka XP III", short:"XP III" },
   { id:"xp-booster", tier:"strong", emoji:"🚀", label:"Booster XP 3×", short:"3× XP" },
 ];
@@ -89,7 +93,8 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     nextSpinAt = Number(response.nextSpinAt) || (Date.now() + clockOffset + 24 * 60 * 60 * 1000);
     const reward = response.reward || {};
     const rewardIndex = Number.isInteger(reward.wheelIndex) ? reward.wheelIndex : Math.max(0, REWARD_ORDER.findIndex(item => item.id === reward.id));
-    const targetRotation = 360 * 6 + (360 - rewardIndex * 40 - 20);
+    const segmentAngle = 360 / REWARD_ORDER.length;
+    const targetRotation = 360 * 6 + (360 - rewardIndex * segmentAngle - segmentAngle / 2);
     wheel.classList.add("is-spinning");
     wheel.style.setProperty("--lucky-rotation", `${targetRotation}deg`);
     await new Promise(resolve => window.setTimeout(resolve, 5600));
