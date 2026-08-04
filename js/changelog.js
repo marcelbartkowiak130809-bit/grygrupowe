@@ -21,6 +21,8 @@ function buildChangelogEntries(now = Date.now()) {
       date: "2026-08-04",
       title: "Nowy rytm GryGrupowe",
       changes: [
+        "Scalono zawartość aktualizacji Pokémon oraz Friend Requests z wersji 3.1.0 i 3.2.0.",
+        "Dodano kategorię POKEMONY, bazę Pokémonów, tryby Pokémon oraz kompletny system znajomych.",
         "Odświeżono główny ekran, nawigację, przyciski i karty trybów.",
         "Dodano nowy układ informacji o pokojach, aktywności i szybkich akcjach.",
         "Dodano wspólny system botów działający w prywatnych pokojach.",
@@ -137,20 +139,20 @@ function buildChangelogEntries(now = Date.now()) {
 
 export const changelogEntries = new Proxy([], {
   get(_target, property) {
-    const entries = buildChangelogEntries();
+    const entries = buildChangelogEntries().filter(entry => !["v3.1.0", "v3.2.0"].includes(entry.version));
     const value = entries[property];
     return typeof value === "function" ? value.bind(entries) : value;
   },
   ownKeys() {
-    return Reflect.ownKeys(buildChangelogEntries());
+    return Reflect.ownKeys(buildChangelogEntries().filter(entry => !["v3.1.0", "v3.2.0"].includes(entry.version)));
   },
   getOwnPropertyDescriptor(_target, property) {
-    return Object.getOwnPropertyDescriptor(buildChangelogEntries(), property);
+    return Object.getOwnPropertyDescriptor(buildChangelogEntries().filter(entry => !["v3.1.0", "v3.2.0"].includes(entry.version)), property);
   },
 });
 
 export const latestChangelog = new Proxy({}, {
   get(_target, property) {
-    return buildChangelogEntries()[0][property];
+    return buildChangelogEntries().filter(entry => !["v3.1.0", "v3.2.0"].includes(entry.version))[0][property];
   },
 });

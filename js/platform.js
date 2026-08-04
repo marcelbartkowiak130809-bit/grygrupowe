@@ -39,7 +39,9 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"➗", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };
 function visualSymbol(mode) {
+  if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
   return item ? `<img src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">` : mode.symbol;
 }
