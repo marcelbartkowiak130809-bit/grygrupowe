@@ -21,15 +21,19 @@ export function accountModal(profile, actions) {
   const backdrop=document.createElement("div");backdrop.className="modal-backdrop";
   const isAdmin = String(profile.nick || "").toLowerCase() === "panda";
   const inboxCount = Array.isArray(profile.inbox) ? profile.inbox.length : 0;
+  const privacy = { historyPublic:true, statsPublic:true, friendsPublic:true, ...(profile.privacy || {}) };
+  const honor = { nicePlayer:0, goodOpponent:0, greatHost:0, ...(profile.honorCounts || {}) };
   const birthSection = profile.birthDate
     ? `<section class="account-info-row"><div><span class="muted">Data urodzenia</span><b>${escapeHtml(profile.birthDate)}</b><p class="tiny">Zmiana wymaga prosby do administracji.</p></div><button class="ghost" id="birth-change-request">Zmien</button></section>`
     : `<section class="account-info-row"><div><span class="muted">Data urodzenia</span><b>nie podano</b><p class="tiny">Mozesz dodac ja raz samodzielnie. Pozniejsza zmiana wymaga administracji.</p></div><form id="birth-add-form" class="inline-date-form"><input id="birth-add-date" type="date" required><button class="primary" type="submit">Dodaj</button></form></section>`;
   backdrop.innerHTML=`<section class="modal account-modal enter" role="dialog" aria-modal="true" aria-labelledby="account-title">
     <div class="modal-title"><div><p class="eyebrow">TWOJE KONTO</p><h2 id="account-title">${escapeHtml(profile.nick)}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div>
     <div class="account-summary"><div><span class="muted">Status</span><b>${profile.nickOnly?"Gosc":"Konto zapisane"}</b></div><div><span class="muted">${profile.nickOnly?"Coiny sesyjne":"Coiny"}</span><b>$${profile.nickOnly?profile.sessionMoney||0:profile.money||0}</b></div></div>
+    <section class="honor-summary"><div class="section-heading"><div><p class="eyebrow">HONOR</p><h3>Otrzymane wyróżnienia</h3></div><span class="badge">${honor.nicePlayer + honor.goodOpponent + honor.greatHost}</span></div><div class="honor-summary-grid"><div class="honor-count"><span>👍</span><strong>${honor.nicePlayer}</strong><small>Miły gracz</small></div><div class="honor-count"><span>🧠</span><strong>${honor.goodOpponent}</strong><small>Dobry przeciwnik</small></div><div class="honor-count"><span>🎉</span><strong>${honor.greatHost}</strong><small>Świetny host</small></div></div></section>
     ${profile.nickOnly ? "" : birthSection}
     <section class="avatar-editor"><div>${avatarHtml(profile,"account-avatar")}<div><b>Zdjecie profilowe</b><p class="muted">Ramki i aury beda widoczne wokol zdjecia.</p></div></div><label class="file-button">Wybierz zdjecie<input id="avatar-file" type="file" accept="image/*"></label>${profile.avatarImage?'<button class="ghost" id="remove-avatar">Usun zdjecie</button>':""}</section>
     <label class="check account-colorblind-setting"><input id="colorblind-mode" type="checkbox" ${profile.colorblindMode?"checked":""}> Tryb daltonisty dla sekwencji</label>
+    <section class="privacy-settings"><div class="section-heading"><div><p class="eyebrow">PRYWATNOŚĆ</p><h3>Widoczność profilu</h3></div><span class="badge">3 ustawienia</span></div><p class="muted">Domyślnie wszystko jest publiczne. Prywatne informacje nie trafiają do katalogu profili.</p><label class="privacy-setting"><span><b>Historia gier</b><small>Ostatnie rozegrane gry i historia wyników.</small></span><input type="checkbox" data-privacy-setting="historyPublic" ${privacy.historyPublic?"checked":""}></label><label class="privacy-setting"><span><b>Statystyki</b><small>Łączna liczba gier, zwycięstw i porażek.</small></span><input type="checkbox" data-privacy-setting="statsPublic" ${privacy.statsPublic?"checked":""}></label><label class="privacy-setting"><span><b>Lista znajomych</b><small>Lista osób dodanych do znajomych.</small></span><input type="checkbox" data-privacy-setting="friendsPublic" ${privacy.friendsPublic?"checked":""}></label></section>
     ${profile.nickOnly?'<p class="guest-note"><b>Zaloguj sie na konto, zeby zapisywac coiny i kupowac efekty.</b></p>':`<details class="password-box"><summary>Zmien haslo</summary><form id="password-form"><label for="new-password">Nowe haslo</label><input id="new-password" type="password" placeholder="minimum 3 znaki"><button class="primary full">Zapisz nowe haslo</button></form></details>`}
     <div class="account-actions">${profile.nickOnly?'<button class="primary" id="upgrade-account">Zaloguj sie na konto</button>':`<button class="ghost" id="open-inbox">Inbox${inboxCount ? ` (${inboxCount})` : ""}</button>${isAdmin?'<button class="primary" id="open-admin-panel">Panel admina</button>':""}`}<button class="danger" id="account-logout">Wyloguj</button></div>
   </section>`;
@@ -41,6 +45,7 @@ export function accountModal(profile, actions) {
   $("#open-admin-panel",backdrop)?.addEventListener("click",()=>{close();actions.openAdminPanel();});
   $("#birth-change-request",backdrop)?.addEventListener("click",()=>{close();actions.openBirthDateRequest();});
   $("#colorblind-mode",backdrop)?.addEventListener("change",event=>actions.setColorblindMode(event.target.checked));
+  backdrop.querySelectorAll("[data-privacy-setting]").forEach(input=>input.addEventListener("change",event=>actions.setProfilePrivacy?.(event.target.dataset.privacySetting,event.target.checked)));
   $("#birth-add-form",backdrop)?.addEventListener("submit",event=>{event.preventDefault();if(actions.setOwnBirthDate($("#birth-add-date",backdrop).value))close();});
   return backdrop;
 }

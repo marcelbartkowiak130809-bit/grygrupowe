@@ -21,5 +21,16 @@ POKOJE ONLINE MIEDZY ROZNYMI URZADZENIAMI
 4. Wlacz Realtime Database.
 5. Wklej zawartosc firebase-database-rules.json w zakladce Realtime Database -> Rules.
 
+LUCKY SPIN - JEDNORAZOWE WDROZENIE BACKENDU
+Lucky Spin wymaga Firebase Functions, bo losowanie i blokada 24 godzin sa wykonywane
+na serwerze. W katalogu projektu uruchom:
+1. firebase login
+2. firebase deploy --only functions,database
+
+Jesli Firebase CLI nie jest zainstalowane, zainstaluj je poleceniem:
+npm install -g firebase-tools
+Backend pobierze zaleznosci z katalogu functions przy wdrozeniu. Po publikacji
+odswiez strone; bez wdrozonej funkcji przycisk pokazuje komunikat o braku serwera.
+
 Bez Firebase gra dziala jako lokalne demo. Pokoje sa wtedy widoczne tylko
 miedzy kartami tej samej przegladarki, a nie na telefonach znajomych.

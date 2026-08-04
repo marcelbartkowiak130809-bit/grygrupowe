@@ -62,7 +62,7 @@ export function playerMiniHtml(profile = {}, className = "", options = {}) {
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {
   const { activeUid = "", scores = null, scoreLabel = "pkt" } = options;
-  return `<section class="board-player-strip">${players.map(uid => `<article class="board-player ${uid === activeUid ? "active-board-player" : ""}">${playerMiniHtml(accounts[uid])}${scores ? `<small>${Number(scores[uid]) || 0} ${escapeHtml(scoreLabel)}</small>` : ""}</article>`).join("")}</section>`;
+  return `<section class="board-player-strip">${players.map(uid => `<article class="board-player ${uid === activeUid ? "active-board-player" : ""}" data-player-uid="${escapeHtml(uid)}">${playerMiniHtml(accounts[uid])}${scores ? `<small>${Number(scores[uid]) || 0} ${escapeHtml(scoreLabel)}</small>` : ""}</article>`).join("")}</section>`;
 }
 
 export function randomGuestNick() {

@@ -8,10 +8,53 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
+    "luckySpins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": false
+      }
+    },
+    "honorVotes": {
+      "$roomId": {
+        "$fromUid": {
+          ".read": false,
+          ".write": false
+        }
+      }
+    },
+    "siteStats": {
+      ".read": true,
+      ".write": false
+    },
+    "siteStatEvents": {
+      ".read": false,
+      ".write": false
+    },
     "publicProfiles": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid == $uid"
+        ".write": false,
+        "nick": { ".write": "auth != null && auth.uid == $uid" },
+        "avatarImage": { ".write": "auth != null && auth.uid == $uid" },
+        "nickOnly": { ".write": "auth != null && auth.uid == $uid" },
+        "adultStatus": { ".write": "auth != null && auth.uid == $uid" },
+        "xp": { ".write": "auth != null && auth.uid == $uid" },
+        "sessionXp": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedNickEffect": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedAvatarFrame": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedAura": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedCandySkin": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedBombSkin": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedClockSkin": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedIdleAnimation": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedWinAnimation": { ".write": "auth != null && auth.uid == $uid" },
+        "selectedLoseAnimation": { ".write": "auth != null && auth.uid == $uid" },
+        "privacy": { ".write": "auth != null && auth.uid == $uid" },
+        "updatedAt": { ".write": "auth != null && auth.uid == $uid" },
+        "gameHistory": { ".write": "auth != null && auth.uid == $uid && (!newData.exists() || root.child('profiles').child($uid).child('privacy').child('historyPublic').val() == true)" },
+        "gameStats": { ".write": "auth != null && auth.uid == $uid && (!newData.exists() || root.child('profiles').child($uid).child('privacy').child('statsPublic').val() == true)" },
+        "stats": { ".write": "auth != null && auth.uid == $uid && (!newData.exists() || root.child('profiles').child($uid).child('privacy').child('statsPublic').val() == true)" },
+        "friends": { ".write": "auth != null && auth.uid == $uid && (!newData.exists() || root.child('profiles').child($uid).child('privacy').child('friendsPublic').val() == true)" }
       }
     },
     "friendRequests": {

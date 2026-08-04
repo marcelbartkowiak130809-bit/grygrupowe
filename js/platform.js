@@ -4,6 +4,7 @@ import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollS
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260611-3";
 import { escapeHtml, icon } from "./utils.js?v=20260613-1";
 import { modeUnlockInfo } from "./upcomingModes.js?v=20260804-2";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260804-1";
 
 const filters = [
   ["all", "WSZYSTKIE"],
@@ -173,6 +174,7 @@ export async function renderPlatform(root, actions, context = {}) {
     </section>
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
+    ${globalStatsHtml(context.globalStats || window.__globalStats)}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
@@ -225,6 +227,7 @@ export async function renderPlatform(root, actions, context = {}) {
       actions.playSound?.("success");
     } catch {}
   });
+  animateGlobalStats(root);
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");
 }
