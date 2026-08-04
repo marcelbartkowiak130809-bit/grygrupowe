@@ -1,12 +1,15 @@
 import { escapeHtml } from "./utils.js?v=20260613-2";
 
 const REWARD_ORDER = [
-  { id:"coins-small", emoji:"🪙", label:"100 monet", short:"100" },
-  { id:"coins-medium", emoji:"💰", label:"300 monet", short:"300" },
-  { id:"coins-large", emoji:"💎", label:"750 monet", short:"750" },
-  { id:"xp", emoji:"⭐", label:"100 XP", short:"XP" },
-  { id:"coin-booster", emoji:"🤑", label:"2× monety", short:"2× $" },
-  { id:"xp-booster", emoji:"🚀", label:"2× XP", short:"2× XP" },
+  { id:"coins-small", tier:"weak", emoji:"🪙", label:"100 monet", short:"100" },
+  { id:"xp-small", tier:"weak", emoji:"⭐", label:"50 XP", short:"XP" },
+  { id:"xp-i", tier:"weak", emoji:"⭐", label:"Potka XP I", short:"XP I" },
+  { id:"coins-medium", tier:"medium", emoji:"💰", label:"300 monet", short:"300" },
+  { id:"xp-medium", tier:"medium", emoji:"✨", label:"150 XP", short:"XP" },
+  { id:"coin-booster", tier:"medium", emoji:"🪙", label:"Booster monet 2×", short:"2× $" },
+  { id:"coins-large", tier:"strong", emoji:"💎", label:"750 monet", short:"750" },
+  { id:"xp-iii", tier:"strong", emoji:"⭐", label:"Potka XP III", short:"XP III" },
+  { id:"xp-booster", tier:"strong", emoji:"🚀", label:"Booster XP 3×", short:"3× XP" },
 ];
 const REWARD_BY_ID = Object.fromEntries(REWARD_ORDER.map(item => [item.id, item]));
 const formatRemaining = milliseconds => {
@@ -17,8 +20,12 @@ const formatRemaining = milliseconds => {
 
 function rewardText(reward) {
   const item = REWARD_BY_ID[reward?.id];
+  if (reward?.type === "potion") {
+    const names = { "xp-i":"XP I", "xp-ii":"XP II", "xp-iii":"XP III", "coins-i":"Coins I", "coins-ii":"Coins II", "coins-iii":"Coins III" };
+    return `Potka ${names[reward.itemId || reward.id] || "specjalna"}`;
+  }
   if (!item) return "Nagroda";
-  if (reward.type === "coinBooster" || reward.type === "xpBooster") return `${item.label} przez 6 godzin`;
+  if (reward.type === "coinBooster" || reward.type === "xpBooster") return `${item.label} przez ${reward.durationMs >= 12 * 60 * 60 * 1000 ? 12 : 6} godzin`;
   return item.label;
 }
 
@@ -44,7 +51,7 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     <p class="muted lucky-spin-intro">Raz dziennie możesz zakręcić kołem i wygrać monety, XP albo tymczasowy booster.</p>
     <div class="lucky-wheel-area">
       <div class="lucky-wheel-pointer" aria-hidden="true">▼</div>
-      <div class="lucky-wheel" data-lucky-wheel aria-label="Koło nagród">${REWARD_ORDER.map((item, index) => `<span class="lucky-wheel-label" style="--lucky-index:${index}"><b>${item.emoji}</b><small>${escapeHtml(item.short)}</small></span>`).join("")}<i class="lucky-wheel-center">★</i></div>
+      <div class="lucky-wheel" data-lucky-wheel aria-label="Koło nagród">${REWARD_ORDER.map((item, index) => `<span class="lucky-wheel-label tier-${item.tier}" style="--lucky-index:${index}"><b>${item.emoji}</b><small>${escapeHtml(item.short)}</small></span>`).join("")}<i class="lucky-wheel-center">★</i></div>
     </div>
     <div class="lucky-spin-result" data-lucky-result aria-live="polite">Wynik zostanie wylosowany bezpiecznie na serwerze.</div>
     <div class="lucky-spin-footer"><span class="lucky-spin-countdown" data-lucky-countdown></span><button class="primary lucky-spin-button" id="lucky-spin-start" type="button">Zakręć kołem</button></div>
@@ -65,11 +72,15 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     button.disabled = true;
     button.textContent = "Losowanie…";
     resultNode.textContent = "Serwer losuje nagrodę…";
-    const response = await claimSpin?.();
+    let response;
+    try { response = await claimSpin?.(); } catch (error) {
+      response = { ok:false, error:error?.message || "Nie udało się połączyć z serwerem Lucky Spin." };
+    }
     if (!response?.ok) {
       if (response?.nextSpinAt) nextSpinAt = Number(response.nextSpinAt);
       delete modal.dataset.luckySpinning;
-      resultNode.textContent = response?.error || "Nie udało się wykonać spinu.";
+      const rawError = String(response?.error || "Nie udało się wykonać spinu.");
+      resultNode.textContent = rawError === "internal" ? "Serwer Lucky Spin wymaga ponownego wdrożenia. Spróbuj za chwilę." : rawError;
       updateButtonState(modal, nextSpinAt, clockOffset);
       return;
     }
@@ -77,8 +88,8 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     clockOffset = Number(response.serverNow) ? Number(response.serverNow) - Date.now() : 0;
     nextSpinAt = Number(response.nextSpinAt) || (Date.now() + clockOffset + 24 * 60 * 60 * 1000);
     const reward = response.reward || {};
-    const rewardIndex = Math.max(0, REWARD_ORDER.findIndex(item => item.id === reward.id));
-    const targetRotation = 360 * 6 + (360 - rewardIndex * 60 - 30);
+    const rewardIndex = Number.isInteger(reward.wheelIndex) ? reward.wheelIndex : Math.max(0, REWARD_ORDER.findIndex(item => item.id === reward.id));
+    const targetRotation = 360 * 6 + (360 - rewardIndex * 40 - 20);
     wheel.classList.add("is-spinning");
     wheel.style.setProperty("--lucky-rotation", `${targetRotation}deg`);
     await new Promise(resolve => window.setTimeout(resolve, 5600));

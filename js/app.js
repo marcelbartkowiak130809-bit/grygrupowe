@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-9";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260804-10";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
 import { gamesList, getGameMode } from "./games.js?v=20260804-8";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
@@ -40,8 +40,8 @@ import { friendRequestCount, friendsModal, showFriendNotification } from "./frie
 import { loadPresenceUsers } from "./firebase.js?v=20260804-4";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
 import { scheduleBot } from "./botController.js?v=20260804-3";
-import { luckySpinModal } from "./luckySpin.js?v=20260804-1";
-import { defaultEquipmentInventory, equipmentById, equipmentModal } from "./equipment.js?v=20260804-1";
+import { luckySpinModal } from "./luckySpin.js?v=20260804-2";
+import { equipmentModal } from "./equipment.js?v=20260804-2";
 import { honorModal } from "./honor.js?v=20260804-1";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260804-1";
@@ -56,7 +56,7 @@ function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
 function lightThemeEnabled() { return document.documentElement.classList.contains("light-theme"); }
 applyTheme();
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.equipmentInventory={...defaultEquipmentInventory,...(account.equipmentInventory||{})};account.selectedEquipment={...(account.selectedEquipment||{})};account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory={...(account.potionInventory||{})};account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
 Object.values(accounts).forEach(account => { account.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,...(account.honorCounts||{})}; });
 saveAccounts(accounts);
 const session=loadSession();
@@ -942,7 +942,7 @@ async function adminPanelModal() {
 function defaultAccount(nick, password, auth = {}, birthDate = "") {
   return { nick, passwordHash:hashRoomPassword(`account:${password}`), authEmail: nickToEmail(nick), authProvider: auth.provider || "local", money: 0, xp:0, claimedLevelRewards:{}, stats:{},
     ownedCosmetics: { defaultNick: true, defaultFrame: true, noAura: true, defaultCandy: true, defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true }, selectedNickEffect: "defaultNick",
-    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", selectedBombSkin:"defaultBomb", selectedClockSkin:"defaultClock", selectedMarkerSkin:"defaultMarker", selectedSequenceSkin:"defaultSequence", selectedIdleAnimation:"", selectedWinAnimation:"", selectedLoseAnimation:"", equipmentInventory:{...defaultEquipmentInventory}, selectedEquipment:{}, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0}, privacy:{historyPublic:true,statsPublic:true,friendsPublic:true}, gameHistory:[], birthDate, adultStatus:adultStatusFor({birthDate}), inbox:[], friends:[], friendRequests:{incoming:{},outgoing:{}}, createdAt: Date.now() };
+    selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", selectedBombSkin:"defaultBomb", selectedClockSkin:"defaultClock", selectedMarkerSkin:"defaultMarker", selectedSequenceSkin:"defaultSequence", selectedIdleAnimation:"", selectedWinAnimation:"", selectedLoseAnimation:"", potionInventory:{}, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0}, privacy:{historyPublic:true,statsPublic:true,friendsPublic:true}, gameHistory:[], birthDate, adultStatus:adultStatusFor({birthDate}), inbox:[], friends:[], friendRequests:{incoming:{},outgoing:{}}, createdAt: Date.now() };
 }
 function rankingIntroModal() {
   const key = "ranking_intro_seen_v1";
@@ -1049,8 +1049,8 @@ function animateHostSettingChange(value) {
     return claimLuckySpinRemote(state.currentUser);
   },
   openEquipment() {
-    if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje wyposażone przedmioty na Twoim profilu." });
-    const modal = equipmentModal(profile(), actions.closeModal, item => actions.equipEquipment(item.id));
+    if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
+    const modal = equipmentModal(profile(), actions.closeModal, itemId => actions.usePotion(itemId));
     document.body.append(modal); Audio.play("modalOpen");
   },
   openHonor(room = activeRoom()) {
@@ -1092,12 +1092,15 @@ function animateHostSettingChange(value) {
     touchRoom(room); Audio.play("notification"); render();
     return true;
   },
-  equipEquipment(itemId) {
-    const user = profile(), item = equipmentById[itemId];
-    if (!user || !item || item.placeholder || !user.equipmentInventory?.[itemId]) return false;
-    updateProfile({ selectedEquipment:{ ...(user.selectedEquipment || {}), [item.slot]:itemId } });
-    message(`Wyposażono: ${item.name}.`, "info");
-    return true;
+  async usePotion(itemId) {
+    if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby użyć potki." };
+    const result = await usePotionRemote(itemId);
+    if (result?.ok && result.profile) {
+      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, updatedAt:Date.now() };
+      saveAccounts(state.accounts); render({ preserveDrafts:true });
+      message(result.message || "Potka została użyta.", "info");
+    }
+    return result;
   },
   setProfilePrivacy(key, value) {
     const allowed = new Set(["historyPublic", "statsPublic", "friendsPublic"]), user = profile();
@@ -1136,7 +1139,7 @@ function animateHostSettingChange(value) {
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId), isNewAccount=!remote&&!existing;
       if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }
-      state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].equipmentInventory={...defaultEquipmentInventory,...(state.accounts[accountId].equipmentInventory||{})}; state.accounts[accountId].selectedEquipment={...(state.accounts[accountId].selectedEquipment||{})}; state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
+      state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].potionInventory={...(state.accounts[accountId].potionInventory||{})}; state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
       if(isNewAccount) trackSiteEvent({ type:"userRegistered", eventId:`user:${accountId}` });
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}

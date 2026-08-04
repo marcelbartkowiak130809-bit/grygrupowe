@@ -23,10 +23,10 @@ const modeLabels = {
   all:"Wszystkie tryby", udowodnij:"Udowodnij", impostor:"Impostor", "kim-jestem":"Kim jestem", "inne-pytanie":"Inne pytanie",
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
   bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
-  "pokemon-dex":"NAJBLIŻSZY NUMER POKEDEX", "pokemon-last-letter":"OSTATNIA LITERA", "pokemon-evolution":"EVOLUTION RACE",
-  "pokemon-auction":"LICYTACJA TEAMU", "pokemon-types":"TYPY NA START", "pokemon-match-type":"DOPASUJ TYP",
-  wavelength:"WAVELENGTH", quiz:"QUIZ", mathematics:"MATEMATYKA", marker:"MARKER", sequence:"ZGADNIJ SEKWENCJĘ",
-  family:"FAMILIADA", "word-chain":"ŁAŃCUCH SŁÓW",
+  "pokemon-dex":"Najbliższy numer Pokédex", "pokemon-last-letter":"Ostatnia litera", "pokemon-evolution":"Evolution Race",
+  "pokemon-auction":"Licytacja teamu", "pokemon-types":"Typy na start", "pokemon-match-type":"Dopasuj typ",
+  wavelength:"Wavelength", quiz:"Quiz", mathematics:"Matematyka", marker:"Marker", sequence:"Zgadnij sekwencję",
+  family:"Familiada", "word-chain":"Łańcuch słów",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
 

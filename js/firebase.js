@@ -305,7 +305,7 @@ const sanitizePublicProfile = profile => {
   if (privacy.friendsPublic) result.friends = Array.isArray(profile.friends) ? profile.friends : [];
   return result;
 };
-const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true, ...(profile.ownedCosmetics || {}) }, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", equipmentInventory:profile.equipmentInventory || {}, selectedEquipment:profile.selectedEquipment || {}, privacy:profilePrivacy(profile), gameHistory:Array.isArray(profile.gameHistory) ? profile.gameHistory : [], answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
+const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true, ...(profile.ownedCosmetics || {}) }, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", potionInventory:profile.potionInventory || {}, coinBooster:profile.coinBooster || null, xpBooster:profile.xpBooster || null, privacy:profilePrivacy(profile), gameHistory:Array.isArray(profile.gameHistory) ? profile.gameHistory : [], answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
 export async function loadRemoteProfile(uid) {
   if (!remoteDatabase || !uid) return null;
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`))).val() || null; }
@@ -400,9 +400,20 @@ export async function claimLuckySpin() {
     return {
       ok:false,
       code:error?.code || "unknown",
-      error:error?.message || "Nie udało się uruchomić Lucky Spin.",
+      error:error?.code === "functions/internal" || error?.message === "internal"
+        ? "Lucky Spin jest chwilowo niedostępny — serwer nagród wymaga wdrożenia nowej wersji."
+        : error?.message || "Nie udało się uruchomić Lucky Spin.",
       nextSpinAt:Number(details.nextSpinAt) || 0,
     };
+  }
+}
+export async function usePotion(itemId) {
+  if (!remoteFunctions || !firebaseFunctionsApi?.httpsCallable) return { ok:false, error:"Używanie potek wymaga połączenia z serwerem." };
+  try {
+    const result = await firebaseFunctionsApi.httpsCallable(remoteFunctions, "usePotion")({ itemId });
+    return { ok:true, ...(result.data || {}) };
+  } catch (error) {
+    return { ok:false, error:error?.message || "Nie udało się użyć potki." };
   }
 }
 export async function submitHonor({ roomId, fromUid, targetUid, type }) {
