@@ -11,14 +11,14 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-14";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-15";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260804-1";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260804-2";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260804-1";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260804-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260804-1";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260804-1";
-import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260804-1";
+import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260804-5";
 
 export const gamesRegistry = {
   udowodnij: {

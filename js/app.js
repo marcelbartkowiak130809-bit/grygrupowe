@@ -19,14 +19,14 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-13";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-15";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260804-1";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-2";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-1";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-3";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-5";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-7";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -39,7 +39,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-4";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
-import { scheduleBot } from "./botController.js?v=20260804-2";
+import { scheduleBot } from "./botController.js?v=20260804-3";
 
 const root = $("#app");
 const THEME_STORAGE_KEY = "grygrupowe-theme";

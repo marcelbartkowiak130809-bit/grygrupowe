@@ -26,7 +26,12 @@ export const pokemonDefaults = {
 };
 
 function candidates(settings) { return filteredDex(settings).filter(item => item.id <= 1025); }
-function pickTarget(settings, used = []) { const pool = candidates(settings).filter(item => !used.includes(item.id)); return randomItem(pool.length ? pool : candidates(settings)); }
+function pickEvolutionBase(settings) {
+  const pool = candidates(settings);
+  const valid = pool.filter(base => pool.some(item => item.id !== base.id && item.evolutionChain === base.evolutionChain));
+  return randomItem(valid.length ? valid : pool);
+}
+function pickTarget(settings, used = []) { const source = settings?.evolutionMode ? candidates(settings).filter(base => candidates(settings).some(item => item.id !== base.id && item.evolutionChain === base.evolutionChain)) : candidates(settings); const pool = source.filter(item => !used.includes(item.id)); return randomItem(pool.length ? pool : source); }
 function lastLetterActive(game) { return (game.order || []).filter(uid => !(game.eliminated || []).includes(uid)); }
 function advanceLastLetter(game, settings) {
   const active = lastLetterActive(game);
@@ -50,7 +55,7 @@ export function createPokemonGame(mode, players, settings) {
   const scores = scoreMap(players);
   if (mode === "pokemon-dex") return { mode, phase:"answers", round:1, scores, target:pickTarget(settings).id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] };
   if (mode === "pokemon-last-letter") { const hearts=Math.max(1,Math.min(5,Number(settings.hearts)||3)); return { mode, phase:"chain", round:1, scores, order:[...players], turnIndex:0, chain:[], chainAuthors:[], usedIds:[], hearts:Object.fromEntries(players.map(uid=>[uid,hearts])), eliminated:[], phaseEndsAt:phaseEnd(settings.answerTime) }; }
-  if (mode === "pokemon-evolution") { const base = pickTarget(settings); return { mode, phase:"answers", round:1, scores, baseId:base.id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] }; }
+  if (mode === "pokemon-evolution") { const base = pickEvolutionBase(settings); return { mode, phase:"answers", round:1, scores, baseId:base.id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] }; }
   if (mode === "pokemon-auction") {
     const teamSize = Number(settings.teamSize) || 6;
     const items = [...candidates(settings)].sort(() => Math.random() - .5).slice(0, Math.max(4, teamSize * players.length));
