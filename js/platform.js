@@ -124,6 +124,17 @@ function sharePanelHtml() {
   </section>`;
 }
 
+function openGlobalStatsModal(context = {}) {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `<section class="modal global-stats-modal enter" role="dialog" aria-modal="true" aria-labelledby="global-stats-modal-title"><button class="icon-btn global-stats-close" data-close aria-label="Zamknij">×</button>${globalStatsHtml(context.globalStats || window.__globalStats)}</section>`;
+  const close = () => modal.remove();
+  modal.querySelector("[data-close]").addEventListener("click", close);
+  modal.addEventListener("click", event => { if (event.target === modal) close(); });
+  document.body.append(modal);
+  animateGlobalStats(modal);
+}
+
 async function openPollModal(context = {}, actions) {
   const poll = visiblePoll(), state = await pollStateOnline(poll, context.voterId || "anonymous"), modal = document.createElement("div");
   modal.className = "modal-backdrop";
@@ -170,11 +181,10 @@ export async function renderPlatform(root, actions, context = {}) {
         </form>
         <button class="ghost random-room-button" id="random-room">Dołącz do losowego pokoju</button>
       </div>
-      <div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div>
+      <div class="hero-side-actions"><div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div><button class="ghost global-stats-trigger" id="open-global-stats" type="button">📊 Statystyki strony</button></div>
     </section>
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
-    ${globalStatsHtml(context.globalStats || window.__globalStats)}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
@@ -215,6 +225,7 @@ export async function renderPlatform(root, actions, context = {}) {
     actions.joinByCode(root.querySelector("#platform-room-code").value, root.querySelector("#platform-room-pass").value);
   });
   root.querySelector("#random-room")?.addEventListener("click", () => openRandomRoomModal(actions));
+  root.querySelector("#open-global-stats")?.addEventListener("click", () => openGlobalStatsModal(context));
   const shareUrl = () => window.location.origin + window.location.pathname;
   root.querySelector("#copy-site-link")?.addEventListener("click", async () => {
     try { await navigator.clipboard?.writeText(shareUrl()); actions.playSound?.("success"); } catch {}
@@ -227,7 +238,6 @@ export async function renderPlatform(root, actions, context = {}) {
       actions.playSound?.("success");
     } catch {}
   });
-  animateGlobalStats(root);
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");
 }
