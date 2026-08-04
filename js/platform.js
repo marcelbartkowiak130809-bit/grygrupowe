@@ -6,10 +6,10 @@ import { escapeHtml, icon } from "./utils.js?v=20260613-1";
 import { modeUnlockInfo } from "./upcomingModes.js?v=20260804-2";
 
 const filters = [
-  ["all", "Wszystkie"],
-  ["original", "Oryginalna gra"],
-  ["everyone", "Gra dla kazdego"],
-  ["crew", "Gra dla ekipy"],
+  ["all", "WSZYSTKIE"],
+  ["original", "ORYGINALNA GRA"],
+  ["everyone", "GRA DLA KAŻDEGO"],
+  ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
   ["pokemon", "POKEMONY"],
 ];
@@ -39,7 +39,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"➗", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };
 function visualSymbol(mode) {
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
@@ -48,10 +48,11 @@ function visualSymbol(mode) {
 
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
+  const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-      <span>${locked ? "???" : mode.audience === "pokemon" ? visualSymbol(mode) : mode.symbol}</span>
+      <span>${locked ? "???" : visualSymbol(mode)}</span>
       ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
     </div>
     <div class="game-card-content">
@@ -66,6 +67,10 @@ function gameCard(mode) {
 
 function lockedModeTitle(mode, unlock) {
   return `Nowy tryb odblokuje sie ${unlock.label}`;
+}
+
+function normalizeModeSearch(value) {
+  return String(value || "").toLocaleLowerCase("pl-PL").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function visiblePoll() {
@@ -156,7 +161,7 @@ export async function renderPlatform(root, actions, context = {}) {
     ${sharePanelHtml()}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
-      <div class="game-filters" role="tablist" aria-label="Filtr trybow">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>
+      <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"><kbd>CTRL K</kbd></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
       <div class="games-grid">${gamesList.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div>
     </section>
     ${homeInfoHtml()}
@@ -168,14 +173,23 @@ export async function renderPlatform(root, actions, context = {}) {
   if (countdown && visiblePoll() && !currentPollState.ended) {
     pollCountdownTimer = setInterval(() => { if (!countdown.isConnected) return clearInterval(pollCountdownTimer); countdown.textContent = countdownText(countdown.dataset.pollCountdown); }, 1000);
   }
-  root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
-    const filter = button.dataset.gameFilter;
-    root.querySelectorAll("[data-game-filter]").forEach(item => item.classList.toggle("active", item === button));
+  const applyGameFilters = () => {
+    const filter = root.querySelector("[data-game-filter].active")?.dataset.gameFilter || "all";
+    const query = normalizeModeSearch(root.querySelector("#game-search-input")?.value);
     root.querySelectorAll("[data-mode-category]").forEach(card => {
       const tags = String(card.dataset.modeTags || card.dataset.modeCategory || "").split(/\s+/);
-      card.classList.toggle("hidden-game-card", filter !== "all" && !tags.includes(filter));
+      const searchText = normalizeModeSearch(card.dataset.modeSearch);
+      card.classList.toggle("hidden-game-card", (filter !== "all" && !tags.includes(filter)) || (query && !searchText.includes(query)));
     });
+  };
+  root.querySelectorAll("[data-game-filter]").forEach(button => button.addEventListener("click", () => {
+    root.querySelectorAll("[data-game-filter]").forEach(item => item.classList.toggle("active", item === button));
+    applyGameFilters();
   }));
+  root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
+  root.querySelector("#game-search-input")?.addEventListener("keydown", event => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); event.currentTarget.focus(); }
+  });
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");

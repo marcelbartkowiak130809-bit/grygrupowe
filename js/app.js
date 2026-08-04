@@ -181,7 +181,7 @@ function updateOnlineCountPill() {
   if(!pill)return;
   const label=onlineCountLabel();
   pill.dataset.count=String(state.onlineCount);
-  pill.title=label;
+  pill.dataset.tooltip=label;
   pill.innerHTML=`<i></i><b>${state.onlineCount}</b> online`;
 }
 function moveCurrentProfile(remote, current = profile()) {
@@ -1366,7 +1366,7 @@ function changelogModal() {
   modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);}));
   document.body.append(modal);Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" title="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi" title="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}" title="Changelog">${icon("scroll",18)}</button><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button><button class="icon-btn" id="audio-settings" aria-label="Ustawienia audio">${icon("audio",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -1496,9 +1496,13 @@ function connectRooms(){
 }
 async function checkFriendNotifications(bucket = null) {
   const user=profile(); if(!user)return;
+  if (checkFriendNotifications.running) return;
+  checkFriendNotifications.running = true;
+  try {
   const local=loadAccounts(); if(local[state.currentUser])state.accounts[state.currentUser]={...state.accounts[state.currentUser],...local[state.currentUser]};
-  const remote=await loadRemoteProfile(state.currentUser); if(remote){state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote};}
+  const remote=await loadRemoteProfile(state.currentUser); if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,friendRequests:currentFriendRequests||remote.friendRequests};}
   const remoteRequests=bucket || await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
+  const previousIncomingSignature=JSON.stringify(Object.keys(requests.incoming).sort());
   requests.incoming={...requests.incoming,...Object.fromEntries(Object.entries(remoteRequests).filter(([,request])=>!request?.status).map(([id,request])=>[id,request]))};
   account.friendRequests=requests; persistFriendAccount(state.currentUser);
   let friendStateChanged=false;
@@ -1506,18 +1510,25 @@ async function checkFriendNotifications(bucket = null) {
     if (!request?.roomId || !["gameInvite", "joinRequest"].includes(request.type)) continue;
     const localRoom=state.rooms.find(room=>room.roomId===request.roomId);
     const roomResult=localRoom ? {ok:true,room:localRoom} : await loadRemoteRoom(request.roomId);
-    if ((roomResult.ok && roomResult.room && roomResult.room.status !== "lobby") || roomResult.missing) {
+    const invitationAge=Date.now()-Number(request.createdAt||0), invitationExpired=Number.isFinite(invitationAge)&&invitationAge>30*60*1000;
+    if ((roomResult.ok && roomResult.room && roomResult.room.status !== "lobby") || roomResult.missing || invitationExpired) {
       delete requests.incoming[requestId];
       await updateFriendRequest(state.currentUser,requestId,{status:"cancelled",updatedAt:Date.now()});
+      document.querySelector(`[data-friend-toast="${requestId}"]`)?.remove();
+      friendSeenNotifications.delete(requestId);
       friendStateChanged=true;
     }
   }
   for (const request of Object.values(requests.outgoing)) { const remoteRequest=await loadFriendRequest(request.toUid,request.id); if (!remoteRequest || ["rejected","cancelled"].includes(remoteRequest.status)) { delete requests.outgoing[request.id]; friendStateChanged=true; } else if (remoteRequest.status === "accepted") { if(request.type === "joinRequest" && !activeRoom()) actions.joinRoom(request.roomId,"",{fromInvite:true,inviteMode:request.gameMode}); else account.friends=[...new Set([...(account.friends||[]),request.toUid])]; delete requests.outgoing[request.id]; friendStateChanged=true; } }
   account.friendRequests=requests; persistFriendAccount(state.currentUser);
   const incoming=Object.values(friendRequests(profile()).incoming);
+  const incomingSignature=JSON.stringify(incoming.map(request=>request.id).sort());
   await refreshFriendDirectory();
   incoming.forEach(request=>{if(!friendSeenNotifications.has(request.id)){friendSeenNotifications.add(request.id);showFriendNotification(request,{directory:friendDirectorySnapshot(),actions});}});
-  if(incoming.length || friendStateChanged)render({preserveDrafts:true});
+  if(friendStateChanged || incomingSignature!==previousIncomingSignature)render({preserveDrafts:true});
+  } finally {
+    checkFriendNotifications.running = false;
+  }
 }
 function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
 document.addEventListener("click", event => {
