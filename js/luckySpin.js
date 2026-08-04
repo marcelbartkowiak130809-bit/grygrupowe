@@ -100,6 +100,9 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     wheel.style.setProperty("--lucky-rotation", `${targetRotation}deg`);
     await new Promise(resolve => window.setTimeout(resolve, 5600));
     wheel.classList.remove("is-spinning");
+    // Keep the wheel on the awarded segment after the transition instead of
+    // snapping back to its initial position when the animation class is removed.
+    wheel.style.setProperty("--lucky-wheel-rotation", `${targetRotation}deg`);
     const updated = { ...currentProfile, ...(response.profile || {}), luckySpin:{ ...(currentProfile.luckySpin || {}), ...(response.profile?.luckySpin || {}), nextSpinAt } };
     currentProfile = updated;
     onProfileUpdated?.(updated);

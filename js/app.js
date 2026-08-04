@@ -40,7 +40,7 @@ import { friendRequestCount, friendsModal, showFriendNotification } from "./frie
 import { loadPresenceUsers } from "./firebase.js?v=20260804-11";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
 import { scheduleBot } from "./botController.js?v=20260804-4";
-import { isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260804-4";
+import { isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-1";
 import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
