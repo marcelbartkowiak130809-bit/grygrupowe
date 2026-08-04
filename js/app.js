@@ -22,7 +22,7 @@ import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } f
 import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-15";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260804-1";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-2";
-import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-1";
+import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-2";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
@@ -788,6 +788,15 @@ function repairGameStateForPlayers(room) {
     game.history = game.history.filter(row => players.includes(row.uid)).map(row => ({ ...row, accepted:Array.isArray(row.accepted) ? row.accepted : [], rejected:Array.isArray(row.rejected) ? row.rejected : [], raw:Array.isArray(row.raw) ? row.raw : [], points:Number(row.points) || 0 }));
     if (game.activeUid && !players.includes(game.activeUid)) { game.activeUid = players[0] || ""; changed = true; }
     if (game.phase === "turn" && !game.phaseEndsAt) { game.phase = "prepare"; game.phaseEndsAt = Date.now() + 3000; changed = true; }
+  }
+  if (room.gameMode === "mathematics") {
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
+    if (!Array.isArray(game.history)) { game.history = []; changed = true; }
+    if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
+    if (!Number.isFinite(Number(game.questionIndex))) { game.questionIndex = 0; changed = true; }
   }
   if (room.gameMode === "zegar") {
     const beforeScores = JSON.stringify(game.scores || {});
