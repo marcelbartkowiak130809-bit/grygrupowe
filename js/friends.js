@@ -6,7 +6,7 @@ export const friendRequestCount = account => Object.keys(incomingRequests(accoun
 const isFriend = (account, uid) => Array.isArray(account?.friends) && account.friends.includes(uid);
 
 function playerStatus(uid, rooms = [], presence = {}) {
-  const room = rooms.find(item => item.players?.includes(uid));
+  const room = rooms.filter(item => ["lobby", "playing"].includes(item.status) && item.players?.includes(uid)).sort((a,b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))[0];
   if (room?.status === "playing") return { label:"🎮 w grze", detail:`Tryb: ${room.modeName || room.gameMode || "Gra"} · ${room.players.length}/${room.maxPlayers || 8}` };
   if (room?.status === "lobby") return { label:"online", detail:`Lobby: ${room.players.length}/${room.maxPlayers || 8} · ${room.modeName || room.gameMode || "Gra"}` };
   return presence[uid] ? { label:"online", detail:"Dostępny" } : { label:"offline", detail:"Offline" };

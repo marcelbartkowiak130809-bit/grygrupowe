@@ -19,7 +19,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-10";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-2";
 import { renderPlatform } from "./platform.js?v=20260804-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -29,7 +29,7 @@ import { renderShop, stopShopTimer } from "./shop.js?v=20260613-1";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260613-2";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal } from "./progression.js?v=20260804-3";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260613-1";
-import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-1";
+import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-2";
 
 const root = $("#app");
@@ -376,6 +376,13 @@ function settleIdentityResult(room) {
   const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
   room.players.forEach(uid=>addPlayerMoney(uid,identityCoinReward(room,uid,winners)));
   rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
+}
+function settlePokemonResult(room) {
+  if (room?.gameMode?.startsWith("pokemon-") !== true || room.game?.phase !== "result" || !room.game.finished || room.game.rewarded) return;
+  const scores=room.game.scores || {}, max=Math.max(0,...Object.values(scores).map(Number)), winners=room.gameMode==="pokemon-last-letter"&&room.game.winner?[room.game.winner]:room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0), rounds=Math.max(1,Number(room.gameMode==="pokemon-last-letter" ? room.settings?.hearts : room.settings?.rounds)||5);
+  const base={"pokemon-dex":25,"pokemon-last-letter":20,"pokemon-evolution":30,"pokemon-types":25,"pokemon-auction":45}[room.gameMode] || 25;
+  room.players.forEach(uid=>addPlayerMoney(uid,base + rounds*8 + Number(scores[uid]||0)*12 + (winners.includes(uid)?50:0)));
+  rewardRoomXp(room,35 + rounds*4,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function message(text, type = "error") {
   Audio.play(type === "error" ? "error" : "notification");
@@ -724,6 +731,12 @@ function repairGameStateForPlayers(room) {
     if (JSON.stringify(order) !== JSON.stringify(game.order || [])) { game.order = order; changed = true; }
     if (!Array.isArray(game.chain)) { game.chain = []; changed = true; }
     if (!Array.isArray(game.usedIds)) { game.usedIds = []; changed = true; }
+    if (!Array.isArray(game.chainAuthors)) { game.chainAuthors = []; changed = true; }
+    if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    if (!game.hearts || typeof game.hearts !== "object" || Array.isArray(game.hearts)) { game.hearts = {}; changed = true; }
+    const defaultHearts = Math.max(1, Math.min(5, Number(room.settings?.hearts) || 3));
+    players.forEach(uid => { if (!Number.isFinite(Number(game.hearts[uid]))) { game.hearts[uid] = defaultHearts; changed = true; } });
+    game.eliminated = game.eliminated.filter(uid => players.includes(uid));
     if (game.turnIndex >= Math.max(1, game.order.length)) { game.turnIndex = 0; changed = true; }
   }
   if (room.gameMode === "pokemon-types") {
@@ -735,6 +748,7 @@ function repairGameStateForPlayers(room) {
     if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
     if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
   }
+  if (room.gameMode === "pokemon-dex" && game.phase === "result" && Number(game.round) >= Math.max(1, Number(room.settings?.rounds) || 5) && !game.finished) { game.finished = true; changed = true; }
   return changed;
 }
 function announceRoomRoster(room) {
@@ -816,24 +830,25 @@ function defaultAccount(nick, password, auth = {}, birthDate = "") {
 }
 
 function friendRequests(account) { return { incoming:{}, outgoing:{}, ...(account?.friendRequests || {}) }; }
+function friendRequestKey(type, fromUid, toUid) { return `${type}_${fromUid}_${toUid}`.replace(/[.#$\[\]/]/g, "_"); }
 function friendDirectorySnapshot() { return { ...friendDirectory, ...Object.fromEntries(Object.entries(state.accounts).map(([uid,account])=>[uid,account])) }; }
 function friendRooms() { return state.rooms.map(room=>{const mode=getGameMode(room.gameMode);return {...room,modeName:mode.name,maxPlayers:mode.maxPlayers||room.maxPlayers||8};}); }
 function persistFriendAccount(uid) { const account=state.accounts[uid]; if(!account)return false; account.friendRequests=friendRequests(account); account.friends=Array.isArray(account.friends)?account.friends:[]; saveAccounts(state.accounts); if(uid===state.currentUser)syncPlayerProfile(uid,account); return true; }
-async function pushFriendRequest(targetUid, request) { const target=state.accounts[targetUid] || friendDirectory[targetUid] || {}; const remote=await loadRemoteProfile(targetUid), remoteBucket=await loadFriendRequestBucket(targetUid); const next={...friendRequests(target),...friendRequests(remote),incoming:{...(friendRequests(target).incoming||{}),...(friendRequests(remote).incoming||{}),...remoteBucket}}; const duplicate=Object.values(next.incoming||{}).find(item=>!item.status&&item.type===request.type&&item.fromUid===request.fromUid); if(duplicate)return false; next.incoming={...(next.incoming||{}),[request.id]:request}; if(state.accounts[targetUid]){state.accounts[targetUid].friendRequests=next;persistFriendAccount(targetUid);} const saved=await setFriendRequest(targetUid,request); return hasOnlineBackend() ? saved : true; }
+async function pushFriendRequest(targetUid, request) { const remoteBucket=await loadFriendRequestBucket(targetUid); const duplicate=Object.values(remoteBucket||{}).find(item=>!item.status&&item.type===request.type&&item.fromUid===request.fromUid&&item.id!==request.id); if(duplicate)return false; const localTarget=state.accounts[targetUid]; if(localTarget){const localRequests=friendRequests(localTarget);localRequests.incoming={...(localRequests.incoming||{}),[request.id]:request};localTarget.friendRequests=localRequests;persistFriendAccount(targetUid);} const saved=await setFriendRequest(targetUid,request); return hasOnlineBackend() ? saved : true; }
 async function refreshFriendDirectory() { const remote=await loadPublicProfiles(); friendDirectory={...remote,...state.accounts}; return friendDirectory; }
 async function searchFriends(nick) { await refreshFriendDirectory(); const needle=normalizeNick(nick); if(!needle)return []; return Object.entries(friendDirectory).filter(([uid,item])=>uid!==state.currentUser&&normalizeNick(item?.nick).includes(needle)).slice(0,12).map(([uid,item])=>({uid,...item})); }
 async function sendFriendRequest(targetUid) {
   const account=profile(), target=friendDirectory[targetUid]||state.accounts[targetUid]; if(!account||!target||targetUid===state.currentUser)return false;
   const requests=friendRequests(account); if((account.friends||[]).includes(targetUid)||Object.values(requests.outgoing).some(item=>item.toUid===targetUid))return message("To zaproszenie już istnieje.","info");
-  const request={id:uid("FR"),type:"friend",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,createdAt:Date.now()}; requests.outgoing[request.id]=request; account.friendRequests=requests; persistFriendAccount(state.currentUser); const sent=await pushFriendRequest(targetUid,request); if(!sent){delete requests.outgoing[request.id];account.friendRequests=requests;persistFriendAccount(state.currentUser);return message("To zaproszenie już istnieje.","info");} message("Zaproszenie wysłane.","info"); return true;
+  const request={id:friendRequestKey("friend",state.currentUser,targetUid),type:"friend",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,createdAt:Date.now()}; requests.outgoing[request.id]=request; account.friendRequests=requests; persistFriendAccount(state.currentUser); const sent=await pushFriendRequest(targetUid,request); if(!sent){delete requests.outgoing[request.id];account.friendRequests=requests;persistFriendAccount(state.currentUser);return message("To zaproszenie już istnieje.","info");} message("Zaproszenie wysłane.","info"); return true;
 }
 async function acceptFriendRequest(requestId) { const account=profile(), request=friendRequests(account).incoming[requestId]; if(!request)return false; const incoming=friendRequests(account); delete incoming.incoming[requestId]; account.friends=[...new Set([...(account.friends||[]),request.fromUid])]; account.friendRequests=incoming; persistFriendAccount(state.currentUser); await updateFriendRequest(state.currentUser,requestId,{status:"accepted",updatedAt:Date.now()}); message("Dodano do znajomych.","info"); return true; }
 async function rejectFriendRequest(requestId) { const account=profile(), request=friendRequests(account).incoming[requestId]; if(!request)return false; const next=friendRequests(account);delete next.incoming[requestId];account.friendRequests=next;persistFriendAccount(state.currentUser);await updateFriendRequest(state.currentUser,requestId,{status:"rejected",updatedAt:Date.now()});return true; }
 async function cancelFriendRequest(requestId) { const account=profile(), request=friendRequests(account).outgoing[requestId];if(!request)return false;const next=friendRequests(account);delete next.outgoing[requestId];account.friendRequests=next;persistFriendAccount(state.currentUser);await updateFriendRequest(request.toUid,requestId,{status:"cancelled",updatedAt:Date.now()});return true; }
-async function inviteFriend(targetUid) { const room=activeRoom(), account=profile(), target=friendDirectory[targetUid];if(!room||!account||!target)return false;const request={id:uid("GI"),type:"gameInvite",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,roomId:room.roomId,gameMode:room.gameMode,modeName:getGameMode(room.gameMode).name,players:`${room.players.length}/${getGameMode(room.gameMode).maxPlayers}`,createdAt:Date.now()};if(!await pushFriendRequest(targetUid,request))return message("To zaproszenie do tego lobby już istnieje.","info");message("Zaproszenie do gry wysłane.","info");return true; }
-async function requestJoinFriend(targetUid, room) { const account=profile(),target=friendDirectory[targetUid];if(!account||!target||!room)return false;const request={id:uid("JR"),type:"joinRequest",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,roomId:room.roomId,gameMode:room.gameMode,modeName:getGameMode(room.gameMode).name,players:`${room.players.length}/${getGameMode(room.gameMode).maxPlayers}`,createdAt:Date.now()};if(!await pushFriendRequest(targetUid,request))return message("Prośba do tego lobby już istnieje.","info");message("Prośba o dołączenie wysłana.","info");return true;}
+async function inviteFriend(targetUid) { const room=activeRoom(), account=profile(), target=friendDirectory[targetUid];if(!room||!account||!target)return false;const request={id:friendRequestKey("gameInvite",state.currentUser,targetUid),type:"gameInvite",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,roomId:room.roomId,gameMode:room.gameMode,modeName:getGameMode(room.gameMode).name,players:`${room.players.length}/${getGameMode(room.gameMode).maxPlayers}`,createdAt:Date.now()};if(!await pushFriendRequest(targetUid,request))return message("To zaproszenie do tego lobby już istnieje.","info");message("Zaproszenie do gry wysłane.","info");return true; }
+async function requestJoinFriend(targetUid, room) { const account=profile(),target=friendDirectory[targetUid];if(!account||!target||!room)return false;const request={id:friendRequestKey("joinRequest",state.currentUser,targetUid),type:"joinRequest",fromUid:state.currentUser,fromNick:account.nick,toUid:targetUid,toNick:target.nick,roomId:room.roomId,gameMode:room.gameMode,modeName:getGameMode(room.gameMode).name,players:`${room.players.length}/${getGameMode(room.gameMode).maxPlayers}`,createdAt:Date.now()};if(!await pushFriendRequest(targetUid,request))return message("Prośba do tego lobby już istnieje.","info");message("Prośba o dołączenie wysłana.","info");return true;}
 async function acceptGameInvite(request) { if(!request)return false;const next=friendRequests(profile());delete next.incoming[request.id];profile().friendRequests=next;persistFriendAccount(state.currentUser);await updateFriendRequest(state.currentUser,request.id,{status:"accepted",updatedAt:Date.now()});return actions.joinRoom(request.roomId,"",{fromInvite:true,inviteMode:request.gameMode}); }
-async function acceptJoinRequest(requestId) { const account=profile(), request=friendRequests(account).incoming[requestId];if(!request)return false;const next=friendRequests(account);delete next.incoming[requestId];account.friendRequests=next;persistFriendAccount(state.currentUser);await updateFriendRequest(state.currentUser,requestId,{status:"accepted",updatedAt:Date.now()});await pushFriendRequest(request.fromUid,{...request,id:uid("GI"),type:"gameInvite",fromUid:state.currentUser,fromNick:account.nick,toUid:request.fromUid,toNick:request.fromNick,modeName:getGameMode(request.gameMode).name,message:"Prośba zaakceptowana."});message("Prośba zaakceptowana.","info");return true; }
+async function acceptJoinRequest(requestId) { const account=profile(), request=friendRequests(account).incoming[requestId];if(!request)return false;const next=friendRequests(account);delete next.incoming[requestId];account.friendRequests=next;persistFriendAccount(state.currentUser);await updateFriendRequest(state.currentUser,requestId,{status:"accepted",updatedAt:Date.now()});await pushFriendRequest(request.fromUid,{...request,id:friendRequestKey("gameInvite",state.currentUser,request.fromUid),type:"gameInvite",fromUid:state.currentUser,fromNick:account.nick,toUid:request.fromUid,toNick:request.fromNick,modeName:getGameMode(request.gameMode).name,message:"Prośba zaakceptowana."});message("Prośba zaakceptowana.","info");return true; }
 async function refreshFriendsData() { await checkFriendNotifications(); friendPresence=await loadPresenceUsers(); return true; }
 
 const actions = {
@@ -1058,7 +1073,7 @@ const actions = {
     const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); render();
   },
-  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime"].includes(key)?Number(value):value};if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);touchRoom(room);render();},
+  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts"].includes(key)?Number(value):value};if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);touchRoom(room);render();},
   setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);if(addingAdult&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wlaczyc kategorii 18+.", "info");const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:next.some(item=>String(item).startsWith("18+"))};touchRoom(room);render();};if(addingAdult)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   setBombCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="bomba")return;room.settings=sanitizeBombSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);render();},
   setClosestTruthCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="najblizej-prawdy")return;room.settings=sanitizeClosestTruthSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);render();},
@@ -1274,7 +1289,7 @@ function render(options = {}) {
   if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous"})); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) return Router.go("platform"); if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
-    const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); lastRenderedScreenSignature=currentScreenSignature();
+    const mode=getGameMode(room.gameMode); repairGameStateForPlayers(room); settlePokemonResult(room); lastRenderedScreenSignature=currentScreenSignature();
     try {
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
