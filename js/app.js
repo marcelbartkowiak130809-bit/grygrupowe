@@ -124,10 +124,10 @@ function activeRoomSignature(room = activeRoom()) {
   if (!room) return "";
   const players = normalizedRoomPlayers(room);
   const playerProfiles = Object.fromEntries(players.map(uid => [uid, room.playerProfiles?.[uid] || state.accounts[uid] || {}]));
-  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
 }
 function lobbySignature() {
-  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status, settings:room.settings }));
+  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status, settings:room.settings }));
   return stableStringify({ selectedGameMode:state.selectedGameMode, onlineBackend:state.onlineBackend, rooms });
 }
 function currentScreenSignature() {
@@ -920,7 +920,7 @@ function rankingIntroModal() {
 function friendRequests(account) { return { incoming:{}, outgoing:{}, ...(account?.friendRequests || {}) }; }
 function friendRequestKey(type, fromUid, toUid) { return `${type}_${fromUid}_${toUid}`.replace(/[.#$\[\]/]/g, "_"); }
 function friendDirectorySnapshot() { return { ...friendDirectory, ...Object.fromEntries(Object.entries(state.accounts).map(([uid,account])=>[uid,account])) }; }
-function friendRooms() { return state.rooms.map(room=>{const mode=getGameMode(room.gameMode);return {...room,modeName:mode.name,maxPlayers:mode.maxPlayers||room.maxPlayers||8};}); }
+function friendRooms() { return state.rooms.map(room=>{const mode=getGameMode(room.gameMode);return {...room,modeName:mode.name,maxPlayers:room.maxPlayers||mode.maxPlayers||8};}); }
 function persistFriendAccount(uid) { const account=state.accounts[uid]; if(!account)return false; account.friendRequests=friendRequests(account); account.friends=Array.isArray(account.friends)?account.friends:[]; saveAccounts(state.accounts); if(uid===state.currentUser)syncPlayerProfile(uid,account); return true; }
 async function pushFriendRequest(targetUid, request) { const remoteBucket=await loadFriendRequestBucket(targetUid); const duplicate=Object.values(remoteBucket||{}).find(item=>!item.status&&item.type===request.type&&item.fromUid===request.fromUid&&item.id!==request.id); if(duplicate)return false; const localTarget=state.accounts[targetUid]; if(localTarget){const localRequests=friendRequests(localTarget);localRequests.incoming={...(localRequests.incoming||{}),[request.id]:request};localTarget.friendRequests=localRequests;persistFriendAccount(targetUid);} const saved=await setFriendRequest(targetUid,request); return hasOnlineBackend() ? saved : true; }
 async function refreshFriendDirectory() { const remote=await loadPublicProfiles(); friendDirectory={...remote,...state.accounts}; return friendDirectory; }
@@ -970,7 +970,7 @@ const actions = {
     if(!profile()){state.pendingJoin={roomId:code,password};return actions.openAuth({title:"Zaloguj się, aby dołączyć do pokoju",description:"Po logowaniu od razu przeniesiemy cię do właściwej gry."});}
     actions.joinRoom(code,password);
   },
-  async joinRandomRoom(modeIds=[]){if(!profile()){state.afterLogin="platform";return actions.openAuth({title:"Zaloguj się, aby dołączyć do pokoju"});}const allowed=new Set(modeIds);const candidates=state.rooms.filter(room=>!room.isPrivate&&room.status==="lobby"&&allowed.has(room.gameMode)).filter(room=>{const mode=getGameMode(room.gameMode);return (room.players?.length||0)>0&&(room.players?.length||0)<mode.maxPlayers&&!isModeLocked(mode.id);});if(!candidates.length){message("Nie znaleziono pasującego publicznego pokoju.","info");return false;}const maxPlayers=Math.max(...candidates.map(room=>room.players.length));const preferred=candidates.filter(room=>room.players.length===maxPlayers);const room=preferred[Math.floor(Math.random()*preferred.length)];return actions.joinRoom(room.roomId);},
+  async joinRandomRoom(modeIds=[]){if(!profile()){state.afterLogin="platform";return actions.openAuth({title:"Zaloguj się, aby dołączyć do pokoju"});}const allowed=new Set(modeIds);const candidates=state.rooms.filter(room=>!room.isPrivate&&room.status==="lobby"&&allowed.has(room.gameMode)).filter(room=>{const mode=getGameMode(room.gameMode),capacity=Math.max(mode.minPlayers,Math.min(mode.maxPlayers,Number(room.maxPlayers)||mode.maxPlayers));return (room.players?.length||0)>0&&(room.players?.length||0)<capacity&&!isModeLocked(mode.id);});if(!candidates.length){message("Nie znaleziono pasującego publicznego pokoju.","info");return false;}const maxPlayers=Math.max(...candidates.map(room=>room.players.length));const preferred=candidates.filter(room=>room.players.length===maxPlayers);const room=preferred[Math.floor(Math.random()*preferred.length)];return actions.joinRoom(room.roomId);},
   async selectGame(gameMode) {
     const mode=getGameMode(gameMode);
     if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info");
@@ -1134,12 +1134,13 @@ const actions = {
     if(navigator.share){try{await navigator.share({title:room.name||"Pokój gry",text:"Dołącz do mojego pokoju gry.",url:link});return true;}catch{return false;}}
     return actions.copyInviteLink(room?.roomId);
   },
-  async createRoom({ name, password, settings, isPrivate, roomType = "standard", entryFee = 0 }) {
+  async createRoom({ name, password, settings, isPrivate, maxPlayers, roomType = "standard", entryFee = 0 }) {
     if(!ensureRoomSession()||!profile())return false;
     const now = Date.now(); const mode = getGameMode(state.selectedGameMode); roomType=roomType === "betting" ? "betting" : "standard"; entryFee=roomType === "betting" ? Math.max(0,Number(entryFee)||0) : 0; if (roomType === "betting" && playerMoney({playerProfiles:{[state.currentUser]:profile()}},state.currentUser) < entryFee) { message(`Potrzebujesz co najmniej ${entryFee.toLocaleString("pl-PL")}$, aby utworzyć taki pokój.`); return false; } if (mode.id === "quiz") settings = { ...settings, quizVariant:state.quizVariant || "casual" };
     if(isModeLocked(mode.id)){message(lockedModeMessage(mode),"info");return false;}
     if(await guardBan(mode.id))return false;
-    const room = { roomId: uid(), gameMode: mode.id, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
+    maxPlayers = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(maxPlayers) || mode.maxPlayers));
+    const room = { roomId: uid(), gameMode: mode.id, maxPlayers, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
        isPrivate, roomType, entryFee, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings:{...(settings||{}),botDifficulty:(settings||{}).botDifficulty||"normal"}, createdAt: now, updatedAt: now, game: null };
     const result=await syncRoomState(room);if(!result.ok){message(`Nie udało się utworzyć pokoju: ${result.error}`);connectRooms();return false;}
     state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go("room");
@@ -1155,7 +1156,8 @@ const actions = {
     if(options.inviteMode && room.gameMode !== options.inviteMode)return fail("Ten link prowadzi do innego trybu gry.");
     if(room.deleted || room.closed || room.status === "closed")return fail("Ten pokój został zamknięty.");
     if(!alreadyInRoom && room.status !== "lobby")return fail(room.status === "playing" || room.game ? "Gra w tym pokoju już trwa." : "Ten link jest nieaktualny.");
-    if(!alreadyInRoom && room.players.length >= mode.maxPlayers)return fail("Ten pokój jest już pełny.");
+    const roomCapacity = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(room.maxPlayers) || mode.maxPlayers));
+    if(!alreadyInRoom && room.players.length >= roomCapacity)return fail("Ten pokój jest już pełny.");
     if(await guardBan(room.gameMode))return false;
     if(roomIsAdult(room)&&!options.adultConfirmed)return withAdultWarning(mode,()=>actions.joinRoom(roomId,password,{...options,adultConfirmed:true}),true);
     if (room.isPrivate && !alreadyInRoom && room.passwordHash !== hashRoomPassword(password)) return options.fromInvite && !password ? invitePasswordModal(room, options.inviteMode) : (message("Złe hasło do pokoju."), false);
@@ -1181,14 +1183,15 @@ const actions = {
   setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; touchRoom(room); animateHostSettingChange(answerTime); } },
   addBot() {
     const room=activeRoom(), mode=getGameMode(room?.gameMode);
-    if(!room||room.hostUid!==state.currentUser||!roomAllowsBots(room,mode))return message("Boty można dodawać tylko w prywatnym pokoju.","info");
-    if(room.players.length>=mode.maxPlayers)return message("Brak wolnych miejsc.","info");
+    if(!room||room.hostUid!==state.currentUser||!roomAllowsBots(room,mode))return message("Botów nie można dodawać w tym trybie.","info");
+    const roomCapacity = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(room.maxPlayers) || mode.maxPlayers));
+    if(room.players.length>=roomCapacity)return message("Brak wolnych miejsc.","info");
     const id=`bot:${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`, index=botCount(room);
     botIds(room).forEach((bot,index)=>{const current={...(room.playerProfiles?.[bot]||{}),nick:botName(index)};room.playerProfiles={...(room.playerProfiles||{}),[bot]:current};state.accounts[bot]=current;});
     room.players=[...room.players,id];room.joinedAt={...(room.joinedAt||{}),[id]:Date.now()};room.playerProfiles={...(room.playerProfiles||{}),[id]:botProfile(id,index,room.settings?.botDifficulty||"normal")};state.accounts[id]={...room.playerProfiles[id]};touchRoom(room);Audio.play("playerJoin");render();return true;
   },
   setBotDifficulty(value) {
-    const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.status!=="lobby"||!room.isPrivate)return;
+    const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.status!=="lobby")return;
     const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";room.settings={...(room.settings||{}),botDifficulty:difficulty};Object.values(room.playerProfiles||{}).filter(item=>item?.isBot).forEach(item=>{item.botDifficulty=difficulty;});touchRoom(room);render();
   },
   setImpostorSetting(key,value) {
@@ -1411,7 +1414,7 @@ function renderGameError(view, room, error) {
   $("#leave-broken-game")?.addEventListener("click", () => actions.leaveRoom("platform"));
 }
 function scheduleRoomBot(room) {
-  if(!room?.game||room.hostUid!==state.currentUser||!room.isPrivate||!botIds(room).length)return;
+  if(!room?.game||room.hostUid!==state.currentUser||!botIds(room).length)return;
   const plan=scheduleBot(room,{mutate:mutation=>mutateRoomGame(mutation,{sound:"turn"}),onDone:()=>botSchedules.delete(room.roomId)});
   if(!plan||botSchedules.get(room.roomId)===plan.key)return;
   botSchedules.set(room.roomId,plan.key);
@@ -1517,6 +1520,13 @@ async function checkFriendNotifications(bucket = null) {
   if(incoming.length || friendStateChanged)render({preserveDrafts:true});
 }
 function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
+document.addEventListener("click", event => {
+  const backdrop = event.target.closest?.(".modal-backdrop");
+  if (!backdrop || event.target !== backdrop) return;
+  const closeButton = backdrop.querySelector("[data-close], [data-close-room-notice]");
+  if (closeButton) closeButton.click();
+  else backdrop.remove();
+});
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
 window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
 initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();if(!routeFromUrlIfNeeded()&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))render();}); render();

@@ -73,19 +73,20 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const canReport = Boolean(mode.allowReports);
   const canAddBots = roomAllowsBots(room, mode) && isHost;
   const botDifficulty = room.settings?.botDifficulty || "normal";
-  const openSlots = Math.max(0, mode.maxPlayers - room.players.length);
+  const roomCapacity = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(room.maxPlayers) || mode.maxPlayers));
+  const openSlots = room.status === "lobby" ? Math.min(1, Math.max(0, roomCapacity - room.players.length)) : 0;
   const inviteLink = actions.inviteLink?.(room) || "";
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page room-page enter">
     <section class="panel room-header">
-      <div><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈ ZAKŁADY · " + Number(room.entryFee || 0).toLocaleString("pl-PL") + "$" : "● STANDARD"}</span><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${mode.maxPlayers}</p></div>
+      <div><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈ ZAKŁADY · " + Number(room.entryFee || 0).toLocaleString("pl-PL") + "$" : "● STANDARD"}</span><h1>${escapeHtml(room.name)}</h1><p class="muted">Kod: <b>${room.roomId}</b> · Gracze ${room.players.length}/${roomCapacity}</p></div>
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}</section>
       <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button>${inviteFriendButton}</div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
-    <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${mode.maxPlayers}</span></div>
+    <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${roomCapacity}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
       ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}${uid !== currentUser && accounts[currentUser]?.friends?.includes(uid) ? '<span class="friend-lobby-mark" title="Znajomy">♥</span>' : ""}</p>
@@ -93,7 +94,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
     ${openSlots ? `<section class="player-grid bot-slots">${Array.from({length:openSlots},()=>`<article class="player-card empty-player-slot"><div class="empty-slot-icon">${icon("users", 22)}</div><p class="muted">Wolne miejsce</p>${canAddBots ? '<div class="empty-slot-actions"><button class="ghost" data-add-bot>🤖 Dodaj bota</button><button class="ghost" data-invite-slot>Zaproś gracza</button></div>' : ""}</article>`).join("")}</section>` : ""}
-    ${isHost && room.status === "lobby" && room.isPrivate ? `<section class="bot-settings panel-subtle"><div><p class="eyebrow">BOTY</p><strong>Poziom trudności</strong><p class="tiny">Dotyczy botów dodanych do tego pokoju.</p></div><select id="bot-difficulty">${BOT_DIFFICULTIES.map(item=>`<option value="${item.id}" ${item.id===botDifficulty?"selected":""}>${item.label}</option>`).join("")}</select></section>` : ""}
+    ${isHost && room.status === "lobby" && canAddBots ? `<section class="bot-settings panel-subtle"><div><p class="eyebrow">BOTY</p><strong>Poziom trudności</strong><p class="tiny">Dotyczy botów dodanych do tego pokoju.</p></div><select id="bot-difficulty">${BOT_DIFFICULTIES.map(item=>`<option value="${item.id}" ${item.id===botDifficulty?"selected":""}>${item.label}</option>`).join("")}</select></section>` : ""}
     <section class="room-actions">${isHost ? `<button class="primary big" id="start-game" ${room.players.length < mode.minPlayers ? "disabled" : ""}>${icon("play", 20)} Start gry</button>` : '<p class="muted">Czekamy, az host rozpocznie gre.</p>'}
       ${room.players.length < mode.minPlayers ? `<p class="muted">Do startu potrzeba minimum ${mode.minPlayers} graczy.</p>` : ""}</section>
   </main>`;

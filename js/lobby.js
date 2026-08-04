@@ -12,7 +12,7 @@ function roomCard(room, mode) {
   const adult = Boolean(mode.adult || [room.settings?.category, ...(Array.isArray(room.settings?.categories) ? room.settings.categories : [])].some(item => String(item || "").startsWith("18+")));
   return `<article class="room-card">
     <div><div class="room-mode">${mode.symbol} ${mode.name} <span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈" : "●"} ${roomTypeLabel(room)}</span></div><h3>${escapeHtml(room.name)}</h3>
-      <p class="muted">${room.roomId} · ${room.players.length}/${mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}</div>
+      <p class="muted">${room.roomId} · ${room.players.length}/${room.maxPlayers || mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}</div>
     <div class="room-right">${room.isPrivate ? icon("lock", 18) : ""}<button data-join-room="${room.roomId}">Wejdź</button></div>
   </article>`;
 }
@@ -55,6 +55,7 @@ export function createRoomModal(mode, actions) {
   const isUdowodnij = mode.id === "udowodnij";
   let roomType = "standard";
   let entryFee = ENTRY_FEE_OPTIONS[0];
+  let maxPlayers = mode.maxPlayers;
   backdrop.innerHTML = `<section class="modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
     <label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy">
@@ -63,6 +64,14 @@ export function createRoomModal(mode, actions) {
     ${isUdowodnij ? `<label>Czas na wymienianie</label><div class="time-pills">${[15,30,45,60].map(time => `<button data-time="${time}" class="${time === 30 ? "active" : ""}">${time}s</button>`).join("")}</div>` : ""}
     <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz</button></div>
   </section>`;
+  const maxPlayersField = document.createElement("label");
+  maxPlayersField.htmlFor = "room-max-players";
+  maxPlayersField.textContent = "Liczba graczy";
+  const maxPlayersSelect = document.createElement("select");
+  maxPlayersSelect.id = "room-max-players";
+  maxPlayersSelect.innerHTML = Array.from({length:Math.max(1,mode.maxPlayers-mode.minPlayers+1)},(_,index)=>mode.minPlayers+index).map(value=>`<option value="${value}" ${value===mode.maxPlayers?"selected":""}>${value} ${value===1?"osoba":"osób"}</option>`).join("");
+  maxPlayersField.append(maxPlayersSelect);
+  backdrop.querySelector("#room-name").insertAdjacentElement("afterend",maxPlayersField);
   let answerTime = mode.defaultSettings.answerTime || 30;
   const close = () => actions.closeModal(backdrop);
   backdrop.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", close));
@@ -73,8 +82,9 @@ export function createRoomModal(mode, actions) {
   }));
   backdrop.querySelectorAll("[name='room-type']").forEach(input => input.addEventListener("change", () => { roomType=input.value; backdrop.querySelectorAll(".room-type-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); backdrop.querySelector("#entry-fee-field").classList.toggle("hidden",roomType!=="betting"); }));
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
+  backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; });
   $("#confirm-create", backdrop).addEventListener("click", async () => {
-    if (await actions.createRoom({ name: $("#room-name", backdrop).value, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, answerTime } }) !== false) close();
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, answerTime } }) !== false) close();
   });
   return backdrop;
 }
