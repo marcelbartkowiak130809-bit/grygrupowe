@@ -6,9 +6,10 @@ export const publicRoutes = {
   "/polityka-prywatnosci":"public:polityka-prywatnosci",
   "/kontakt":"public:kontakt",
 };
+const appRoutes = { "/pokemony":"pokemon-select" };
 const publicScreens = new Set(Object.values(publicRoutes));
 const validScreens = new Set(["platform", "pokemon-select", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
-let current = publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";
+let current = appRoutes[globalThis.window?.location?.pathname || "/"] || publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";
 let listener = () => {};
 
 export const Router = {
@@ -24,6 +25,9 @@ export const Router = {
   },
   publicScreenFromPath(pathname = window.location.pathname) {
     return publicRoutes[pathname] || "";
+  },
+  appScreenFromPath(pathname = window.location.pathname) {
+    return appRoutes[pathname] || "";
   },
   pathForPublicScreen(screen) {
     return Object.entries(publicRoutes).find(([, item]) => item === screen)?.[0] || "/";
