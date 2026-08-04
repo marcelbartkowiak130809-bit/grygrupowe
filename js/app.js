@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260805-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260805-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
 import { gamesList, getGameMode } from "./games.js?v=20260804-8";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
@@ -1093,6 +1093,8 @@ function animateHostSettingChange(value) {
     if (!backendUnavailable) return remote;
     const local = drawLocalLuckySpin(profile(), serverNow());
     if (!local.ok) return local;
+    const claim = await claimLuckySpinDatabase(state.currentUser, { claimId:uid("spin"), lastSpinAt:local.profile.luckySpin.lastSpinAt, nextSpinAt:local.nextSpinAt, reward:local.reward });
+    if (claim?.ok === false) return claim;
     updateProfile(local.profile);
     return local;
   },

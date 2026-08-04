@@ -398,6 +398,21 @@ export async function updateRemoteProfileFields(uid, patch = {}) {
   if (!remoteDatabase || !uid || !Object.keys(patch).length) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }
 }
+export async function claimLuckySpinDatabase(uid, proposal) {
+  if (!remoteDatabase || !remoteAuth?.currentUser || remoteAuth.currentUser.uid !== uid || !proposal?.claimId) return null;
+  try {
+    const spinRef = firebaseDatabaseApi.ref(remoteDatabase, `luckySpins/${uid}`);
+    const result = await firebaseDatabaseApi.runTransaction(spinRef, current => {
+      if (current && Number(current.nextSpinAt) > serverNow()) return;
+      return proposal;
+    }, { applyLocally:false });
+    const state = result.snapshot.val() || {};
+    if (state.claimId !== proposal.claimId) return { ok:false, code:"functions/resource-exhausted", error:"Spin będzie dostępny ponownie później.", nextSpinAt:Number(state.nextSpinAt) || 0 };
+    return { ok:true, state };
+  } catch (error) {
+    return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się zarezerwować spinu." };
+  }
+}
 export async function claimLuckySpin() {
   if (!remoteFunctions || !firebaseFunctionsApi?.httpsCallable) {
     return { ok:false, error:"Lucky Spin wymaga połączenia z serwerem." };

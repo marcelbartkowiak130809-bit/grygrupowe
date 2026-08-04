@@ -11,7 +11,8 @@
     "luckySpins": {
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
-        ".write": false
+        ".write": "auth != null && auth.uid == $uid && newData.exists() && (!data.exists() || data.child('nextSpinAt').val() <= now) && newData.child('lastSpinAt').isNumber() && newData.child('lastSpinAt').val() >= now - 120000 && newData.child('lastSpinAt').val() <= now + 10000 && newData.child('nextSpinAt').isNumber() && newData.child('nextSpinAt').val() >= now + 86300000 && newData.child('nextSpinAt').val() <= now + 86520000",
+        ".validate": "newData.hasChildren(['claimId', 'lastSpinAt', 'nextSpinAt', 'reward']) && newData.child('claimId').isString() && newData.child('claimId').val().length <= 100 && newData.child('reward').hasChildren(['id', 'tier', 'wheelIndex', 'type']) && newData.child('reward').child('wheelIndex').isNumber() && newData.child('reward').child('wheelIndex').val() >= 0 && newData.child('reward').child('wheelIndex').val() <= 12 && (newData.child('reward').child('id').val() == 'coins-small' || newData.child('reward').child('id').val() == 'xp-small' || newData.child('reward').child('id').val() == 'coins-i' || newData.child('reward').child('id').val() == 'xp-i' || newData.child('reward').child('id').val() == 'coins-medium' || newData.child('reward').child('id').val() == 'xp-medium' || newData.child('reward').child('id').val() == 'coin-booster' || newData.child('reward').child('id').val() == 'coins-ii' || newData.child('reward').child('id').val() == 'xp-ii' || newData.child('reward').child('id').val() == 'coins-large' || newData.child('reward').child('id').val() == 'coins-iii' || newData.child('reward').child('id').val() == 'xp-iii' || newData.child('reward').child('id').val() == 'xp-booster')"
       }
     },
     "honorVotes": {
