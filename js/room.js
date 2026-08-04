@@ -19,9 +19,9 @@ import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260804-1";
 import { renderMarkerLobbySettings } from "./marker.js?v=20260804-1";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260804-1";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260804-2";
-import { renderWordChainLobbySettings } from "./wordChain.js?v=20260804-2";
+import { renderWordChainLobbySettings } from "./wordChain.js?v=20260804-3";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
-import { BOT_DIFFICULTIES, isBotId, roomAllowsBots } from "./bots.js?v=20260804-1";
+import { BOT_DIFFICULTIES, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };
@@ -73,7 +73,6 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const inviteFriendButton = competitiveQuiz ? "" : '<button class="ghost" id="invite-friend">Zaproś znajomego</button>';
   const canReport = Boolean(mode.allowReports);
   const canAddBots = roomAllowsBots(room, mode) && isHost;
-  const botDifficulty = room.settings?.botDifficulty || "normal";
   const roomCapacity = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(room.maxPlayers) || mode.maxPlayers));
   const openSlots = room.status === "lobby" ? Math.min(1, Math.max(0, roomCapacity - room.players.length)) : 0;
   const inviteLink = actions.inviteLink?.(room) || "";
@@ -90,12 +89,12 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2></div><span class="badge">${room.players.length}/${roomCapacity}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
-      ${playerMini(accounts[uid], { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}${uid !== currentUser && accounts[currentUser]?.friends?.includes(uid) ? '<span class="friend-lobby-mark" title="Znajomy">♥</span>' : ""}</p>
+      ${playerMini({...accounts[uid],...room.playerProfiles?.[uid],uid}, { disableIdle: true })}<p class="player-status"><i></i>${uid === room.hostUid ? "Host" : "Gotowy"} ${lobbyAgeBadge(uid, room, accounts)}${uid !== currentUser && accounts[currentUser]?.friends?.includes(uid) ? '<span class="friend-lobby-mark" title="Znajomy">♥</span>' : ""}</p>
+      ${isHost && room.status === "lobby" && isBotId(uid) ? `<label class="bot-difficulty-control"><span>Inteligencja</span><select data-bot-difficulty="${uid}">${BOT_DIFFICULTIES.map(item=>`<option value="${item.id}" ${item.id===(room.playerProfiles?.[uid]?.botDifficulty||"normal")?"selected":""}>${item.label}</option>`).join("")}</select></label>` : ""}
       ${canReport && uid !== currentUser ? `<button class="icon-btn report-player-button" data-report-player="${uid}" aria-label="Zgłoś gracza">⚠️</button>` : ""}
       ${isHost && uid !== currentUser ? `<button class="danger" data-kick="${uid}">Wyrzuc</button>` : ""}
     </article>`).join("")}</section>
     ${openSlots ? `<section class="player-grid bot-slots">${Array.from({length:openSlots},()=>`<article class="player-card empty-player-slot"><div class="empty-slot-icon">${icon("users", 22)}</div><p class="muted">Wolne miejsce</p>${canAddBots ? '<div class="empty-slot-actions"><button class="ghost" data-add-bot>🤖 Dodaj bota</button><button class="ghost" data-invite-slot>Zaproś gracza</button></div>' : ""}</article>`).join("")}</section>` : ""}
-    ${isHost && room.status === "lobby" && canAddBots ? `<section class="bot-settings panel-subtle"><div><p class="eyebrow">BOTY</p><strong>Poziom trudności</strong><p class="tiny">Dotyczy botów dodanych do tego pokoju.</p></div><select id="bot-difficulty">${BOT_DIFFICULTIES.map(item=>`<option value="${item.id}" ${item.id===botDifficulty?"selected":""}>${item.label}</option>`).join("")}</select></section>` : ""}
     <section class="room-actions">${isHost ? `<button class="primary big" id="start-game" ${room.players.length < mode.minPlayers ? "disabled" : ""}>${icon("play", 20)} Start gry</button>` : '<p class="muted">Czekamy, az host rozpocznie gre.</p>'}
       ${room.players.length < mode.minPlayers ? `<p class="muted">Do startu potrzeba minimum ${mode.minPlayers} graczy.</p>` : ""}</section>
   </main>`;
@@ -140,7 +139,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-add-bot]").forEach(button => button.addEventListener("click", () => actions.addBot()));
   root.querySelectorAll("[data-invite-slot]").forEach(button => button.addEventListener("click", () => actions.openFriends({ inviteMode:true })));
-  root.querySelector("#bot-difficulty")?.addEventListener("change", event => actions.setBotDifficulty(event.target.value));
+  root.querySelectorAll("[data-bot-difficulty]").forEach(select => select.addEventListener("change", event => actions.setBotDifficulty(select.dataset.botDifficulty, event.target.value)));
   root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));
   root.querySelector("#start-game")?.addEventListener("click", actions.startGame);
 }

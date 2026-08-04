@@ -26,7 +26,7 @@ import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-1";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-3";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-5";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-7";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -38,8 +38,8 @@ import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, 
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-4";
-import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-1";
-import { scheduleBot } from "./botController.js?v=20260804-1";
+import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
+import { scheduleBot } from "./botController.js?v=20260804-2";
 
 const root = $("#app");
 const THEME_STORAGE_KEY = "grygrupowe-theme";
@@ -1150,7 +1150,7 @@ const actions = {
     if(await guardBan(mode.id))return false;
     maxPlayers = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(maxPlayers) || mode.maxPlayers));
     const room = { roomId: uid(), gameMode: mode.id, maxPlayers, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
-       isPrivate, roomType, entryFee, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings:{...(settings||{}),botDifficulty:(settings||{}).botDifficulty||"normal"}, createdAt: now, updatedAt: now, game: null };
+       isPrivate, roomType, entryFee, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings:{...(settings||{})}, createdAt: now, updatedAt: now, game: null };
     const result=await syncRoomState(room);if(!result.ok){message(`Nie udało się utworzyć pokoju: ${result.error}`);connectRooms();return false;}
     state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go("room");
     return true;
@@ -1197,11 +1197,11 @@ const actions = {
     if(room.players.length>=roomCapacity)return message("Brak wolnych miejsc.","info");
     const id=`bot:${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`, index=botCount(room);
     botIds(room).forEach((bot,index)=>{const current={...(room.playerProfiles?.[bot]||{}),nick:botName(index)};room.playerProfiles={...(room.playerProfiles||{}),[bot]:current};state.accounts[bot]=current;});
-    room.players=[...room.players,id];room.joinedAt={...(room.joinedAt||{}),[id]:Date.now()};room.playerProfiles={...(room.playerProfiles||{}),[id]:botProfile(id,index,room.settings?.botDifficulty||"normal")};state.accounts[id]={...room.playerProfiles[id]};touchRoom(room);Audio.play("playerJoin");render();return true;
+    room.players=[...room.players,id];room.joinedAt={...(room.joinedAt||{}),[id]:Date.now()};room.playerProfiles={...(room.playerProfiles||{}),[id]:botProfile(id,index,"normal")};state.accounts[id]={...room.playerProfiles[id]};touchRoom(room);Audio.play("playerJoin");render();return true;
   },
-  setBotDifficulty(value) {
-    const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.status!=="lobby")return;
-    const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";room.settings={...(room.settings||{}),botDifficulty:difficulty};Object.values(room.playerProfiles||{}).filter(item=>item?.isBot).forEach(item=>{item.botDifficulty=difficulty;});touchRoom(room);render();
+  setBotDifficulty(botUid, value) {
+    const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.status!=="lobby"||!isBotId(botUid))return;
+    const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";const current=room.playerProfiles?.[botUid];if(!current)return;room.playerProfiles={...(room.playerProfiles||{}),[botUid]:{...current,botDifficulty:difficulty}};state.accounts[botUid]={...room.playerProfiles[botUid]};touchRoom(room);render();
   },
   setImpostorSetting(key,value) {
     const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;

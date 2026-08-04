@@ -1,4 +1,4 @@
-import { botDelay, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260804-1";
+import { botDelay, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260804-3";
 import { ImpostorEngine } from "./impostor.js?v=20260605-5";
 import { IdentityEngine } from "./identity.js?v=20260611-1";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
@@ -17,7 +17,7 @@ import { MathematicsEngine } from "./mathematics.js?v=20260804-1";
 import { MarkerEngine } from "./marker.js?v=20260804-1";
 import { SequenceEngine } from "./sequence.js?v=20260804-1";
 import { FamilyEngine } from "./family.js?v=20260804-1";
-import { WordChainEngine } from "./wordChain.js?v=20260804-1";
+import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260804-3";
 
 const actorKeys = ["starter", "currentPlayer", "currentPlayerId", "currentTurn", "turnPlayer", "activeUid", "activePlayer", "decisionPlayer", "currentBidder", "answeringPlayer", "clueGiver", "selector", "targetPlayer"];
 const firstBot = (room, game) => actorKeys.map(key => game?.[key]).find(uid => isBotId(uid)) || botIds(room)[0];
@@ -31,7 +31,7 @@ function timeoutFallback(game) { if (game?.phaseEndsAt) game.phaseEndsAt = Date.
 
 export function botMutation(room) {
   const game=room?.game, bot=firstBot(room,game); if(!game||!bot)return null;
-  const settings=room.settings||{}, players=room.players||[], guard=expected(game), correct=botShouldBeCorrect(room);
+  const settings=room.settings||{}, players=room.players||[], guard=expected(game), correct=botShouldBeCorrect(room,bot);
   try {
     switch(room.gameMode) {
       case "udowodnij": return game.phase === "initialBid" && game.starter === bot ? g=>{g.currentBid=Math.max(1,Math.min(Number(g.maxBid||5),Math.round(1+Math.random()*4)));g.phase="bidding";g.currentBidder=bot;g.decisionPlayer=players[(players.indexOf(bot)+1)%players.length];g.phaseEndsAt=Date.now()+4000;} : game.phase === "bidding" && game.decisionPlayer === bot ? g=>{if(Math.random()<.45){g.phase="answering";g.currentBidder=bot;g.requiredCount=g.currentBid||1;g.answers=[];g.validCount=0;}else{g.currentBid=(g.currentBid||1)+1;g.currentBidder=bot;g.decisionPlayer=players[(players.indexOf(bot)+1)%players.length];}} : game.phase === "answering" && game.currentBidder === bot ? g=>{g.answers=[...(g.answers||[]),{text:textAnswer(g),valid:correct}];g.validCount=(g.answers||[]).filter(item=>item.valid).length;if(g.validCount>=(g.requiredCount||1))g.phase="result";} : null;
@@ -56,7 +56,7 @@ export function botMutation(room) {
       case "marker": return game.phase === "selecting" && game.currentPlayer === bot ? g=>MarkerEngine.select(g,bot,g.grid?.[0]?.id||g.selectedCell) : game.phase === "drawing" && game.currentPlayer === bot ? g=>MarkerEngine.coverage(g,bot,correct?.9:.2) : game.phase === "searching" && game.currentPlayer === bot ? g=>MarkerEngine.find(g,bot) : null;
       case "sequence": return game.phase === "guessing" && game.currentPlayer === bot ? g=>SequenceEngine.guess(g,bot,game.colors?.slice(0,game.length)||[]) : game.phase === "creating" && game.currentPlayer === bot ? g=>SequenceEngine.draft(g,bot,(g.colors||["red"])[0]) : null;
       case "family": return game.phase === "answering" && game.currentPlayer === bot ? g=>FamilyEngine.answer(g,bot,textAnswer(g)) : game.phaseEndsAt ? timeoutFallback : null;
-      case "word-chain": return game.phase === "answering" && game.currentPlayer === bot ? g=>WordChainEngine.answer(g,bot,textAnswer(g)) : game.phaseEndsAt ? timeoutFallback : null;
+      case "word-chain": return game.phase === "answer" && game.currentUid === bot ? g=>correct?WordChainEngine.answer(g,bot,wordChainBotWord(g)):WordChainEngine.timeout(g) : game.phaseEndsAt ? timeoutFallback : null;
       default: return game.phaseEndsAt ? timeoutFallback : null;
     }
   } catch { return game.phaseEndsAt ? timeoutFallback : null; }
@@ -66,5 +66,5 @@ export function scheduleBot(room, { mutate, onDone }) {
   if(!room?.game||!botIds(room).length)return false;
   const mutation=botMutation(room);if(!mutation)return false;
   const key=`${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex||0}`;
-  return { key, delay:botDelay(room), run:()=>mutate(mutation).finally(()=>onDone?.()) };
+  return { key, delay:botDelay(room, "answer", firstBot(room, room.game)), run:()=>mutate(mutation).finally(()=>onDone?.()) };
 }

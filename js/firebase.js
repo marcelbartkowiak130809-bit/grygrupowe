@@ -445,6 +445,7 @@ export async function syncRoomState(room) {
       status:room.status, settings:room.settings || {}, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, pendingEntryFees:room.pendingEntryFees || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
       gameState:room.game || null, chat:room.game?.chat || [],
     };
+    Object.entries(payload.players).forEach(([uid, player])=>{if(uid.startsWith("bot:")){player.isBot=true;player.botDifficulty=room.playerProfiles?.[uid]?.botDifficulty||"normal";}});
     let saved=payload;
     if(remoteDatabase){
       const result=await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`),current=>{
@@ -475,6 +476,7 @@ function normalizeFirebaseValue(value) {
 const normalizeRemoteRoom=room=>{
   const normalized=normalizeFirebaseValue(room || {});
   const players=normalized.players || {};
+  Object.entries(players).forEach(([uid, player])=>{if(uid.startsWith("bot:")){player.isBot=true;player.botDifficulty=player.botDifficulty||"normal";}});
   return { ...normalized, game:normalizeFirebaseValue(normalized.gameState || null), players:Object.keys(players), playerProfiles:players, joinedAt:Object.fromEntries(Object.entries(players).map(([uid,item])=>[uid,item?.joinedAt])) };
 };
 

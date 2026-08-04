@@ -61,6 +61,7 @@ export function levelTier(level = 1) {
 }
 
 export function levelBadgeHtml(profile = {}, className = "") {
+  if (profile?.isBot) return `<span class="level-badge bot-level-badge ${className}" title="Bot">BOT</span>`;
   const { level } = levelProgress(profile);
   return `<span class="level-badge level-${levelTier(level)} ${className}" title="Level ${level}">LVL ${level}</span>`;
 }
