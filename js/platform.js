@@ -10,7 +10,6 @@ const filters = [
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
-  ["pokemon", "POKEMONY"],
 ];
 let pollCountdownTimer;
 const POLLS_ENABLED = false;
@@ -21,12 +20,24 @@ function modeCategory(mode) {
   return mode.audience === "crew" ? "crew" : "everyone";
 }
 
+export function renderPokemonModes(root, actions, context = {}) {
+  const activityStats = context.activityStats || window.__activityStats || {};
+  const pokemonModes = gamesList.filter(game => game.audience === "pokemon");
+  const mewtwo = pokemonDex.find(item => item.id === 150);
+  root.innerHTML = `<main class="page platform-page pokemon-selection-page enter"><section class="pokemon-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="pokemon-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>POKEMONY</h1><p>Wybierzcie sposób rywalizacji z Pokémonami.</p></div><div class="pokemon-selection-art">${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</div></section><section class="games-section pokemon-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY POKÉMON</p><h2>W co gramy?</h2></div><span class="badge">${pokemonModes.length}</span></div><div class="games-grid">${pokemonModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  activatePublicAds(root, "platform");
+}
+
 function modeFilterTags(mode) {
   return [modeCategory(mode), mode.supportsSolo ? "solo" : ""].filter(Boolean).join(" ");
 }
 
 function categoryTag(mode) {
   const category = modeCategory(mode);
+  if (mode.audience === "pokemon") return "";
   const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
@@ -42,6 +53,11 @@ function visualSymbol(mode) {
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
   return item ? `<img src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">` : mode.symbol;
+}
+
+function pokemonHubCard() {
+  const mewtwo = pokemonDex.find(item => item.id === 150);
+  return `<article class="game-card pokemon-hub-card" data-pokemon-hub><div class="game-visual game-visual-pokemon-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</span><b class="pokemon-hub-badge">POKÉMON</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-pokemon">KOLEKCJA TRYBÓW</span></div><h2>POKEMONY</h2><p class="muted">Rywalizujcie w specjalnych trybach z Pokémonami: Pokédex, ewolucje, typy, aukcja i więcej.</p><div class="game-card-activity"><span>6 trybów</span><span>MEWTWO CZEKA</span></div><div class="game-card-footer"><span class="players-count">🧬 SPECJALNA STREFA</span><button class="primary" data-open-pokemon>Wybierz tryb</button></div></div></article>`;
 }
 
 function gameCard(mode) {
@@ -160,7 +176,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-      <div class="games-grid">${gamesList.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div>
+      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon").map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -186,6 +202,8 @@ export async function renderPlatform(root, actions, context = {}) {
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
+  root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");
     if (button) actions.selectGame(button.dataset.playMode);

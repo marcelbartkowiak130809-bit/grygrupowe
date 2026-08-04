@@ -1,4 +1,5 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260804-1";
+import { gamesList } from "./games.js?v=20260804-8";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -24,6 +25,7 @@ const modeLabels = {
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
   bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
 };
+Object.assign(modeLabels, Object.fromEntries(gamesList.map(mode => [mode.id, mode.name])));
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
 
 export function xpForLevel(level) {

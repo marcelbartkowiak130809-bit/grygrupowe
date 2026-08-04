@@ -7,7 +7,7 @@ export const publicRoutes = {
   "/kontakt":"public:kontakt",
 };
 const publicScreens = new Set(Object.values(publicRoutes));
-const validScreens = new Set(["platform", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
+const validScreens = new Set(["platform", "pokemon-select", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
 let current = publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";
 let listener = () => {};
 
