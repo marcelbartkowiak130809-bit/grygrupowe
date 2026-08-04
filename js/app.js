@@ -26,7 +26,7 @@ import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-3";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-7";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-8";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-10";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -820,6 +820,22 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.history)) { game.history = []; changed = true; }
     if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
     if (!Number.isFinite(Number(game.questionIndex))) { game.questionIndex = 0; changed = true; }
+  }
+  if (room.gameMode === "word-chain") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    if (!Array.isArray(game.chain)) { game.chain = []; changed = true; }
+    if (!Array.isArray(game.used)) { game.used = []; changed = true; }
+    if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    game.eliminated = game.eliminated.filter(uid => players.includes(uid));
+    if (!Array.isArray(game.missedPlayers)) { game.missedPlayers = []; changed = true; }
+    game.missedPlayers = game.missedPlayers.filter(uid => players.includes(uid) && !game.eliminated.includes(uid));
+    if (!game.hearts || typeof game.hearts !== "object" || Array.isArray(game.hearts)) { game.hearts = {}; changed = true; }
+    const defaultHearts = Math.max(1, Math.min(5, Number(room.settings?.hearts) || 3));
+    players.forEach(uid => { if (!Number.isFinite(Number(game.hearts[uid]))) { game.hearts[uid] = defaultHearts; changed = true; } });
+    Object.keys(game.hearts).forEach(uid => { if (!players.includes(uid)) { delete game.hearts[uid]; changed = true; } });
+    const active = game.players.filter(uid => !game.eliminated.includes(uid));
+    if (active.length && !active.includes(game.currentUid)) { game.currentUid = active[0]; game.turnIndex = game.players.indexOf(active[0]); changed = true; }
   }
   if (room.gameMode === "zegar") {
     const beforeScores = JSON.stringify(game.scores || {});
