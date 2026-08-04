@@ -1,6 +1,6 @@
 import { escapeHtml } from "./utils.js?v=20260613-2";
 
-const REWARD_ORDER = [
+export const REWARD_ORDER = [
   { id:"coins-small", tier:"weak", emoji:"🪙", label:"100 monet", short:"100" },
   { id:"xp-small", tier:"weak", emoji:"⭐", label:"50 XP", short:"XP" },
   { id:"coins-i", tier:"weak", emoji:"🧪", label:"Potka monet I", short:"$ I" },
@@ -16,6 +16,39 @@ const REWARD_ORDER = [
   { id:"xp-booster", tier:"strong", emoji:"🚀", label:"Booster XP 3×", short:"3× XP" },
 ];
 const REWARD_BY_ID = Object.fromEntries(REWARD_ORDER.map(item => [item.id, item]));
+const LOCAL_TIER_WEIGHTS = { weak:70, medium:25, strong:5 };
+const LOCAL_BOOSTER_DURATION = 6 * 60 * 60 * 1000;
+
+export function drawLocalLuckySpin(profile = {}, now = Date.now()) {
+  const nextSpinAt = Number(profile.luckySpin?.nextSpinAt) || 0;
+  if (nextSpinAt > now) return { ok:false, code:"resource-exhausted", error:"Spin będzie dostępny ponownie później.", nextSpinAt };
+  let cursor = Math.random() * 100, tier = "strong";
+  for (const [candidate, weight] of Object.entries(LOCAL_TIER_WEIGHTS)) {
+    cursor -= weight;
+    if (cursor < 0) { tier = candidate; break; }
+  }
+  const pool = REWARD_ORDER.filter(item => item.tier === tier);
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  const reward = { id:item.id, tier:item.tier, wheelIndex:REWARD_ORDER.indexOf(item), type:"coins", amount:0, multiplier:0, durationMs:0, itemId:"" };
+  if (item.id.startsWith("coins-") && item.id.endsWith("small")) { reward.type="coins"; reward.amount=100; }
+  else if (item.id === "xp-small") { reward.type="xp"; reward.amount=50; }
+  else if (item.id === "coins-medium") { reward.type="coins"; reward.amount=300; }
+  else if (item.id === "xp-medium") { reward.type="xp"; reward.amount=150; }
+  else if (item.id === "coins-large") { reward.type="coins"; reward.amount=750; }
+  else if (item.id === "coin-booster") { reward.type="coinBooster"; reward.multiplier=2; reward.durationMs=LOCAL_BOOSTER_DURATION; }
+  else if (item.id === "xp-booster") { reward.type="xpBooster"; reward.multiplier=3; reward.durationMs=12 * 60 * 60 * 1000; }
+  else { reward.type="potion"; reward.itemId=item.id; }
+
+  const next = now + 24 * 60 * 60 * 1000;
+  const updated = { ...profile, luckySpin:{ ...(profile.luckySpin || {}), lastSpinAt:now, nextSpinAt:next, lastReward:reward } };
+  const add = (key, amount) => { updated[key] = (Number(updated[key]) || 0) + amount; };
+  if (reward.type === "coins") add(profile.nickOnly ? "sessionMoney" : "money", reward.amount);
+  if (reward.type === "xp") add(profile.nickOnly ? "sessionXp" : "xp", reward.amount);
+  if (reward.type === "potion") updated.potionInventory = { ...(updated.potionInventory || {}), [reward.itemId]:(Number(updated.potionInventory?.[reward.itemId]) || 0) + 1 };
+  if (reward.type === "coinBooster") updated.coinBooster = { multiplier:Math.max(Number(updated.coinBooster?.multiplier) || 1, reward.multiplier), expiresAt:Math.max(Number(updated.coinBooster?.expiresAt) || 0, now + reward.durationMs) };
+  if (reward.type === "xpBooster") updated.xpBooster = { multiplier:Math.max(Number(updated.xpBooster?.multiplier) || 1, reward.multiplier), expiresAt:Math.max(Number(updated.xpBooster?.expiresAt) || 0, now + reward.durationMs) };
+  return { ok:true, accepted:true, local:true, serverNow:now, nextSpinAt:next, reward, profile:updated };
+}
 const formatRemaining = milliseconds => {
   const total = Math.max(0, Math.ceil(milliseconds / 1000));
   const hours = Math.floor(total / 3600), minutes = Math.floor((total % 3600) / 60), seconds = total % 60;

@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260804-12";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260805-1";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
 import { gamesList, getGameMode } from "./games.js?v=20260804-8";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
@@ -40,7 +40,7 @@ import { friendRequestCount, friendsModal, showFriendNotification } from "./frie
 import { loadPresenceUsers } from "./firebase.js?v=20260804-11";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
 import { scheduleBot } from "./botController.js?v=20260804-4";
-import { isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-1";
+import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
@@ -1085,7 +1085,16 @@ function animateHostSettingChange(value) {
   },
   async claimLuckySpin() {
     if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby zakręcić kołem." };
-    return claimLuckySpinRemote(state.currentUser);
+    const remote = await claimLuckySpinRemote(state.currentUser);
+    if (remote?.ok) return remote;
+    // Firebase callable functions require a paid Blaze project. Keep the game
+    // usable on the free setup while preserving the server path when it exists.
+    const backendUnavailable = !remote?.code || ["functions/internal", "functions/not-found", "functions/unavailable"].includes(remote.code);
+    if (!backendUnavailable) return remote;
+    const local = drawLocalLuckySpin(profile(), serverNow());
+    if (!local.ok) return local;
+    updateProfile(local.profile);
+    return local;
   },
   openEquipment() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
