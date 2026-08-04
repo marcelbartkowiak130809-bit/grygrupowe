@@ -3,7 +3,8 @@ import { getGameMode } from "./games.js?v=20260804-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : mode.symbol; }
+const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };
+function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : (modeEmojis[mode.id] || mode.symbol); }
 export const ENTRY_FEE_OPTIONS = [50, 100, 250, 500, 1000, 2500, 5000];
 const roomTypeLabel = room => room?.roomType === "betting" ? `ZAKŁADY · ${Number(room.entryFee || 0).toLocaleString("pl-PL")}$` : "STANDARD";
 
@@ -11,7 +12,7 @@ function roomCard(room, mode) {
   const identityFlow = mode.id === "kim-jestem" ? `<span class="room-mode-pill">${room.settings?.gameFlow === "browserVoice" || room.settings?.gameFlow === "voice" ? "Voice chat w grze" : room.settings?.gameFlow === "externalVoice" ? "Glos poza gra" : "Tryb tekstowy"}</span>` : "";
   const adult = Boolean(mode.adult || [room.settings?.category, ...(Array.isArray(room.settings?.categories) ? room.settings.categories : [])].some(item => String(item || "").startsWith("18+")));
   return `<article class="room-card">
-    <div><div class="room-mode">${mode.symbol} ${mode.name} <span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈" : "●"} ${roomTypeLabel(room)}</span></div><h3>${escapeHtml(room.name)}</h3>
+    <div><div class="room-mode">${modeVisual(mode)} ${mode.name} <span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈" : "●"} ${roomTypeLabel(room)}</span></div><h3>${escapeHtml(room.name)}</h3>
       <p class="muted">${room.roomId} · ${room.players.length}/${room.maxPlayers || mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}</div>
     <div class="room-right">${room.isPrivate ? icon("lock", 18) : ""}<button data-join-room="${room.roomId}">Wejdź</button></div>
   </article>`;
