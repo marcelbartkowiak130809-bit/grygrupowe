@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260613-1";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260804-1";
 import { $, formatClock, icon } from "./utils.js?v=20260605-5";
 
 let shopTimer;

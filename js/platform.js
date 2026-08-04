@@ -7,7 +7,6 @@ import { modeUnlockInfo } from "./upcomingModes.js?v=20260804-2";
 
 const filters = [
   ["all", "WSZYSTKIE"],
-  ["original", "ORYGINALNA GRA"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
@@ -18,7 +17,6 @@ const POLLS_ENABLED = false;
 
 function modeCategory(mode) {
   if (mode.audience === "pokemon") return "pokemon";
-  if (mode.featured) return "original";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
 }
@@ -29,7 +27,7 @@ function modeFilterTags(mode) {
 
 function categoryTag(mode) {
   const category = modeCategory(mode);
-  const labels = { original:"ORYGINALNA GRA", solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY" };
+  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
 
@@ -161,7 +159,7 @@ export async function renderPlatform(root, actions, context = {}) {
     ${sharePanelHtml()}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
-      <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"><kbd>CTRL K</kbd></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
+      <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
       <div class="games-grid">${gamesList.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div>
     </section>
     ${homeInfoHtml()}
@@ -187,9 +185,6 @@ export async function renderPlatform(root, actions, context = {}) {
     applyGameFilters();
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
-  root.querySelector("#game-search-input")?.addEventListener("keydown", event => {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); event.currentTarget.focus(); }
-  });
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");

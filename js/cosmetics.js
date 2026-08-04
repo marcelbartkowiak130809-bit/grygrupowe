@@ -288,6 +288,20 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
       ${options.hideType ? "" : '<small class="preview-type">CUKIEREK</small>'}
     </div>`;
   }
+  if (item.type === "marker") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-marker">
+      <div class="shop-marker marker-skin-${item.id}"><span class="marker-cap"></span><i class="marker-tip"></i><b class="marker-shine"></b></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">MARKER</small>'}
+    </div>`;
+  }
+  if (item.type === "sequence") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-sequence">
+      <div class="sequence-preview-board sequence-skin-${item.id}"><div class="sequence-preview-grid"><i></i><i></i><i></i><i></i></div><span class="sequence-preview-shine"></span></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">POLA SEKWENCJI</small>'}
+    </div>`;
+  }
   if (["idle","win","lose"].includes(item.type)) {
     const kind = { idle:"IDLE", win:"WYGRANA", lose:"PORAZKA" }[item.type];
     const stateClass = item.type === "idle" ? "preview-idle-state" : item.type === "win" ? "preview-win-state" : "preview-lose-state";
