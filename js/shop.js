@@ -35,6 +35,7 @@ const groups = [
 ];
 
 const defaultCosmetics = {
+  marker:{ id:"defaultMarker", type:"marker", name:"Czarny marker", rarity:"common", description:"Domyślny marker do trybu MARKER.", defaultOnly:true },
   sequence:{ id:"defaultSequence", type:"sequence", name:"Klasyczne pola", rarity:"common", description:"Domyślne pola sekwencji.", defaultOnly:true },
   idle:{ id:"defaultIdle", type:"idle", name:"Zwykłe idle", rarity:"common", description:"Bez dodatkowej animacji idle.", defaultOnly:true },
   win:{ id:"defaultWin", type:"win", name:"Zwykła wygrana", rarity:"common", description:"Bez dodatkowej animacji wygranej.", defaultOnly:true },
