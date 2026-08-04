@@ -14,6 +14,7 @@ export const QUICK_REACTIONS = [
 ];
 
 const reactionById = id => QUICK_REACTIONS.find(item => item.id === id);
+const reactionCooldowns = new Map();
 
 function addBubbles(view, room, accounts) {
   const reactions = room?.game?.quickReactions || {};
@@ -39,7 +40,20 @@ export function renderQuickReactions(view, room, accounts, actions) {
   panel.className = "quick-reactions-bar";
   panel.setAttribute("aria-label", "Szybkie reakcje");
   panel.innerHTML = `<span class="quick-reactions-label">Reakcje</span>${QUICK_REACTIONS.map(item => `<button type="button" class="quick-reaction-button" data-quick-reaction="${item.id}" aria-label="Reakcja ${item.label}">${item.label}</button>`).join("")}`;
-  panel.querySelectorAll("[data-quick-reaction]").forEach(button => button.addEventListener("click", () => actions.quickReact(button.dataset.quickReaction, Boolean(view.querySelector(".chat-messages")))));
+  const cooldownKey = room?.roomId || "local";
+  const applyCooldown = () => {
+    const remaining = Math.max(0, Number(reactionCooldowns.get(cooldownKey) || 0) - Date.now());
+    panel.classList.toggle("is-cooldown", remaining > 0);
+    panel.querySelectorAll("[data-quick-reaction]").forEach(button => { button.disabled = remaining > 0; });
+    if (remaining > 0) window.setTimeout(applyCooldown, remaining + 20);
+  };
+  applyCooldown();
+  panel.querySelectorAll("[data-quick-reaction]").forEach(button => button.addEventListener("click", () => {
+    if (Number(reactionCooldowns.get(cooldownKey) || 0) > Date.now()) return;
+    reactionCooldowns.set(cooldownKey, Date.now() + 2000);
+    applyCooldown();
+    actions.quickReact(button.dataset.quickReaction, Boolean(view.querySelector(".chat-messages")));
+  }));
   view.append(panel);
   if (!view.querySelector(".chat-messages")) addBubbles(view, room, accounts);
 }

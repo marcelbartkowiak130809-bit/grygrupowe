@@ -1077,7 +1077,7 @@ function animateHostSettingChange(value) {
       game.quickReactionCooldowns = game.quickReactionCooldowns && typeof game.quickReactionCooldowns === "object" ? game.quickReactionCooldowns : {};
       const now = Date.now();
       if (Number(game.quickReactionCooldowns[state.currentUser] || 0) > now) return "Reakcja jest chwilowo niedostępna.";
-      game.quickReactionCooldowns[state.currentUser] = now + 1800;
+      game.quickReactionCooldowns[state.currentUser] = now + 2000;
       game.quickReactions[state.currentUser] = { id:reaction.id, text:reaction.text, expiresAt:now + 2200 };
       if (useChat && Array.isArray(game.chat)) game.chat.push({ uid:state.currentUser, text:reaction.text, reaction:true, createdAt:now });
     }, { sound:"notification" });
