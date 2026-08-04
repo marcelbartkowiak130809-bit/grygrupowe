@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-4";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, logoutAuth, mutateRemoteRoomGame, nickToEmail, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, voteWouldYouRather } from "./firebase.js?v=20260804-5";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260612-1";
 import { gamesList, getGameMode } from "./games.js?v=20260804-8";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260605-5";
@@ -27,7 +27,7 @@ import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-3";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-5";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-7";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
 import { Router } from "./router.js";
@@ -182,7 +182,8 @@ function onlineCountLabel() {
   return [`${state.onlineCount} online`,...entries.map(([id,item])=>`${getGameMode(id).name} — ${item.players}`)].join("\n");
 }
 function roomIsFresh(room){const age=Date.now()-Number(room.updatedAt||room.createdAt||0),limit=room.status==="playing"?2*60*60*1000:30*60*1000;return age<=limit;}
-function activityStats(){const stats={};state.rooms.filter(room=>roomIsFresh(room)&&["lobby","playing"].includes(room.status)).forEach(room=>{const mode=getGameMode(room.gameMode),players=normalizedRoomPlayers(room).length;if(!stats[mode.id])stats[mode.id]={players:0,lobbies:0};stats[mode.id].players+=players;if(room.status==="lobby")stats[mode.id].lobbies+=1;});return stats;}
+function roomHasHumanPlayers(room){return (room?.players||[]).some(uid=>!isBotId(uid));}
+function activityStats(){const stats={};state.rooms.filter(room=>roomIsFresh(room)&&["lobby","playing"].includes(room.status)&&roomHasHumanPlayers(room)).forEach(room=>{const mode=getGameMode(room.gameMode),players=normalizedRoomPlayers(room).length;if(!stats[mode.id])stats[mode.id]={players:0,lobbies:0};stats[mode.id].players+=players;if(room.status==="lobby")stats[mode.id].lobbies+=1;});return stats;}
 function updateOnlineCountPill() {
   const pill=document.querySelector(".online-count-pill");
   if(!pill)return;
@@ -1044,14 +1045,14 @@ const actions = {
       interruptProveRoundForDeparture(room,state.currentUser);
       room.players = room.players.filter(id => id !== state.currentUser);
       if(room.playerProfiles)delete room.playerProfiles[state.currentUser];
-      if (room.hostUid === state.currentUser) room.hostUid = room.players[0];
-      if(!room.players.length)return removeRemoteRoom(room.roomId);
+      if (room.hostUid === state.currentUser) room.hostUid = room.players.find(uid=>!isBotId(uid))||room.players[0];
+      if(!roomHasHumanPlayers(room))return removeRemoteRoom(room.roomId);
       if(shouldCloseLonelyFinishedRoom(room)){room.updatedAt=Math.max(Date.now(),Number(room.updatedAt||0)+1);return syncRoomState(room);}
       room.updatedAt=Math.max(Date.now(),Number(room.updatedAt||0)+1);
       return syncRoomState(room);
     });
     await Promise.allSettled(roomUpdates);
-    state.rooms = state.rooms.filter(room => room.players.length);
+    state.rooms = state.rooms.filter(room => roomHasHumanPlayers(room));
     stopFriendRequestsSubscription(); stopFriendRequestsSubscription=()=>{};
     await logoutAuth();
     state.currentUser = null; state.activeRoomId = null;clearPendingInvite({clearUrl:true});clearSession();refreshPresence(); Router.go("platform");
@@ -1184,9 +1185,9 @@ const actions = {
     destination = typeof destination === "string" ? destination : "lobby";
     const room = activeRoom(); if (!room) return;
     interruptProveRoundForDeparture(room,state.currentUser);
-    room.players = room.players.filter(id => id !== state.currentUser); if(room.playerProfiles)delete room.playerProfiles[state.currentUser];if(room.joinedAt)delete room.joinedAt[state.currentUser]; if (room.hostUid === state.currentUser) room.hostUid = room.players[0];
+    room.players = room.players.filter(id => id !== state.currentUser); if(room.playerProfiles)delete room.playerProfiles[state.currentUser];if(room.joinedAt)delete room.joinedAt[state.currentUser]; if (room.hostUid === state.currentUser) room.hostUid = room.players.find(uid=>!isBotId(uid))||room.players[0];
     state.activeRoomId = null;clearPendingInvite();persistSession();
-    if(!room.players.length){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else touchRoom(room); state.rooms = state.rooms.filter(item => item.players.length); destination==="platform"?setUrlRoute("", ""):setModeUrl(state.selectedGameMode); Audio.play("leaveRoom"); Router.go(destination);
+    if(!roomHasHumanPlayers(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else{touchRoom(room);} state.rooms = state.rooms.filter(item => item.roomId!==room.roomId); destination==="platform"?setUrlRoute("", ""):setModeUrl(state.selectedGameMode); Audio.play("leaveRoom"); Router.go(destination);
   },
   kickPlayer(playerId) { const room = activeRoom(); if (room?.hostUid === state.currentUser) { interruptProveRoundForDeparture(room,playerId);room.players = room.players.filter(id => id !== playerId); if(room.playerProfiles)delete room.playerProfiles[playerId];if(room.joinedAt)delete room.joinedAt[playerId];if(!room.players.length||shouldCloseLonelyFinishedRoom(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();}else{touchRoom(room);render();} } },
   setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; touchRoom(room); animateHostSettingChange(answerTime); } },
@@ -1476,6 +1477,9 @@ function connectRooms(){
   state.onlineBackend=hasOnlineBackend()?null:false;
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
+    const ghostRooms=remoteRooms.filter(room=>["lobby","playing"].includes(room.status)&&!roomHasHumanPlayers(room));
+    ghostRooms.forEach(room=>removeRemoteRoom(room.roomId));
+    remoteRooms=remoteRooms.filter(room=>!ghostRooms.some(ghost=>ghost.roomId===room.roomId));
     const requestedRoomId=state.activeRoomId;
     const keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId));
     const rooms=new Map(keepLocal.map(room=>[room.roomId,room]));
