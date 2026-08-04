@@ -80,7 +80,8 @@ const guard = game => ({ phase:game?.phase, phaseEndsAt:game?.phaseEndsAt, start
 function proveAnswer(game) {
   const category = categories.find(item => item.id === game?.categoryId);
   const task = category?.tasks?.find(item => item.id === game?.taskId);
-  return task?.answers?.find(Boolean) || "nie wiem";
+  const used = new Set(array(game?.answers).map(item => String(item?.normalized || item?.raw || "").trim().toLowerCase()));
+  return task?.answers?.find(answer => answer && !used.has(String(answer).trim().toLowerCase())) || "";
 }
 
 function pokemonName(game, mode) {
@@ -163,7 +164,11 @@ export function botMutation(room) {
         if (game.phase === "initialBid" && game.starter === bot) return g => { g.currentBid = Math.max(1, Math.min(Number(g.maxBid || 5), 1 + Math.floor(Math.random() * 4))); g.phase = "bidding"; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; g.phaseEndsAt = Date.now() + 4000; };
         if (game.phase === "bidding" && game.decisionPlayer === bot) return g => { if (correct() && Math.random() < .45) { g.currentBid = Number(g.currentBid || 1) + 1; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; } else { g.phase = "answering"; g.requiredCount = g.currentBid || 1; g.answers = []; g.validCount = 0; } g.phaseEndsAt = Date.now() + Number(settings.answerTime || 20) * 1000; };
         if (game.phase === "answering" && game.currentBidder === bot) return g => {
-          const valid = correct(), raw = valid ? proveAnswer(g) : "nie wiem";
+          const attempts = array(g.answers).length;
+          const rawValid = proveAnswer(g);
+          const shouldSurrender = !rawValid || Math.random() < (attempts === 0 ? .14 : .08);
+          if (shouldSurrender) { g.phase = "result"; g.result = { success:false, loser:bot, text:`${bot} poddał się — nie znał już kolejnej odpowiedzi.` }; return; }
+          const valid = correct(), raw = valid ? rawValid : "nie wiem";
           const answers = array(g.answers);
           answers.push({ raw:String(raw), normalized:String(raw).toLowerCase(), valid });
           g.answers = answers; g.validCount = answers.filter(item => item.valid).length;

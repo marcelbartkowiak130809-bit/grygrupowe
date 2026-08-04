@@ -39,7 +39,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-11";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
-import { scheduleBot } from "./botController.js?v=20260804-3";
+import { scheduleBot } from "./botController.js?v=20260804-4";
 import { luckySpinModal } from "./luckySpin.js?v=20260804-3";
 import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
@@ -1545,7 +1545,8 @@ function settingsModal() {
 }
 function scheduleRoomBot(room) {
   if(!room?.game||room.hostUid!==state.currentUser||!botIds(room).length)return;
-  const plan=scheduleBot(room,{mutate:mutation=>mutateRoomGame(mutation,{sound:"turn"}),onDone:()=>botSchedules.delete(room.roomId)});
+  let plan;
+  plan=scheduleBot(room,{mutate:mutation=>mutateRoomGame(mutation,{sound:"turn",after:updated=>{if(updated.gameMode==="udowodnij")settleProveResult(updated);}}),onDone:()=>{if(botSchedules.get(room.roomId)===plan?.key)botSchedules.delete(room.roomId);}});
   if(!plan||botSchedules.get(room.roomId)===plan.key)return;
   botSchedules.set(room.roomId,plan.key);
   window.setTimeout(()=>{if(botSchedules.get(room.roomId)!==plan.key)return;const current=activeRoom();if(current?.roomId===room.roomId&&current.hostUid===state.currentUser&&current.game)plan.run().catch(()=>{});else botSchedules.delete(room.roomId);},plan.delay);
