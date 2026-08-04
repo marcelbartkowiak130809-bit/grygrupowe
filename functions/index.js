@@ -31,7 +31,7 @@ const POTION_EFFECTS = {
   "coins-i": { effect:"coins", multiplier:1.10, durationMs:5*60*1000 }, "coins-ii": { effect:"coins", multiplier:1.25, durationMs:10*60*1000 }, "coins-iii": { effect:"coins", multiplier:1.50, durationMs:20*60*1000 },
   "xp-i": { effect:"xp", multiplier:1.10, durationMs:5*60*1000 }, "xp-ii": { effect:"xp", multiplier:1.25, durationMs:10*60*1000 }, "xp-iii": { effect:"xp", multiplier:1.50, durationMs:20*60*1000 },
 };
-const HONOR_TYPES = new Set(["nicePlayer", "goodOpponent", "greatHost"]);
+const HONOR_TYPES = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 
 function spinId() {
   return `${Date.now()}_${crypto.randomUUID()}`;
@@ -239,12 +239,12 @@ exports.giveHonor = onCall(async (request) => {
     const profile = current && typeof current === "object" ? { ...current } : {};
     const applied = profile.honorVoteIds && typeof profile.honorVoteIds === "object" ? { ...profile.honorVoteIds } : {};
     if (applied[vote.voteId]) return profile;
-    const counts = { nicePlayer:0, goodOpponent:0, greatHost:0, ...(profile.honorCounts || {}) };
+    const counts = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0, ...(profile.honorCounts || {}) };
     counts[type] = (Number(counts[type]) || 0) + 1;
     applied[vote.voteId] = true;
     return { ...profile, honorCounts:counts, honorVoteIds:applied, updatedAt:Date.now() };
   });
-  const updatedCounts = updated.snapshot.val()?.honorCounts || { nicePlayer:0, goodOpponent:0, greatHost:0 };
+  const updatedCounts = updated.snapshot.val()?.honorCounts || { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0 };
   await db.ref(`publicProfiles/${targetUid}/honorCounts`).set(updatedCounts);
   return { accepted:true, targetUid, type };
 });

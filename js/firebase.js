@@ -289,7 +289,7 @@ function adultStatusForProfile(profile = {}) {
   return age >= 18 ? "adult" : "minor";
 }
 const privacyDefaults = { historyPublic:true, statsPublic:true, friendsPublic:true };
-const honorDefaults = { nicePlayer:0, goodOpponent:0, greatHost:0 };
+const honorDefaults = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0 };
 const profilePrivacy = profile => ({ ...privacyDefaults, ...(profile?.privacy || {}) });
 const publicProfile = profile => {
   const privacy = profilePrivacy(profile), result = { nick:profile.nick, avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:adultStatusForProfile(profile), xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", privacy, updatedAt:Date.now() };

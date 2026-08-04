@@ -4,6 +4,8 @@ export const HONOR_TYPES = [
   { id:"nicePlayer", label:"Miły gracz", emoji:"👍" },
   { id:"goodOpponent", label:"Dobry przeciwnik", emoji:"🧠" },
   { id:"greatHost", label:"Świetny host", emoji:"🎉" },
+  { id:"notVerySmart", label:"Niezbyt inteligentny", emoji:"🤦", negative:true },
+  { id:"poorSport", label:"Uciążliwy gracz", emoji:"🙄", negative:true },
 ];
 
 export function honorModal({ room, accounts = {}, currentUser, submitHonor, closeAction }) {
@@ -15,7 +17,7 @@ export function honorModal({ room, accounts = {}, currentUser, submitHonor, clos
     const name = player.nick || "Gracz";
     return `<article class="honor-player-card" data-honor-player="${escapeHtml(uid)}">
       <div class="honor-player-name">${escapeHtml(name)}</div>
-      <div class="honor-choice-list">${HONOR_TYPES.map(type => `<button class="honor-choice" data-honor-target="${escapeHtml(uid)}" data-honor-type="${type.id}"><span>${type.emoji}</span><span>${type.label}</span></button>`).join("")}</div>
+      <div class="honor-choice-list">${HONOR_TYPES.map(type => `<button class="honor-choice${type.negative ? " honor-choice-negative" : ""}" data-honor-target="${escapeHtml(uid)}" data-honor-type="${type.id}"><span>${type.emoji}</span><span>${type.label}</span></button>`).join("")}</div>
     </article>`;
   }).join("");
   modal.innerHTML = `<section class="modal honor-modal enter" role="dialog" aria-modal="true" aria-labelledby="honor-title">
