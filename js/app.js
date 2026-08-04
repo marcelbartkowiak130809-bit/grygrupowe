@@ -1301,8 +1301,9 @@ function animateHostSettingChange(value) {
     if (room.roomType === "betting" && !alreadyInRoom && playerMoney(room,state.currentUser) < roomEntryFee(room)) return fail(`Potrzebujesz co najmniej ${roomEntryFee(room).toLocaleString("pl-PL")}$, aby dołączyć do tego pokoju.`);
     if (!alreadyInRoom) {
       room.players.push(state.currentUser); room.joinedAt={...(room.joinedAt||{}),[state.currentUser]:Date.now()}; room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; touchRoom(room);
+      await roomSyncChains.get(room.roomId)?.catch?.(() => {});
     }
-    state.selectedGameMode = room.gameMode; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go(room.status === "lobby" ? "room" : "game"); return true;
+    state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.selectedGameMode = room.gameMode; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go(room.status === "lobby" ? "room" : "game"); return true;
   },
   leaveRoom(destination = "lobby") {
     leaveRoomModal(typeof destination === "string" ? destination : "lobby");
@@ -1624,7 +1625,7 @@ function render(options = {}) {
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) return Router.go("platform"); if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); repairGameStateForPlayers(room); settleBetResult(room); settlePokemonResult(room); settleWavelengthResult(room); settleQuizResult(room); if(room.game?.rewarded&&room.game?.siteGameId) trackSiteEvent({type:"gameFinished",eventId:`game:${room.game.siteGameId}`,modeId:room.gameMode,minutes:Math.max(0,Math.round((serverNow()-Number(room.game.startedAt||serverNow()))/60000))}); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
