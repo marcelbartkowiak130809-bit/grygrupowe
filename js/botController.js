@@ -256,6 +256,7 @@ export function botMutation(room) {
         break;
       case "mathematics":
         if (game.phase === "question" && isMissing(game.answers, bot)) return g => MathematicsEngine.answer(g, bot, correct() ? (g.answerMode === "abcd" ? g.questions[g.questionIndex]?.options.indexOf(g.questions[g.questionIndex]?.answer) : g.questions[g.questionIndex]?.answer) : 0, players);
+        if (game.variant === "full-test" && game.phase === "test" && !game.completed?.[bot]) return g => { const index=Number(g.progress?.[bot])||0, question=g.questions?.[index]; return MathematicsEngine.answer(g, bot, correct() ? (g.answerMode === "abcd" ? question?.options.indexOf(question?.answer) : question?.answer) : 0, players); };
         break;
       case "marker":
         if (game.phase === "select" && game.turnUid === bot) return g => MarkerEngine.select(g, bot, g.numbers.findIndex((value, index) => value != null && !g.marked[index]));

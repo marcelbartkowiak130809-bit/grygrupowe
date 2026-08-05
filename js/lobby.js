@@ -58,6 +58,7 @@ export function createRoomModal(mode, actions) {
   let roomType = "standard";
   let entryFee = ENTRY_FEE_OPTIONS[0];
   let maxPlayers = mode.maxPlayers;
+  let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
   backdrop.innerHTML = `<section class="modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
     <label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy">
@@ -73,6 +74,16 @@ export function createRoomModal(mode, actions) {
   maxPlayersSelect.innerHTML = Array.from({length:Math.max(1,mode.maxPlayers-mode.minPlayers+1)},(_,index)=>mode.minPlayers+index).map(value=>`<option value="${value}" ${value===mode.maxPlayers?"selected":""}>${value} ${value===1?"osoba":"osób"}</option>`).join("");
   maxPlayersField.append(maxPlayersSelect);
   backdrop.querySelector("#room-name").insertAdjacentElement("afterend",maxPlayersField);
+  if (mode.id === "mathematics") {
+    const variantField = document.createElement("fieldset");
+    variantField.className = "mathematics-variant-choice";
+    variantField.innerHTML = `<legend>Podtryb matematyki</legend><label class="room-type-option ${mathematicsVariant === "single" ? "is-selected" : ""}"><input type="radio" name="math-variant" value="single" ${mathematicsVariant === "single" ? "checked" : ""}> <span><b>1 PYTANIE NA RAZ</b><small>Wspólne pytanie i wspólny limit czasu.</small></span></label><label class="room-type-option ${mathematicsVariant === "full-test" ? "is-selected" : ""}"><input type="radio" name="math-variant" value="full-test" ${mathematicsVariant === "full-test" ? "checked" : ""}> <span><b>CAŁY TEST</b><small>Każdy gracz rozwiązuje test niezależnie.</small></span></label>`;
+    maxPlayersField.insertAdjacentElement("afterend", variantField);
+    variantField.querySelectorAll("[name='math-variant']").forEach(input => input.addEventListener("change", () => {
+      mathematicsVariant = input.value;
+      variantField.querySelectorAll(".room-type-option").forEach(item => item.classList.toggle("is-selected", item.querySelector("input")?.checked));
+    }));
+  }
   const close = () => actions.closeModal(backdrop);
   backdrop.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", close));
   $("#room-private", backdrop).addEventListener("change", event => $("#room-password", backdrop).classList.toggle("hidden", !event.target.checked));
@@ -80,7 +91,7 @@ export function createRoomModal(mode, actions) {
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
   backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; });
   $("#confirm-create", backdrop).addEventListener("click", async () => {
-    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings } }) !== false) close();
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...(mode.id === "mathematics" ? { mathematicsVariant } : {}) } }) !== false) close();
   });
   return backdrop;
 }
