@@ -26,7 +26,7 @@ import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-3";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260804-8";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260805-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-10";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260613-1";
@@ -38,7 +38,7 @@ import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, 
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-11";
-import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
+import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260805-1";
 import { scheduleBot } from "./botController.js?v=20260804-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentModal } from "./equipment.js?v=20260804-3";

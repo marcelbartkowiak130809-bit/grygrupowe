@@ -1,4 +1,4 @@
-import { botDelay, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260804-3";
+import { botDelay, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260805-1";
 import { categories } from "./categories.js?v=20260612-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20260605-5";
@@ -19,7 +19,7 @@ import { MathematicsEngine } from "./mathematics.js?v=20260804-2";
 import { MarkerEngine } from "./marker.js?v=20260804-1";
 import { SequenceEngine } from "./sequence.js?v=20260804-1";
 import { FamilyEngine } from "./family.js?v=20260804-1";
-import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260804-8";
+import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260805-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);

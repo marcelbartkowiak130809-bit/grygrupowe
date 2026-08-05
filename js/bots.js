@@ -23,7 +23,7 @@ export function botDelay(room, kind = "answer", uid = "") {
   const kindFactor = kind === "thinking" ? 1.25 : kind === "typing" ? 1.5 : 1;
   return Math.round((level.minDelay + Math.random() * Math.max(1, span)) * kindFactor);
 }
-export function botShouldBeCorrect(room, uid = "") { return Math.random() < botDifficulty(room, uid).accuracy; }
+export function botShouldBeCorrect(room, uid = "") { const difficulty = botDifficulty(room, uid); const accuracy = room?.gameMode === "word-chain" && difficulty.id === "expert" ? 0.998 : difficulty.accuracy; return Math.random() < accuracy; }
 export function botName(index) { return `Bot ${index + 1}`; }
 export function botUid() { return `${BOT_PREFIX}${Math.random().toString(36).slice(2, 10)}`; }
 export function botProfile(uid, index, difficulty = "normal") {
