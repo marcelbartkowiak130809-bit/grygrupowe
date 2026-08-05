@@ -1,4 +1,4 @@
-import { botDelay, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260805-2";
+import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260805-2";
 import { categories } from "./categories.js?v=20260612-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20260605-5";
@@ -13,7 +13,7 @@ import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260613-1";
 import { PokemonEngine } from "./pokemon.js?v=20260804-15";
-import { WavelengthEngine } from "./wavelength.js?v=20260804-2";
+import { WavelengthEngine } from "./wavelength.js?v=20260805-3";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260805-1";
@@ -46,6 +46,10 @@ export function botActor(room) {
   const game = room?.game;
   const bots = botsOf(room);
   if (!game || !bots.length) return "";
+  if (game.mode === "wavelength" || room.gameMode === "wavelength") {
+    if (game.phase === "clue") return bots.find(uid => uid !== game.guesserUid && !game.clues?.[uid]) || bots.find(uid => uid !== game.guesserUid) || "";
+    if (game.phase === "guess" && bots.includes(game.guesserUid)) return game.guesserUid;
+  }
   if (game.phase === "responses") {
     const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
     if (responder) return responder;
@@ -104,6 +108,33 @@ function bombAnswer(game) {
   return array(categoryWords).find(value => !used.has(String(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))) || "pies";
 }
 
+const wavelengthCluePools = [
+  ["Skrajnie po stronie {left}","Prawie całkiem {left}","Bardzo blisko końca {left}","Niemal sam {left}","Mocno przechylone na {left}","Prawie bez domieszki {right}","Zdecydowanie {left}","Prawie maksymalnie {left}","Daleko od {right}","Najbliżej {left} jak się da"],
+  ["Wyraźnie w stronę {left}","Raczej {left}","Bliżej {left} niż środka","Mocno bliżej {left}","Z przewagą {left}","Jeszcze daleko do {right}","Po lewej, ale nie skrajnie","Dość mocno {left}","Lekko od środka w stronę {left}","Prawie środek, lecz {left}"],
+  ["Trochę po stronie {left}","Lekko w stronę {left}","Raczej bliżej {left}","Niewielka przewaga {left}","Jeszcze trochę {left}","Odrobinę od środka ku {left}","Delikatnie przechylone na {left}","Minimalnie bardziej {left}","Środek z lekkim skrętem {left}","Nieznacznie od {right}"],
+  ["Prawie środek, lekko {left}","Trochę bliżej środka","Niewielki skręt w stronę {left}","Delikatnie od {right}","Środek z małą przewagą {left}","Bardzo subtelnie {left}","Tylko odrobinę {left}","Prawie neutralnie","Minimalnie w stronę {left}","Ledwo po stronie {left}"],
+  ["W samym środku","Prawie idealny środek","Neutralnie","Dokładnie pomiędzy","Bez wyraźnej przewagi","Równo między skrajnościami","Centralnie","Ani {left}, ani {right}","Środek skali","Bardzo neutralnie"],
+  ["Prawie środek, lekko {right}","Trochę bliżej środka","Niewielki skręt w stronę {right}","Delikatnie od {left}","Środek z małą przewagą {right}","Bardzo subtelnie {right}","Tylko odrobinę {right}","Prawie neutralnie","Minimalnie w stronę {right}","Ledwo po stronie {right}"],
+  ["Trochę po stronie {right}","Lekko w stronę {right}","Raczej bliżej {right}","Niewielka przewaga {right}","Jeszcze trochę {right}","Odrobinę od środka ku {right}","Delikatnie przechylone na {right}","Minimalnie bardziej {right}","Środek z lekkim skrętem {right}","Nieznacznie od {left}"],
+  ["Wyraźnie w stronę {right}","Raczej {right}","Bliżej {right} niż środka","Mocno bliżej {right}","Z przewagą {right}","Jeszcze daleko do {left}","Po prawej, ale nie skrajnie","Dość mocno {right}","Lekko od środka w stronę {right}","Prawie środek, lecz {right}"],
+  ["Skrajnie po stronie {right}","Prawie całkiem {right}","Bardzo blisko końca {right}","Niemal sam {right}","Mocno przechylone na {right}","Prawie bez domieszki {left}","Zdecydowanie {right}","Prawie maksymalnie {right}","Daleko od {left}","Najbliżej {right} jak się da"],
+  ["Na samym skraju {right}","Prawie poza skalą po stronie {right}","Maksymalnie {right}","Niemal ekstremalne {right}","Prawie tylko {right}","Bardzo mocno {right}","Zdecydowanie przy końcu {right}","Prawie całkowicie {right}","Minimalnie brakuje do skraju {right}","Skrajna wersja {right}"]
+];
+function wavelengthOffset(room, bot) {
+  const id=botDifficulty(room,bot).id, roll=Math.random();
+  if(id==="easy") return roll<.5?0:roll<.65?-1:roll<.8?1:roll<.9?-2:2;
+  if(id==="normal") return roll<.5?0:roll<.7?1:roll<.9?-1:roll<.95?-2:2;
+  if(id==="hard") return roll<.7?0:roll<.85?-1:1;
+  return roll<.95?0:roll<.975?-1:1;
+}
+function wavelengthBotClue(game,room,bot) {
+  const bucket=Math.max(0,Math.min(9,Math.floor((Number(game.target)||0)/10)+wavelengthOffset(room,bot))), pool=wavelengthCluePools[bucket], text=pool[Math.floor(Math.random()*pool.length)];
+  return text.replaceAll("{left}","lewej").replaceAll("{right}","prawej");
+}
+function wavelengthBotPosition(game,room,bot) {
+  const target=Math.max(0,Math.min(100,Number(game.target)||0)), offset=wavelengthOffset(room,bot);
+  return Math.max(0,Math.min(100,target+offset*10+Math.round(Math.random()*8-4)));
+}
 function timeoutMutation(room, game, bot) {
   const settings = room.settings || {};
   const players = playersOf(room);
@@ -244,8 +275,8 @@ export function botMutation(room) {
         if (game.phase === "auction" && !array(game.passed).includes(bot)) return g => correct() && Number(g.budgets?.[bot] || 0) > Number(g.currentBid || 0) + 10 ? PokemonEngine.bid(g, bot, Number(g.currentBid || 0) + 10, players) : PokemonEngine.pass(g, bot, players);
         break;
       case "wavelength":
-        if (game.phase === "clue" && players[Number(game.describerIndex || 0) % Math.max(1, players.length)] === bot) return g => WavelengthEngine.clue(g, bot, "Cos umiarkowanego", players, settings);
-        if (game.phase === "guess") return g => WavelengthEngine.move(g, bot, 50);
+        if (game.phase === "clue" && bot !== game.guesserUid && !game.clues?.[bot]) return g => WavelengthEngine.clue(g, bot, wavelengthBotClue(g, room, bot), players, settings);
+        if (game.phase === "guess" && game.guesserUid === bot) return g => { const position=wavelengthBotPosition(g,room,bot); WavelengthEngine.move(g,bot,position); return WavelengthEngine.confirm(g,bot,players,settings); };
         break;
       case "quiz":
         if (game.variant === "casual" && game.phase === "question" && isMissing(game.answers, bot)) return g => QuizEngine.answer(g, bot, correct() ? 0 : 1, players, settings);

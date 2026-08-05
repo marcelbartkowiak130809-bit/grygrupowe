@@ -9,7 +9,8 @@ const phaseEnd = seconds => Date.now() + Math.max(30, Math.min(120, Number(secon
 const scoreFor = difference => Math.max(0, Math.round(100 - Math.abs(Number(difference) || 0) * 2));
 
 export function createWavelengthGame(players, settings) {
-  return { mode:"wavelength", phase:"clue", round:1, scores:Object.fromEntries(players.map(uid => [uid, 0])), pair:randomPair(), target:Math.floor(Math.random() * 101), position:50, positionOwner:"", clue:"", describerIndex:0, phaseEndsAt:phaseEnd(settings.roundTime), roundResult:null };
+  const guesserUid=players[1] || players[0] || "";
+  return { mode:"wavelength", phase:"clue", round:1, scores:Object.fromEntries(players.map(uid => [uid, 0])), pair:randomPair(), target:Math.floor(Math.random() * 101), position:50, positionOwner:"", clue:"", clues:{}, guesserUid, describerIndex:0, phaseEndsAt:phaseEnd(settings.roundTime), roundResult:null };
 }
 
 function finishRound(game, players, settings) {
@@ -17,30 +18,37 @@ function finishRound(game, players, settings) {
   const points = scoreFor(difference);
   game.scores = game.scores || Object.fromEntries(players.map(uid => [uid, 0]));
   players.forEach(uid => { game.scores[uid] = Number(game.scores[uid]) || 0; });
-  const describer = players[game.describerIndex] || players[0];
-  game.scores[describer] += points;
-  game.roundResult = { target:game.target, position:game.position, difference, points, describer };
+  const guesser = game.guesserUid || players[1] || players[0];
+  game.scores[guesser] += points;
+  game.roundResult = { target:game.target, position:game.position, difference, points, describer:guesser, guesser };
   game.phase = "result";
   game.finished = Number(game.round) >= Math.max(5, Math.min(20, Number(settings.rounds) || 8));
 }
 
 export const WavelengthEngine = {
   clue(game, uid, text, players, settings) {
-    if (game.phase !== "clue" || players[game.describerIndex] !== uid) return "Teraz podpowiada inny gracz.";
+    game.guesserUid ||= players[1] || players[0] || "";
+    if (game.phase !== "clue" || uid === game.guesserUid || !players.includes(uid)) return "Teraz podpowiada inny gracz.";
     const clue = String(text || "").trim().slice(0, 120);
     const forbidden = game.pair.some(word => clue.toLocaleLowerCase("pl-PL").includes(word.toLocaleLowerCase("pl-PL")));
     if (!clue || /\d/.test(clue) || forbidden) return "Podpowiedź nie może zawierać liczb ani nazw skrajności.";
-    game.clue = clue; game.phase = "guess";
+    game.clues = game.clues && typeof game.clues === "object" ? game.clues : {};
+    game.clues[uid] = clue;
+    game.clue = Object.values(game.clues).join(" · ");
+    const cluePlayers = players.filter(player => player !== game.guesserUid);
+    if (cluePlayers.every(player => game.clues[player])) game.phase = "guess";
   },
-  move(game, uid, position) {
+  move(game, uid, position, players = []) {
+    game.guesserUid ||= players[1] || players[0] || "";
     if (game.phase !== "guess") return "Najpierw podajcie podpowiedź.";
-    if (game.players?.[game.describerIndex] === uid) return "Opisujący nie ustawia wskaźnika.";
+    if (game.guesserUid !== uid) return "Tylko wybrany zgadujący ustawia wskaźnik.";
     game.position = Math.max(0, Math.min(100, Number(position) || 0));
     game.positionOwner = uid;
   },
   confirm(game, uid, players, settings) {
+    game.guesserUid ||= players[1] || players[0] || "";
     if (game.phase !== "guess") return "Ta runda jest już zakończona.";
-    if (players[game.describerIndex] === uid) return "Opisujący nie może zatwierdzać ustawienia.";
+    if (game.guesserUid !== uid) return "Tylko zgadujący może zatwierdzić ustawienie.";
     if (game.positionOwner !== uid) return "Najpierw ustaw własny wskaźnik, a potem go zatwierdź.";
     finishRound(game, players, settings);
   },
@@ -51,7 +59,7 @@ export const WavelengthEngine = {
   nextRound(game, players, settings) {
     if (game.phase !== "result") return "Runda jeszcze się nie zakończyła.";
     if (game.finished) return;
-    game.round += 1; game.pair = randomPair(); game.target = Math.floor(Math.random() * 101); game.position = 50; game.positionOwner = ""; game.clue = ""; game.roundResult = null; game.describerIndex = (game.describerIndex + 1) % players.length; game.phase = "clue"; game.phaseEndsAt = phaseEnd(settings.roundTime);
+    game.round += 1; game.pair = randomPair(); game.target = Math.floor(Math.random() * 101); game.position = 50; game.positionOwner = ""; game.clue = ""; game.clues = {}; game.roundResult = null; game.guesserUid = players[(players.indexOf(game.guesserUid) + 1 + players.length) % players.length] || players[0]; game.phase = "clue"; game.phaseEndsAt = phaseEnd(settings.roundTime);
   }
 };
 
@@ -69,14 +77,18 @@ function resultMarkup(game, accounts, actions) {
 }
 
 export function renderWavelengthGame(root, { room, accounts, currentUser }, actions) {
-  const game = room.game, settings = room.settings || wavelengthDefaults, players = room.players || [], describerUid = players[game.describerIndex], describer = describerUid === currentUser, positionOwner = game.positionOwner === currentUser;
+  const game = room.game, settings = room.settings || wavelengthDefaults, players = room.players || [];
+  game.guesserUid ||= players[1] || players[0] || "";
+  const guesser = game.guesserUid === currentUser, positionOwner = game.positionOwner === currentUser;
   window.clearTimeout(renderWavelengthGame.timer); window.clearInterval(renderWavelengthGame.countdown);
   if (game.phase === "result") { root.innerHTML = `<main class="page wavelength-page">${resultMarkup(game, accounts, actions)}</main>`; root.querySelector("#wavelength-next")?.addEventListener("click", actions.wavelengthNext); root.querySelector("#wavelength-lobby")?.addEventListener("click", actions.returnToRoom); return; }
   const pair = `<div class="wavelength-pair"><span>${escapeHtml(game.pair[1])}</span><span>↔</span><span>${escapeHtml(game.pair[0])}</span></div>`;
-  const clue = game.clue ? `<div class="wavelength-clue">„${escapeHtml(game.clue)}”</div>` : "";
-  const clueForm = describer && game.phase === "clue" ? `<form class="wavelength-clue-form"><input id="wavelength-clue" maxlength="120" placeholder="Jedno słowo lub krótkie zdanie"><button class="primary">Podaj podpowiedź</button></form>` : game.phase === "clue" ? `<p class="muted">Opisujący przygotowuje podpowiedź.</p>` : "";
-  const canMove = !describer && game.phase === "guess", canConfirm = canMove && positionOwner;
-  root.innerHTML = `<main class="page wavelength-page enter"><section class="panel wavelength-panel"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}/${settings.rounds || 8}</p><h1>${game.phase === "clue" ? (describer ? "Wymyśl podpowiedź" : "Słuchajcie podpowiedzi") : "Wspólnie ustawcie wskaźnik"}</h1>${describer && game.phase === "clue" ? `<p class="wavelength-secret">Ukryty cel: ${game.target}%</p>` : ""}${pair}${clue}<p class="muted">${game.phase === "clue" ? "Nie używaj liczb ani nazw skrajności." : "Im bliżej ukrytego celu, tym więcej punktów."}</p>${clueForm}${game.phase === "guess" ? scaleMarkup(game, canMove, canConfirm, false) : describer && game.phase === "clue" ? scaleMarkup(game, false, false, true) : `<div class="wavelength-wait">Skala pojawi się po podpowiedzi.</div>`}<div class="wavelength-timer" data-wavelength-countdown>${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div></section></main>`;
+  const clueEntries=guesser ? Object.entries(game.clues||{}).filter(([,text])=>text).map(([uid,text])=>`<div class="wavelength-clue-entry">${escapeHtml(accounts[uid]?.nick||"Gracz")} — <b>„${escapeHtml(text)}”</b></div>`).join("") : "";
+  const clue = clueEntries ? `<div class="wavelength-clues"><p class="eyebrow">PODPOWIEDZI GRACZY</p>${clueEntries}</div>` : "";
+  const ownClue = game.clues?.[currentUser];
+  const clueForm = !guesser && game.phase === "clue" && !ownClue ? `<form class="wavelength-clue-form"><input id="wavelength-clue" maxlength="120" placeholder="Jedno słowo lub krótkie zdanie"><button class="primary">Podaj podpowiedź</button></form>` : game.phase === "clue" ? `<p class="muted">${guesser ? "Czekamy na podpowiedzi pozostałych graczy." : "Twoja podpowiedź została wysłana."}</p>` : "";
+  const canMove = guesser && game.phase === "guess", canConfirm = canMove && positionOwner;
+  root.innerHTML = `<main class="page wavelength-page enter"><section class="panel wavelength-panel"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}/${settings.rounds || 8}</p><h1>${game.phase === "clue" ? (guesser ? "Czekaj na podpowiedzi" : "Daj podpowiedź zgadującemu") : "Ustaw swój wskaźnik"}</h1>${guesser && game.phase === "clue" ? `<p class="wavelength-secret">Ukryty cel jest tajny dla zgadującego.</p>` : ""}${pair}${clue}<p class="muted">${game.phase === "clue" ? "Nie używaj liczb ani nazw skrajności." : "Im bliżej ukrytego celu, tym więcej punktów."}</p>${clueForm}${game.phase === "guess" ? scaleMarkup(game, canMove, canConfirm, false) : `<div class="wavelength-wait">${guesser ? "Skala pojawi się, gdy wszyscy podadzą podpowiedź." : "Czekamy na pozostałych graczy."}</div>`}<div class="wavelength-timer" data-wavelength-countdown>${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div></section></main>`;
   root.querySelector(".wavelength-clue-form")?.addEventListener("submit", event => { event.preventDefault(); actions.wavelengthClue(root.querySelector("#wavelength-clue").value, { phase:game.phase, phaseEndsAt:game.phaseEndsAt }); });
   const slider=root.querySelector("[data-wavelength-slider]"), output=root.querySelector("[data-wavelength-position]"); slider?.addEventListener("input", () => { output.textContent=`${slider.value}%`; root.querySelector(".wavelength-position").style.left=`${slider.value}%`; }); slider?.addEventListener("change", () => actions.wavelengthMove(Number(slider.value), { phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
   root.querySelector("[data-wavelength-confirm]")?.addEventListener("click", () => actions.wavelengthConfirm({ phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
