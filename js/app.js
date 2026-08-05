@@ -25,7 +25,7 @@ import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./q
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-3";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
 import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-3";
-import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260804-1";
+import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260805-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260804-10";
@@ -858,6 +858,17 @@ function repairGameStateForPlayers(room) {
     Object.keys(game.hearts).forEach(uid => { if (!players.includes(uid)) { delete game.hearts[uid]; changed = true; } });
     const active = game.players.filter(uid => !game.eliminated.includes(uid));
     if (active.length && !active.includes(game.currentUid)) { game.currentUid = active[0]; game.turnIndex = game.players.indexOf(active[0]); changed = true; }
+  }
+  if (room.gameMode === "family") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
+    if (!Array.isArray(game.revealed)) { game.revealed = []; changed = true; }
+    if (!Array.isArray(game.answers)) { game.answers = []; changed = true; }
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (game.players.length && !game.players.includes(game.currentUid)) { game.currentUid = game.players[0]; changed = true; }
   }
   if (room.gameMode === "zegar") {
     const beforeScores = JSON.stringify(game.scores || {});

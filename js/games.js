@@ -17,7 +17,7 @@ import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260804-4";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260804-2";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260804-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260804-1";
-import { familyDefaults, renderFamilyGame } from "./family.js?v=20260804-1";
+import { familyDefaults, renderFamilyGame } from "./family.js?v=20260805-1";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260805-2";
 
 export const gamesRegistry = {
