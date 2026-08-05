@@ -22,7 +22,7 @@ import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } f
 import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-15";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260804-2";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
-import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-3";
+import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260805-1";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260805-1";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
@@ -862,6 +862,9 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.history)) { game.history = []; changed = true; }
     if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
     if (!Number.isFinite(Number(game.questionIndex))) { game.questionIndex = 0; changed = true; }
+    if (typeof game.showOpponentAnswers !== "boolean") { game.showOpponentAnswers = true; changed = true; }
+    if (!game.questions.length) { game.phase = "result"; game.finished = true; changed = true; }
+    else if (game.questionIndex >= game.questions.length) { game.questionIndex = game.questions.length - 1; changed = true; }
   }
   if (room.gameMode === "word-chain") {
     const order = keepPlayers(game.players);

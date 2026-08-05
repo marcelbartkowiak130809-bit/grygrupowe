@@ -15,7 +15,7 @@ import { renderClockLobbySettings } from "./clock.js?v=20260613-1";
 import { renderPokemonLobbySettings } from "./pokemon.js?v=20260804-15";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260804-1";
 import { renderQuizLobbySettings } from "./quiz.js?v=20260804-4";
-import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260804-3";
+import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260805-1";
 import { renderMarkerLobbySettings } from "./marker.js?v=20260805-1";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260804-1";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260804-2";
@@ -129,7 +129,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
   root.querySelectorAll("[data-wavelength-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value)));
   root.querySelectorAll("[data-quiz-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.value)));
+  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-math-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory))));
   root.querySelectorAll("[data-marker-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.markerSetting, input.value)));
   root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
