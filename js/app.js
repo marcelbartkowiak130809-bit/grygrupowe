@@ -24,7 +24,7 @@ import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./w
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-3";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
-import { createSequenceGame, SequenceEngine } from "./sequence.js?v=20260804-3";
+import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260805-1";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260805-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
@@ -704,6 +704,9 @@ function repairGameStateForPlayers(room) {
     if (!game.drafts || typeof game.drafts !== "object" || Array.isArray(game.drafts)) { game.drafts = {}; changed = true; }
     game.players.forEach(uid => { if (!Array.isArray(game.drafts[uid])) { game.drafts[uid] = []; changed = true; } });
     if (!game.sequences || typeof game.sequences !== "object" || Array.isArray(game.sequences)) { game.sequences = {}; changed = true; }
+    if (!game.ready || typeof game.ready !== "object" || Array.isArray(game.ready)) { game.ready = {}; changed = true; }
+    game.players.forEach(uid => { if (typeof game.ready[uid] !== "boolean") { game.ready[uid] = false; changed = true; } });
+    if (game.phase === "create" && !Number.isFinite(Number(game.createEndsAt))) { game.createEndsAt = Date.now() + 15000; changed = true; }
     if (!Array.isArray(game.guesses)) { game.guesses = []; changed = true; }
     if (!Array.isArray(game.feedback)) { game.feedback = []; changed = true; }
   }
@@ -1550,6 +1553,8 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   markerFind(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.find(game,state.currentUser);},{sound:"choice"});},
   sequenceDraft(color, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.draft(game,state.currentUser,color);},{sound:"choice"});},
   sequenceClear(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.clearDraft(game,state.currentUser);},{sound:"turn"});},
+  sequenceReady(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.createEndsAt)!==Number(expected.createEndsAt))return "Faza tworzenia już się zmieniła.";return markSequenceReady(game,state.currentUser);},{sound:"ready"});},
+  sequenceCreateTimeout(expected={}){return mutateRoomGame((game)=>timeoutSequenceCreation(game,expected.createEndsAt),{sound:"roundEnd"});},
   sequenceGuessColor(color, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};const draft=[...(game.drafts[state.currentUser]||[])];if(draft.length>=game.length)return "Sekwencja jest pełna.";draft.push(color);game.drafts[state.currentUser]=draft;},{sound:"choice"});},
   sequenceGuess(guess, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";return SequenceEngine.guess(game,state.currentUser,guess);},{sound:"submit"});},
   sequenceTimeout(expected={}){return mutateRoomGame((game)=>SequenceEngine.timeout(game,expected.turnUid,expected.guessEndsAt),{sound:"roundEnd"});},
@@ -1708,7 +1713,7 @@ function render(options = {}) {
   window.__activityStats=activityStats();
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
-  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer();
+  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer(); stopSequenceTimer();
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);

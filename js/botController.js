@@ -17,7 +17,7 @@ import { WavelengthEngine } from "./wavelength.js?v=20260804-2";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260804-2";
 import { MarkerEngine } from "./marker.js?v=20260804-1";
-import { SequenceEngine } from "./sequence.js?v=20260804-1";
+import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260805-1";
 import { FamilyEngine } from "./family.js?v=20260805-1";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260805-2";
 
@@ -263,7 +263,7 @@ export function botMutation(room) {
         if (game.phase === "draw" && game.seekerUid === bot) return g => MarkerEngine.find(g, bot);
         break;
       case "sequence":
-        if (game.phase === "create") { bot = botsOf(room).find(uid => (game.drafts?.[uid] || []).length < Number(game.length || 0)) || bot; return g => SequenceEngine.draft(g, bot, g.colors?.[Math.floor(Math.random() * g.colors.length)]); }
+        if (game.phase === "create") { bot = botsOf(room).find(uid => (game.drafts?.[uid] || []).length < Number(game.length || 0)) || bot; return g => { const result = SequenceEngine.draft(g, bot, g.colors?.[Math.floor(Math.random() * g.colors.length)]); if (g.phase === "create" && (g.drafts?.[bot] || []).length >= Number(g.length || 0)) markSequenceReady(g, bot); return result; }; }
         if (game.phase === "guess" && game.turnUid === bot) return g => SequenceEngine.guess(g, bot, correct() ? g.sequences?.[g.players.find(uid => uid !== bot)] || [] : g.colors.slice(0, g.length));
         break;
       case "family":
