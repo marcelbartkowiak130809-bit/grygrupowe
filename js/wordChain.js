@@ -36,6 +36,15 @@ WordChainEngine.answer = (game, uid, value) => {
   return wordChainAnswer(game, uid, value);
 };
 
+// A room sync can render the game again before the previous round timer fires.
+// Clear the currently registered timer before creating a new one; otherwise
+// stale timeout callbacks keep submitting old rounds and trigger a render loop.
+const renderWordChainGameBase = renderWordChainGame;
+renderWordChainGame = (root, context, actions) => {
+  stopWordChainTimer();
+  return renderWordChainGameBase(root, context, actions);
+};
+
 export function wordChainBotWord(game){const last=normalize(String(game?.chain?.at(-1)||""));const required=last.at(-1);const pool=[...new Set([...(game?.acceptEnglish?[...polishWords,...english]:polishWords)].map(normalize))].filter(word=>word[0]===required&&!game.used?.includes(word));return pool[Math.floor(Math.random()*pool.length)]||pool[0]||"";}
 
 export function renderWordChainLobbySettings(room,isHost){const s={...wordChainDefaults,...(room.settings||{})};return `<div class="word-chain-settings"><label class="setting-row"><span>Czas odpowiedzi</span><span class="setting-control"><input data-word-chain-setting="answerTime" type="number" min="5" max="180" value="${s.answerTime||20}" ${isHost?"":"disabled"}><small>s</small></span></label><label class="setting-row"><span>Liczba serc na gracza</span><select data-word-chain-setting="hearts" ${isHost?"":"disabled"}>${[1,2,3,4,5].map(value=>`<option value="${value}" ${Number(s.hearts||3)===value?"selected":""}>${value}</option>`).join("")}</select></label><label class="setting-row check"><span>Możliwość powtarzania słów</span><input type="checkbox" data-word-chain-setting="allowRepeats" ${s.allowRepeats?"checked":""} ${isHost?"":"disabled"}></label><label class="setting-row"><span>Odstęp powtórki</span><select data-word-chain-setting="repeatGap" ${!isHost||!s.allowRepeats?"disabled":""}>${[2,3,4,5].map(value=>`<option value="${value}" ${Number(s.repeatGap||3)===value?"selected":""}>${value} innych słów</option>`).join("")}</select></label><label class="setting-row check"><span>Akceptuj angielskie słowa</span><input type="checkbox" data-word-chain-setting="acceptEnglish" ${s.acceptEnglish?"checked":""} ${isHost?"":"disabled"}></label><p class="tiny">Za brak odpowiedzi gracz traci serce. Jeśli nikt nie odpowie w pełnym obiegu, losowane jest nowe słowo.</p></div>`;}
