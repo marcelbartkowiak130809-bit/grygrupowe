@@ -1,10 +1,10 @@
 const BOT_PREFIX = "bot:";
 
 export const BOT_DIFFICULTIES = [
-  { id: "easy", label: "Niska", accuracy: 0.56, minDelay: 1800, maxDelay: 5200 },
-  { id: "normal", label: "Średnia", accuracy: 0.72, minDelay: 1100, maxDelay: 3600 },
-  { id: "hard", label: "Wysoka", accuracy: 0.86, minDelay: 700, maxDelay: 2400 },
-  { id: "expert", label: "Geniusz", accuracy: 0.95, minDelay: 420, maxDelay: 1500 },
+  { id: "easy", label: "Niska", accuracy: 0.50, minDelay: 1800, maxDelay: 5200 },
+  { id: "normal", label: "Średnia", accuracy: 0.70, minDelay: 1100, maxDelay: 3600 },
+  { id: "hard", label: "Mądra", accuracy: 0.85, minDelay: 700, maxDelay: 2400 },
+  { id: "expert", label: "Geniusz", accuracy: 0.97, minDelay: 420, maxDelay: 1500 },
 ];
 
 export function isBotId(uid = "") { return String(uid).startsWith(BOT_PREFIX); }
@@ -23,7 +23,7 @@ export function botDelay(room, kind = "answer", uid = "") {
   const kindFactor = kind === "thinking" ? 1.25 : kind === "typing" ? 1.5 : 1;
   return Math.round((level.minDelay + Math.random() * Math.max(1, span)) * kindFactor);
 }
-export function botShouldBeCorrect(room, uid = "") { const difficulty = botDifficulty(room, uid); const accuracy = room?.gameMode === "word-chain" && difficulty.id === "expert" ? 0.998 : difficulty.accuracy; return Math.random() < accuracy; }
+export function botShouldBeCorrect(room, uid = "") { return Math.random() < botDifficulty(room, uid).accuracy; }
 export function botName(index) { return `Bot ${index + 1}`; }
 export function botUid() { return `${BOT_PREFIX}${Math.random().toString(36).slice(2, 10)}`; }
 export function botProfile(uid, index, difficulty = "normal") {

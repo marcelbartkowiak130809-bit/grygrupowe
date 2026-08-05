@@ -21,7 +21,7 @@ import { renderSequenceLobbySettings } from "./sequence.js?v=20260804-1";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260804-2";
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260805-2";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
-import { BOT_DIFFICULTIES, isBotId, roomAllowsBots } from "./bots.js?v=20260804-3";
+import { BOT_DIFFICULTIES, isBotId, roomAllowsBots } from "./bots.js?v=20260805-2";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗" };

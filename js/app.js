@@ -38,7 +38,7 @@ import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, 
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260804-11";
-import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260805-1";
+import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260805-2";
 import { scheduleBot } from "./botController.js?v=20260804-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentModal } from "./equipment.js?v=20260804-3";
