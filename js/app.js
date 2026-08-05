@@ -23,7 +23,7 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260804-2";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260804-3";
-import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260804-1";
+import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260805-1";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260805-1";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260805-2";
@@ -715,6 +715,23 @@ function repairGameStateForPlayers(room) {
     players.forEach(uid => { if (!current.includes(uid)) current.push(uid); });
     return current;
   };
+  if (room.gameMode === "marker") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    const size = [8, 10, 12].includes(Number(game.size)) ? Number(game.size) : 8;
+    const maximum = [20, 30, 40, 50, 60, 70, 80, 90, 100].includes(Number(game.numberMax)) ? Number(game.numberMax) : 50;
+    if (game.size !== size) { game.size = size; changed = true; }
+    if (game.numberMax !== maximum) { game.numberMax = maximum; changed = true; }
+    const total = size * size;
+    if (!Array.isArray(game.numbers) || game.numbers.length !== total) { game.numbers = Array.from({length:total}, (_, index) => index % (maximum + 1)); changed = true; }
+    if (!game.marked || typeof game.marked !== "object" || Array.isArray(game.marked)) { game.marked = {}; changed = true; }
+    if (!game.coverage || typeof game.coverage !== "object" || Array.isArray(game.coverage)) { game.coverage = {}; changed = true; }
+    game.players.forEach(uid => { if (!game.coverage[uid] || typeof game.coverage[uid] !== "object" || Array.isArray(game.coverage[uid])) { game.coverage[uid] = {}; changed = true; } });
+    if (!game.players.includes(game.turnUid)) { game.turnUid = game.players[0] || ""; changed = true; }
+    const validCell = Number.isInteger(Number(game.selectedCell)) && Number(game.selectedCell) >= 0 && Number(game.selectedCell) < total && game.numbers[Number(game.selectedCell)] != null;
+    if (game.selectedCell != null && !validCell) { game.selectedCell = null; game.drawerUid = ""; game.seekerUid = ""; if (game.phase === "draw") game.phase = "select"; changed = true; }
+    if (game.phase === "draw" && (!game.players.includes(game.drawerUid) || !game.players.includes(game.seekerUid))) { game.phase = "select"; game.drawerUid = ""; game.seekerUid = ""; game.selectedCell = null; changed = true; }
+  }
   if (room.gameMode === "impostor") {
     if (!game.roles || typeof game.roles !== "object") { game.roles = {}; changed = true; }
     players.forEach(uid => { if (!game.roles[uid]) { game.roles[uid] = { role:"citizen", word:game.mainWord || "" }; changed = true; } });
