@@ -13,7 +13,7 @@ import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260613-1";
 import { PokemonEngine } from "./pokemon.js?v=20260804-15";
-import { WavelengthEngine } from "./wavelength.js?v=20260805-3";
+import { WavelengthEngine } from "./wavelength.js?v=20260805-4";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260805-1";
@@ -177,6 +177,7 @@ export function botMutation(room) {
   const game = room?.game;
   const players = playersOf(room);
   if (!game || !players.length || !botsOf(room).length) return null;
+  if (room.gameMode === "wavelength" && !game.guesserUid) game.guesserUid = players[1] || players[0] || "";
   let bot = botActor(room);
   const settings = room.settings || {};
   const correct = () => botShouldBeCorrect(room, bot);

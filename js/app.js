@@ -20,7 +20,7 @@ import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ran
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
 import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260804-15";
-import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260805-3";
+import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260805-4";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
 import { createMarkerGame, MarkerEngine } from "./marker.js?v=20260805-1";
