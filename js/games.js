@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260612-2";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260804-15";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260813-2";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260805-4";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260804-4";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260805-1";

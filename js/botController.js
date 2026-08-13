@@ -273,7 +273,7 @@ export function botMutation(room) {
         if (game.phase === "answers" && isMissing(game.answers, bot)) { const target = pokemonDex.find(item => item.id === game.target); return g => PokemonEngine.matchType(g, bot, correct() ? target?.types || [] : ["normal"], players, settings); }
         break;
       case "pokemon-auction":
-        if (game.phase === "auction" && !array(game.passed).includes(bot)) return g => correct() && Number(g.budgets?.[bot] || 0) > Number(g.currentBid || 0) + 10 ? PokemonEngine.bid(g, bot, Number(g.currentBid || 0) + 10, players) : PokemonEngine.pass(g, bot, players);
+        if (game.phase === "auction" && !array(game.passed).includes(bot)) return g => { const budget=Number(g.budgets?.[bot]||0), current=Number(g.currentBid||0); if(!g.highestBidder && budget>0)return PokemonEngine.bid(g,bot,Math.min(budget,1+Math.floor(Math.random()*Math.max(1,Math.min(10,budget)))),players); return correct() && budget>current+10 ? PokemonEngine.bid(g,bot,Math.min(budget,current+10+Math.floor(Math.random()*10)),players) : PokemonEngine.pass(g,bot,players); };
         break;
       case "wavelength":
         if (game.phase === "clue" && bot !== game.guesserUid && !game.clues?.[bot]) return g => WavelengthEngine.clue(g, bot, wavelengthBotClue(g, room, bot), players, settings);
