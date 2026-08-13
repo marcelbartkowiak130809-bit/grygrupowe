@@ -21,28 +21,26 @@ function replacementWord(game){const pool=allowedWords(Boolean(game.acceptEnglis
 function changeWord(game){const next=replacementWord(game);game.chain=[next.display];if(!game.used.includes(next.normalized))game.used.push(next.normalized);game.missedPlayers=[];game.wordChanged=true;}
 export const WordChainEngine={answer(game,uid,value){if(game.phase!=="answer"||uid!==game.currentUid)return "To nie jest Twoja kolej.";const raw=String(value||"").trim(),word=normalize(raw),last=normalize(game.chain.at(-1)||"");if(!word)return "Wpisz słowo.";if(!wordShape(Boolean(game.acceptEnglish))(raw))return "Wpisz jedno słowo złożone z liter (2–32 znaki).";if(word[0]!==last.at(-1))return `Słowo musi zaczynać się na: ${last.at(-1).toUpperCase()}.`;const previous=game.used.lastIndexOf(word);if(previous>=0&&(!game.allowRepeats||game.used.length-previous-1<game.repeatGap))return `To słowo można powtórzyć dopiero po ${game.repeatGap} innych słowach.`;game.chain.push(displayWords.get(word)||raw);game.used.push(word);game.missedPlayers=[];game.wrong=false;game.wordChanged=false;nextPlayer(game);if(game.phase==="answer")game.phaseEndsAt=phaseEnd(game.answerTime);},timeout(game){if(game.phase!=="answer")return;const current=game.currentUid,activeBefore=activePlayers(game);game.missedPlayers=Array.isArray(game.missedPlayers)?game.missedPlayers:[];if(!game.missedPlayers.includes(current))game.missedPlayers.push(current);loseHeart(game,current);game.wrong=true;nextPlayer(game);if(game.phase!=="answer")return;if(activeBefore.length&&activeBefore.every(uid=>game.missedPlayers.includes(uid)))changeWord(game);game.phaseEndsAt=phaseEnd(game.answerTime);}};
 export function renderWordChainGame(root,{room,accounts,currentUser},actions){const game=room.game,expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt},maxHearts=Math.max(1,Math.min(5,Number(room.settings?.hearts)||3)),hearts=uid=>{const left=Math.max(0,Math.min(maxHearts,Number(game.hearts?.[uid]??maxHearts)));return `<span class="word-chain-hearts" aria-label="${left}/${maxHearts} serc">${Array.from({length:maxHearts},(_,index)=>`<i class="${index<left?"live":"lost"}">♥</i>`).join("")}</span>`;},last=String(game.chain?.at(-1)||"");root.innerHTML=`<main class="page word-chain-page enter"><section class="panel word-chain-panel"><p class="eyebrow">ŁAŃCUCH SŁÓW · ${game.acceptEnglish?"PL + EN":"JĘZYK POLSKI"}</p><h1>Ostatnia litera, następne słowo</h1><div class="word-chain-last"><small>Ostatnie słowo</small><strong>${escapeHtml(last)}</strong><span>Następne słowo zaczyna się na <b>${escapeHtml(last.at(-1)?.toUpperCase()||"?")}</b></span></div><div class="word-chain-list">${(game.chain||[]).slice(-12).map((word,index)=>`<span class="word-chain-chip">${escapeHtml(word)}${index===(game.chain||[]).slice(-12).length-1?" ← teraz":""}</span>`).join("")}</div><div class="word-chain-roster">${(game.players||[]).map(uid=>`<span class="${game.eliminated?.includes(uid)?"eliminated":""}">${escapeHtml(accounts[uid]?.nick||"Gracz")} ${hearts(uid)}</span>`).join("")}</div><p class="word-chain-turn">${game.phase==="result"?(game.winner?`${escapeHtml(accounts[game.winner]?.nick||"Gracz")} wygrywa!`:"Koniec gry"):(game.currentUid===currentUser?"Twoja kolej":"Kolej: "+escapeHtml(accounts[game.currentUid]?.nick||"Gracz"))}</p>${game.wordChanged?'<div class="word-chain-miss">Nikt nie odpowiedział — wylosowano nowe słowo.</div>':game.wrong?'<div class="word-chain-miss">Czas minął — kolejka przeszła dalej.</div>':""}${game.phase==="answer"?`<form id="word-chain-form" class="word-chain-form"><input id="word-chain-input" autocomplete="off" placeholder="Wpisz słowo" ${game.currentUid===currentUser?"":"disabled"}><button class="primary" ${game.currentUid===currentUser?"":"disabled"}>Odpowiedz</button></form><div class="word-chain-bottom"><strong data-word-chain-timer>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</strong><span>${game.allowRepeats?`Powtórki po ${game.repeatGap} słowach` : "Bez powtórek"}</span></div>`:""}</section></main>`;root.querySelector("#word-chain-form")?.addEventListener("submit",event=>{event.preventDefault();actions.wordChainAnswer(root.querySelector("#word-chain-input").value,expected);});if(game.phase!=="answer")return;renderWordChainGame.countdown=setInterval(()=>{const node=root.querySelector("[data-word-chain-timer]");if(node)node.textContent=`${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s`;},250);renderWordChainGame.timer=setTimeout(()=>actions.wordChainTimeout(expected),Math.max(100,game.phaseEndsAt-Date.now()+50));}
-export function stopWordChainTimer(){clearTimeout(renderWordChainGame.timer);clearInterval(renderWordChainGame.countdown);}
+export function stopWordChainTimer(){wordChainRenderToken+=1;clearTimeout(renderWordChainGame.timer);clearInterval(renderWordChainGame.countdown);renderWordChainGame.timer=0;renderWordChainGame.countdown=0;}
 
 // The old engine only checked the shape and first letter of the answer. Keep
 // the game reducer unchanged, but reject unknown words before it can mutate
 // the shared room state.
-const wordChainAnswer = WordChainEngine.answer;
-WordChainEngine.answer = (game, uid, value) => {
-  const normalized = normalize(String(value || "").trim());
-  const dictionary = game?.acceptEnglish ? englishSet : polishSet;
-  if (game?.phase === "answer" && uid === game?.currentUid && normalized && !dictionary.has(normalized)) {
-    return "Tego słowa nie ma w aktywnym słowniku.";
-  }
-  return wordChainAnswer(game, uid, value);
-};
+// Lista słów służy tylko do losowania. Odpowiedzi gracza sprawdza silnik:
+// litery, wymaganą pierwszą literę i zasady powtórek.
 
 // A room sync can render the game again before the previous round timer fires.
 // Clear the currently registered timer before creating a new one; otherwise
 // stale timeout callbacks keep submitting old rounds and trigger a render loop.
 const renderWordChainGameBase = renderWordChainGame;
+let wordChainRenderToken = 0;
 renderWordChainGame = (root, context, actions) => {
   stopWordChainTimer();
-  return renderWordChainGameBase(root, context, actions);
+  const token = wordChainRenderToken;
+  return renderWordChainGameBase(root, context, {
+    ...actions,
+    wordChainTimeout: expected => token === wordChainRenderToken ? actions.wordChainTimeout(expected) : undefined
+  });
 };
 
 export function wordChainBotWord(game){const last=normalize(String(game?.chain?.at(-1)||""));const required=last.at(-1);const pool=[...new Set([...(game?.acceptEnglish?[...polishWords,...english]:polishWords)].map(normalize))].filter(word=>word[0]===required&&!game.used?.includes(word));return pool[Math.floor(Math.random()*pool.length)]||pool[0]||"";}
