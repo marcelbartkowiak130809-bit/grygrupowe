@@ -10,7 +10,7 @@ import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpos
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260813-2";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260615-1";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260813-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
@@ -1540,6 +1540,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async wyrVote(choice){
     const user=profile(),question=currentWouldYouRather();if(!question)return;
     const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),persistProfile:Boolean(user&&!user.nickOnly)});
+    if(result.error)return message(result.error,"error");
     setWouldYouRatherVote(choice,result.votes);
     if(!result.accepted)return message("Na to pytanie już oddałeś głos.","info");
     Effects.play("choice");if(user){applyPlayerXp(state.currentUser,2);if(!user.nickOnly)updateProfile({money:(profile().money||0)+2,answeredWouldYouRather:{...(profile().answeredWouldYouRather||{}),[question.id]:choice}});else{Audio.play("success");render();}}else{Audio.play("success");render();}
@@ -1762,6 +1763,7 @@ function render(options = {}) {
     return result;
   };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
+  if(screen!=="solo") stopWouldYouRather();
   view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")}`;
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();

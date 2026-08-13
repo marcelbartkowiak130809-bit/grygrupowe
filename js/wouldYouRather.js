@@ -4,6 +4,7 @@ import { getLocalWouldYouRatherAnswers, getWouldYouRatherVotes, subscribeWouldYo
 
 const state={category:"Losowe",current:null,votes:{a:0,b:0,source:"demo"},choice:null,loading:false};
 let unsubscribe=()=>{};
+let renderToken=0;
 const pool=()=>wouldYouRatherQuestions.filter(q=>state.category==="Losowe"?!q.adult:q.category===state.category);
 const playerKey=(profile,playerId)=>playerId||(profile?profile.nickOnly?`guest_${profile.nick}`:`account_${profile.nick}`:"anonymous");
 function chooseNext(profile,playerId){
@@ -24,8 +25,9 @@ function answerCard(side,text,votes,total,selected,picked){
     ${selected?`<div class="wyr-results"><b>${percent}%</b><div class="wyr-bar"><i style="width:${percent}%"></i></div><small>${votes} ${votes===1?"głos":"głosów"}</small></div>`:'<span class="wyr-pick">Wybieram</span>'}
   </button>`;
 }
+export function stopWouldYouRather(){unsubscribe();unsubscribe=()=>{};renderToken++;}
 export async function renderWouldYouRather(root,{profile,playerId},actions){
-  if(!state.current)chooseNext(profile,playerId);state.choice=getLocalWouldYouRatherAnswers(playerKey(profile,playerId))[state.current.id]||null;await loadVotes();const q=state.current,total=state.votes.a+state.votes.b,selected=Boolean(state.choice);
+  const token=++renderToken;if(!state.current)chooseNext(profile,playerId);state.choice=getLocalWouldYouRatherAnswers(playerKey(profile,playerId))[state.current.id]||null;await loadVotes();if(token!==renderToken)return;const q=state.current,total=state.votes.a+state.votes.b,selected=Boolean(state.choice);
   unsubscribe();unsubscribe=subscribeWouldYouRatherVotes(q.id,votes=>{if(votes.a===state.votes.a&&votes.b===state.votes.b)return;state.votes=votes;actions.refresh();});
   root.innerHTML=`<main class="page wyr-page choice-board board-shell enter"><section class="wyr-header"><div><p class="eyebrow">TRYB SOLO</p><h1>Co wolisz?</h1><p class="muted">Wybieraj jedną z dwóch opcji i porównuj swoje odpowiedzi z innymi graczami.</p></div><div class="wyr-profile">${playerMiniHtml(profile||{nick:"Gość"})}<button class="ghost" id="wyr-home">Wróć do menu</button></div></section>
   ${state.votes.source==="demo"?'<section class="warning wyr-demo">Tryb online jest chwilowo niedostępny. Grasz lokalnie, a wyniki są oznaczone jako demo.</section>':""}
