@@ -17,7 +17,7 @@ import { WavelengthEngine } from "./wavelength.js?v=20260805-4";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260813-2";
-import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260805-1";
+import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260805-1";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260813-1";
 

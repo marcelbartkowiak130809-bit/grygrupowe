@@ -24,7 +24,7 @@ import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./w
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260813-2";
-import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260805-1";
+import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260813-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
@@ -706,6 +706,8 @@ function repairGameStateForPlayers(room) {
     if (!game.sequences || typeof game.sequences !== "object" || Array.isArray(game.sequences)) { game.sequences = {}; changed = true; }
     if (!game.ready || typeof game.ready !== "object" || Array.isArray(game.ready)) { game.ready = {}; changed = true; }
     game.players.forEach(uid => { if (typeof game.ready[uid] !== "boolean") { game.ready[uid] = false; changed = true; } });
+    if (!game.history || typeof game.history !== "object" || Array.isArray(game.history)) { game.history = {}; changed = true; }
+    game.players.forEach(uid => { if (!Array.isArray(game.history[uid])) { game.history[uid] = []; changed = true; } });
     if (game.phase === "create" && !Number.isFinite(Number(game.createEndsAt))) { game.createEndsAt = Date.now() + 15000; changed = true; }
     if (!Array.isArray(game.guesses)) { game.guesses = []; changed = true; }
     if (!Array.isArray(game.feedback)) { game.feedback = []; changed = true; }
