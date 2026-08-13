@@ -112,6 +112,15 @@ function cosmeticReward(seed, rarities) {
   return item ? { type:"cosmetic", value:item.id, rarity:item.rarity } : { type:"money", value:300 };
 }
 
+const questModeIcons = {
+  udowodnij:"⚡", impostor:"🕵️", "kim-jestem":"🤔", "inne-pytanie":"❓", "kto-najpredzej":"🏃",
+  "test-znajomosci":"🧠", "zatruty-cukierek":"🍬", bomba:"💣", "najblizej-prawdy":"🎯",
+  ranking:"🏆", "5-sekund":"⏱️", zegar:"⏰", wavelength:"🌈", quiz:"🎲", mathematics:"🧮",
+  marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "pokemon-dex":"🔴",
+  "pokemon-last-letter":"🔤", "pokemon-evolution":"🧬", "pokemon-auction":"💰",
+  "pokemon-types":"🔥", "pokemon-match-type":"🔗",
+};
+
 function questReward(seed, period, difficulty) {
   const daily = {
     easy:[
@@ -165,7 +174,7 @@ function questReward(seed, period, difficulty) {
 }
 
 const q = (id, period, title, target, metric, image, difficulty, extra = {}) => ({
-  id, period, title, target, metric, image, ...extra, reward:questReward(id, period, difficulty),
+  id, period, title, target, metric, image:extra.mode ? (questModeIcons[extra.mode] || image) : image, ...extra, reward:questReward(id, period, difficulty),
 });
 
 const questList = now => {
