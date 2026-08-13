@@ -117,6 +117,19 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     }
   }
 
+  async function connectPeers() {
+    if (!stream || !roomId || !uid) return;
+    if (signalsRoomId !== roomId || signalsUid !== uid) {
+      stopSignals();
+      offeredPeers.clear();
+      signalsRoomId = roomId;
+      signalsUid = uid;
+      stopSignals = subscribeVoiceSignals(roomId, uid, snapshot => handleSignals(snapshot).catch(()=>{}));
+    }
+    players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
+    await Promise.all(players.filter(peerUid => peerUid !== uid && uid < peerUid).map(createOffer));
+  }
+
   async function sync(nextRoom, currentUid) {
     const voice = nextRoom?.gameMode === "kim-jestem" && ["browserVoice", "voice"].includes(nextRoom.settings?.gameFlow) && nextRoom.status === "playing" && nextRoom.game?.phase !== "results";
     if (!voice || !currentUid) return stop();
@@ -128,18 +141,11 @@ export function createIdentityVoiceChat(onChange = () => {}) {
     if (!stream) return;
     [...peers.entries()].filter(([peerUid, pc]) => !players.includes(peerUid) || ["failed", "closed"].includes(pc.connectionState)).forEach(([peerUid, pc]) => { pc.close(); peers.delete(peerUid); offeredPeers.delete(peerUid); remoteAudio.get(peerUid)?.remove(); remoteAudio.delete(peerUid); });
     players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
-    if (changedRoom || signalsRoomId !== roomId || signalsUid !== uid) {
-      stopSignals();
-      offeredPeers.clear();
-      signalsRoomId = roomId;
-      signalsUid = uid;
-      stopSignals = subscribeVoiceSignals(roomId, uid, snapshot => handleSignals(snapshot).catch(()=>{}));
-    }
-    await Promise.all(players.filter(peerUid => peerUid !== uid && uid < peerUid).map(createOffer));
+    await connectPeers();
   }
 
   function toggleMute() { manualMuted = !manualMuted; applyMute(); }
-  async function enable() { await ensureMic(); applyMute(); }
+  async function enable() { await ensureMic(); applyMute(); await connectPeers(); for (const element of remoteAudio.values()) element.play?.().catch(()=>{}); }
 
   async function stop() {
     if (cleanupStarted && !roomId) return;
