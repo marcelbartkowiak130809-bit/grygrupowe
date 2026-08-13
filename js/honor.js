@@ -11,7 +11,7 @@ export const HONOR_TYPES = [
 export function honorModal({ room, accounts = {}, currentUser, submitHonor, closeAction }) {
   const modal = document.createElement("div");
   modal.className = "modal-backdrop honor-backdrop";
-  const players = (room?.players || []).filter(uid => uid && uid !== currentUser);
+  const players = (room?.players || []).filter(uid => uid && uid !== currentUser && !String(uid).startsWith("bot:"));
   const cards = players.map(uid => {
     const player = accounts[uid] || room?.playerProfiles?.[uid] || {};
     const name = player.nick || "Gracz";

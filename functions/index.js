@@ -222,7 +222,7 @@ exports.giveHonor = onCall(async (request) => {
   const targetUid = String(request.data?.targetUid || "").trim();
   const type = String(request.data?.type || "").trim();
   if (!fromUid) throw new HttpsError("unauthenticated", "Zaloguj się, aby wyróżnić gracza.");
-  if (!roomId || !targetUid || !HONOR_TYPES.has(type) || targetUid === fromUid) throw new HttpsError("invalid-argument", "Nieprawidłowe wyróżnienie.");
+  if (!roomId || !targetUid || targetUid.startsWith("bot:") || !HONOR_TYPES.has(type) || targetUid === fromUid) throw new HttpsError("invalid-argument", "Nieprawidłowe wyróżnienie.");
   const room = (await db.ref(`rooms/${roomId}`).get()).val();
   const game = room?.gameState || room?.game || {};
   const finished = game?.finished === true || ["result", "results", "gameSummary"].includes(game?.phase) || room?.status === "results";

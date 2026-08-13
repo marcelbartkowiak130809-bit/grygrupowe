@@ -1193,6 +1193,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     return true;
   },
   async submitHonor(payload) {
+    if (!payload?.targetUid || String(payload.targetUid).startsWith("bot:")) return { ok:false, error:"Botów nie można wyróżniać." };
     const result = await submitHonorRemote(payload);
     if (result?.ok && result.local && state.accounts[payload.targetUid]) {
       const target = state.accounts[payload.targetUid];
