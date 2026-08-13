@@ -5,6 +5,7 @@ const MARKER_TURN_TIME = 10;
 const skins = { defaultMarker:"#171923", redMarker:"#ef476f", blueMarker:"#3b82f6", neonMarker:"#35f5ff", rainbowMarker:"#d946ef" };
 const sizeOptions=[8,10,12], rangeOptions=[20,30,40,50,60,70,80,90,100];
 const shuffle=list=>[...list].sort(()=>Math.random()-.5);
+const ensureMarkerState=game=>{const size=[8,10,12].includes(Number(game?.size))?Number(game.size):8,max=[20,30,40,50,60,70,80,90,100].includes(Number(game?.numberMax))?Number(game.numberMax):50,total=size*size;if(!Array.isArray(game.numbers)||game.numbers.length!==total)game.numbers=shuffle(Array.from({length:total},(_,i)=>i%(max+1)));game.marked=game.marked&&typeof game.marked==="object"&&!Array.isArray(game.marked)?game.marked:{};game.coverage=game.coverage&&typeof game.coverage==="object"&&!Array.isArray(game.coverage)?game.coverage:{};return game;};
 
 export function createMarkerGame(players,settings={}) { const size=sizeOptions.includes(Number(settings.boardSize))?Number(settings.boardSize):8,max=rangeOptions.includes(Number(settings.numberMax))?Number(settings.numberMax):50,total=size*size;return {mode:"marker",phase:"select",size,numberMax:max,numbers:shuffle(Array.from({length:total},(_,i)=>i%(max+1))),turnUid:players[Math.floor(Math.random()*2)],drawerUid:"",seekerUid:"",selectedCell:null,marked:{},coverage:Object.fromEntries(players.map(uid=>[uid,{}])),players:players.slice(0,2),winner:"",phaseEndsAt:Date.now()+MARKER_TURN_TIME*1000}; }
 const opponent=(game,uid)=>game.players.find(player=>player!==uid)||game.players[0];

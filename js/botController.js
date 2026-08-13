@@ -16,7 +16,7 @@ import { PokemonEngine } from "./pokemon.js?v=20260804-15";
 import { WavelengthEngine } from "./wavelength.js?v=20260805-4";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
-import { MarkerEngine } from "./marker.js?v=20260805-1";
+import { MarkerEngine } from "./marker.js?v=20260813-2";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260805-1";
 import { FamilyEngine } from "./family.js?v=20260805-1";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260813-1";
@@ -291,7 +291,7 @@ export function botMutation(room) {
         if (game.variant === "full-test" && game.phase === "test" && !game.completed?.[bot]) return g => { const index=Number(g.progress?.[bot])||0, question=g.questions?.[index]; return MathematicsEngine.answer(g, bot, correct() ? (g.answerMode === "abcd" ? question?.options.indexOf(question?.answer) : question?.answer) : 0, players); };
         break;
       case "marker":
-        if (game.phase === "select" && game.turnUid === bot) return g => MarkerEngine.select(g, bot, g.numbers.findIndex((value, index) => value != null && !g.marked[index]));
+        if (game.phase === "select" && game.turnUid === bot) return g => { const numbers=Array.isArray(g.numbers)?g.numbers:[]; const marked=g.marked&&typeof g.marked==="object"?g.marked:{}; const cell=numbers.findIndex((value,index)=>value!=null&&!marked[index]); return cell>=0 ? MarkerEngine.select(g,bot,cell) : MarkerEngine.timeout(g); };
         if (game.phase === "draw" && game.drawerUid === bot) return g => MarkerEngine.coverage(g, bot, correct() ? .9 : .2);
         if (game.phase === "draw" && game.seekerUid === bot) return g => MarkerEngine.find(g, bot);
         break;
