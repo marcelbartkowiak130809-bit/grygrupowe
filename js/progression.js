@@ -117,19 +117,22 @@ function questReward(seed, period, difficulty) {
     easy:[
       { weight:94, reward:{ type:"money", value:160 + hashSeed(`${seed}:m`) % 120 } },
       { weight:3, reward:cosmeticReward(seed, ["common"]) },
-      { weight:3, reward:{ type:"levelPercent", value:.5 } },
+      { weight:2, reward:{ type:"levelPercent", value:.5 } },
+      { weight:1, reward:{ type:"xp", value:40 + hashSeed(`${seed}:xp`) % 31 } },
     ],
     medium:[
       { weight:76, reward:{ type:"money", value:260 + hashSeed(`${seed}:m`) % 220 } },
       { weight:9, reward:cosmeticReward(seed, ["common"]) },
       { weight:10, reward:{ type:"levelPercent", value:.5 } },
-      { weight:5, reward:{ type:"money", value:650 } },
+      { weight:3, reward:{ type:"money", value:650 } },
+      { weight:2, reward:{ type:"xp", value:90 + hashSeed(`${seed}:xp`) % 61 } },
     ],
     hard:[
       { weight:62, reward:{ type:"money", value:520 + hashSeed(`${seed}:m`) % 420 } },
       { weight:12, reward:cosmeticReward(seed, ["common", "rare"]) },
       { weight:18, reward:{ type:"levelPercent", value:.5 } },
-      { weight:8, reward:{ type:"money", value:1100 } },
+      { weight:5, reward:{ type:"money", value:1100 } },
+      { weight:3, reward:{ type:"xp", value:180 + hashSeed(`${seed}:xp`) % 121 } },
     ],
   };
   const weekly = {
@@ -137,14 +140,16 @@ function questReward(seed, period, difficulty) {
       { weight:70, reward:{ type:"money", value:900 + hashSeed(`${seed}:m`) % 700 } },
       { weight:18, reward:{ type:"levelPercent", value:.5 } },
       { weight:10, reward:cosmeticReward(seed, ["rare"]) },
-      { weight:2, reward:{ type:"level", value:1 } },
+      { weight:1, reward:{ type:"level", value:1 } },
+      { weight:1, reward:{ type:"xp", value:300 + hashSeed(`${seed}:xp`) % 201 } },
     ],
     medium:[
       { weight:52, reward:{ type:"money", value:1700 + hashSeed(`${seed}:m`) % 1400 } },
       { weight:20, reward:{ type:"levelPercent", value:.5 } },
       { weight:16, reward:cosmeticReward(seed, ["rare", "epic"]) },
       { weight:10, reward:{ type:"level", value:1 } },
-      { weight:2, reward:cosmeticReward(seed, ["legendary"]) },
+      { weight:1, reward:cosmeticReward(seed, ["legendary"]) },
+      { weight:1, reward:{ type:"xp", value:650 + hashSeed(`${seed}:xp`) % 351 } },
     ],
     hard:[
       { weight:38, reward:{ type:"money", value:3200 + hashSeed(`${seed}:m`) % 2800 } },
@@ -153,6 +158,7 @@ function questReward(seed, period, difficulty) {
       { weight:18, reward:{ type:"level", value:1 } },
       { weight:5, reward:cosmeticReward(seed, ["legendary"]) },
       { weight:3, reward:{ type:"level", value:2 } },
+      { weight:2, reward:{ type:"xp", value:1200 + hashSeed(`${seed}:xp`) % 801 } },
     ],
   };
   return pickWeighted(seed, (period === "weekly" ? weekly : daily)[difficulty]);
@@ -168,6 +174,13 @@ const questList = now => {
     q(`daily-play-bomb-${d}`,"daily","Zagraj w tryb Bomba",1,"mode","BOMB","easy",{mode:"bomba"}),
     q(`daily-play-clock-${d}`,"daily","Zagraj w Zegar",2,"mode","TIME","easy",{mode:"zegar"}),
     q(`daily-win-new-${d}`,"daily","Wygraj gre w nowym trybie",1,"newModeWin","WIN","medium"),
+    q(`daily-play-wavelength-${d}`,"daily","Zagraj w Wavelength",1,"mode","WAVE","easy",{mode:"wavelength"}),
+    q(`daily-play-quiz-${d}`,"daily","Zagraj w Quiz",1,"mode","QUIZ","easy",{mode:"quiz"}),
+    q(`daily-play-math-${d}`,"daily","Zagraj w Matematyke",1,"mode","MATH","medium",{mode:"mathematics"}),
+    q(`daily-play-marker-${d}`,"daily","Zagraj w Marker",1,"mode","MARK","medium",{mode:"marker"}),
+    q(`daily-play-sequence-${d}`,"daily","Zagraj w Zgadnij sekwencje",1,"mode","CODE","medium",{mode:"sequence"}),
+    q(`daily-play-family-${d}`,"daily","Zagraj w Familiade",1,"mode","FAM","easy",{mode:"family"}),
+    q(`daily-play-word-chain-${d}`,"daily","Zagraj w Lancuch slow",1,"mode","WORD","medium",{mode:"word-chain"}),
     q(`daily-win-2-any-${d}`,"daily","Wygraj 2 gry",2,"anyWin","2W","medium"),
     q(`daily-play-5-any-${d}`,"daily","Zagraj 5 gier lacznie",5,"anyMode","PLAY","hard"),
     q(`daily-win-bomb-${d}`,"daily","Wygraj gre w Bombie",1,"winMode","BOOM","medium",{mode:"bomba"}),
@@ -182,6 +195,12 @@ const questList = now => {
     q(`weekly-bomb-streak-3-${w}`,"weekly","Wygraj 3 razy pod rzad w Bombie",3,"modeStreak","B3","hard",{mode:"bomba"}),
     q(`weekly-win-15-any-${w}`,"weekly","Wygraj 15 gier lacznie",15,"anyWin","15W","hard"),
     q(`weekly-play-15-any-${w}`,"weekly","Zagraj 15 gier lacznie",15,"anyMode","15","medium"),
+    q(`weekly-win-wavelength-${w}`,"weekly","Wygraj 3 gry w Wavelength",3,"winMode","W3","hard",{mode:"wavelength"}),
+    q(`weekly-win-quiz-${w}`,"weekly","Wygraj 3 gry w Quizie",3,"winMode","Q3","hard",{mode:"quiz"}),
+    q(`weekly-win-family-${w}`,"weekly","Wygraj 3 gry w Familiadzie",3,"winMode","F3","hard",{mode:"family"}),
+    q(`weekly-play-sequence-${w}`,"weekly","Zagraj 4 gry w Zgadnij sekwencje",4,"mode","CODE","medium",{mode:"sequence"}),
+    q(`weekly-play-word-chain-${w}`,"weekly","Zagraj 4 gry w Lancuch slow",4,"mode","WORD","medium",{mode:"word-chain"}),
+    q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
     q(`weekly-spend-${w}`,"weekly","Wydaj 2500 coinow",2500,"spent","$$","medium"),
   ];
 };
@@ -204,7 +223,8 @@ function questValue(stats, quest) {
   if (quest.metric === "anyMode") return Object.values(box.modes || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
   if (quest.metric === "winMode") return Number(box.wins?.[quest.mode]) || 0;
   if (quest.metric === "anyWin") return Object.values(box.wins || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
-  if (quest.metric === "newModeWin") return ["bomba","najblizej-prawdy","ranking","5-sekund","zegar"].reduce((sum, mode) => sum + (Number(box.wins?.[mode]) || 0), 0);
+  if (quest.metric === "anyModeGroup") return (quest.modes || []).reduce((sum, mode) => sum + (Number(box.modes?.[mode]) || 0), 0);
+  if (quest.metric === "newModeWin") return ["wavelength","quiz","mathematics","marker","sequence","family","word-chain","pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"].reduce((sum, mode) => sum + (Number(box.wins?.[mode]) || 0), 0);
   if (quest.metric === "bestStreak") return Number(box.bestStreak) || 0;
   if (quest.metric === "modeStreak") return Number(box.modeStreaks?.[quest.mode]) || 0;
   if (quest.metric === "clockUnder10") return Number(box.clockUnder10) || 0;
@@ -215,6 +235,7 @@ function questRewardLabel(quest) {
   if (quest.reward.type === "money") return `${quest.reward.value} coinow`;
   if (quest.reward.type === "level") return `+${quest.reward.value} level`;
   if (quest.reward.type === "cosmetic") return cosmetics.find(item => item.id === quest.reward.value)?.name || "kosmetyk";
+  if (quest.reward.type === "xp") return `+${quest.reward.value} XP`;
   return `+${quest.reward.value} levela`;
 }
 
@@ -270,7 +291,7 @@ export function claimCompletedQuestRewards(profile = {}, now = Date.now()) {
     else {
       const progress = levelProgress({ ...updated, [xpKey]:(Number(updated[xpKey]) || 0) + xpGain });
       const span = xpForLevel(progress.level + 1) - xpForLevel(progress.level);
-      xpGain += quest.reward.type === "level" ? xpForLevel(progress.level + quest.reward.value) - progress.xp : Math.ceil(span * quest.reward.value);
+      xpGain += quest.reward.type === "xp" ? Number(quest.reward.value) || 0 : quest.reward.type === "level" ? xpForLevel(progress.level + quest.reward.value) - progress.xp : Math.ceil(span * quest.reward.value);
     }
   });
   if (money) updated[moneyKey] = (Number(updated[moneyKey]) || 0) + money;
