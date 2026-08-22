@@ -249,15 +249,12 @@ export function startRoomPresence(roomId, userId) {
   const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(() => {});
   let stopped = false, timer = null;
   const stop = () => { stopped = true; if (timer) clearInterval(timer); firebaseDatabaseApi.remove(presenceRef).catch(() => {}); };
-  // Register the disconnect cleanup immediately. Waiting for the player
-  // existence check first left a short window in which closing the tab could
-  // leave a stale player in the room until the next heartbeat/TTL sweep.
+  // Rejestruj obecność od razu. Sprawdzanie /players przed pierwszym heartbeatem
+  // powodowało wyścig przy dołączaniu: drugi klient był już na liście graczy,
+  // ale nie zdążył jeszcze pojawić się w obecności i pokój zamykał się błędnie.
   Promise.resolve(firebaseDatabaseApi.onDisconnect?.(presenceRef)?.remove?.()).catch(() => {});
-  firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/players/${userId}`)).then(snapshot => {
-    if (stopped || !snapshot.exists()) return;
-    touch();
-    timer = setInterval(() => { if (!stopped) touch(); }, 10000);
-  }).catch(() => {});
+  touch();
+  timer = setInterval(() => { if (!stopped) touch(); }, 10000);
   return stop;
 }
 
