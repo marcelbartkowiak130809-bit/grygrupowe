@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-14";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-15";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-4";
 import { gamesList, getGameMode } from "./games.js?v=20260822-4";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
@@ -1321,7 +1321,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async submitHonor(payload) {
     if (!payload?.targetUid || String(payload.targetUid).startsWith("bot:")) return { ok:false, error:"Botów nie można wyróżniać." };
     const result = await submitHonorRemote(payload);
-    if (result?.ok && result.local && state.accounts[payload.targetUid]) {
+    if (result?.ok && (result.local || result.database) && state.accounts[payload.targetUid]) {
       const target = state.accounts[payload.targetUid];
       target.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(target.honorCounts||{}),[payload.type]:(Number(target.honorCounts?.[payload.type])||0)+1};
       saveAccounts(state.accounts);
@@ -2032,6 +2032,7 @@ async function checkFriendNotifications(bucket = null) {
   try {
   const local=loadAccounts(); if(local[state.currentUser])state.accounts[state.currentUser]={...state.accounts[state.currentUser],...local[state.currentUser]};
   const remote=await loadRemoteProfile(state.currentUser); if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,friendRequests:currentFriendRequests||remote.friendRequests};}
+  const syncedHonor=await loadHonorCounts(state.currentUser); if(syncedHonor){const account=state.accounts[state.currentUser];const current=account?.honorCounts||{};account.honorCounts=Object.fromEntries(Object.keys(syncedHonor).map(type=>[type,Math.max(Number(current[type])||0,Number(syncedHonor[type])||0)]));saveAccounts(state.accounts);}
   const remoteRequests=bucket || await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
   const previousIncomingSignature=JSON.stringify(Object.keys(requests.incoming).sort());
   requests.incoming={...requests.incoming,...Object.fromEntries(Object.entries(remoteRequests).filter(([,request])=>!request?.status).map(([id,request])=>[id,request]))};

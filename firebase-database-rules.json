@@ -18,8 +18,20 @@
     "honorVotes": {
       "$roomId": {
         "$fromUid": {
-          ".read": false,
-          ".write": false
+          ".read": "auth != null && auth.uid == $fromUid",
+          ".write": "auth != null && auth.uid == $fromUid && !data.exists() && newData.hasChildren(['targetUid', 'type', 'createdAt']) && root.child('rooms').child($roomId).child('players').child($fromUid).exists() && root.child('rooms').child($roomId).child('players').child(newData.child('targetUid').val()).exists() && newData.child('targetUid').val() != $fromUid && (root.child('rooms').child($roomId).child('status').val() == 'results' || root.child('rooms').child($roomId).child('gameState').child('finished').val() == true || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'result' || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'results' || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'gameSummary') && (newData.child('type').val() == 'nicePlayer' || newData.child('type').val() == 'goodOpponent' || newData.child('type').val() == 'greatHost' || newData.child('type').val() == 'notVerySmart' || newData.child('type').val() == 'poorSport') && newData.child('createdAt').isNumber()",
+          ".validate": "newData.child('targetUid').isString() && newData.child('type').isString() && newData.child('createdAt').isNumber()"
+        }
+      }
+    },
+    "honorReceived": {
+      "$targetUid": {
+        "$roomId": {
+          "$fromUid": {
+            ".read": "auth != null && auth.uid == $targetUid",
+            ".write": "auth != null && auth.uid == $fromUid && !data.exists() && newData.hasChildren(['type', 'createdAt']) && root.child('rooms').child($roomId).child('players').child($fromUid).exists() && root.child('rooms').child($roomId).child('players').child($targetUid).exists() && $targetUid != $fromUid && (root.child('rooms').child($roomId).child('status').val() == 'results' || root.child('rooms').child($roomId).child('gameState').child('finished').val() == true || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'result' || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'results' || root.child('rooms').child($roomId).child('gameState').child('phase').val() == 'gameSummary') && newData.child('type').isString() && (newData.child('type').val() == 'nicePlayer' || newData.child('type').val() == 'goodOpponent' || newData.child('type').val() == 'greatHost' || newData.child('type').val() == 'notVerySmart' || newData.child('type').val() == 'poorSport') && newData.child('createdAt').isNumber()",
+            ".validate": "newData.child('type').isString() && newData.child('createdAt').isNumber()"
+          }
         }
       }
     },

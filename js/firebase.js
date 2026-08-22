@@ -6,6 +6,7 @@ const WOULD_YOU_RATHER_VOTES_KEY = "udowodnij_would_you_rather_votes_v1";
 const WOULD_YOU_RATHER_ANSWERS_KEY = "udowodnij_would_you_rather_answers_v1";
 const LOCAL_PRESENCE_KEY = "udowodnij_local_presence_v1";
 const LOCAL_HONOR_KEY = "udowodnij_honor_votes_v1";
+const HONOR_TYPE_IDS = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 const LOCAL_SITE_STATS_KEY = "udowodnij_site_stats_v1";
 let remoteAuth;
 let firebaseAuthApi;
@@ -548,13 +549,52 @@ export async function submitHonor({ roomId, fromUid, targetUid, type }) {
     try {
       const result = await firebaseFunctionsApi.httpsCallable(remoteFunctions, "giveHonor")({ roomId, targetUid, type });
       return { ok:true, ...(result.data || {}) };
-    } catch (error) { return { ok:false, error:error?.message || "Nie udało się zapisać wyróżnienia." }; }
+    } catch (error) {
+      const unavailable = ["functions/internal", "functions/not-found", "functions/unavailable"].includes(error?.code);
+      if (!unavailable) return { ok:false, error:error?.message || "Nie udało się zapisać wyróżnienia." };
+      if (canUseRemote()) {
+        const fallback = await submitHonorDatabase({ roomId, fromUid, targetUid, type });
+        if (fallback.ok) return fallback;
+      }
+      return { ok:false, error:"Nie udało się zapisać wyróżnienia online. Spróbuj ponownie." };
+    }
   }
-  if (canUseRemote()) return { ok:false, error:"System honoru wymaga wdrożonego backendu." };
+  if (canUseRemote()) return submitHonorDatabase({ roomId, fromUid, targetUid, type });
   const votes = readLocal(LOCAL_HONOR_KEY), key = `${roomId}/${fromUid}`;
   if (votes[key]) return { ok:false, error:"Możesz wyróżnić tylko jedną osobę w tym meczu." };
   votes[key] = { targetUid, type, createdAt:Date.now() }; saveLocal(LOCAL_HONOR_KEY, votes);
   return { ok:true, local:true, targetUid, type };
+}
+async function submitHonorDatabase({ roomId, fromUid, targetUid, type }) {
+  const authenticatedUid = remoteAuth?.currentUser?.uid;
+  if (!canUseRemote() || !authenticatedUid || authenticatedUid !== fromUid) return { ok:false, error:"Nie udało się zweryfikować gracza. Odśwież stronę i spróbuj ponownie." };
+  if (String(targetUid).startsWith("bot:") || !HONOR_TYPE_IDS.has(type) || targetUid === authenticatedUid) return { ok:false, error:"Nieprawidłowe wyróżnienie." };
+  try {
+    const voteRef = firebaseDatabaseApi.ref(remoteDatabase, `honorVotes/${roomId}/${authenticatedUid}`);
+    if ((await firebaseDatabaseApi.get(voteRef)).val()) return { ok:false, error:"Możesz wyróżnić tylko jedną osobę w tym meczu." };
+    const createdAt = serverNow();
+    const updates = {
+      [`honorVotes/${roomId}/${authenticatedUid}`]: { targetUid, type, createdAt },
+      [`honorReceived/${targetUid}/${roomId}/${authenticatedUid}`]: { type, createdAt },
+    };
+    await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase), updates);
+    return { ok:true, database:true, targetUid, type };
+  } catch (error) {
+    if (["PERMISSION_DENIED", "permission_denied"].includes(error?.code)) {
+      const existing = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `honorVotes/${roomId}/${authenticatedUid}`))).val();
+      if (existing) return { ok:false, error:"Możesz wyróżnić tylko jedną osobę w tym meczu." };
+    }
+    return { ok:false, error:"Nie udało się zapisać wyróżnienia online. Spróbuj ponownie." };
+  }
+}
+export async function loadHonorCounts(uid) {
+  const counts = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0 };
+  if (!canUseRemote() || !uid) return counts;
+  try {
+    const received = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `honorReceived/${uid}`))).val() || {};
+    Object.values(received).forEach(roomVotes => Object.values(roomVotes || {}).forEach(vote => { if (HONOR_TYPE_IDS.has(vote?.type)) counts[vote.type] += 1; }));
+  } catch {}
+  return counts;
 }
 export async function loadFriendRequestBucket(uid) {
   if (!canUseRemote() || !uid) return {};
