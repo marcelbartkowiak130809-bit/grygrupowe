@@ -16,9 +16,9 @@ import { PokemonEngine } from "./pokemon.js?v=20260822-8";
 import { WavelengthEngine } from "./wavelength.js?v=20260822-1";
 import { QuizEngine } from "./quiz.js?v=20260804-4";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
-import { MarkerEngine } from "./marker.js?v=20260813-3";
+import { MarkerEngine } from "./marker.js?v=20260822-4";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
-import { FamilyEngine } from "./family.js?v=20260805-1";
+import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260813-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -75,6 +75,11 @@ const textAnswer = game => {
   const pool = array(game?.validAnswers).concat(array(game?.answerPool)).concat(array(game?.answers));
   const value = pool.find(item => typeof item === "string" && item.trim()) || "gotowe";
   return String(value).replace(/\[object Object\]/g, "gotowe");
+};
+const familyAnswer = game => {
+  const question = game?.questions?.[Math.max(0, Number(game?.round || 1) - 1)];
+  const revealed = new Set(array(game?.revealed));
+  return array(question?.answers).find((item, index) => !revealed.has(index))?.[0] || array(question?.answers)[0]?.[0] || "jabłko";
 };
 const numberAnswer = game => Number(game?.target ?? game?.correctAnswer ?? game?.answer ?? game?.value ?? 50) || 50;
 const sequenceItems = game => array(game?.set?.items || game?.items || game?.elements || game?.order);
@@ -301,7 +306,7 @@ export function botMutation(room) {
         break;
       case "family":
         if (game.phase === "wheel") return g => FamilyEngine.timeout(g);
-        if (game.phase === "answer" && game.currentUid === bot) return g => FamilyEngine.answer(g, bot, correct() ? textAnswer(g) : "nie wiem");
+        if (game.phase === "answer" && game.currentUid === bot) return g => FamilyEngine.answer(g, bot, correct() ? familyAnswer(g) : "nie wiem");
         break;
       case "word-chain":
         if (game.phase === "answer" && game.currentUid === bot) return g => {
