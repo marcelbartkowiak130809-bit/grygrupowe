@@ -677,3 +677,51 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 .wavelength-clue-guide{display:grid;gap:10px;width:min(100%,850px);margin:4px auto 0;padding:14px 16px;border:1px solid rgba(103,232,249,.24);border-radius:14px;background:linear-gradient(135deg,rgba(103,232,249,.07),rgba(124,58,237,.08));text-align:left}.wavelength-clue-guide-labels{display:flex;justify-content:space-between;gap:12px;color:#dbeafe;font-size:clamp(.72rem,1.7vw,.92rem)}.wavelength-clue-guide-labels b:nth-child(2){color:#61e6d2;text-align:center}.wavelength-clue-guide-track{position:relative;height:12px;border-radius:999px;background:linear-gradient(90deg,#ff8c69 0%,#ffd166 28%,#67e8f9 50%,#ffd166 72%,#ff8c69 100%);box-shadow:0 0 22px rgba(103,232,249,.16)}.wavelength-clue-guide-track span{position:absolute;top:50%;width:2px;height:20px;background:rgba(255,255,255,.75);transform:translate(-50%,-50%)}.wavelength-clue-guide-track span:nth-child(1){left:0}.wavelength-clue-guide-track span:nth-child(2){left:50%;height:26px;background:#61e6d2;box-shadow:0 0 10px rgba(97,230,210,.8)}.wavelength-clue-guide-track span:nth-child(3){left:100%}.wavelength-clue-guide-hint{color:var(--muted);font-size:.82rem;text-align:center}.light-theme .wavelength-clue-guide{border-color:rgba(14,116,144,.24);background:linear-gradient(135deg,rgba(14,165,164,.08),rgba(124,58,237,.07))}.light-theme .wavelength-clue-guide-labels{color:#334155}.light-theme .wavelength-clue-guide-hint{color:#64748b}@media(max-width:600px){.wavelength-clue-guide{padding:12px}.wavelength-clue-guide-labels{font-size:.68rem}.wavelength-clue-guide-hint{font-size:.76rem}}
 .round-advance-notice{margin:10px auto 0;color:var(--muted);font-size:.9rem;text-align:center}.round-advance-notice b{color:#61e6d2;font-variant-numeric:tabular-nums}.host-round-control:disabled{opacity:.62;cursor:not-allowed;filter:saturate(.55)}.light-theme .round-advance-notice b{color:#0f766e}
 .light-theme .route-game .sequence-color{background:#111827!important;background:color-mix(in srgb,var(--sequence-color) 28%,#111827)!important;border-color:color-mix(in srgb,var(--sequence-color) 72%,#64748b)!important;color:#fff!important}.light-theme .route-game .sequence-color:hover,.light-theme .route-game .sequence-color.is-selected{background:color-mix(in srgb,var(--sequence-color) 42%,#111827)!important;border-color:var(--sequence-color)!important;color:#fff!important}.light-theme .route-game .sequence-slot.filled{background:#111827!important;background:color-mix(in srgb,var(--sequence-color) 34%,#111827)!important;border-color:var(--sequence-color)!important;color:#fff!important;box-shadow:0 0 16px color-mix(in srgb,var(--sequence-color) 30%,transparent)}
+/* Phase transitions: applied once when the game changes phase/round, not on every sync repaint. */
+.route-game.game-phase-transition .page > .panel,
+.route-game.game-phase-transition .page > section,
+.route-game.game-phase-transition .page > article,
+.route-game.game-phase-transition .game-panel,
+.route-game.game-phase-transition .phase-card,
+.route-game.game-phase-transition .result-card,
+.route-game.game-phase-transition .summary-card,
+.route-game.game-phase-transition .game-summary,
+.route-game.game-phase-transition .results-panel {
+  animation: gamePhaseEnter .58s cubic-bezier(.2,.8,.2,1) both;
+}
+.route-game.game-phase-transition > main > *,
+.route-game.game-phase-transition [class*="summary"],
+.route-game.game-phase-transition [class*="results"] {
+  animation: gamePhaseEnter .58s cubic-bezier(.2,.8,.2,1) both;
+}
+.route-game.game-phase-transition .page > *:nth-child(2),
+.route-game.game-phase-transition .page > section:nth-child(2),
+.route-game.game-phase-transition .page > article:nth-child(2) { animation-delay: .07s; }
+.route-game.game-phase-transition .page > *:nth-child(3),
+.route-game.game-phase-transition .page > section:nth-child(3),
+.route-game.game-phase-transition .page > article:nth-child(3) { animation-delay: .14s; }
+.route-game.game-phase-transition .ranking > *,
+.route-game.game-phase-transition .ranking-list > *,
+.route-game.game-phase-transition .result-list > *,
+.route-game.game-phase-transition .final-ranking > * {
+  animation: resultRowEnter .42s cubic-bezier(.2,.8,.2,1) both;
+}
+.route-game.game-phase-transition .ranking > *:nth-child(2),
+.route-game.game-phase-transition .ranking-list > *:nth-child(2),
+.route-game.game-phase-transition .result-list > *:nth-child(2),
+.route-game.game-phase-transition .final-ranking > *:nth-child(2) { animation-delay: .08s; }
+.route-game.game-phase-transition .ranking > *:nth-child(3),
+.route-game.game-phase-transition .ranking-list > *:nth-child(3),
+.route-game.game-phase-transition .result-list > *:nth-child(3),
+.route-game.game-phase-transition .final-ranking > *:nth-child(3) { animation-delay: .16s; }
+@keyframes gamePhaseEnter { from { opacity: 0; transform: translateY(16px) scale(.985); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes resultRowEnter { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .route-game.game-phase-transition .page > *,
+  .route-game.game-phase-transition .ranking > *,
+  .route-game.game-phase-transition .ranking-list > *,
+  .route-game.game-phase-transition .result-list > *,
+  .route-game.game-phase-transition .final-ranking > * { animation: none !important; }
+}
+.fx-game-win{color:#fde68a}.fx-game-win .fx-flash{background:radial-gradient(circle at center,rgba(250,204,21,.34),rgba(34,197,94,.2) 38%,transparent 72%)}
+.fx-game-lose{color:#c4b5fd}.fx-game-lose .fx-flash{background:radial-gradient(circle at center,rgba(99,102,241,.28),rgba(15,23,42,.42) 45%,transparent 76%)}

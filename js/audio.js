@@ -5,6 +5,11 @@ const playlist = [
   { name: "Table Voltage", bass:[110.00,146.83,123.47,164.81], arp:[440.00,554.37,659.25,880.00,739.99,554.37] },
   { name: "Afterparty Cards", bass:[87.31,116.54,130.81,103.83], arp:[349.23,436.05,523.25,698.46,587.33,436.05] },
 ];
+const ambientChords = [
+  [[98,123.47,146.83],[110,130.81,164.81],[123.47,146.83,185],[87.31,110,130.81]],
+  [[110,138.59,164.81],[146.83,174.61,220],[123.47,146.83,185],[98,123.47,146.83]],
+  [[87.31,110,130.81],[103.83,130.81,155.56],[116.54,146.83,174.61],[77.78,98,116.54]],
+];
 const sfx = {
   buttonClick: [420, 0.04, "sine", 0.2],
   buttonHover: [620, 0.018, "sine", 0.045],
@@ -58,6 +63,8 @@ function loadSettings() {
 let settings = loadSettings();
 let context;
 let musicGain;
+let musicFilter;
+let musicCompressor;
 let ambientTimer;
 let trackIndex = 0;
 let started = false;
@@ -66,7 +73,18 @@ function getContext() {
   if (!context) {
     context = new (window.AudioContext || window.webkitAudioContext)();
     musicGain = context.createGain();
-    musicGain.connect(context.destination);
+    musicFilter = context.createBiquadFilter();
+    musicFilter.type = "lowpass";
+    musicFilter.frequency.value = 5200;
+    musicCompressor = context.createDynamicsCompressor();
+    musicCompressor.threshold.value = -22;
+    musicCompressor.knee.value = 18;
+    musicCompressor.ratio.value = 4;
+    musicCompressor.attack.value = 0.012;
+    musicCompressor.release.value = 0.18;
+    musicGain.connect(musicFilter);
+    musicFilter.connect(musicCompressor);
+    musicCompressor.connect(context.destination);
   }
   if (context.state === "suspended") context.resume();
   updateGains();
@@ -126,12 +144,16 @@ function scheduleAmbient() {
     const track = playlist[trackIndex];
     const bass = track.bass[Math.floor(beat / 2) % track.bass.length];
     const arp = track.arp[beat % track.arp.length];
-    if (beat % 2 === 0) tone(bass, .34, "triangle", 0.065, musicGain);
-    tone(arp, .16, beat % 3 === 0 ? "square" : "triangle", 0.027, musicGain);
-    if (beat % 4 === 1) tone(arp * 1.5, .13, "sine", 0.018, musicGain);
-    if (beat % 2 === 1) noise(.035, 0.014, musicGain, 7000);
+    const chord = ambientChords[trackIndex][Math.floor(beat / 8) % 4];
+    if (beat % 8 === 0) chord.forEach((frequency, index) => tone(frequency * 2, 1.45, "sine", 0.017 - index * 0.002, musicGain));
+    if (beat % 2 === 0) tone(bass / 2, .38, "sine", 0.045, musicGain);
+    tone(bass, .3, "triangle", 0.052, musicGain);
+    tone(arp, .22, beat % 4 === 0 ? "sine" : "triangle", 0.034, musicGain);
+    if (beat % 4 === 2) tone(arp * 1.5, .16, "sine", 0.022, musicGain);
+    if (beat % 4 === 0) tone(72, .12, "sine", 0.032, musicGain);
+    if (beat % 2 === 1) noise(.045, 0.012, musicGain, 7000);
     beat += 1;
-    if (beat % 32 === 0) trackIndex = (trackIndex + 1) % playlist.length;
+    if (beat % 48 === 0) trackIndex = (trackIndex + 1) % playlist.length;
   };
   playAmbientNote();
   ambientTimer = setInterval(playAmbientNote, 430);
@@ -184,8 +206,10 @@ export const Audio = {
     if (name === "impactStart") return sequence([[120,.18,"sawtooth",.75],[220,.2,"triangle",.72],[440,.28,"sine",.6]],70);
     if (name === "impactSuccess") return sequence([[160,.09,"square",.58],[520,.14,"triangle",.92],[810,.22,"sine",.72],[1080,.18,"triangle",.45]],52);
     if (name === "impactMiss") return sequence([[190,.18,"sawtooth",.82],[118,.28,"square",.58],[82,.32,"sawtooth",.34]],62);
-    if (name === "victory") return sequence([[260,.16,"triangle",.64],[390,.16,"triangle",.7],[520,.18,"triangle",.78],[780,.35,"sine",.65]],90);
-    if (name === "defeat") return sequence([[240,.16,"sawtooth",.52],[170,.2,"sawtooth",.48],[95,.42,"square",.36]],100);
+    if (name === "victory") { percussion("spark"); return sequence([[260,.14,"triangle",.58],[330,.14,"triangle",.62],[390,.16,"triangle",.68],[520,.18,"triangle",.76],[660,.2,"sine",.72],[780,.34,"sine",.64]],88); }
+    if (name === "defeat") { noise(.22, settings.sfxVolume * .2, undefined, 420); return sequence([[280,.14,"sawtooth",.48],[220,.16,"sawtooth",.5],[170,.2,"sawtooth",.46],[120,.24,"square",.42],[82,.5,"sine",.32]],105); }
+    if (name === "gameVictory") { percussion("spark"); setTimeout(() => percussion("spark"), 520); setTimeout(() => percussion("spark"), 1040); return sequence([[262,.16,"triangle",.56],[330,.16,"triangle",.62],[392,.18,"triangle",.7],[523,.2,"triangle",.78],[659,.2,"sine",.74],[784,.24,"sine",.7],[988,.46,"sine",.64]],105); }
+    if (name === "gameDefeat") { noise(.3, settings.sfxVolume * .24, undefined, 360); return sequence([[294,.15,"sawtooth",.48],[247,.17,"sawtooth",.46],[196,.2,"sawtooth",.44],[147,.23,"square",.4],[110,.28,"sawtooth",.36],[73,.62,"sine",.3]],125); }
     if (name === "detect") return sequence([[110,.22,"sawtooth",.55],[440,.12,"square",.5],[660,.16,"triangle",.65],[880,.26,"sine",.55]],80);
     if (name === "evilLaugh") return sequence([[155,.18,"sawtooth",.5],[122,.16,"square",.42],[170,.18,"sawtooth",.5],[112,.18,"square",.42],[150,.3,"sawtooth",.5]],125);
     if (name === "reveal") return sequence([[220,.1,"triangle",.48],[440,.14,"triangle",.6],[760,.25,"sine",.5]],75);

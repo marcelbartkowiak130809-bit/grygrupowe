@@ -193,7 +193,35 @@ let stopOnlineSubscription=()=>{};
 let stopGlobalStatsSubscription=()=>{};
 let stopPresence=()=>{};
 let lastRenderedRoute="";
+const gameTransitionKeys=new Map();
 const identityVoiceChat=createIdentityVoiceChat(()=>{ if(Router.current==="game") render({preserveDrafts:true}); });
+
+function finalGameOutcome(room) {
+  const game=room?.game;
+  if(!game?.finished) return "";
+  const current=state.currentUser;
+  const explicit=[game.winner,game.result?.winner,game.summary?.winner,game.final?.winner].find(value=>typeof value==="string"&&value);
+  if(explicit) return explicit===current?"gameVictory":"gameDefeat";
+  const scoreSources=[game.scores,game.roundWins,game.totals,game.points].filter(value=>value&&typeof value==="object");
+  for(const scores of scoreSources){
+    const entries=Object.entries(scores).filter(([,value])=>Number.isFinite(Number(value)));
+    if(!entries.length) continue;
+    const best=Math.max(...entries.map(([,value])=>Number(value)));
+    const winners=entries.filter(([,value])=>Number(value)===best).map(([uid])=>uid);
+    if(winners.length) return winners.includes(current)?"gameVictory":"gameDefeat";
+  }
+  if(game.result?.success===true&&game.result?.winner===current) return "gameVictory";
+  if(game.result?.success===false&&game.result?.loser===current) return "gameDefeat";
+  return "";
+}
+
+function markGamePhaseTransition(view, room) {
+  const key=`${room.roomId}:${room.game?.phase||""}:${room.game?.round||0}:${room.game?.finished?"finished":"active"}`;
+  if(gameTransitionKeys.get(room.roomId)!==key){
+    gameTransitionKeys.set(room.roomId,key);
+    view.classList.add("game-phase-transition");
+  }
+}
 
 function saveAndRender() { saveAccounts(state.accounts); render(); }
 function updateDocumentTitle() {
@@ -1881,14 +1909,17 @@ function render(options = {}) {
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); const repaired=repairGameStateForPlayers(room); if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}} settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
+    const finalOutcome=finalGameOutcome(room); markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
     try {
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
+      if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}`);
+      window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
       renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
       return finish(rendered);
-    } catch(error) { identityVoiceChat.stop(); return finish(renderGameError(view,room,error)); }
+    } catch(error) { window.__gameFinalAudio=""; window.__lastFinalEffect=false; identityVoiceChat.stop(); return finish(renderGameError(view,room,error)); }
   }
   const renderedRoom = renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
   renderHostAnnouncements(view, room, state.currentUser, actions, () => { if (Router.current === "room" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); });
