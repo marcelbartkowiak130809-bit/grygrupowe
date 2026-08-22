@@ -585,18 +585,19 @@ export async function syncRoomState(room) {
       gameState:room.game || null, chat:room.game?.chat || [], presence:room.presence || {},
     };
     Object.entries(payload.players).forEach(([uid, player])=>{if(uid.startsWith("bot:")){player.isBot=true;player.botDifficulty=room.playerProfiles?.[uid]?.botDifficulty||"normal";}});
-    let saved=payload;
+    const cleanPayload = cleanFirebaseWrite(payload);
+    let saved=cleanPayload;
     if(remoteDatabase){
       const result=await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`),current=>{
-        if(current&&Number(current.updatedAt||0)>=Number(payload.updatedAt||0))return current;
-        return { ...payload, presence:current?.presence || payload.presence };
+        if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0))return current;
+        return { ...cleanPayload, presence:current?.presence || cleanPayload.presence };
       });
-      saved=result.snapshot.val()||payload;
+      saved=result.snapshot.val()||cleanPayload;
     }
     const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=saved;saveLocal(LOCAL_ROOMS_KEY,local);
     return { ok:true, room:normalizeRemoteRoom(saved) };
   } catch(error) {
-    return { ok:false, error:error?.code || error?.message || "Nieznany blad synchronizacji." };
+    return { ok:false, error:error?.message || error?.code || "Nieznany blad synchronizacji." };
   }
 }
 
@@ -610,6 +611,14 @@ function normalizeFirebaseValue(value) {
     if (max < 10000) return Array.from({ length:max + 1 }, (_, index) => normalizeFirebaseValue(value[index]));
   }
   return Object.fromEntries(keys.map(key => [key, normalizeFirebaseValue(value[key])]));
+}
+
+function cleanFirebaseWrite(value) {
+  if (value === undefined) return undefined;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (Array.isArray(value)) return value.map(cleanFirebaseWrite).filter(item => item !== undefined);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cleanFirebaseWrite(item)]).filter(([, item]) => item !== undefined));
 }
 
 const normalizeRemoteRoom=room=>{
