@@ -132,7 +132,14 @@ const roomInviteLink = room => {
   try { const url = new URL(window.location.href); url.pathname = modePath(room.gameMode); url.searchParams.delete("mode"); url.searchParams.set("room", room.roomId); return url.toString(); }
   catch { return `${window.location.origin}/${encodeURIComponent(room.gameMode)}?room=${encodeURIComponent(room.roomId)}`; }
 };
-const stableStringify = value => JSON.stringify(value, (key, item) => key === "updatedAt" ? undefined : item);
+const stableStringify = value => JSON.stringify(value, (key, item) => {
+  if (key === "updatedAt") return undefined;
+  if (!item || typeof item !== "object" || Array.isArray(item)) return item;
+  return Object.keys(item).sort().reduce((sorted, childKey) => {
+    sorted[childKey] = item[childKey];
+    return sorted;
+  }, {});
+});
 function signatureGame(game, gameMode, players) {
   if (!game) return null;
   const copy = JSON.parse(JSON.stringify(game));
