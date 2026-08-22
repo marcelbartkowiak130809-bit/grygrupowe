@@ -2,6 +2,7 @@ import { impostorCategories, impostorWords } from "../content/impostor/words.js?
 import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260605-5";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
+import { botTooltip } from "./bots.js?v=20260822-1";
 
 let timerId;
 let lastCountdown;
@@ -24,7 +25,7 @@ function bumpCategoryUsage(usage, category) {
   return usage;
 }
 function playerMini(profile={}) {
-  return playerMiniHtml(profile);
+  return `${profile?.isBot ? `<span class="bot-player-mark" ${botTooltip} aria-label="Bot eksperymentalny">🤖</span>` : ""}${playerMiniHtml(profile)}`;
 }
 function normalizeImpostorGame(game, players = []) {
   game.roles = objectOrEmpty(game.roles);

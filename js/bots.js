@@ -1,5 +1,8 @@
 const BOT_PREFIX = "bot:";
 
+export const BOT_NOTICE = "Boty są dopiero wprowadzane i mogą działać słabo albo wcale nie działać w niektórych trybach.";
+export const botTooltip = `data-bot-tooltip="${BOT_NOTICE}"`;
+
 export const BOT_DIFFICULTIES = [
   { id: "easy", label: "Niska", accuracy: 0.50, minDelay: 1800, maxDelay: 5200 },
   { id: "normal", label: "Średnia", accuracy: 0.70, minDelay: 1100, maxDelay: 3600 },

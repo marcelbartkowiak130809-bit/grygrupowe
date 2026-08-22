@@ -1,4 +1,5 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260804-1";
+import { botTooltip } from "./bots.js?v=20260822-1";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -61,7 +62,7 @@ export function levelTier(level = 1) {
 }
 
 export function levelBadgeHtml(profile = {}, className = "") {
-  if (profile?.isBot) return `<span class="level-badge bot-level-badge ${className}" title="Bot">BOT</span>`;
+  if (profile?.isBot) return `<span class="level-badge bot-level-badge ${className}" ${botTooltip} aria-label="Bot eksperymentalny">BOT</span>`;
   const { level } = levelProgress(profile);
   return `<span class="level-badge level-${levelTier(level)} ${className}" title="Level ${level}">LVL ${level}</span>`;
 }
