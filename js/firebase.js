@@ -464,6 +464,38 @@ export async function claimLuckySpinDatabase(uid, proposal) {
     return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się zarezerwować spinu." };
   }
 }
+const DATABASE_POTION_EFFECTS = {
+  "coins-i": { effect:"coins", multiplier:1.10, durationMs:5 * 60 * 1000 },
+  "coins-ii": { effect:"coins", multiplier:1.25, durationMs:10 * 60 * 1000 },
+  "coins-iii": { effect:"coins", multiplier:1.50, durationMs:20 * 60 * 1000 },
+  "xp-i": { effect:"xp", multiplier:1.10, durationMs:5 * 60 * 1000 },
+  "xp-ii": { effect:"xp", multiplier:1.25, durationMs:10 * 60 * 1000 },
+  "xp-iii": { effect:"xp", multiplier:1.50, durationMs:20 * 60 * 1000 },
+};
+export async function usePotionDatabase(uid, itemId) {
+  const potion = DATABASE_POTION_EFFECTS[String(itemId || "")];
+  if (!canUseRemote() || !uid || remoteAuth?.currentUser?.uid !== uid || !potion) return null;
+  try {
+    const profileRef = firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`);
+    const result = await firebaseDatabaseApi.runTransaction(profileRef, current => {
+      const profile = current && typeof current === "object" ? { ...current } : {};
+      const inventory = profile.potionInventory && typeof profile.potionInventory === "object" ? { ...profile.potionInventory } : {};
+      const quantity = Number(inventory[itemId]) || 0;
+      if (quantity < 1) return;
+      inventory[itemId] = quantity - 1;
+      profile.potionInventory = inventory;
+      const key = potion.effect === "xp" ? "xpBooster" : "coinBooster";
+      const currentBoost = profile[key] && typeof profile[key] === "object" ? profile[key] : {};
+      profile[key] = { multiplier:Math.max(Number(currentBoost.multiplier) || 1, potion.multiplier), expiresAt:Math.max(Number(currentBoost.expiresAt) || 0, serverNow() + potion.durationMs) };
+      profile.updatedAt = serverNow();
+      return profile;
+    }, { applyLocally:false });
+    if (!result.committed) return { ok:false, code:"failed-precondition", error:"Nie masz tej potki w ekwipunku." };
+    return { ok:true, databaseFallback:true, message:`Użyto potki ${itemId}. Boost jest aktywny.`, profile:result.snapshot.val() || {} };
+  } catch (error) {
+    return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się użyć potki." };
+  }
+}
 export async function claimLuckySpin() {
   if (!remoteFunctions || !firebaseFunctionsApi?.httpsCallable) {
     return { ok:false, error:"Lucky Spin wymaga połączenia z serwerem." };
@@ -490,7 +522,7 @@ export async function usePotion(itemId) {
     const result = await firebaseFunctionsApi.httpsCallable(remoteFunctions, "usePotion")({ itemId });
     return { ok:true, ...(result.data || {}) };
   } catch (error) {
-    return { ok:false, error:error?.message || "Nie udało się użyć potki." };
+    return { ok:false, code:error?.code || "unknown", error:error?.message || "Nie udało się użyć potki." };
   }
 }
 export async function submitHonor({ roomId, fromUid, targetUid, type }) {

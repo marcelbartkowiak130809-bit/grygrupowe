@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-8";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-9";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-1";
 import { gamesList, getGameMode } from "./games.js?v=20260822-3";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
@@ -37,7 +37,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
-import { loadPresenceUsers } from "./firebase.js?v=20260822-8";
+import { loadPresenceUsers } from "./firebase.js?v=20260822-9";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 import { scheduleBot } from "./botController.js?v=20260822-2";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -1310,7 +1310,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   async usePotion(itemId) {
     if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby użyć potki." };
-    const result = await usePotionRemote(itemId);
+    let result = await usePotionRemote(itemId);
+    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable"].includes(result.code);
+    if (!result?.ok && backendUnavailable && hasOnlineBackend()) result = await usePotionDatabase(state.currentUser, itemId);
     if (result?.ok && result.profile) {
       state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, updatedAt:Date.now() };
       saveAccounts(state.accounts); render({ preserveDrafts:true });
