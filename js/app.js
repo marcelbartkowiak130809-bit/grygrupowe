@@ -93,7 +93,13 @@ function duoRoomHasGonePlayer(room) {
   const humans=(room?.players||[]).filter(uid=>!isBotId(uid)), presence=room?.presence||{};
   if (humans.length!==2 || !Object.keys(presence).length) return false;
   const live=uid=>Object.values(presence[uid]||{}).some(client=>Date.now()-Number(client?.seenAt||0)<45000);
-  return humans.some(uid=>!live(uid)) && humans.some(live);
+  const missing=humans.find(uid=>!live(uid));
+  if (!missing || !humans.some(live)) return false;
+  // Po dołączeniu druga karta potrzebuje chwili na zapis pierwszego heartbeat'u.
+  // Bez tej ochrony świeże lobby było zamykane zanim nowy gracz zdążył wejść.
+  const joinedAt=Number(room.joinedAt?.[missing] || room.updatedAt || 0);
+  if (joinedAt && Date.now() - joinedAt < 15000) return false;
+  return true;
 }
 const roomEntryFee = room => room?.roomType === "betting" ? Math.max(0, Number(room.entryFee) || 0) : 0;
 const playerMoney = (room, uid) => { const player=state.accounts[uid] || room?.playerProfiles?.[uid] || {}; return Number(player.nickOnly ? player.sessionMoney : player.money) || 0; };
