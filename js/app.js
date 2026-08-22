@@ -1,4 +1,4 @@
-import { accountModal, authModal } from "./auth.js?v=20260804-2";
+import { accountModal, authModal } from "./auth.js?v=20260822-1";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
