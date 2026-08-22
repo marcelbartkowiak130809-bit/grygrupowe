@@ -23,7 +23,7 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260822-1";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-4";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-5";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
@@ -827,7 +827,7 @@ function repairGameStateForPlayers(room) {
     const validNumbers = Array.isArray(game.numbers) && game.numbers.length === total && game.numbers.every(value => value !== null && value !== "" && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= maximum);
     if (!validNumbers) { game.numbers = Array.from({length:total}, (_, index) => index % (maximum + 1)); changed = true; }
     if (!["select", "draw", "result"].includes(game.phase)) { game.phase = "select"; changed = true; }
-    if (!Number.isFinite(Number(game.phaseEndsAt)) || Number(game.phaseEndsAt) <= 0) { game.phaseEndsAt = Date.now() + 10000; changed = true; }
+    if (game.phase === "select") { if (!Number.isFinite(Number(game.phaseEndsAt)) || Number(game.phaseEndsAt) <= 0) { game.phaseEndsAt = Date.now() + 10000; changed = true; } } else if (game.phaseEndsAt) { game.phaseEndsAt = 0; changed = true; }
     if (!game.marked || typeof game.marked !== "object" || Array.isArray(game.marked)) { game.marked = {}; changed = true; }
     if (!game.coverage || typeof game.coverage !== "object" || Array.isArray(game.coverage)) { game.coverage = {}; changed = true; }
     game.players.forEach(uid => { if (!game.coverage[uid] || typeof game.coverage[uid] !== "object" || Array.isArray(game.coverage[uid])) { game.coverage[uid] = {}; changed = true; } });
