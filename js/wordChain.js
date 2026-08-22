@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260613-2";
+import { escapeHtml } from "./utils.js?v=20260822-1";
 import { impostorWords } from "../content/impostor/words.js";
 
 export const wordChainDefaults={answerTime:20,allowRepeats:false,repeatGap:3,acceptEnglish:false,hearts:3};

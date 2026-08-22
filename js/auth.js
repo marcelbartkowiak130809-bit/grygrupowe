@@ -1,4 +1,4 @@
-import { $, avatarHtml, escapeHtml, icon } from "./utils.js?v=20260605-5";
+import { $, avatarHtml, escapeHtml, icon } from "./utils.js?v=20260822-1";
 
 export function authModal(actions, options = {}) {
   const backdrop = document.createElement("div");

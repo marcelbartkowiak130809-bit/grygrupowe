@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260613-2";
+import { escapeHtml } from "./utils.js?v=20260822-1";
 
 export const markerDefaults = { boardSize:8, numberMax:50, markerSkin:"defaultMarker" };
 const MARKER_TURN_TIME = 10;

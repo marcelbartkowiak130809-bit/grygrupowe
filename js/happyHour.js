@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260613-2";
+import { escapeHtml } from "./utils.js?v=20260822-1";
 
 export const HAPPY_HOUR_CONFIG = {
   enabled: true,

@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260613-2";
+import { escapeHtml } from "./utils.js?v=20260822-1";
 
 export const REWARD_ORDER = [
   { id:"coins-small", tier:"weak", emoji:"🪙", label:"100 monet", short:"100" },

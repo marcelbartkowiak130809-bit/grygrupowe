@@ -1,4 +1,4 @@
-import { avatarHtml, escapeHtml } from "./utils.js?v=20260613-2";
+import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 
 export const mathematicsDefaults = { questionCount: 10, questionTime: 45, testTime: 300, mathematicsVariant: "single", answerMode: "abcd", showOpponentAnswers: true, categories: ["addition", "subtraction", "multiplication", "division"] };
 const labels = { addition:"Dodawanie", subtraction:"Odejmowanie", multiplication:"Mnożenie", division:"Dzielenie", powers:"Potęgi", roots:"Pierwiastki", fractions:"Ułamki", percentages:"Procenty", equations:"Równania", areas:"Pola figur", perimeters:"Obwody figur", volumes:"Objętości", geometry:"Geometria", order:"Kolejność działań" };

@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260613-2";
+import { escapeHtml } from "./utils.js?v=20260822-1";
 
 export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [

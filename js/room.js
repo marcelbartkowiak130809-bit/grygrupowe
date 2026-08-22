@@ -1,7 +1,7 @@
-import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260822-2";
+import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
+import { getGameMode } from "./games.js?v=20260822-3";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
+import { renderImpostorLobbySettings } from "./impostor.js?v=20260822-1";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
@@ -20,7 +20,7 @@ import { renderMarkerLobbySettings } from "./marker.js?v=20260822-4";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260813-1";
-import { adSenseBlock } from "./publicPages.js?v=20260611-3";
+import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
