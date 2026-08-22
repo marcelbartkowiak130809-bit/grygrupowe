@@ -691,7 +691,7 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
 }
 
 export async function acknowledgeRemoteImpostorRole(roomId, playerId) {
-  if (!remoteDatabase || !roomId || !playerId) return null;
+  if (!canUseRemote() || !roomId || !playerId) return null;
   try {
     const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
     const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
@@ -713,7 +713,7 @@ export async function acknowledgeRemoteImpostorRole(roomId, playerId) {
 
 export async function removeRemoteRoom(roomId) {
   if (!roomId) return false;
-  try { if(remoteDatabase)await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}`));const local=readLocal(LOCAL_ROOMS_KEY);delete local[roomId];saveLocal(LOCAL_ROOMS_KEY,local);return true; }
+  try { if(canUseRemote())await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}`));const local=readLocal(LOCAL_ROOMS_KEY);delete local[roomId];saveLocal(LOCAL_ROOMS_KEY,local);return true; }
   catch { return false; }
 }
 
