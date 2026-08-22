@@ -725,3 +725,4 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 }
 .fx-game-win{color:#fde68a}.fx-game-win .fx-flash{background:radial-gradient(circle at center,rgba(250,204,21,.34),rgba(34,197,94,.2) 38%,transparent 72%)}
 .fx-game-lose{color:#c4b5fd}.fx-game-lose .fx-flash{background:radial-gradient(circle at center,rgba(99,102,241,.28),rgba(15,23,42,.42) 45%,transparent 76%)}
+.room-page .lobby-layout.has-host-announcements .host-announcement-controls{margin:16px 0}
