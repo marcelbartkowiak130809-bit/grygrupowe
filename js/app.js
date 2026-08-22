@@ -3,14 +3,14 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-9";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-10";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-2";
 import { gamesList, getGameMode } from "./games.js?v=20260822-3";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260813-2";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-3";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-4";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-5";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
@@ -37,7 +37,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
-import { loadPresenceUsers } from "./firebase.js?v=20260822-9";
+import { loadPresenceUsers } from "./firebase.js?v=20260822-10";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 import { scheduleBot } from "./botController.js?v=20260822-2";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -183,6 +183,8 @@ const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId
 let restoredRoom=false;
 const pendingRoomSyncs=new Map();
 const roomSyncChains=new Map();
+const roomSyncRetryAttempts=new Map();
+const roomSyncReconnectTimers=new Map();
 const repairedRoomSignatures=new Map();
 const roomRosterSnapshots=new Map();
 const roomPhaseSnapshots=new Map();
@@ -280,16 +282,54 @@ function ensureRoomSession() {
   if(moveCurrentProfile(getFirebaseSession()))return true;
   state.currentUser=null;state.activeRoomId=null;clearSession();message("Zaloguj się ponownie, aby grać online.","info");render();return false;
 }
+function scheduleRoomReconnect(roomId) {
+  if (roomSyncReconnectTimers.has(roomId)) return;
+  const timer=window.setTimeout(()=>{
+    roomSyncReconnectTimers.delete(roomId);
+    if (["room","game","lobby"].includes(Router.current)) connectRooms();
+  },1500);
+  roomSyncReconnectTimers.set(roomId,timer);
+}
 function queueRoomSync(room) {
   const snapshot=JSON.parse(JSON.stringify(room)),version=snapshot.updatedAt,roomId=snapshot.roomId;
   pendingRoomSyncs.set(roomId,version);
   const previous=roomSyncChains.get(roomId)||Promise.resolve();
-  const current=previous.catch(()=>{}).then(()=>syncRoomState(snapshot)).catch(error=>({ok:false,error:error?.message}));
+  const current=previous.catch(()=>{}).then(()=>syncRoomState(snapshot)).catch(error=>({ok:false,error:error?.message||error?.code||String(error)}));
   roomSyncChains.set(roomId,current);
-  current.then(result=>{const latest=pendingRoomSyncs.get(roomId)===version;if(roomSyncChains.get(roomId)===current)roomSyncChains.delete(roomId);if(latest)pendingRoomSyncs.delete(roomId);if(!result.ok){message(`Nie udało się zsynchronizować pokoju: ${result.error}`);connectRooms();return;}const local=state.rooms.find(room=>room.roomId===roomId);if(result.room&&(!local||Number(result.room.updatedAt||0)>=Number(local.updatedAt||0))){const synced=installRemoteRoom(result.room);if(latest&&state.activeRoomId===roomId&&["room","game"].includes(Router.current)){if(synced.status==="playing"&&synced.game&&Router.current==="room")return Router.go("game");if(synced.status==="lobby"&&Router.current==="game")return Router.go("room");if(currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});}}});
+  current.then(result=>{
+    const latest=pendingRoomSyncs.get(roomId)===version;
+    if(roomSyncChains.get(roomId)===current)roomSyncChains.delete(roomId);
+    if(!result.ok){
+      if(!latest)return;
+      const previousRetry=roomSyncRetryAttempts.get(roomId),attempt=previousRetry?.version===version?previousRetry.count:0;
+      if(attempt<2){
+        roomSyncRetryAttempts.set(roomId,{version,count:attempt+1});
+        window.setTimeout(()=>{if(pendingRoomSyncs.get(roomId)===version)queueRoomSync(snapshot);},500*(attempt+1));
+        return;
+      }
+      roomSyncRetryAttempts.delete(roomId);
+      pendingRoomSyncs.set(roomId,version);
+      message(`Nie udało się zsynchronizować pokoju po 3 próbach: ${result.error||"Nieznany błąd."}`);
+      scheduleRoomReconnect(roomId);
+      return;
+    }
+    roomSyncRetryAttempts.delete(roomId);
+    const reconnectTimer=roomSyncReconnectTimers.get(roomId);
+    if(reconnectTimer){window.clearTimeout(reconnectTimer);roomSyncReconnectTimers.delete(roomId);}
+    if(latest)pendingRoomSyncs.delete(roomId);
+    const local=state.rooms.find(room=>room.roomId===roomId);
+    if(result.room&&(!local||Number(result.room.updatedAt||0)>=Number(local.updatedAt||0))){
+      const synced=installRemoteRoom(result.room);
+      if(latest&&state.activeRoomId===roomId&&["room","game"].includes(Router.current)){
+        if(synced.status==="playing"&&synced.game&&Router.current==="room")return Router.go("game");
+        if(synced.status==="lobby"&&Router.current==="game")return Router.go("room");
+        if(currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});
+      }
+    }
+  });
 }
-function updateProfile(patch) { if (state.currentUser) { state.accounts[state.currentUser] = { ...profile(), ...patch, updatedAt:Date.now() }; syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]); const room=activeRoom();if(room?.players.includes(state.currentUser))touchRoom(room);saveAndRender(); } }
-function touchRoom(room) { room.updatedAt = Math.max(serverNow(),Number(room.updatedAt||0)+1); if(room.players.includes(state.currentUser)&&profile())room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; queueRoomSync(room); return room; }
+function updateProfile(patch) { if (state.currentUser) { state.accounts[state.currentUser] = { ...profile(), ...patch, updatedAt:Date.now() }; syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]); const room=activeRoom();if(normalizedRoomPlayers(room).includes(state.currentUser))touchRoom(room);saveAndRender(); } }
+function touchRoom(room) { room.updatedAt = Math.max(serverNow(),Number(room.updatedAt||0)+1); if(normalizedRoomPlayers(room).includes(state.currentUser)&&profile())room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; queueRoomSync(room); return room; }
 function installRemoteRoom(room) {
   const index=state.rooms.findIndex(item=>item.roomId===room.roomId);
   if(index>=0)state.rooms[index]=room;else state.rooms.unshift(room);

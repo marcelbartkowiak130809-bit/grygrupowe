@@ -656,13 +656,18 @@ export async function loadInboxForNick(nick) {
   return local;
 }
 
+const roomPlayerIds = room => Array.isArray(room?.players)
+  ? room.players.filter(Boolean)
+  : Object.keys(room?.players || {}).filter(Boolean);
+
 export async function syncRoomState(room) {
   if (!room?.roomId) return { ok:false, error:"Brak kodu pokoju." };
   try {
+    const players = roomPlayerIds(room);
     const payload = {
       roomId:room.roomId, gameMode:room.gameMode, name:room.name || "Pokój dla ekipy", isPrivate:Boolean(room.isPrivate), passwordHash:room.passwordHash || "", hostUid:room.hostUid || null,
       roomType:room.roomType === "betting" ? "betting" : "standard", entryFee:room.roomType === "betting" ? Math.max(0, Number(room.entryFee) || 0) : 0,
-      players:Object.fromEntries((room.players || []).map(uid=>[uid,{ nick:room.playerProfiles?.[uid]?.nick || "Gracz", avatarImage:room.playerProfiles?.[uid]?.avatarImage || "", nickOnly:Boolean(room.playerProfiles?.[uid]?.nickOnly), adultStatus:room.playerProfiles?.[uid]?.adultStatus || "unknown", money:Number(room.playerProfiles?.[uid]?.money)||0, sessionMoney:Number(room.playerProfiles?.[uid]?.sessionMoney)||0, xp:Number(room.playerProfiles?.[uid]?.xp)||0, sessionXp:Number(room.playerProfiles?.[uid]?.sessionXp)||0, joinedAt:room.joinedAt?.[uid] || room.createdAt, connected:true, selectedNickEffect:room.playerProfiles?.[uid]?.selectedNickEffect || "defaultNick", selectedAvatarFrame:room.playerProfiles?.[uid]?.selectedAvatarFrame || "defaultFrame", selectedAura:room.playerProfiles?.[uid]?.selectedAura || "noAura", selectedCandySkin:room.playerProfiles?.[uid]?.selectedCandySkin || "defaultCandy", selectedBombSkin:room.playerProfiles?.[uid]?.selectedBombSkin || "defaultBomb", selectedClockSkin:room.playerProfiles?.[uid]?.selectedClockSkin || "defaultClock", selectedIdleAnimation:room.playerProfiles?.[uid]?.selectedIdleAnimation || "", selectedWinAnimation:room.playerProfiles?.[uid]?.selectedWinAnimation || "", selectedLoseAnimation:room.playerProfiles?.[uid]?.selectedLoseAnimation || "" }])),
+      players:Object.fromEntries(players.map(uid=>[uid,{ nick:room.playerProfiles?.[uid]?.nick || "Gracz", avatarImage:room.playerProfiles?.[uid]?.avatarImage || "", nickOnly:Boolean(room.playerProfiles?.[uid]?.nickOnly), adultStatus:room.playerProfiles?.[uid]?.adultStatus || "unknown", money:Number(room.playerProfiles?.[uid]?.money)||0, sessionMoney:Number(room.playerProfiles?.[uid]?.sessionMoney)||0, xp:Number(room.playerProfiles?.[uid]?.xp)||0, sessionXp:Number(room.playerProfiles?.[uid]?.sessionXp)||0, joinedAt:room.joinedAt?.[uid] || room.createdAt, connected:true, selectedNickEffect:room.playerProfiles?.[uid]?.selectedNickEffect || "defaultNick", selectedAvatarFrame:room.playerProfiles?.[uid]?.selectedAvatarFrame || "defaultFrame", selectedAura:room.playerProfiles?.[uid]?.selectedAura || "noAura", selectedCandySkin:room.playerProfiles?.[uid]?.selectedCandySkin || "defaultCandy", selectedBombSkin:room.playerProfiles?.[uid]?.selectedBombSkin || "defaultBomb", selectedClockSkin:room.playerProfiles?.[uid]?.selectedClockSkin || "defaultClock", selectedIdleAnimation:room.playerProfiles?.[uid]?.selectedIdleAnimation || "", selectedWinAnimation:room.playerProfiles?.[uid]?.selectedWinAnimation || "", selectedLoseAnimation:room.playerProfiles?.[uid]?.selectedLoseAnimation || "" }])),
       status:room.status, settings:room.settings || {}, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, pendingEntryFees:room.pendingEntryFees || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
       gameState:room.game || null, chat:room.game?.chat || [], presence:room.presence || {},
     };
@@ -724,7 +729,10 @@ function cleanFirebaseWrite(value) {
 
 const normalizeRemoteRoom=room=>{
   const normalized=normalizeFirebaseValue(room || {});
-  const players=normalized.players || {};
+  const rawPlayers=normalized.players;
+  const players=Array.isArray(rawPlayers)
+    ? Object.fromEntries(rawPlayers.filter(Boolean).map(uid=>[uid,normalized.playerProfiles?.[uid] || {}]))
+    : rawPlayers && typeof rawPlayers === "object" ? rawPlayers : {};
   Object.entries(players).forEach(([uid, player])=>{if(uid.startsWith("bot:")){player.isBot=true;player.botDifficulty=player.botDifficulty||"normal";}});
   return { ...normalized, game:normalizeFirebaseValue(normalized.gameState || null), players:Object.keys(players), playerProfiles:players, joinedAt:Object.fromEntries(Object.entries(players).map(([uid,item])=>[uid,item?.joinedAt])), presence:normalized.presence || {} };
 };

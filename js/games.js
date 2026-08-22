@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20260822-1";
+import { renderGame } from "./game.js?v=20260822-2";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260822-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260611-1";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20260822-4";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20260822-5";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260822-8";
