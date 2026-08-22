@@ -23,7 +23,7 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260805-4";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260813-2";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260813-3";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260813-1";
