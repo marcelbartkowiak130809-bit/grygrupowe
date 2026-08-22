@@ -13,7 +13,7 @@ import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } 
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-7";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-9";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260621-1";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
@@ -37,7 +37,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
-import { loadPresenceUsers } from "./firebase.js?v=20260822-14";
+import { loadPresenceUsers } from "./firebase.js?v=20260822-15";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 import { scheduleBot } from "./botController.js?v=20260822-2";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -402,7 +402,12 @@ function wagerWinners(room) {
   if(game.winner)return [game.winner];
   if(room.gameMode==="udowodnij"&&game.result)return game.result.success?[game.currentBidder]:room.players.filter(uid=>uid!==game.result.loser);
   if(room.gameMode==="impostor"&&game.result)return room.players.filter(uid=>game.result.citizensWin?game.roles?.[uid]?.role==="citizen":game.roles?.[uid]?.role!=="citizen");
-  if(room.gameMode==="zatruty-cukierek"&&game.result?.winner)return [game.result.winner];
+  if(room.gameMode==="zatruty-cukierek"){
+    const scores=game.scores&&typeof game.scores==="object"?game.scores:{};
+    const max=Math.max(0,...room.players.map(uid=>Number(scores[uid]||0)));
+    if(max>0)return room.players.filter(uid=>Number(scores[uid]||0)===max);
+    if(game.result?.winner)return [game.result.winner];
+  }
   const source=game.scores||game.totals||{};
   const max=Math.max(...room.players.map(uid=>Number(source[uid]||0)));
   return room.players.filter(uid=>Number(source[uid]||0)===max);
@@ -480,9 +485,12 @@ function settleFriendshipResult(room) {
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settlePoisonCandyResult(room) {
-  if(room.game.phase!=="results"||room.game.rewarded)return;
-  if(room.game.result?.winner)addPlayerMoney(room.game.result.winner,150);
-  rewardRoomXp(room,45,room.game.result?.winner?[room.game.result.winner]:[]);playCurrentUserResultSound(room.game.result?.winner?[room.game.result.winner]:[]);
+  if(!room?.game||room.game.phase!=="gameSummary"||room.game.rewarded)return;
+  const scores=room.game.scores&&typeof room.game.scores==="object"?room.game.scores:{};
+  const max=Math.max(0,...Object.values(scores).map(Number));
+  const winners=room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0);
+  winners.forEach(uid=>addPlayerMoney(uid,150));
+  rewardRoomXp(room,45,winners);playCurrentUserResultSound(winners);
   room.game.rewarded=true;room.game.finished=true;room.status="results";saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleBombResult(room) {
@@ -900,6 +908,11 @@ function repairGameStateForPlayers(room) {
     if (!game.poisonChoices || typeof game.poisonChoices !== "object") { game.poisonChoices = {}; changed = true; }
     Object.keys(game.poisonChoices).forEach(uid => { if (!players.includes(uid)) { delete game.poisonChoices[uid]; changed = true; } });
     if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    if (!game.scores || typeof game.scores !== "object" || Array.isArray(game.scores)) { game.scores = {}; changed = true; }
+    players.forEach(uid => { if (!(uid in game.scores)) { game.scores[uid] = 0; changed = true; } });
+    if (!Array.isArray(game.roundWinners)) { game.roundWinners = []; changed = true; }
+    if (!Number(game.round)) { game.round = 1; changed = true; }
+    if (!Number(game.totalRounds)) { game.totalRounds = sanitizePoisonCandySettings(room.settings, players.length).rounds; changed = true; }
     if (game.turnIndex >= game.order.length) { game.turnIndex = 0; changed = true; }
   }
   if (room.gameMode === "bomba") {
@@ -1684,6 +1697,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   poisonCandyPoison(ids){return mutateRoomGame((game,room)=>PoisonCandyEngine.poison(game,state.currentUser,ids,room.players,room.settings),{sound:"candyPoison"});},
   poisonCandyTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zatruty-cukierek")return;return mutateRoomGame((game,current)=>{if(game.phase!=="poisoning")return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";PoisonCandyEngine.timeoutPoisoning(game,current.players,current.settings);},{sound:"candyPoison"});},
   poisonCandyEat(id){return mutateRoomGame((game,room)=>PoisonCandyEngine.eat(game,state.currentUser,id,room.players,room.settings),{sound:"candyPick",after:room=>{const event=room.game?.lastEvent;Audio.play(event?.type==="poisoned"&&event.dead?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
+  poisonCandyNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>PoisonCandyEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   bombAnswer(text){return mutateRoomGame((game,room)=>BombEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit",after:settleBombResult});},
   bombTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bomba")return;return mutateRoomGame((game,current)=>BombEngine.timeout(game,expected.activeUid,current.players,current.settings,expected),{sound:"roundEnd",after:settleBombResult});},
   bombNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>BombEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
@@ -1747,7 +1761,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
-const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext"];
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound"];
 hostOnlyRoundActions.forEach(actionName => {
   const original = actions[actionName];
   if (!original) return;
@@ -1893,6 +1907,7 @@ const roundAdvanceControls = {
   zegar: { selector: "#clock-next-round", action: "clockNextRound" },
   wavelength: { selector: "#wavelength-next", action: "wavelengthNext" },
   "test-znajomosci": { selector: "#friend-round-next", action: "friendshipRoundNext" },
+  "zatruty-cukierek": { selector: "#candy-next-round", action: "poisonCandyNextRound", delay: 15000 },
 };
 
 function roundAdvanceControl(room) {
@@ -1911,7 +1926,8 @@ function setupRoundAdvance(view, room, actions) {
   button.classList.add("host-round-control");
   if (!isHost) button.title = "Tylko host może rozpocząć następną rundę.";
   const key = `${room.roomId}:${room.gameMode}:${game.round || 0}:${game.phase}`;
-  const deadline = roundAdvanceDeadlines.get(key) || Date.now() + 10000;
+  const delay = Number(config.delay) || 10000;
+  const deadline = roundAdvanceDeadlines.get(key) || Date.now() + delay;
   roundAdvanceDeadlines.set(key, deadline);
   const notice = document.createElement("p");
   notice.className = "round-advance-notice";
