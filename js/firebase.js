@@ -136,6 +136,22 @@ function aggregateSiteStatEvents(events = {}) {
   return stats;
 }
 
+function mergeSiteStats(globalStats = {}, eventStats = {}) {
+  const counters = ["gamesPlayed", "roomsCreated", "registeredUsers", "coinsEarned", "playedMinutes", "peakOnline"];
+  const stats = { ...globalStats, ...eventStats };
+  counters.forEach(key => {
+    stats[key] = Math.max(Number(globalStats[key]) || 0, Number(eventStats[key]) || 0);
+  });
+  stats.modeCounts = { ...(globalStats.modeCounts || {}), ...(eventStats.modeCounts || {}) };
+  Object.keys(globalStats.modeCounts || {}).forEach(modeId => {
+    stats.modeCounts[modeId] = Math.max(Number(globalStats.modeCounts[modeId]) || 0, Number(eventStats.modeCounts?.[modeId]) || 0);
+  });
+  Object.keys(eventStats.modeCounts || {}).forEach(modeId => {
+    stats.modeCounts[modeId] = Math.max(Number(globalStats.modeCounts?.[modeId]) || 0, Number(eventStats.modeCounts[modeId]) || 0);
+  });
+  return stats;
+}
+
 export function subscribeSiteStats(callback) {
   if (canUseRemote()) {
     const eventsRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStatEvents");
@@ -143,7 +159,8 @@ export function subscribeSiteStats(callback) {
     let events = null;
     let globalStats = {};
     const emit = async () => {
-      const stats = events && Object.keys(events).length ? aggregateSiteStatEvents(events) : { ...globalStats, modeCounts:{ ...(globalStats.modeCounts || {}) } };
+      const eventStats = events && Object.keys(events).length ? aggregateSiteStatEvents(events) : {};
+      const stats = mergeSiteStats(globalStats, eventStats);
       try {
         const profiles = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {};
         stats.registeredUsers = Math.max(Number(stats.registeredUsers) || 0, Object.keys(profiles).length);
