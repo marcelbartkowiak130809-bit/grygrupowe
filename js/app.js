@@ -19,7 +19,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260612-2";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260613-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260813-2";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260822-8";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260805-4";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
@@ -974,8 +974,11 @@ function repairGameStateForPlayers(room) {
       if (!game.budgets || typeof game.budgets !== "object" || Array.isArray(game.budgets)) { game.budgets = {}; changed = true; }
       if (!game.teams || typeof game.teams !== "object" || Array.isArray(game.teams)) { game.teams = {}; changed = true; }
       if (!game.purchases || typeof game.purchases !== "object" || Array.isArray(game.purchases)) { game.purchases = {}; changed = true; }
+      if (!Array.isArray(game.items)) { game.items = []; changed = true; }
+      if (!Number.isFinite(Number(game.auctionIndex))) { game.auctionIndex = 0; changed = true; }
       if (!Array.isArray(game.passed)) { game.passed = []; changed = true; }
-      players.forEach(uid => { if (!Array.isArray(game.teams[uid])) { game.teams[uid] = []; changed = true; } if (!Array.isArray(game.purchases[uid])) { game.purchases[uid] = []; changed = true; } });
+      players.forEach(uid => { if (!Array.isArray(game.teams[uid])) { game.teams[uid] = []; changed = true; } if (!Array.isArray(game.purchases[uid])) { game.purchases[uid] = []; changed = true; } if (!Number.isFinite(Number(game.budgets[uid]))) { game.budgets[uid] = Number(room.settings?.budget) || 50; changed = true; } });
+      if (!game.items.length && game.phase === "auction") { game.phase = "result"; game.finished = true; changed = true; }
     }
   }
   if (room.gameMode === "wavelength") {
