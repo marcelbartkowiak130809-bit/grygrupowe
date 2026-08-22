@@ -245,7 +245,7 @@ export function subscribeOnlineCount(callback) {
 export function hasVoiceSignaling() { return Boolean(remoteDatabase && remoteAuth?.currentUser); }
 
 export async function setVoiceSignal(roomId, fromUid, toUid, key, value) {
-  if (!remoteDatabase || !roomId || !fromUid || !toUid || !key) return false;
+  if (!canUseRemote() || !roomId || !fromUid || !toUid || !key) return false;
   try {
     await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/${key}`), value);
     return true;
@@ -253,7 +253,7 @@ export async function setVoiceSignal(roomId, fromUid, toUid, key, value) {
 }
 
 export async function pushVoiceIceCandidate(roomId, fromUid, toUid, candidate) {
-  if (!remoteDatabase || !roomId || !fromUid || !toUid || !candidate) return false;
+  if (!canUseRemote() || !roomId || !fromUid || !toUid || !candidate) return false;
   try {
     await firebaseDatabaseApi.push(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/candidates`), candidate);
     return true;
@@ -261,12 +261,12 @@ export async function pushVoiceIceCandidate(roomId, fromUid, toUid, candidate) {
 }
 
 export function subscribeVoiceSignals(roomId, uid, callback) {
-  if (!remoteDatabase || !roomId || !uid) return () => {};
+  if (!canUseRemote() || !roomId || !uid) return () => {};
   return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`), snapshot => callback(snapshot.val() || {}), () => callback({}));
 }
 
 export async function clearVoiceSignals(roomId, uid = "") {
-  if (!remoteDatabase || !roomId) return false;
+  if (!canUseRemote() || !roomId) return false;
   try {
     if (!uid) { await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`)); return true; }
     const roomRef = firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`);
@@ -319,12 +319,12 @@ const sanitizePublicProfile = profile => {
 };
 const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, sessionMoney:Number(profile.sessionMoney)||0, sessionXp:Number(profile.sessionXp)||0, luckySpin:profile.luckySpin || null, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true, ...(profile.ownedCosmetics || {}) }, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", potionInventory:profile.potionInventory || {}, coinBooster:profile.coinBooster || null, xpBooster:profile.xpBooster || null, privacy:profilePrivacy(profile), gameHistory:Array.isArray(profile.gameHistory) ? profile.gameHistory : [], answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
 export async function loadRemoteProfile(uid) {
-  if (!remoteDatabase || !uid) return null;
+  if (!canUseRemote() || !uid) return null;
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`))).val() || null; }
   catch { return null; }
 }
 export async function syncPlayerProfile(uid, profile) {
-  if (!remoteDatabase || !uid || !profile || profile.nickOnly) return false;
+  if (!canUseRemote() || !uid || !profile || profile.nickOnly) return false;
   try {
     const publicData = publicProfile(profile);
     delete publicData.honorCounts;
@@ -337,7 +337,7 @@ export async function syncPlayerProfile(uid, profile) {
 }
 export async function setRemoteBirthDateForNick(nick, birthDate) {
   const key = normalizeNickKey(nick);
-  if (!remoteDatabase || !key || !birthDate) return false;
+  if (!canUseRemote() || !key || !birthDate) return false;
   try {
     const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "profiles"));
     const match = Object.entries(snapshot.val() || {}).find(([, item]) => normalizeNickKey(item?.nick) === key);
@@ -372,7 +372,7 @@ export function subscribeWouldYouRatherVotes(questionId, callback) {
 export async function voteWouldYouRather({ questionId, choice, playerId, persistProfile }) {
   const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY), playerAnswers=answers[playerId] || {};
   if (playerAnswers[questionId]) return { accepted:false, votes:await getWouldYouRatherVotes(questionId) };
-  if (remoteDatabase && persistProfile) {
+  if (canUseRemote() && persistProfile) {
     try {
       const profileAnswer=await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${playerId}/answeredWouldYouRather/${questionId}`));
       if (profileAnswer.exists()) return { accepted:false, votes:await getWouldYouRatherVotes(questionId) };
@@ -397,7 +397,7 @@ export async function loadPublicProfiles() {
   try { const profiles = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {}; return Object.fromEntries(Object.entries(profiles).map(([uid, profile]) => [uid, sanitizePublicProfile(profile || {})])); } catch { return {}; }
 }
 export async function updateRemoteProfileFields(uid, patch = {}) {
-  if (!remoteDatabase || !uid || !Object.keys(patch).length) return false;
+  if (!canUseRemote() || !uid || !Object.keys(patch).length) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }
 }
 export async function claimLuckySpinDatabase(uid, proposal) {
@@ -459,23 +459,23 @@ export async function submitHonor({ roomId, fromUid, targetUid, type }) {
   return { ok:true, local:true, targetUid, type };
 }
 export async function loadFriendRequestBucket(uid) {
-  if (!remoteDatabase || !uid) return {};
+  if (!canUseRemote() || !uid) return {};
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${uid}`))).val() || {}; } catch { return {}; }
 }
 export async function loadFriendRequest(targetUid, requestId) {
-  if (!remoteDatabase || !targetUid || !requestId) return null;
+  if (!canUseRemote() || !targetUid || !requestId) return null;
   try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${requestId}`))).val() || null; } catch { return null; }
 }
 export async function setFriendRequest(targetUid, request) {
-  if (!remoteDatabase || !targetUid || !request?.id) return false;
+  if (!canUseRemote() || !targetUid || !request?.id) return false;
   try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${request.id}`), request); return true; } catch { return false; }
 }
 export async function updateFriendRequest(targetUid, requestId, patch = {}) {
-  if (!remoteDatabase || !targetUid || !requestId) return false;
+  if (!canUseRemote() || !targetUid || !requestId) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${targetUid}/${requestId}`), patch); return true; } catch { return false; }
 }
 export function subscribeFriendRequests(uid, onChange) {
-  if (!remoteDatabase || !uid || typeof onChange !== "function") return () => {};
+  if (!canUseRemote() || !uid || typeof onChange !== "function") return () => {};
   const ref = firebaseDatabaseApi.ref(remoteDatabase, `friendRequests/${uid}`);
   return firebaseDatabaseApi.onValue(ref, snapshot => onChange(snapshot.val() || {}), () => onChange({}));
 }
