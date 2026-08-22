@@ -13,7 +13,7 @@ import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } 
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260813-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260605-6";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-7";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260621-1";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";

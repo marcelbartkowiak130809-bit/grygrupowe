@@ -5,7 +5,7 @@ import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260612-1";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260605-6";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260822-7";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20260621-1";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260612-2";
