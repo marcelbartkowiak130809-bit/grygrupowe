@@ -376,6 +376,14 @@ export async function getWouldYouRatherAnswer(questionId, playerId = "guest", re
         saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
         return remoteAnswer;
       }
+      const voteSnapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `wouldYouRatherVotes/${questionId}/voters/${remotePlayerId}`));
+      const recordedAnswer = voteSnapshot.val();
+      if (recordedAnswer === "a" || recordedAnswer === "b") {
+        const answers = readLocal(WOULD_YOU_RATHER_ANSWERS_KEY);
+        answers[playerId] = { ...(answers[playerId] || {}), [questionId]: recordedAnswer };
+        saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
+        return recordedAnswer;
+      }
     } catch {}
   }
   return null;
@@ -406,8 +414,23 @@ export async function voteWouldYouRather({ questionId, choice, playerId, remoteP
   }
   if (canUseRemote()) {
     try {
-      const voteRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}/${choice}`);
-      await firebaseDatabaseApi.runTransaction(voteRef,current=>(current||0)+1);
+      if (!remotePlayerId) return { accepted:false, error:"Nie udało się zweryfikować gracza. Odśwież stronę i spróbuj ponownie." };
+      let duplicateChoice = "";
+      const voteRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
+      const result=await firebaseDatabaseApi.runTransaction(voteRef,current=>{
+        const votes = current && typeof current === "object" ? { ...current } : {};
+        const voters = votes.voters && typeof votes.voters === "object" ? { ...votes.voters } : {};
+        if (voters[remotePlayerId] === "a" || voters[remotePlayerId] === "b") {
+          duplicateChoice = voters[remotePlayerId];
+          return current;
+        }
+        votes[choice] = (Number(votes[choice]) || 0) + 1;
+        voters[remotePlayerId] = choice;
+        votes.voters = voters;
+        return votes;
+      });
+      if (duplicateChoice) return { accepted:false, choice:duplicateChoice, votes:await getWouldYouRatherVotes(questionId) };
+      if (!result?.committed) return { accepted:false, error:"Nie udało się zapisać głosu online. Spróbuj ponownie." };
       if (persistProfile) await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${remotePlayerId}/answeredWouldYouRather/${questionId}`),choice);
       playerAnswers[questionId]=choice; answers[playerId]=playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
       return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };

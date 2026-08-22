@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-6";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-8";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-1";
 import { gamesList, getGameMode } from "./games.js?v=20260822-3";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
@@ -11,7 +11,6 @@ import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identit
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260813-2";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-3";
-import { voteWouldYouRather as voteWouldYouRatherFresh } from "./firebase.js?v=20260822-7";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
@@ -24,9 +23,9 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260822-1";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260813-3";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-4";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
-import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260805-1";
+import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260813-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260804-6";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260822-1";
@@ -38,7 +37,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
-import { loadPresenceUsers } from "./firebase.js?v=20260822-6";
+import { loadPresenceUsers } from "./firebase.js?v=20260822-8";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 import { scheduleBot } from "./botController.js?v=20260804-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -773,7 +772,10 @@ function repairGameStateForPlayers(room) {
     if (game.size !== size) { game.size = size; changed = true; }
     if (game.numberMax !== maximum) { game.numberMax = maximum; changed = true; }
     const total = size * size;
-    if (!Array.isArray(game.numbers) || game.numbers.length !== total) { game.numbers = Array.from({length:total}, (_, index) => index % (maximum + 1)); changed = true; }
+    const validNumbers = Array.isArray(game.numbers) && game.numbers.length === total && game.numbers.every(value => value !== null && value !== "" && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= maximum);
+    if (!validNumbers) { game.numbers = Array.from({length:total}, (_, index) => index % (maximum + 1)); changed = true; }
+    if (!["select", "draw", "result"].includes(game.phase)) { game.phase = "select"; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) || Number(game.phaseEndsAt) <= 0) { game.phaseEndsAt = Date.now() + 10000; changed = true; }
     if (!game.marked || typeof game.marked !== "object" || Array.isArray(game.marked)) { game.marked = {}; changed = true; }
     if (!game.coverage || typeof game.coverage !== "object" || Array.isArray(game.coverage)) { game.coverage = {}; changed = true; }
     game.players.forEach(uid => { if (!game.coverage[uid] || typeof game.coverage[uid] !== "object" || Array.isArray(game.coverage[uid])) { game.coverage[uid] = {}; changed = true; } });
@@ -951,7 +953,8 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
     if (!Array.isArray(game.revealed)) { game.revealed = []; changed = true; }
     if (!Array.isArray(game.answers)) { game.answers = []; changed = true; }
-    if (!game.questions.length && game.phase !== "result") { game.phase = "result"; game.finished = true; changed = true; }
+    const question = game.questions[Math.max(0, Number(game.round || 1) - 1)];
+    if ((!game.questions.length || !question || typeof question.prompt !== "string" || !Array.isArray(question.answers)) && game.phase !== "result") { game.phase = "result"; game.finished = true; changed = true; }
     const beforeScores = JSON.stringify(game.scores || {});
     game.scores = ensureScoreObject(game.scores, players, 0);
     if (JSON.stringify(game.scores) !== beforeScores) changed = true;
@@ -1616,7 +1619,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   otherNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="results")return"Runda została już zmieniona.";OtherQuestionEngine.next(game,current.players,current.settings);});},
   async wyrVote(choice){
     const user=profile(),question=currentWouldYouRather();if(!question)return;
-    const result=await voteWouldYouRatherFresh({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
+    const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
     if(result.error)return message(result.error,"error");
     if(!result.accepted){if(result.choice==="a"||result.choice==="b")setWouldYouRatherVote(result.choice,result.votes);return message("Na to pytanie już oddałeś głos.","info");}
     setWouldYouRatherVote(choice,result.votes);
