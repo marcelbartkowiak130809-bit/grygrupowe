@@ -822,7 +822,10 @@ function normalizeFirebaseValue(value) {
 function cleanFirebaseWrite(value) {
   if (value === undefined) return undefined;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (Array.isArray(value)) return value.map(cleanFirebaseWrite).filter(item => item !== undefined);
+  // Keep array positions stable. Filtering undefined entries used to compact
+  // sparse game state arrays, so a value at index 4 could come back as index 3
+  // after a Firebase round-trip and make a mode read the wrong answer/cell.
+  if (Array.isArray(value)) return value.map(item => item === undefined ? null : cleanFirebaseWrite(item));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cleanFirebaseWrite(item)]).filter(([, item]) => item !== undefined));
 }
