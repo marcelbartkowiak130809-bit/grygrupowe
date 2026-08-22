@@ -19,7 +19,7 @@ let remoteFunctionsUnavailable = false;
 let serverTimeOffset = 0;
 let localPresenceTimer;
 let remotePresenceStop = () => {};
-const PRESENCE_TTL_MS = 90000;
+const PRESENCE_TTL_MS = 45000;
 
 const clientPresenceId = () => {
   let id = sessionStorage.getItem("udowodnij_presence_client");
@@ -241,7 +241,7 @@ export function startPresence(userKey, meta = {}) {
     const clientRef = firebaseDatabaseApi.ref(remoteDatabase, `presence/${key}/clients/${clientId}`);
     firebaseDatabaseApi.set(clientRef, { nick:meta.nick || "", seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{});
     firebaseDatabaseApi.onDisconnect?.(clientRef)?.remove?.();
-    localPresenceTimer = setInterval(() => firebaseDatabaseApi.update(clientRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{}), 30000);
+  localPresenceTimer = setInterval(() => firebaseDatabaseApi.update(clientRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{}), 15000);
     remotePresenceStop = () => { clearInterval(localPresenceTimer); firebaseDatabaseApi.remove(clientRef).catch(()=>{}); };
     window.addEventListener("beforeunload", remotePresenceStop, { once:true });
     return remotePresenceStop;
@@ -253,7 +253,7 @@ export function startPresence(userKey, meta = {}) {
     window.dispatchEvent(new CustomEvent("udowodnij-presence-change"));
   };
   touch();
-  localPresenceTimer = setInterval(touch, 30000);
+  localPresenceTimer = setInterval(touch, 15000);
   remotePresenceStop = () => { clearInterval(localPresenceTimer); const data=readLocal(LOCAL_PRESENCE_KEY); if(data[key]){delete data[key][clientId]; if(!Object.keys(data[key]).length)delete data[key]; saveLocal(LOCAL_PRESENCE_KEY,data);} };
   window.addEventListener("beforeunload", remotePresenceStop, { once:true });
   return remotePresenceStop;
@@ -305,7 +305,7 @@ export function subscribeOnlineCount(callback) {
       emit(count);
     };
     const stopRemote = firebaseDatabaseApi.onValue(presenceRef, handleSnapshot, () => emit(localPresenceCount()));
-    const timer = setInterval(() => firebaseDatabaseApi.get(presenceRef).then(handleSnapshot).catch(() => emit(localPresenceCount())), 60000);
+    const timer = setInterval(() => firebaseDatabaseApi.get(presenceRef).then(handleSnapshot).catch(() => emit(localPresenceCount())), 15000);
     return () => { clearInterval(timer); stopRemote(); };
   }
   emit(localPresenceCount());
