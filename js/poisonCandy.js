@@ -141,7 +141,7 @@ export const PoisonCandyEngine = {
     });
     finishPoisoning(game, players);
   },
-  eat(game, uid, candyId) {
+  eat(game, uid, candyId, players = [], settings = {}) {
     normalize(game);
     if (game.phase !== "eating") return "Teraz nie jemy cukierkow.";
     if (activeUid(game) !== uid) return "To nie jest twoja kolej.";

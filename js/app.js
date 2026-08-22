@@ -919,6 +919,7 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.questions)) { game.questions = []; changed = true; }
     if (!Array.isArray(game.revealed)) { game.revealed = []; changed = true; }
     if (!Array.isArray(game.answers)) { game.answers = []; changed = true; }
+    if (!game.questions.length && game.phase !== "result") { game.phase = "result"; game.finished = true; changed = true; }
     const beforeScores = JSON.stringify(game.scores || {});
     game.scores = ensureScoreObject(game.scores, players, 0);
     if (JSON.stringify(game.scores) !== beforeScores) changed = true;
@@ -964,6 +965,31 @@ function repairGameStateForPlayers(room) {
     players.forEach(uid => { if (!Number.isFinite(Number(game.hearts[uid]))) { game.hearts[uid] = defaultHearts; changed = true; } });
     if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
     if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
+  }
+  if (typeof room.gameMode === "string" && room.gameMode.startsWith("pokemon-")) {
+    if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
+    if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
+    if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    if (room.gameMode === "pokemon-auction") {
+      if (!game.budgets || typeof game.budgets !== "object" || Array.isArray(game.budgets)) { game.budgets = {}; changed = true; }
+      if (!game.teams || typeof game.teams !== "object" || Array.isArray(game.teams)) { game.teams = {}; changed = true; }
+      if (!game.purchases || typeof game.purchases !== "object" || Array.isArray(game.purchases)) { game.purchases = {}; changed = true; }
+      if (!Array.isArray(game.passed)) { game.passed = []; changed = true; }
+      players.forEach(uid => { if (!Array.isArray(game.teams[uid])) { game.teams[uid] = []; changed = true; } if (!Array.isArray(game.purchases[uid])) { game.purchases[uid] = []; changed = true; } });
+    }
+  }
+  if (room.gameMode === "wavelength") {
+    if (!Array.isArray(game.pair) || game.pair.length < 2) { game.pair = ["Wolne", "Szybkie"]; changed = true; }
+    if (!game.clues || typeof game.clues !== "object" || Array.isArray(game.clues)) { game.clues = {}; changed = true; }
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+  }
+  if (room.gameMode === "quiz") {
+    if (!Array.isArray(game.questionIds)) { game.questionIds = []; changed = true; }
+    if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
+    if (!game.scores || typeof game.scores !== "object" || Array.isArray(game.scores)) { game.scores = Object.fromEntries(players.map(uid => [uid, 0])); changed = true; }
+    if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
   }
   if (room.gameMode === "pokemon-dex" && game.phase === "result" && Number(game.round) >= Math.max(1, Number(room.settings?.rounds) || 5) && !game.finished) { game.finished = true; changed = true; }
   return changed;
@@ -1567,7 +1593,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   mostLikelyNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="roundResult")return"Runda została już zmieniona.";MostLikelyEngine.next(game,current.settings);},{after:settleMostLikelyResult});},
   poisonCandyPoison(ids){return mutateRoomGame((game,room)=>PoisonCandyEngine.poison(game,state.currentUser,ids,room.players,room.settings),{sound:"candyPoison"});},
   poisonCandyTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zatruty-cukierek")return;return mutateRoomGame((game,current)=>{if(game.phase!=="poisoning")return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";PoisonCandyEngine.timeoutPoisoning(game,current.players,current.settings);},{sound:"candyPoison"});},
-  poisonCandyEat(id){return mutateRoomGame(game=>PoisonCandyEngine.eat(game,state.currentUser,id),{sound:"candyPick",after:room=>{const event=room.game?.lastEvent;Audio.play(event?.type==="poisoned"&&event.dead?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
+  poisonCandyEat(id){return mutateRoomGame((game,room)=>PoisonCandyEngine.eat(game,state.currentUser,id,room.players,room.settings),{sound:"candyPick",after:room=>{const event=room.game?.lastEvent;Audio.play(event?.type==="poisoned"&&event.dead?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
   bombAnswer(text){return mutateRoomGame((game,room)=>BombEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit",after:settleBombResult});},
   bombTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bomba")return;return mutateRoomGame((game,current)=>BombEngine.timeout(game,expected.activeUid,current.players,current.settings,expected),{sound:"roundEnd",after:settleBombResult});},
   bombNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>BombEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
