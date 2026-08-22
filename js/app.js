@@ -79,6 +79,9 @@ let friendPresence = {};
 let friendPollTimer = null;
 const friendSeenNotifications = new Set();
 const botSchedules = new Map();
+let roundAdvanceTimer = 0;
+let roundAdvanceInterval = 0;
+const roundAdvanceDeadlines = new Map();
 let roomPresenceStop = () => {};
 let roomPresenceId = "";
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
@@ -1660,6 +1663,17 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext"];
+hostOnlyRoundActions.forEach(actionName => {
+  const original = actions[actionName];
+  if (!original) return;
+  actions[actionName] = (...args) => {
+    const room = activeRoom();
+    if (room && room.hostUid !== state.currentUser) return message("Tylko host może rozpocząć następną rundę.", "info");
+    return original(...args);
+  };
+});
+
 function wrapTopbarAction(id, original) {
   return async (...args) => {
     const request = beginTopbarModal(id);
@@ -1784,6 +1798,55 @@ function renderHappyHourBanner() {
     if (!left) { window.clearInterval(timer); banner.remove(); render(); }
   }, 1000);
 }
+
+const roundAdvanceControls = {
+  udowodnij: { selector: "#next-round", action: "nextRound" },
+  "inne-pytanie": { selector: "#other-next", action: "otherNext" },
+  "kto-najpredzej": { selector: "#most-next", action: "mostLikelyNext" },
+  bomba: { selector: "#bomb-next-round", action: "bombNextRound" },
+  "najblizej-prawdy": { selector: "#truth-next-round", action: "closestTruthNext" },
+  ranking: { selector: "#ranking-next-round", action: "rankingNext" },
+  zegar: { selector: "#clock-next-round", action: "clockNextRound" },
+  wavelength: { selector: "#wavelength-next", action: "wavelengthNext" },
+  "test-znajomosci": { selector: "#friend-round-next", action: "friendshipRoundNext" },
+};
+
+function roundAdvanceControl(room) {
+  if (room?.gameMode?.startsWith("pokemon-")) return { selector: "#pokemon-next", action: "pokemonNextRound" };
+  return roundAdvanceControls[room?.gameMode];
+}
+
+function setupRoundAdvance(view, room, actions) {
+  const config = roundAdvanceControl(room), game = room?.game;
+  if (!config || game?.finished) return;
+  const button = view.querySelector(config.selector);
+  if (!button) return;
+  const isHost = room.hostUid === state.currentUser;
+  button.disabled = !isHost;
+  button.setAttribute("aria-disabled", String(!isHost));
+  button.classList.add("host-round-control");
+  if (!isHost) button.title = "Tylko host może rozpocząć następną rundę.";
+  const key = `${room.roomId}:${room.gameMode}:${game.round || 0}:${game.phase}`;
+  const deadline = roundAdvanceDeadlines.get(key) || Date.now() + 10000;
+  roundAdvanceDeadlines.set(key, deadline);
+  const notice = document.createElement("p");
+  notice.className = "round-advance-notice";
+  notice.innerHTML = isHost ? `Kolejna runda rozpocznie się automatycznie za <b data-round-advance-countdown></b>.` : `Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b data-round-advance-countdown></b>.`;
+  button.insertAdjacentElement("afterend", notice);
+  const update = () => {
+    const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    const countdown = notice.querySelector("[data-round-advance-countdown]");
+    if (countdown) countdown.textContent = `${left}s`;
+    return left;
+  };
+  update();
+  roundAdvanceInterval = window.setInterval(update, 250);
+  roundAdvanceTimer = window.setTimeout(() => {
+    window.clearInterval(roundAdvanceInterval);
+    if (isHost && activeRoom()?.roomId === room.roomId && activeRoom()?.game?.phase === game.phase) actions[config.action]();
+  }, Math.max(100, deadline - Date.now() + 50));
+}
+
 function render(options = {}) {
   updateDocumentTitle();
   const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
@@ -1797,6 +1860,7 @@ function render(options = {}) {
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer(); stopSequenceTimer(); stopMarkerTimer();
+  window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
@@ -1819,6 +1883,7 @@ function render(options = {}) {
     const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); const repaired=repairGameStateForPlayers(room); if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}} settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
     try {
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
+      setupRoundAdvance(view, room, actions);
       renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
