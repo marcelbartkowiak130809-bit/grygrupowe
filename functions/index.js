@@ -258,7 +258,12 @@ exports.recordSiteEvent = onCall(async (request) => {
   if (!uid) throw new HttpsError("unauthenticated", "Zaloguj się.");
   if (!eventId || !allowed.has(type)) throw new HttpsError("invalid-argument", "Nieprawidłowe zdarzenie.");
   const eventRef = db.ref(`siteStatEvents/${uid}/${eventId}`);
-  const guard = await eventRef.transaction(current => current || { type, createdAt:Date.now() });
+  const eventRecord = { type, eventId, createdAt:Date.now() };
+  if (data.modeId) eventRecord.modeId = String(data.modeId).slice(0, 80);
+  if (data.minutes != null) eventRecord.minutes = Math.max(0, Math.min(1440, Number(data.minutes) || 0));
+  if (data.amount != null) eventRecord.amount = Math.max(0, Math.min(100000000, Number(data.amount) || 0));
+  if (data.value != null) eventRecord.value = Math.max(0, Math.min(1000000, Number(data.value) || 0));
+  const guard = await eventRef.transaction(current => current || eventRecord);
   if (!guard.committed) return { accepted:true, duplicate:true };
   const statsRef = db.ref("siteStats/global");
   await statsRef.transaction(current => {
@@ -283,6 +288,6 @@ exports.recordSiteEvent = onCall(async (request) => {
 
 exports.getSiteStats = onCall(async () => {
   const stats = (await db.ref("siteStats/global").get()).val() || {};
-  const profiles = (await db.ref("profiles").get()).val() || {};
+  const profiles = (await db.ref("publicProfiles").get()).val() || {};
   return { ...stats, registeredUsers:Math.max(Number(stats.registeredUsers) || 0, Object.keys(profiles).length) };
 });

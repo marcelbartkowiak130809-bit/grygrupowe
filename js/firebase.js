@@ -8,6 +8,7 @@ const LOCAL_PRESENCE_KEY = "udowodnij_local_presence_v1";
 const LOCAL_HONOR_KEY = "udowodnij_honor_votes_v1";
 const HONOR_TYPE_IDS = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 const LOCAL_SITE_STATS_KEY = "udowodnij_site_stats_v1";
+const SITE_STAT_EVENT_TYPES = new Set(["gameFinished", "roomCreated", "userRegistered", "coinsEarned", "onlinePeak"]);
 let remoteAuth;
 let firebaseAuthApi;
 let remoteDatabase;
@@ -116,27 +117,64 @@ export function loadSiteStats() {
   const localRegistered = Object.values(accounts).filter(account => account && !account.nickOnly).length;
   return { gamesPlayed:0, roomsCreated:0, registeredUsers:localRegistered, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{}, ...data, registeredUsers:Math.max(localRegistered, Number(data.registeredUsers) || 0) };
 }
+
+function aggregateSiteStatEvents(events = {}) {
+  const stats = { gamesPlayed:0, roomsCreated:0, registeredUsers:0, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{} };
+  Object.values(events || {}).forEach(userEvents => Object.values(userEvents || {}).forEach(event => {
+    if (!SITE_STAT_EVENT_TYPES.has(event?.type)) return;
+    if (event.type === "gameFinished") {
+      stats.gamesPlayed += 1;
+      stats.playedMinutes += Math.max(0, Number(event.minutes) || 0);
+      const modeId = String(event.modeId || "unknown").slice(0, 80);
+      stats.modeCounts[modeId] = (Number(stats.modeCounts[modeId]) || 0) + 1;
+    }
+    if (event.type === "roomCreated") stats.roomsCreated += 1;
+    if (event.type === "userRegistered") stats.registeredUsers += 1;
+    if (event.type === "coinsEarned") stats.coinsEarned += Math.max(0, Number(event.amount) || 0);
+    if (event.type === "onlinePeak") stats.peakOnline = Math.max(stats.peakOnline, Number(event.value) || 0);
+  }));
+  return stats;
+}
+
 export function subscribeSiteStats(callback) {
   if (canUseRemote()) {
-    const ref = firebaseDatabaseApi.ref(remoteDatabase, "siteStats/global");
-    const emit = async snapshot => {
-      const stats = snapshot.val() || {};
+    const eventsRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStatEvents");
+    const globalRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStats/global");
+    let events = null;
+    let globalStats = {};
+    const emit = async () => {
+      const stats = events && Object.keys(events).length ? aggregateSiteStatEvents(events) : { ...globalStats, modeCounts:{ ...(globalStats.modeCounts || {}) } };
       try {
         const profiles = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {};
         stats.registeredUsers = Math.max(Number(stats.registeredUsers) || 0, Object.keys(profiles).length);
       } catch {}
       callback(stats);
     };
-    const stop = firebaseDatabaseApi.onValue(ref, emit, () => callback({}));
-    let timer;
-    const refresh = () => firebaseFunctionsApi?.httpsCallable && firebaseFunctionsApi.httpsCallable(remoteFunctions, "getSiteStats")({}).then(result => callback(result.data || {})).catch(() => {});
-    refresh(); timer = setInterval(refresh, 60000);
-    return () => { stop(); clearInterval(timer); };
+    const stopEvents = firebaseDatabaseApi.onValue(eventsRef, snapshot => { events = snapshot.val() || {}; emit(); }, () => emit());
+    const stopGlobal = firebaseDatabaseApi.onValue(globalRef, snapshot => { globalStats = snapshot.val() || {}; emit(); }, () => emit());
+    return () => { stopEvents(); stopGlobal(); };
   }
   const emit = () => callback(loadSiteStats());
   window.addEventListener("storage", emit);
   return () => window.removeEventListener("storage", emit);
 }
+
+async function recordSiteEventInDatabase(event) {
+  if (!canUseRemote() || !SITE_STAT_EVENT_TYPES.has(event.type)) return false;
+  const uid = remoteAuth.currentUser.uid;
+  const eventId = String(event.eventId).replace(/[.#$\[\]/]/g, "_").slice(0, 180);
+  if (!eventId) return false;
+  const claimToken = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const payload = { type:event.type, eventId, claimToken, createdAt:Math.floor(serverNow()) };
+  if (event.modeId) payload.modeId = String(event.modeId).slice(0, 80);
+  if (event.minutes != null) payload.minutes = Math.max(0, Math.min(1440, Number(event.minutes) || 0));
+  if (event.amount != null) payload.amount = Math.max(0, Math.min(100000000, Number(event.amount) || 0));
+  if (event.value != null) payload.value = Math.max(0, Math.min(1000000, Number(event.value) || 0));
+  const eventRef = firebaseDatabaseApi.ref(remoteDatabase, `siteStatEvents/${uid}/${eventId}`);
+  const result = await firebaseDatabaseApi.runTransaction(eventRef, current => current || payload);
+  return Boolean(result?.committed && result.snapshot?.val()?.claimToken === claimToken || result?.snapshot?.val()?.eventId === eventId);
+}
+
 export async function recordSiteEvent(event = {}) {
   if (!event.type || !event.eventId) return false;
   if (!remoteFunctionsUnavailable && remoteFunctions && firebaseFunctionsApi?.httpsCallable) {
@@ -145,6 +183,11 @@ export async function recordSiteEvent(event = {}) {
       if (["functions/internal", "functions/not-found", "functions/unavailable"].includes(code)) remoteFunctionsUnavailable = true;
       console.warn("Nie udało się zapisać statystyki online; używam lokalnego bufora.", code || error?.message || error);
     }
+  }
+  try {
+    if (await recordSiteEventInDatabase(event)) return true;
+  } catch (error) {
+    console.warn("Nie udało się zapisać zdarzenia w bazie statystyk.", error?.message || error);
   }
   const stats = loadSiteStats(), events = readLocal(`${LOCAL_SITE_STATS_KEY}_events`), key = String(event.eventId);
   if (events[key]) return true;

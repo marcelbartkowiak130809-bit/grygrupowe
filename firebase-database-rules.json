@@ -40,8 +40,13 @@
       ".write": false
     },
     "siteStatEvents": {
-      ".read": false,
-      ".write": false
+      ".read": "auth != null",
+      "$uid": {
+        "$eventId": {
+          ".write": "auth != null && auth.uid == $uid && !data.exists() && newData.hasChildren(['eventId', 'type', 'createdAt'])",
+          ".validate": "newData.child('eventId').isString() && newData.child('eventId').val() == $eventId && newData.child('type').isString() && (newData.child('type').val() == 'gameFinished' || newData.child('type').val() == 'roomCreated' || newData.child('type').val() == 'userRegistered' || newData.child('type').val() == 'coinsEarned' || newData.child('type').val() == 'onlinePeak') && newData.child('createdAt').isNumber()"
+        }
+      }
     },
     "publicProfiles": {
       ".read": "auth != null",
