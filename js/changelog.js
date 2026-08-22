@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260804-2";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260822-1";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -37,7 +37,7 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano efekty, animacje i responsywne widoki dla nowych rozgrywek.",
         "Poprawiono działanie pokoi prywatnych, zaproszeń i synchronizacji między urządzeniami.",
         "Przygotowano system automatycznego odblokowywania kolejnych trybów co trzy dni.",
-        "Wszystkie nowe tryby pozostają tymczasowo dostępne do testów.",
+        "Nowe tryby są odblokowywane etapami: jeden tryb co trzy dni o 20:00.",
       ],
     },
     {

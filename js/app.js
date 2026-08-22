@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260822-1";
 import { Audio } from "./audio.js";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-5";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-18";
@@ -28,14 +28,14 @@ import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceC
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260822-1";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260822-2";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260822-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260822-2";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260822-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-18";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
