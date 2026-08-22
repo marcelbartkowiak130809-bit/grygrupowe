@@ -103,9 +103,12 @@
     "wouldYouRatherVotes": {
       ".read": true,
       "$questionId": {
-        "$choice": {
-          ".write": "($choice == 'a' || $choice == 'b') && newData.isNumber() && newData.val() == (data.exists() ? data.val() + 1 : 1)",
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+        ".write": "auth != null && newData.hasChildren(['a','b','voters']) && newData.child('voters').child(auth.uid).isString() && !data.child('voters').child(auth.uid).exists() && ((newData.child('voters').child(auth.uid).val() == 'a' && newData.child('a').val() == (data.child('a').val() == null ? 1 : data.child('a').val() + 1) && newData.child('b').val() == (data.child('b').val() == null ? 0 : data.child('b').val())) || (newData.child('voters').child(auth.uid).val() == 'b' && newData.child('b').val() == (data.child('b').val() == null ? 1 : data.child('b').val() + 1) && newData.child('a').val() == (data.child('a').val() == null ? 0 : data.child('a').val())))",
+        ".validate": "newData.child('a').isNumber() && newData.child('b').isNumber() && newData.child('a').val() >= 0 && newData.child('b').val() >= 0 && newData.child('voters').hasChildren()",
+        "voters": {
+          "$voterUid": {
+            ".validate": "newData.isString() && (newData.val() == 'a' || newData.val() == 'b') && (!data.exists() ? auth != null && auth.uid == $voterUid : newData.val() == data.val())"
+          }
         }
       }
     },
