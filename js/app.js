@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260804-4";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-4";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-5";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-1";
 import { gamesList, getGameMode } from "./games.js?v=20260822-1";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
@@ -37,7 +37,7 @@ import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./util
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
-import { loadPresenceUsers } from "./firebase.js?v=20260822-4";
+import { loadPresenceUsers } from "./firebase.js?v=20260822-5";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 import { scheduleBot } from "./botController.js?v=20260804-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -1330,7 +1330,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   finishLogin() { if(state.pendingInviteRoom)return handlePendingInvite();if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; if(destination==="lobby")setModeUrl(state.selectedGameMode); Router.go(destination); },
   async logout() {
-    const roomUpdates=state.rooms.map(room => {
+    const roomUpdates=state.rooms.filter(room => room.players.includes(state.currentUser)).map(room => {
       interruptProveRoundForDeparture(room,state.currentUser);
       room.players = room.players.filter(id => id !== state.currentUser);
       if(room.playerProfiles)delete room.playerProfiles[state.currentUser];
@@ -1836,7 +1836,7 @@ function connectRooms(){
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
     const ghostRooms=remoteRooms.filter(room=>["lobby","playing"].includes(room.status)&&!roomHasHumanPlayers(room));
-    ghostRooms.forEach(room=>removeRemoteRoom(room.roomId));
+    ghostRooms.filter(room=>room.players.includes(state.currentUser)).forEach(room=>removeRemoteRoom(room.roomId));
     remoteRooms=remoteRooms.filter(room=>!ghostRooms.some(ghost=>ghost.roomId===room.roomId));
     const requestedRoomId=state.activeRoomId;
     const keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId));
@@ -1847,7 +1847,7 @@ function connectRooms(){
       Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{const clean=normalizeRoomProfile(item);room.playerProfiles[id]=clean;state.accounts[id]=id===state.currentUser?{...clean,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...clean};});
     });
     state.rooms=[...rooms.values()];saveAccounts(state.accounts); ensureRoomPresence(state.rooms.find(item=>item.roomId===state.activeRoomId));
-    state.rooms.filter(duoRoomHasGonePlayer).forEach(room=>removeRemoteRoom(room.roomId));
+    state.rooms.filter(room=>room.players.includes(state.currentUser)&&duoRoomHasGonePlayer(room)).forEach(room=>removeRemoteRoom(room.roomId));
     const room=activeRoom();
     if(room&&source==="remote"&&leaveKickedRoom(room))return;
     if(room&&interruptProveRoundWithMissingPlayer(room)){if(closeLonelyFinishedRoom(room,{notify:true}))return;touchRoom(room);return render();}

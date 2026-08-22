@@ -198,10 +198,15 @@ export function startRoomPresence(roomId, userId) {
   const clientId = clientPresenceId();
   const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/presence/${userId}/${clientId}`);
   const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(() => {});
-  touch();
-  firebaseDatabaseApi.onDisconnect?.(presenceRef)?.remove?.();
-  const timer = setInterval(touch, 10000);
-  return () => { clearInterval(timer); firebaseDatabaseApi.remove(presenceRef).catch(() => {}); };
+  let stopped = false, timer = null;
+  const stop = () => { stopped = true; if (timer) clearInterval(timer); firebaseDatabaseApi.remove(presenceRef).catch(() => {}); };
+  firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/players/${userId}`)).then(snapshot => {
+    if (stopped || !snapshot.exists()) return;
+    touch();
+    firebaseDatabaseApi.onDisconnect?.(presenceRef)?.remove?.();
+    timer = setInterval(() => { if (!stopped) touch(); }, 10000);
+  }).catch(() => {});
+  return stop;
 }
 
 export function subscribeOnlineCount(callback) {
@@ -221,11 +226,15 @@ export function subscribeOnlineCount(callback) {
         const clients = user?.clients || {};
         const active = Object.entries(clients).filter(([, item]) => now - Number(item?.seenAt || 0) < PRESENCE_TTL_MS);
         if (active.length) count += 1;
-        Object.entries(clients).forEach(([clientId, item]) => {
-          if (now - Number(item?.seenAt || 0) >= PRESENCE_TTL_MS * 2) {
-            firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `presence/${userKey}/clients/${clientId}`)).catch(()=>{});
-          }
-        });
+        // RTDB pozwala użytkownikowi usuwać wyłącznie własny wpis presence.
+        // Nie próbuj sprzątać wpisów innych kont, bo generuje to permission_denied.
+        if (userKey === remoteAuth?.currentUser?.uid) {
+          Object.entries(clients).forEach(([clientId, item]) => {
+            if (now - Number(item?.seenAt || 0) >= PRESENCE_TTL_MS * 2) {
+              firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `presence/${userKey}/clients/${clientId}`)).catch(()=>{});
+            }
+          });
+        }
       });
       emit(count);
     };
