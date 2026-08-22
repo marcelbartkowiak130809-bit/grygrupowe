@@ -9,6 +9,15 @@
   --cyan: #0891b2;
 }
 
+/* Initials in avatars must stay readable after the light theme changes the
+   surrounding text color. Image avatars remain unchanged, while cosmetic
+   frames and aura shadows still come from their existing classes. */
+.light-theme .avatar {
+  background: #f8fafc;
+  border-color: #64748b;
+  color: #334155;
+}
+
 .light-theme .word-chain-settings .setting-row,
 .light-theme .word-chain-roster > span,
 .light-theme .sequence-feedback div,
