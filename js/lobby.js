@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260605-5";
-import { getGameMode } from "./games.js?v=20260822-1";
+import { getGameMode } from "./games.js?v=20260822-2";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
