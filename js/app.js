@@ -737,7 +737,7 @@ function repairGameStateForPlayers(room) {
   if (!room?.game) return false;
   let changed = false;
   const players = normalizedRoomPlayers(room);
-  if (players.length !== (Array.isArray(room.players) ? room.players.length : 0) || players.some((uid,index) => uid !== room.players[index])) {
+  if (!Array.isArray(room.players) || players.length !== room.players.length || players.some((uid,index) => uid !== room.players[index])) {
     room.players = players;
     changed = true;
   }
@@ -1924,9 +1924,15 @@ function render(options = {}) {
   if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
-    const mode=getGameMode(room.gameMode); if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker"; claimPendingProgress(room); const repaired=repairGameStateForPlayers(room); if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}} settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
-    const finalOutcome=finalGameOutcome(room); markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
     try {
+      const mode=getGameMode(room.gameMode);
+      if(!room.game || typeof room.game!=="object" || Array.isArray(room.game)) throw new Error("Brak stanu gry w pokoju.");
+      if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker";
+      claimPendingProgress(room);
+      const repaired=repairGameStateForPlayers(room);
+      if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}}
+      settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
+      const finalOutcome=finalGameOutcome(room); markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}`);
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
