@@ -17,6 +17,15 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v4.1.2",
+      date: "2026-08-22",
+      title: "Restart pokoi i odświeżenie aplikacji",
+      changes: [
+        "Zamknięto stare pokoje przed rozpoczęciem kolejnego cyklu testów.",
+        "Po aktualizacji aplikacja czyści lokalne kopie pokoi i wymusza jednorazowe odświeżenie strony.",
+      ],
+    },
+    {
       version: "v4.0.0",
       date: "2026-08-04",
       title: "Nowy rytm GryGrupowe",

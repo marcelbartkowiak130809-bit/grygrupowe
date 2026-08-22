@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260822-1";
 import { Audio } from "./audio.js";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-5";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-19";
@@ -48,6 +48,14 @@ import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncement
 import { happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260804-1";
 
 const root = $("#app");
+const APP_VERSION = "v4.1.2";
+const APP_VERSION_KEY = "grygrupowe-app-version";
+const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
+if (previousAppVersion !== APP_VERSION) {
+  localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
+  localStorage.removeItem("udowodnij_local_rooms_v1");
+  window.setTimeout(() => window.location.reload(), 0);
+}
 const THEME_STORAGE_KEY = "grygrupowe-theme";
 function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
   document.documentElement.classList.toggle("light-theme", theme === "light");
