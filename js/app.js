@@ -23,7 +23,7 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260822-1";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260804-4";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-6";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-8";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
@@ -39,7 +39,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260804-2
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-16";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
-import { scheduleBot } from "./botController.js?v=20260822-2";
+import { scheduleBot } from "./botController.js?v=20260822-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
@@ -1745,7 +1745,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   mathematicsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="mathematics")return;return mutateRoomGame((game,current)=>{const end=game.variant==="full-test"?game.testEndsAt:game.phaseEndsAt, expectedEnd=game.variant==="full-test"?expected.testEndsAt:expected.phaseEndsAt;if(game.phase!==expected.phase||Number(end)!==Number(expectedEnd))return "Faza gry już się zmieniła.";MathematicsEngine.timeout(game,current.players);},{sound:"roundEnd"});},
   markerSelect(cell, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.select(game,state.currentUser,cell);},{sound:"choice"});},
   markerCoverage(ratio, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.coverage(game,state.currentUser,ratio);},{sound:"submit"});},
-  markerFind(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.find(game,state.currentUser);},{sound:"choice"});},
+  markerFind(cell, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.find(game,state.currentUser,cell);},{sound:"choice"});},
   markerTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="marker")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return MarkerEngine.timeout(game);},{sound:"roundEnd"});},
   sequenceDraft(color, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.draft(game,state.currentUser,color);},{sound:"choice"});},
   sequenceClear(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.clearDraft(game,state.currentUser);},{sound:"turn"});},
