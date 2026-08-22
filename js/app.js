@@ -26,7 +26,7 @@ import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "
 import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260822-4";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260813-1";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260822-1";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260822-2";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";

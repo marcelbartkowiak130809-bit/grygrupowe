@@ -19,7 +19,7 @@ import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260805-1";
 import { renderMarkerLobbySettings } from "./marker.js?v=20260822-4";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
-import { renderWordChainLobbySettings } from "./wordChain.js?v=20260813-1";
+import { renderWordChainLobbySettings } from "./wordChain.js?v=20260822-2";
 import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 

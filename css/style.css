@@ -746,3 +746,5 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 .light-theme .route-game .wavelength-clue-entry b{color:#172033}
 .light-theme .route-game .wavelength-ranking-row,.light-theme .route-game .wavelength-podium-place{background:rgba(255,255,255,.86);border-color:rgba(100,116,139,.24);color:#172033}
 .light-theme .route-game .wavelength-podium-place span{color:#64748b}
+.light-theme .route-game .word-chain-roster>span{background:#f8fafc;border-color:rgba(100,116,139,.24);color:#334155}
+.light-theme .route-game .word-chain-roster>span.eliminated{color:#64748b}

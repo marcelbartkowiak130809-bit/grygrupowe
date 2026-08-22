@@ -19,7 +19,7 @@ import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260822-4";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
-import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260813-1";
+import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);

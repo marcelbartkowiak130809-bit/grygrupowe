@@ -18,7 +18,7 @@ import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=2
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260822-4";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
-import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260813-1";
+import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
 
 export const gamesRegistry = {
   udowodnij: {
