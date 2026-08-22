@@ -44,7 +44,7 @@ import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luck
 import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
-import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260804-1";
+import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260822-2";
 import { happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260804-1";
 
 const root = $("#app");

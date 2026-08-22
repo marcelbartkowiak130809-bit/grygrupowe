@@ -28,5 +28,9 @@ export function renderHostAnnouncements(view, room, currentUser, actions, onExpi
   const menu = controls.querySelector(".host-announcement-menu");
   toggle.addEventListener("click", () => { menu.hidden = !menu.hidden; });
   controls.querySelectorAll("[data-host-announcement]").forEach(button => button.addEventListener("click", () => { actions.sendHostAnnouncement(button.dataset.hostAnnouncement); menu.hidden = true; }));
-  view.append(controls);
+  const layout = view.querySelector(".room-page .lobby-layout");
+  if (layout) {
+    layout.classList.add("has-host-announcements");
+    layout.insertBefore(controls, layout.firstElementChild);
+  } else view.append(controls);
 }
