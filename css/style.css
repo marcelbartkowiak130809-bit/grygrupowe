@@ -726,3 +726,23 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 .fx-game-win{color:#fde68a}.fx-game-win .fx-flash{background:radial-gradient(circle at center,rgba(250,204,21,.34),rgba(34,197,94,.2) 38%,transparent 72%)}
 .fx-game-lose{color:#c4b5fd}.fx-game-lose .fx-flash{background:radial-gradient(circle at center,rgba(99,102,241,.28),rgba(15,23,42,.42) 45%,transparent 76%)}
 .room-page .lobby-layout.has-host-announcements .host-announcement-controls{margin:16px 0}
+
+/* Light theme: game-specific surfaces must stay readable too, not only generic panels. */
+.light-theme .route-game .poison-candy-stage{background:radial-gradient(circle at center,rgba(255,247,237,.98),rgba(255,255,255,.96) 62%),repeating-radial-gradient(circle at center,transparent 0 44px,rgba(100,116,139,.08) 45px 47px);border-color:rgba(100,116,139,.24);box-shadow:inset 0 0 60px rgba(148,163,184,.12),0 20px 48px rgba(71,85,105,.12)}
+.light-theme .route-game .candy-table{background:radial-gradient(circle,#fff 0 42%,#f8fafc 72%,#e2e8f0);border-color:rgba(100,116,139,.22);box-shadow:inset 0 0 55px rgba(100,116,139,.14),0 12px 28px rgba(71,85,105,.12)}
+.light-theme .route-game .candy-players-ring article{background:rgba(255,255,255,.86);border-color:rgba(100,116,139,.24);color:#172033}
+.light-theme .route-game .candy-players-ring small{color:#64748b}
+.light-theme .route-game .candy-event{background:rgba(255,255,255,.88);border-color:rgba(100,116,139,.24);color:#172033;box-shadow:0 8px 20px rgba(71,85,105,.08)}
+.light-theme .route-game .candy-event span{color:#475569}
+.light-theme .route-game .poison-event{background:#fff1f2;border-color:rgba(225,29,72,.28)}
+.light-theme .route-game .safe-event{background:#f0fdf4;border-color:rgba(22,163,74,.28)}
+.light-theme .route-game .word-chain-last{background:linear-gradient(145deg,#ecfeff,#eef2ff);border-color:rgba(14,116,144,.3);box-shadow:0 0 30px rgba(14,116,144,.1)}
+.light-theme .route-game .word-chain-last strong{color:#0f766e}
+.light-theme .route-game .word-chain-last span{color:#475569}
+.light-theme .route-game .word-chain-last span b{color:#b45309}
+.light-theme .route-game .word-chain-chip{background:#f8fafc;border-color:rgba(100,116,139,.24);color:#334155}
+.light-theme .route-game .word-chain-miss{background:#fff1f2;border-color:rgba(225,29,72,.3);color:#b91c1c}
+.light-theme .route-game .wavelength-clue,.light-theme .route-game .wavelength-clue-entry{background:rgba(236,254,255,.9);border-color:rgba(14,116,144,.26);color:#172033}
+.light-theme .route-game .wavelength-clue-entry b{color:#172033}
+.light-theme .route-game .wavelength-ranking-row,.light-theme .route-game .wavelength-podium-place{background:rgba(255,255,255,.86);border-color:rgba(100,116,139,.24);color:#172033}
+.light-theme .route-game .wavelength-podium-place span{color:#64748b}
