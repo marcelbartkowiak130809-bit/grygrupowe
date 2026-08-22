@@ -567,8 +567,20 @@ function settleQuizResult(room) {
   const scores=room.game.scores||{}, max=Math.max(0,...Object.values(scores).map(Number)), winners=room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0);
   room.players.forEach(uid=>addPlayerMoney(uid,25+Number(scores[uid]||0)*5+(winners.includes(uid)?40:0))); if(room.game.variant==="competitive"){const leaderboard=JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}");winners.forEach(uid=>{const nick=state.accounts[uid]?.nick||uid;leaderboard[nick]=(Number(leaderboard[nick])||0)+1;});localStorage.setItem("quizCompetitiveLeaderboard",JSON.stringify(leaderboard));} rewardRoomXp(room,30,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
+function settleAdditionalModeResult(room) {
+  const supported = new Set(["marker", "sequence", "family", "word-chain"]);
+  if (!room?.game || !supported.has(room.gameMode) || room.game.phase !== "result" || !room.game.finished || room.game.rewarded) return;
+  const scores = room.game.scores && typeof room.game.scores === "object" ? room.game.scores : {};
+  const max = Math.max(0, ...room.players.map(uid => Number(scores[uid] || 0)));
+  const winners = room.game.winner ? [room.game.winner] : room.players.filter(uid => max > 0 && Number(scores[uid] || 0) === max);
+  const coinBase = { marker:35, sequence:40, family:45, "word-chain":40 }[room.gameMode] || 35;
+  const xpBase = { marker:35, sequence:40, family:45, "word-chain":40 }[room.gameMode] || 35;
+  room.players.forEach(uid => addPlayerMoney(uid, coinBase + Number(scores[uid] || 0) * 5 + (winners.includes(uid) ? 45 : 0)));
+  rewardRoomXp(room, xpBase, winners); playCurrentUserResultSound(winners);
+  room.game.rewarded = true; room.status = "results"; saveAccounts(state.accounts); touchRoom(room); Audio.play("roundEnd");
+}
 function settleAllResults(room) {
-  const settlers=[settleProveResult,settleImpostorResult,settleOtherQuestionResult,settleMostLikelyResult,settleFriendshipResult,settlePoisonCandyResult,settleBombResult,settleClosestTruthResult,settleRankingResult,settleFiveSecondsResult,settleClockResult,settleIdentityResult,settleBetResult,settlePokemonResult,settleWavelengthResult,settleQuizResult];
+  const settlers=[settleProveResult,settleImpostorResult,settleOtherQuestionResult,settleMostLikelyResult,settleFriendshipResult,settlePoisonCandyResult,settleBombResult,settleClosestTruthResult,settleRankingResult,settleFiveSecondsResult,settleClockResult,settleIdentityResult,settleBetResult,settlePokemonResult,settleWavelengthResult,settleQuizResult,settleAdditionalModeResult];
   settlers.forEach(settle=>{try{settle(room);}catch(error){console.error("Nie udało się rozliczyć wyników trybu",room?.gameMode,error);}});
 }
 function trackFinishedGame(room) {
