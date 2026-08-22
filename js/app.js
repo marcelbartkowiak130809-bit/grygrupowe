@@ -10,7 +10,7 @@ import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpos
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260813-2";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-3";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-4";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
@@ -398,7 +398,7 @@ function claimPendingProgress(room) {
   if(money)applyPlayerMoney(state.currentUser,money);if(xp)applyPlayerXp(state.currentUser,xp);if(fee)applyPlayerMoney(state.currentUser,-fee);saveAccounts(state.accounts);touchRoom(room);return true;
 }
 function settleProveResult(room) {
-  if(room.gameMode!=="udowodnij"||room.game.phase!=="result"||room.game.result?.rewarded||room.game.result?.leftRoom)return;
+  if(!room?.game||room.gameMode!=="udowodnij"||room.game.phase!=="result"||!room.game.result||room.game.result.rewarded||room.game.result.leftRoom)return;
   const winners = room.game.result.success ? [room.game.currentBidder] : room.players.filter(uid=>uid!==room.game.result.loser);
   if(room.game.result.success)addPlayerMoney(room.game.currentBidder,100);
   else winners.forEach(uid=>addPlayerMoney(uid,100));
@@ -407,30 +407,33 @@ function settleProveResult(room) {
   room.game.result.rewarded=true;saveAccounts(state.accounts);Audio.play(room.game.result.success?"success":"roundEnd");
 }
 function settleImpostorResult(room) {
-  if (room.game.phase !== "results" || room.game.result.rewarded) return;
-  const winners = room.players.filter(uid => room.game.result.citizensWin ? room.game.roles[uid].role === "citizen" : room.game.roles[uid].role !== "citizen");
+  if (!room?.game || room.game.phase !== "results" || !room.game.result || room.game.result.rewarded) return;
+  const roles = room.game.roles && typeof room.game.roles === "object" ? room.game.roles : {};
+  const winners = room.players.filter(uid => room.game.result.citizensWin ? roles[uid]?.role === "citizen" : roles[uid]?.role && roles[uid].role !== "citizen");
   winners.forEach(uid => addPlayerMoney(uid,150));
   rewardRoomXp(room,55,winners);playCurrentUserResultSound(winners);
   room.game.result.rewarded=true; room.status="results"; saveAccounts(state.accounts); Audio.play("roundEnd");
 }
 function settleOtherQuestionResult(room) {
-  if(room.game.phase!=="results"||room.game.result.rewarded)return;
+  if(!room?.game||room.game.phase!=="results"||!room.game.result||room.game.result.rewarded)return;
   const winners=room.game.result.caught?room.players.filter(uid=>uid!==room.game.impostor):[room.game.impostor];
   winners.forEach(uid=>addPlayerMoney(uid,100));
   rewardRoomXp(room,18,winners);playCurrentUserResultSound(winners);
   room.game.result.rewarded=true;saveAccounts(state.accounts);Audio.play("roundEnd");
 }
 function settleMostLikelyResult(room) {
-  if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
-  room.players.forEach(uid=>addPlayerMoney(uid,25+(room.game.totals[uid]||0)*10));
+  if(!room?.game||room.game.phase!=="gameSummary"||room.game.rewarded)return;
+  const totals=room.game.totals&&typeof room.game.totals==="object"?room.game.totals:{};
+  room.players.forEach(uid=>addPlayerMoney(uid,25+(totals[uid]||0)*10));
   const max = Math.max(0,...Object.values(room.game.totals||{}).map(Number));
   const winners = room.players.filter(uid => Number(room.game.totals?.[uid] || 0) === max && max > 0);
   rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);
   room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleFriendshipResult(room) {
-  if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
-  if(room.settings.rewardCoins)room.players.forEach(uid=>addPlayerMoney(uid,(room.game.scores[uid]||0)*25));
+  if(!room?.game||room.game.phase!=="gameSummary"||room.game.rewarded)return;
+  const scores=room.game.scores&&typeof room.game.scores==="object"?room.game.scores:{};
+  if(room.settings?.rewardCoins)room.players.forEach(uid=>addPlayerMoney(uid,(scores[uid]||0)*25));
   const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
   const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
   rewardRoomXp(room,60,winners);playCurrentUserResultSound(winners);
@@ -443,7 +446,7 @@ function settlePoisonCandyResult(room) {
   room.game.rewarded=true;room.game.finished=true;room.status="results";saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleBombResult(room) {
-  if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
+  if(!room?.game||room.game.phase!=="gameSummary"||room.game.rewarded)return;
   const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
   const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
   room.players.forEach(uid=>addPlayerMoney(uid,30 + Number(room.game.scores?.[uid] || 0) * 20));
@@ -478,7 +481,7 @@ function settleClockResult(room) {
   if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
   const max = Math.max(0,...Object.values(room.game.scores||{}).map(Number));
   const winners = room.players.filter(uid => Number(room.game.scores?.[uid] || 0) === max && max > 0);
-  const precision = Object.fromEntries((room.game.ranking || []).map(row => [row.uid, Number(row.differenceMs) || 0]));
+  const precision = Object.fromEntries((Array.isArray(room.game.ranking)?room.game.ranking:[]).map(row => [row.uid, Number(row.differenceMs) || 0]));
   if(room.players.length === 1) room.players.forEach(uid=>{const diff=precision[uid] ?? 9999;addPlayerMoney(uid,Math.max(20,Math.min(190,Math.round(170 - diff / 6))));});
   else room.players.forEach(uid=>addPlayerMoney(uid,25 + Number(room.game.scores?.[uid] || 0) * 25));
   rewardRoomXp(room,50,winners,Object.fromEntries(room.players.map(uid=>[uid,{clockDifferenceMs:precision[uid]}])));playCurrentUserResultSound(winners);
@@ -517,7 +520,8 @@ function settleQuizResult(room) {
   room.players.forEach(uid=>addPlayerMoney(uid,25+Number(scores[uid]||0)*5+(winners.includes(uid)?40:0))); if(room.game.variant==="competitive"){const leaderboard=JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}");winners.forEach(uid=>{const nick=state.accounts[uid]?.nick||uid;leaderboard[nick]=(Number(leaderboard[nick])||0)+1;});localStorage.setItem("quizCompetitiveLeaderboard",JSON.stringify(leaderboard));} rewardRoomXp(room,30,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleAllResults(room) {
-  settleProveResult(room); settleImpostorResult(room); settleOtherQuestionResult(room); settleMostLikelyResult(room); settleFriendshipResult(room); settlePoisonCandyResult(room); settleBombResult(room); settleClosestTruthResult(room); settleRankingResult(room); settleFiveSecondsResult(room); settleClockResult(room); settleIdentityResult(room); settleBetResult(room); settlePokemonResult(room); settleWavelengthResult(room); settleQuizResult(room);
+  const settlers=[settleProveResult,settleImpostorResult,settleOtherQuestionResult,settleMostLikelyResult,settleFriendshipResult,settlePoisonCandyResult,settleBombResult,settleClosestTruthResult,settleRankingResult,settleFiveSecondsResult,settleClockResult,settleIdentityResult,settleBetResult,settlePokemonResult,settleWavelengthResult,settleQuizResult];
+  settlers.forEach(settle=>{try{settle(room);}catch(error){console.error("Nie udało się rozliczyć wyników trybu",room?.gameMode,error);}});
 }
 function trackFinishedGame(room) {
   const game=room?.game, rewarded=Boolean(game?.rewarded || game?.result?.rewarded);
