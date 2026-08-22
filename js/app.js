@@ -1623,7 +1623,13 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const user=profile(),question=currentWouldYouRather();if(!question)return;
     const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
     if(result.error)return message(result.error,"error");
-    if(!result.accepted){if(result.choice==="a"||result.choice==="b")setWouldYouRatherVote(result.choice,result.votes);return message("Na to pytanie już oddałeś głos.","info");}
+    if(!result.accepted){
+      if(result.choice==="a"||result.choice==="b"){
+        setWouldYouRatherVote(result.choice,result.votes);
+        render({preserveDrafts:true});
+      }
+      return message("Na to pytanie już oddałeś głos.","info");
+    }
     setWouldYouRatherVote(choice,result.votes);
     Effects.play("choice");if(user){applyPlayerXp(state.currentUser,2);if(!user.nickOnly)updateProfile({money:(profile().money||0)+2,answeredWouldYouRather:{...(profile().answeredWouldYouRather||{}),[question.id]:choice}});else{Audio.play("success");render();}}else{Audio.play("success");render();}
   },
