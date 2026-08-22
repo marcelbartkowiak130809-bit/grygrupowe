@@ -16,10 +16,10 @@ import { renderPokemonLobbySettings } from "./pokemon.js?v=20260822-8";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260822-1";
 import { renderQuizLobbySettings } from "./quiz.js?v=20260804-4";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260805-1";
-import { renderMarkerLobbySettings } from "./marker.js?v=20260813-3";
+import { renderMarkerLobbySettings } from "./marker.js?v=20260822-4";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
-import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260804-2";
-import { renderWordChainLobbySettings } from "./wordChain.js?v=20260805-2";
+import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
+import { renderWordChainLobbySettings } from "./wordChain.js?v=20260813-1";
 import { adSenseBlock } from "./publicPages.js?v=20260611-3";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260822-1";
 
