@@ -411,32 +411,44 @@ export function subscribeWouldYouRatherVotes(questionId, callback) {
 export async function voteWouldYouRather({ questionId, choice, playerId, remotePlayerId = playerId, persistProfile }) {
   const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY), playerAnswers=answers[playerId] || {};
   if (playerAnswers[questionId]) return { accepted:false, choice:playerAnswers[questionId], votes:await getWouldYouRatherVotes(questionId) };
+  // The database rule binds the vote to Firebase Auth's UID. Never trust the
+  // caller's cached/profile id here: after a guest/account switch it can be a
+  // nickname or an old UID and the otherwise valid transaction is rejected.
+  const authenticatedUid = remoteAuth?.currentUser?.uid || remotePlayerId;
   if (canUseRemote() && persistProfile) {
     try {
-      const profileAnswer=await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${remotePlayerId}/answeredWouldYouRather/${questionId}`));
+      const profileAnswer=await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${authenticatedUid}/answeredWouldYouRather/${questionId}`));
       if (profileAnswer.exists()) return { accepted:false, choice:profileAnswer.val(), votes:await getWouldYouRatherVotes(questionId) };
     } catch {}
   }
   if (canUseRemote()) {
     try {
-      if (!remotePlayerId) return { accepted:false, error:"Nie udało się zweryfikować gracza. Odśwież stronę i spróbuj ponownie." };
+      if (!authenticatedUid) return { accepted:false, error:"Nie udało się zweryfikować gracza. Odśwież stronę i spróbuj ponownie." };
+      // RTDB rules intentionally reject a second write from the same voter.
+      // Check the voter first so a repeated answer is reported as a duplicate
+      // instead of surfacing as a misleading `permission_denied`/offline error.
+      const existingVote = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `wouldYouRatherVotes/${questionId}/voters/${authenticatedUid}`))).val();
+      if (existingVote === "a" || existingVote === "b") {
+        playerAnswers[questionId] = existingVote; answers[playerId] = playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
+        return { accepted:false, choice:existingVote, votes:await getWouldYouRatherVotes(questionId) };
+      }
       let duplicateChoice = "";
       const voteRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
       const result=await firebaseDatabaseApi.runTransaction(voteRef,current=>{
         const votes = current && typeof current === "object" ? { ...current } : {};
         const voters = votes.voters && typeof votes.voters === "object" ? { ...votes.voters } : {};
-        if (voters[remotePlayerId] === "a" || voters[remotePlayerId] === "b") {
-          duplicateChoice = voters[remotePlayerId];
+        if (voters[authenticatedUid] === "a" || voters[authenticatedUid] === "b") {
+          duplicateChoice = voters[authenticatedUid];
           return current;
         }
         votes[choice] = (Number(votes[choice]) || 0) + 1;
-        voters[remotePlayerId] = choice;
+        voters[authenticatedUid] = choice;
         votes.voters = voters;
         return votes;
       });
       if (duplicateChoice) return { accepted:false, choice:duplicateChoice, votes:await getWouldYouRatherVotes(questionId) };
       if (!result?.committed) return { accepted:false, error:"Nie udało się zapisać głosu online. Spróbuj ponownie." };
-      if (persistProfile) await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${remotePlayerId}/answeredWouldYouRather/${questionId}`),choice);
+      if (persistProfile) await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${authenticatedUid}/answeredWouldYouRather/${questionId}`),choice);
       playerAnswers[questionId]=choice; answers[playerId]=playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
       return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
     } catch (error) { return { accepted:false, error:"Nie udało się zapisać głosu online. Sprawdź połączenie i spróbuj ponownie." }; }
