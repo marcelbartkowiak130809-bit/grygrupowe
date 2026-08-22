@@ -706,6 +706,14 @@ function repairGameStateForPlayers(room) {
     changed = true;
   }
   const game = room.game;
+  if (room.gameMode === "udowodnij") {
+    const total = Math.max(1, Number(room.settings?.rounds) || 5);
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (Number(game.totalRounds) !== total) { game.totalRounds = total; changed = true; }
+    const beforeWins = JSON.stringify(game.roundWins || {});
+    game.roundWins = ensureScoreObject(game.roundWins, players, 0);
+    if (JSON.stringify(game.roundWins) !== beforeWins) changed = true;
+  }
   if (room.gameMode === "sequence") {
     if (!Array.isArray(game.players)) { game.players = players.slice(0, 2); changed = true; }
     if (!game.drafts || typeof game.drafts !== "object" || Array.isArray(game.drafts)) { game.drafts = {}; changed = true; }
