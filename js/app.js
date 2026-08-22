@@ -13,7 +13,7 @@ import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } 
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260813-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-7";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260621-1";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260612-2";
@@ -409,7 +409,7 @@ function settlePoisonCandyResult(room) {
   if(room.game.phase!=="results"||room.game.rewarded)return;
   if(room.game.result?.winner)addPlayerMoney(room.game.result.winner,150);
   rewardRoomXp(room,45,room.game.result?.winner?[room.game.result.winner]:[]);playCurrentUserResultSound(room.game.result?.winner?[room.game.result.winner]:[]);
-  room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
+  room.game.rewarded=true;room.game.finished=true;room.status="results";saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleBombResult(room) {
   if(room.game.phase!=="gameSummary"||room.game.rewarded)return;
