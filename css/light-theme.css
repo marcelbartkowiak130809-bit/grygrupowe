@@ -1,0 +1,107 @@
+/* Final light-theme layer. It is loaded after mode-specific styles so newer
+   components cannot accidentally bring back dark text or low-contrast panels. */
+.light-theme {
+  --bg: #eef2ff;
+  --panel: rgba(255, 255, 255, .9);
+  --line: rgba(100, 116, 139, .24);
+  --muted: #64748b;
+  --purple: #6d28d9;
+  --cyan: #0891b2;
+}
+
+.light-theme .word-chain-settings .setting-row,
+.light-theme .word-chain-roster > span,
+.light-theme .sequence-feedback div,
+.light-theme .sequence-results article,
+.light-theme .sequence-history,
+.light-theme .math-result-row {
+  border-color: rgba(100, 116, 139, .24);
+  background: #f8fafc;
+  color: #334155;
+}
+
+.light-theme .word-chain-settings .setting-row small,
+.light-theme .word-chain-settings .setting-control small,
+.light-theme .word-chain-roster > span small {
+  color: #64748b;
+}
+
+.light-theme .word-chain-last,
+.light-theme .word-chain-chip {
+  border-color: rgba(14, 116, 144, .24);
+}
+
+.light-theme .word-chain-chip {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.light-theme .quiz-leaderboard-trigger {
+  border-color: rgba(100, 116, 139, .28) !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+}
+
+.light-theme .quiz-leaderboard-trigger span,
+.light-theme .quiz-leaderboard small {
+  color: #64748b !important;
+}
+
+.light-theme .quiz-leaderboard {
+  border-color: rgba(100, 116, 139, .24);
+  background: #f8fafc;
+  color: #334155;
+}
+
+.light-theme .quiz-leaderboard li {
+  color: #334155;
+}
+
+.light-theme .wavelength-pair {
+  color: #172033;
+}
+
+.light-theme .wavelength-secret {
+  color: #a16207;
+}
+
+.light-theme .wavelength-clue-entry {
+  border-color: rgba(14, 116, 144, .22);
+  background: #ecfeff;
+  color: #334155;
+}
+
+.light-theme .wavelength-clue-entry b {
+  color: #172033;
+}
+
+.light-theme .wavelength-ranking-row,
+.light-theme .wavelength-podium-place {
+  border-color: rgba(100, 116, 139, .24);
+  background: #f8fafc;
+  color: #334155;
+}
+
+.light-theme .wavelength-podium-place.place-1 {
+  background: linear-gradient(160deg, #fef3c7, #fff7ed);
+}
+
+.light-theme .sequence-results article h3,
+.light-theme .sequence-history summary {
+  color: #172033;
+}
+
+.light-theme .sequence-history-dot {
+  border-color: rgba(100, 116, 139, .42);
+}
+
+.light-theme .math-option {
+  color: #334155;
+}
+
+.light-theme .site-version {
+  border-color: rgba(100, 116, 139, .18);
+  background: rgba(255, 255, 255, .7);
+  color: rgba(71, 85, 105, .72);
+  text-shadow: none;
+}
