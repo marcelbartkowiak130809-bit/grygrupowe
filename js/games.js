@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20260612-1";
+import { renderGame } from "./game.js?v=20260822-1";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260605-5";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260605-7";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
@@ -36,7 +36,7 @@ export const gamesRegistry = {
     art: "prove",
     featured: true,
     render: renderGame,
-    defaultSettings: { answerTime: 30 },
+    defaultSettings: { answerTime: 30, rounds: 5 },
   },
   impostor: {
     id: "impostor",

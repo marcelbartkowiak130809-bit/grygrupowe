@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260605-6";
-import { getGameMode } from "./games.js?v=20260804-8";
+import { getGameMode } from "./games.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260605-5";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
@@ -43,7 +43,7 @@ function lobbyAgeBadge(uid, room, accounts) {
 }
 
 function settingsHtml(mode, room, isHost, actions) {
-  if (mode.id === "udowodnij") return `<p class="muted">Po starcie gry nie da sie zmienic czasu.</p><div class="time-pills">${[15,30,45,60].map(time => `<button data-room-time="${time}" ${isHost ? "" : "disabled"} class="${room.settings.answerTime === time ? "active" : ""}">${time}s</button>`).join("")}</div>`;
+  if (mode.id === "udowodnij") return `<p class="muted">Po starcie gry nie da sie zmienic ustawien.</p><p class="tiny">Czas odpowiedzi</p><div class="time-pills">${[15,30,45,60].map(time => `<button data-room-time="${time}" ${isHost ? "" : "disabled"} class="${Number(room.settings.answerTime) === time ? "active" : ""}">${time}s</button>`).join("")}</div><p class="tiny rounds-setting-label">Liczba rund</p><div class="time-pills">${[3,5,7,10].map(rounds => `<button data-room-rounds="${rounds}" ${isHost ? "" : "disabled"} class="${Number(room.settings.rounds || 5) === rounds ? "active" : ""}">${rounds}</button>`).join("")}</div>`;
   if (mode.id === "impostor") return renderImpostorLobbySettings(room, isHost);
   if (mode.id === "kim-jestem") return renderIdentityLobbySettings(room, isHost);
   if (mode.id === "inne-pytanie") return renderOtherQuestionLobbySettings(room, isHost);
@@ -105,6 +105,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
   root.querySelector("#invite-friend")?.addEventListener("click", () => actions.openFriends({ inviteMode:true }));
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
+  root.querySelectorAll("[data-room-rounds]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds))));
   root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
