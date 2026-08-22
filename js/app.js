@@ -1664,8 +1664,8 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   otherTimeout(){const room=activeRoom();if(!room||room.gameMode!=="inne-pytanie")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";OtherQuestionEngine.timeout(game,current.settings);},{after:settleOtherQuestionResult});},
   otherNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="results")return"Runda została już zmieniona.";OtherQuestionEngine.next(game,current.players,current.settings);});},
   async wyrVote(choice){
-    const user=profile(),question=currentWouldYouRather();if(!question)return;
-    const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
+    const user=profile(),question=currentWouldYouRather(),remoteUid=getFirebaseSession()?.uid||state.currentUser;if(!question)return;
+    const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,remoteUid),remotePlayerId:remoteUid,persistProfile:Boolean(user&&!user.nickOnly)});
     if(result.error)return message(result.error,"error");
     if(!result.accepted){
       if(result.choice==="a"||result.choice==="b"){
@@ -1961,7 +1961,7 @@ function render(options = {}) {
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {
