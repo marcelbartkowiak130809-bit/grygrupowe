@@ -4,7 +4,8 @@ export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [
   ["Gorące","Zimne"],["Bogaty","Biedny"],["Śmieszne","Poważne"],["Szybkie","Wolne"],["Jasne","Ciemne"],["Głośne","Ciche"],["Łatwe","Trudne"],["Stare","Nowe"],["Blisko","Daleko"],["Duże","Małe"],["Wysokie","Niskie"],["Ciężkie","Lekkie"],["Słodkie","Gorzkie"],["Mokre","Suche"],["Miękkie","Twarde"],["Pełne","Puste"],["Otwarte","Zamknięte"],["Dzień","Noc"],["Lato","Zima"],["Miasto","Wieś"],["Formalne","Luźne"],["Bezpieczne","Ryzykowne"],["Zdrowe","Niezdrowe"],["Popularne","Niszowe"],["Tanie","Drogie"],["Spokojne","Chaotyczne"],["Przyjazne","Wrogie"],["Realistyczne","Fantastyczne"],["Nowoczesne","Klasyczne"],["Eleganckie","Kiczowate"],["Praktyczne","Niepraktyczne"],["Pożyteczne","Bezużyteczne"],["Szczęśliwe","Smutne"],["Odważne","Tchórzliwe"],["Mądre","Głupie"],["Czyste","Brudne"],["Szerokie","Wąskie"],["Długie","Krótkie"],["Wysuszone","Wilgotne"],["Naturalne","Sztuczne"],["Widoczne","Ukryte"],["Zwyczajne","Dziwne"],["Prawdopodobne","Nieprawdopodobne"],["Wygodne","Niewygodne"],["Słabe","Mocne"],["Młode","Dojrzałe"],["Poranne","Wieczorne"],["Samotne","Towarzyskie"],["Zwycięskie","Przegrane"],["Królewskie","Zwyczajne"],["Ciepłe","Chłodne"],["Ciasne","Przestronne"],["Radosne","Ponure"],["Skomplikowane","Proste"],["Poważne","Żartobliwe"]
 ];
-const randomPair = () => pairs[Math.floor(Math.random() * pairs.length)];
+const displayPair = pair => pair?.[0] === "Ciasne" ? ["Mało miejsca", "Dużo miejsca"] : pair;
+const randomPair = () => displayPair(pairs[Math.floor(Math.random() * pairs.length)]);
 const phaseEnd = seconds => Date.now() + Math.max(30, Math.min(120, Number(seconds) || 60)) * 1000;
 const scoreFor = difference => Math.max(0, Math.round(100 - Math.abs(Number(difference) || 0) * 2));
 
@@ -63,6 +64,11 @@ export const WavelengthEngine = {
   }
 };
 
+function clueScaleMarkup(game) {
+  const left = escapeHtml(game.pair[1]), right = escapeHtml(game.pair[0]);
+  return `<section class="wavelength-clue-guide" aria-label="Skala podpowiedzi"><p class="eyebrow">SKALA PODPOWIEDZI</p><div class="wavelength-clue-guide-labels"><b>0% · ${left}</b><b>50% · środek</b><b>100% · ${right}</b></div><div class="wavelength-clue-guide-track"><span></span><span></span><span></span></div><div class="wavelength-clue-guide-hint">Podpowiedz, co pasuje do wybranego miejsca na tej osi. Bez liczb i bez nazw końców skali.</div></section>`;
+}
+
 function scaleMarkup(game, canMove, canConfirm, showTarget = false) {
   const target = game.phase === "result" || showTarget ? `<span class="wavelength-target" style="left:${game.target}%"></span><b class="wavelength-target-label" style="left:${game.target}%">${game.target}%</b>` : "";
   return `<div class="wavelength-scale"><div class="wavelength-scale-labels"><b>${escapeHtml(game.pair[1])}</b><b>${escapeHtml(game.pair[0])}</b></div><div class="wavelength-track">${target}<span class="wavelength-position" style="left:${game.position}%"></span></div>${canMove ? `<input class="wavelength-slider" data-wavelength-slider type="range" min="0" max="100" value="${game.position}">` : ""}<output data-wavelength-position>${game.position}%</output></div>${canConfirm ? `<button class="primary" data-wavelength-confirm>Zatwierdź ustawienie</button>` : ""}`;
@@ -78,6 +84,7 @@ function resultMarkup(game, accounts, actions) {
 
 export function renderWavelengthGame(root, { room, accounts, currentUser }, actions) {
   const game = room.game, settings = room.settings || wavelengthDefaults, players = room.players || [];
+  game.pair = displayPair(game.pair) || ["Szybkie", "Wolne"];
   game.guesserUid ||= players[1] || players[0] || "";
   const guesser = game.guesserUid === currentUser, positionOwner = game.positionOwner === currentUser;
   window.clearTimeout(renderWavelengthGame.timer); window.clearInterval(renderWavelengthGame.countdown);
@@ -89,6 +96,11 @@ export function renderWavelengthGame(root, { room, accounts, currentUser }, acti
   const clueForm = !guesser && game.phase === "clue" && !ownClue ? `<form class="wavelength-clue-form"><input id="wavelength-clue" maxlength="120" placeholder="Jedno słowo lub krótkie zdanie"><button class="primary">Podaj podpowiedź</button></form>` : game.phase === "clue" ? `<p class="muted">${guesser ? "Czekamy na podpowiedzi pozostałych graczy." : "Twoja podpowiedź została wysłana."}</p>` : "";
   const canMove = guesser && game.phase === "guess", canConfirm = canMove && positionOwner;
   root.innerHTML = `<main class="page wavelength-page enter"><section class="panel wavelength-panel"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}/${settings.rounds || 8}</p><h1>${game.phase === "clue" ? (guesser ? "Czekaj na podpowiedzi" : "Daj podpowiedź zgadującemu") : "Ustaw swój wskaźnik"}</h1>${guesser && game.phase === "clue" ? `<p class="wavelength-secret">Ukryty cel jest tajny dla zgadującego.</p>` : ""}${pair}${clue}<p class="muted">${game.phase === "clue" ? "Nie używaj liczb ani nazw skrajności." : "Im bliżej ukrytego celu, tym więcej punktów."}</p>${clueForm}${game.phase === "guess" ? scaleMarkup(game, canMove, canConfirm, false) : `<div class="wavelength-wait">${guesser ? "Skala pojawi się, gdy wszyscy podadzą podpowiedź." : "Czekamy na pozostałych graczy."}</div>`}<div class="wavelength-timer" data-wavelength-countdown>${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div></section></main>`;
+  if (game.phase === "clue") {
+    root.querySelector(".wavelength-pair")?.insertAdjacentHTML("afterend", clueScaleMarkup(game));
+    const instruction = root.querySelector(".wavelength-panel > .muted");
+    if (instruction) instruction.textContent = "Opisz miejsce na osi słowami — bez liczb i bez powtarzania nazw końców.";
+  }
   root.querySelector(".wavelength-clue-form")?.addEventListener("submit", event => { event.preventDefault(); actions.wavelengthClue(root.querySelector("#wavelength-clue").value, { phase:game.phase, phaseEndsAt:game.phaseEndsAt }); });
   const slider=root.querySelector("[data-wavelength-slider]"), output=root.querySelector("[data-wavelength-position]"); slider?.addEventListener("input", () => { output.textContent=`${slider.value}%`; root.querySelector(".wavelength-position").style.left=`${slider.value}%`; }); slider?.addEventListener("change", () => actions.wavelengthMove(Number(slider.value), { phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
   root.querySelector("[data-wavelength-confirm]")?.addEventListener("click", () => actions.wavelengthConfirm({ phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
