@@ -675,7 +675,11 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
       const game=normalizeFirebaseValue(JSON.parse(JSON.stringify(current.gameState)));
       mutationError=mutate(game,current)||"";
       if(mutationError)return;
-      return {...current,gameState:game,chat:game.chat||[],updatedAt:Math.max(serverNow(),Number(current.updatedAt||0)+1)};
+      // Akcje różnych trybów są mutowane w jednym wspólnym transakcyjnym
+      // kanale. Odfiltruj undefined/NaN przed zapisem, bo RTDB odrzuca wtedy
+      // cały zapis i gracz zostaje z lokalnym, rozjechanym ekranem.
+      const cleanGame=cleanFirebaseWrite(game);
+      return {...current,gameState:cleanGame,chat:Array.isArray(cleanGame?.chat)?cleanGame.chat:[],updatedAt:Math.max(serverNow(),Number(current.updatedAt||0)+1)};
     });
     if(!result.committed)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
     const value=result.snapshot.val();
