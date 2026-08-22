@@ -13,6 +13,7 @@ let remoteDatabase;
 let firebaseDatabaseApi;
 let remoteFunctions;
 let firebaseFunctionsApi;
+let remoteFunctionsUnavailable = false;
 let serverTimeOffset = 0;
 let localPresenceTimer;
 let remotePresenceStop = () => {};
@@ -137,8 +138,12 @@ export function subscribeSiteStats(callback) {
 }
 export async function recordSiteEvent(event = {}) {
   if (!event.type || !event.eventId) return false;
-  if (remoteFunctions && firebaseFunctionsApi?.httpsCallable) {
-    try { await firebaseFunctionsApi.httpsCallable(remoteFunctions, "recordSiteEvent")({ ...event }); return true; } catch (error) { console.warn("Nie udało się zapisać statystyki online; używam lokalnego bufora.", error?.code || error?.message || error); }
+  if (!remoteFunctionsUnavailable && remoteFunctions && firebaseFunctionsApi?.httpsCallable) {
+    try { await firebaseFunctionsApi.httpsCallable(remoteFunctions, "recordSiteEvent")({ ...event }); return true; } catch (error) {
+      const code = error?.code || "";
+      if (["functions/internal", "functions/not-found", "functions/unavailable"].includes(code)) remoteFunctionsUnavailable = true;
+      console.warn("Nie udało się zapisać statystyki online; używam lokalnego bufora.", code || error?.message || error);
+    }
   }
   const stats = loadSiteStats(), events = readLocal(`${LOCAL_SITE_STATS_KEY}_events`), key = String(event.eventId);
   if (events[key]) return true;
