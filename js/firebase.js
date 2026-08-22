@@ -105,7 +105,8 @@ export function loadSession() {
 }
 export function saveSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
 export function clearSession() { localStorage.removeItem(SESSION_KEY); }
-export function hasOnlineBackend() { return Boolean(remoteDatabase); }
+const canUseRemote = () => Boolean(remoteDatabase && remoteAuth?.currentUser);
+export function hasOnlineBackend() { return canUseRemote(); }
 
 export function loadSiteStats() {
   const data = readLocal(LOCAL_SITE_STATS_KEY);
@@ -114,7 +115,7 @@ export function loadSiteStats() {
   return { gamesPlayed:0, roomsCreated:0, registeredUsers:localRegistered, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{}, ...data, registeredUsers:Math.max(localRegistered, Number(data.registeredUsers) || 0) };
 }
 export function subscribeSiteStats(callback) {
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     const ref = firebaseDatabaseApi.ref(remoteDatabase, "siteStats/global");
     const emit = async snapshot => {
       const stats = snapshot.val() || {};
@@ -170,7 +171,7 @@ export function startPresence(userKey, meta = {}) {
   const clientId = clientPresenceId(), key = localPresenceUserKey(userKey);
   remotePresenceStop();
   clearInterval(localPresenceTimer);
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     const clientRef = firebaseDatabaseApi.ref(remoteDatabase, `presence/${key}/clients/${clientId}`);
     firebaseDatabaseApi.set(clientRef, { nick:meta.nick || "", seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(()=>{});
     firebaseDatabaseApi.onDisconnect?.(clientRef)?.remove?.();
@@ -193,7 +194,7 @@ export function startPresence(userKey, meta = {}) {
 }
 
 export function startRoomPresence(roomId, userId) {
-  if (!remoteDatabase || !roomId || !userId) return () => {};
+  if (!canUseRemote() || !roomId || !userId) return () => {};
   const clientId = clientPresenceId();
   const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/presence/${userId}/${clientId}`);
   const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(() => {});
@@ -211,7 +212,7 @@ export function subscribeOnlineCount(callback) {
     if (count > 100 && lastCount > 100 && now - lastLargeUpdate < 60000) return;
     lastCount = count; if (count > 100) lastLargeUpdate = now; callback(count);
   };
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, "presence");
     const handleSnapshot = snapshot => {
       const now = serverNow(), users = snapshot.val() || {};
@@ -279,7 +280,7 @@ export async function clearVoiceSignals(roomId, uid = "") {
   } catch { return false; }
 }
 export async function loadPresenceUsers() {
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { const data=(await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,"presence"))).val() || {}; const now=serverNow(); return Object.fromEntries(Object.entries(data).filter(([,item])=>Object.values(item?.clients||{}).some(client=>now-Number(client?.seenAt||0)<PRESENCE_TTL_MS)).map(([uid])=>[uid,true])); } catch { return {}; }
   }
   const now=Date.now(), data=readLocal(LOCAL_PRESENCE_KEY); return Object.fromEntries(Object.entries(data).filter(([,item])=>Object.values(item||{}).some(client=>now-Number(client?.seenAt||0)<PRESENCE_TTL_MS)).map(([uid])=>[uid,true]));
@@ -377,7 +378,7 @@ export async function voteWouldYouRather({ questionId, choice, playerId, persist
       if (profileAnswer.exists()) return { accepted:false, votes:await getWouldYouRatherVotes(questionId) };
     } catch {}
   }
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try {
       const voteRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}/${choice}`);
       await firebaseDatabaseApi.runTransaction(voteRef,current=>(current||0)+1);
@@ -451,7 +452,7 @@ export async function submitHonor({ roomId, fromUid, targetUid, type }) {
       return { ok:true, ...(result.data || {}) };
     } catch (error) { return { ok:false, error:error?.message || "Nie udało się zapisać wyróżnienia." }; }
   }
-  if (remoteDatabase) return { ok:false, error:"System honoru wymaga wdrożonego backendu." };
+  if (canUseRemote()) return { ok:false, error:"System honoru wymaga wdrożonego backendu." };
   const votes = readLocal(LOCAL_HONOR_KEY), key = `${roomId}/${fromUid}`;
   if (votes[key]) return { ok:false, error:"Możesz wyróżnić tylko jedną osobę w tym meczu." };
   votes[key] = { targetUid, type, createdAt:Date.now() }; saveLocal(LOCAL_HONOR_KEY, votes);
@@ -526,7 +527,7 @@ const normalizeNickKey = nick => String(nick || "").toLowerCase().trim();
 export async function submitModerationReport(report) {
   const item = { ...report, id:report.id || moderationId("rep"), status:report.status || "open", createdAt:report.createdAt || Date.now() };
   const local = moderationLocal(); local.reports = { ...(local.reports || {}), [item.id]:item }; saveModerationLocal(local);
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `moderation/reports/${item.id}`), item); } catch {}
   }
   return item;
@@ -534,7 +535,7 @@ export async function submitModerationReport(report) {
 
 export async function loadModerationReports() {
   const local = moderationLocal().reports || {};
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "moderation/reports"))).val() || {}) }; } catch {}
   }
   return local;
@@ -543,7 +544,7 @@ export async function loadModerationReports() {
 export async function saveModerationBan(ban) {
   const item = { ...ban, id:ban.id || moderationId("ban"), createdAt:ban.createdAt || Date.now() };
   const local = moderationLocal(); local.bans = { ...(local.bans || {}), [item.id]:item }; saveModerationLocal(local);
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `moderation/bans/${item.id}`), item); } catch {}
   }
   return item;
@@ -551,7 +552,7 @@ export async function saveModerationBan(ban) {
 
 export async function loadModerationBans() {
   const local = moderationLocal().bans || {};
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "moderation/bans"))).val() || {}) }; } catch {}
   }
   return local;
@@ -560,7 +561,7 @@ export async function loadModerationBans() {
 export async function sendInboxMessageToNick(nick, message) {
   const key = normalizeNickKey(nick), item = { ...message, id:message.id || moderationId("msg"), toNick:key, createdAt:message.createdAt || Date.now(), read:false };
   const local = moderationLocal(); local.mail = { ...(local.mail || {}) }; local.mail[key] = { ...(local.mail[key] || {}), [item.id]:item }; saveModerationLocal(local);
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `mail/${key}/${item.id}`), item); } catch {}
   }
   return item;
@@ -568,7 +569,7 @@ export async function sendInboxMessageToNick(nick, message) {
 
 export async function loadInboxForNick(nick) {
   const key = normalizeNickKey(nick), local = moderationLocal().mail?.[key] || {};
-  if (remoteDatabase) {
+  if (canUseRemote()) {
     try { return { ...local, ...((await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `mail/${key}`))).val() || {}) }; } catch {}
   }
   return local;
@@ -587,7 +588,7 @@ export async function syncRoomState(room) {
     Object.entries(payload.players).forEach(([uid, player])=>{if(uid.startsWith("bot:")){player.isBot=true;player.botDifficulty=room.playerProfiles?.[uid]?.botDifficulty||"normal";}});
     const cleanPayload = cleanFirebaseWrite(payload);
     let saved=cleanPayload;
-    if(remoteDatabase){
+    if(canUseRemote()){
       const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`);
       try {
         const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
@@ -651,7 +652,7 @@ export async function loadRemoteRoom(roomId) {
   const code = String(roomId || "").trim().toUpperCase();
   if (!code) return { ok:false, error:"Brak kodu pokoju." };
   try {
-    if (remoteDatabase) {
+    if (canUseRemote()) {
       const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `rooms/${code}`));
       const value = snapshot.val();
       if (!value) return { ok:false, missing:true, error:"Pokoj nie istnieje." };
@@ -666,7 +667,7 @@ export async function loadRemoteRoom(roomId) {
 }
 
 export async function mutateRemoteRoomGame(roomId, mutate) {
-  if (!remoteDatabase || !roomId) return null;
+  if (!canUseRemote() || !roomId) return null;
   let mutationError="";
   try {
     const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
