@@ -5,12 +5,13 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, voteWouldYouRather } from "./firebase.js?v=20260822-6";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260822-1";
-import { gamesList, getGameMode } from "./games.js?v=20260822-2";
+import { gamesList, getGameMode } from "./games.js?v=20260822-3";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260822-1";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260813-2";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-2";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-3";
+import { voteWouldYouRather as voteWouldYouRatherFresh } from "./firebase.js?v=20260822-7";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-8";
@@ -1615,10 +1616,10 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   otherNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="results")return"Runda została już zmieniona.";OtherQuestionEngine.next(game,current.players,current.settings);});},
   async wyrVote(choice){
     const user=profile(),question=currentWouldYouRather();if(!question)return;
-    const result=await voteWouldYouRather({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
+    const result=await voteWouldYouRatherFresh({questionId:question.id,choice,playerId:wouldYouRatherPlayerKey(user,state.currentUser),remotePlayerId:state.currentUser,persistProfile:Boolean(user&&!user.nickOnly)});
     if(result.error)return message(result.error,"error");
+    if(!result.accepted){if(result.choice==="a"||result.choice==="b")setWouldYouRatherVote(result.choice,result.votes);return message("Na to pytanie już oddałeś głos.","info");}
     setWouldYouRatherVote(choice,result.votes);
-    if(!result.accepted)return message("Na to pytanie już oddałeś głos.","info");
     Effects.play("choice");if(user){applyPlayerXp(state.currentUser,2);if(!user.nickOnly)updateProfile({money:(profile().money||0)+2,answeredWouldYouRather:{...(profile().answeredWouldYouRather||{}),[question.id]:choice}});else{Audio.play("success");render();}}else{Audio.play("success");render();}
   },
   mostLikelyQuestion(text){return mutateRoomGame((game,room)=>MostLikelyEngine.submitQuestion(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},

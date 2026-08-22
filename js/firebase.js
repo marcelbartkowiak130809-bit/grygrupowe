@@ -397,11 +397,11 @@ export function subscribeWouldYouRatherVotes(questionId, callback) {
 }
 export async function voteWouldYouRather({ questionId, choice, playerId, remotePlayerId = playerId, persistProfile }) {
   const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY), playerAnswers=answers[playerId] || {};
-  if (playerAnswers[questionId]) return { accepted:false, votes:await getWouldYouRatherVotes(questionId) };
+  if (playerAnswers[questionId]) return { accepted:false, choice:playerAnswers[questionId], votes:await getWouldYouRatherVotes(questionId) };
   if (canUseRemote() && persistProfile) {
     try {
       const profileAnswer=await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${remotePlayerId}/answeredWouldYouRather/${questionId}`));
-      if (profileAnswer.exists()) return { accepted:false, votes:await getWouldYouRatherVotes(questionId) };
+      if (profileAnswer.exists()) return { accepted:false, choice:profileAnswer.val(), votes:await getWouldYouRatherVotes(questionId) };
     } catch {}
   }
   if (canUseRemote()) {
