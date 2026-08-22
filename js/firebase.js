@@ -588,16 +588,35 @@ export async function syncRoomState(room) {
     const cleanPayload = cleanFirebaseWrite(payload);
     let saved=cleanPayload;
     if(remoteDatabase){
-      const result=await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`),current=>{
-        if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0))return current;
-        return { ...cleanPayload, presence:current?.presence || cleanPayload.presence };
-      });
-      saved=result.snapshot.val()||cleanPayload;
+      const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${room.roomId}`);
+      try {
+        const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
+          if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0))return current;
+          return { ...cleanPayload, presence:current?.presence || cleanPayload.presence };
+        });
+        saved=result.snapshot.val()||cleanPayload;
+      } catch(transactionError) {
+        // Niektóre przeglądarki/wersje SDK potrafią przerwać transakcję przy
+        // równoczesnym wejściu do lobby. Odczyt + set jest tu bezpiecznym
+        // fallbackiem, bo zapis nadal przechodzi przez te same reguły RTDB.
+        try {
+          const current=(await firebaseDatabaseApi.get(roomRef)).val();
+          if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0)) saved=current;
+          else {
+            saved={ ...cleanPayload, presence:current?.presence || cleanPayload.presence };
+            await firebaseDatabaseApi.set(roomRef,saved);
+          }
+        } catch(fallbackError) {
+          const first=transactionError?.code || transactionError?.message || String(transactionError);
+          const second=fallbackError?.code || fallbackError?.message || String(fallbackError);
+          throw new Error(`Firebase synchronizacja (transakcja: ${first}; zapis awaryjny: ${second})`);
+        }
+      }
     }
     const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=saved;saveLocal(LOCAL_ROOMS_KEY,local);
     return { ok:true, room:normalizeRemoteRoom(saved) };
   } catch(error) {
-    return { ok:false, error:error?.message || error?.code || "Nieznany blad synchronizacji." };
+    return { ok:false, error:error?.message || error?.code || String(error) || "Nieznany blad synchronizacji." };
   }
 }
 
