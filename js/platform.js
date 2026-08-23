@@ -11,6 +11,7 @@ const filters = [
   ["new", "NOWE"],
   ["popular", "POPULARNE"],
   ["tiktok", "HIT TIKTOKA"],
+  ["category", "KATEGORIA"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
@@ -61,7 +62,7 @@ function visualSymbol(mode) {
 
 function pokemonHubCard() {
   const mewtwo = pokemonDex.find(item => item.id === 150);
-  return `<article class="game-card pokemon-hub-card" data-pokemon-hub><div class="game-visual game-visual-pokemon-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</span><b class="pokemon-hub-badge">POKÉMON</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-pokemon">KOLEKCJA TRYBÓW</span></div><h2>POKEMONY</h2><p class="muted">Rywalizujcie w specjalnych trybach z Pokémonami: Pokédex, ewolucje, typy, aukcja i więcej.</p><div class="game-card-activity"><span>6 trybów</span><span>MEWTWO CZEKA</span></div><div class="game-card-footer"><span class="players-count">🧬 SPECJALNA STREFA</span><button class="primary" data-open-pokemon>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card pokemon-hub-card" data-pokemon-hub data-mode-category="pokemon" data-mode-tags="pokemon category new everyone" data-mode-search="pokemony pokemon kategoria specjalna strefa"><div class="game-visual game-visual-pokemon-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</span><b class="pokemon-hub-badge">POKÉMON</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-pokemon">KATEGORIA</span></div><h2>POKEMONY</h2><p class="muted">Rywalizujcie w specjalnych trybach z Pokémonami: Pokédex, ewolucje, typy, aukcja i więcej.</p><div class="game-card-activity"><span>6 trybów</span><span>MEWTWO CZEKA</span></div><div class="game-card-footer"><span class="players-count">🧬 SPECJALNA STREFA</span><button class="primary" data-open-pokemon>Wybierz tryb</button></div></div></article>`;
 }
 
 function gameCard(mode) {

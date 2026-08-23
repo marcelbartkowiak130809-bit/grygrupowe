@@ -30,7 +30,7 @@ import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./word
 import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260823-4";
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260823-5";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260823-2";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260823-3";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260823-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom } from "./room.js?v=20260822-2";
