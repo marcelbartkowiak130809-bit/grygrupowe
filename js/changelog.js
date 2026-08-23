@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260823-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260823-2";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -6,6 +6,7 @@ const stagedModes = [
   { id: "ranking", name: "Ranking" },
   { id: "5-sekund", name: "5 sekund" },
   { id: "zegar", name: "Zegar" },
+  { id: "number-mystery", name: "Tajemnicza liczba" },
 ];
 
 function unlockedModeChanges(now = Date.now()) {
@@ -23,6 +24,7 @@ function buildChangelogEntries(now = Date.now()) {
       changes: [
         "Zamknięto stare pokoje przed rozpoczęciem kolejnego cyklu testów.",
         "Po aktualizacji aplikacja czyści lokalne kopie pokoi i wymusza jednorazowe odświeżenie strony.",
+        "Dodano tryb Tajemnicza liczba z pytaniami własnymi, quick chatem, historią i dwoma warunkami zwycięstwa.",
       ],
     },
     {

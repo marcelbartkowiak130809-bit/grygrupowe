@@ -15,10 +15,11 @@ import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260822-8";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260822-1";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260823-5";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260805-1";
-import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260822-8";
+import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260823-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
+import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-2";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -270,6 +271,9 @@ export const gamesRegistry = {
   },
   wavelength: {
     id: "wavelength", name: "Wavelength", description: "Naprowadź ekipę na ukryty punkt między dwoma przeciwieństwami.", help: ["Opisujący widzi ukryty cel i podaje jedno słowo lub krótkie zdanie.", "Pozostali wspólnie ustawiają wskaźnik na skali.", "Host zatwierdza ustawienie, a wynik zależy od odległości od celu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◌", art:"wavelength", audience:"everyone", badges:["new"], render:renderWavelengthGame, defaultSettings:wavelengthDefaults,
+  },
+  "number-mystery": {
+    id: "number-mystery", name: "Tajemnicza liczba", description: "Zadawaj nieoczywiste pytania i spróbuj odgadnąć swój ukryty numer.", help: ["Każdy gracz dostaje losowy numer od 1 do 150 i widzi numer przeciwnika, ale nie swój.", "Pytania są pośrednie — nie wpisuj w nich liczb ani ich nazw.", "Wybierz własne pytania, gotową bazę albo oba sposoby naraz.", "Możesz wygrać od razu po trafieniu albo po ustalonej liczbie rund."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔢", art:"number-mystery", audience:"everyone", badges:["new"], render:renderNumberMysteryGame, defaultSettings:numberMysteryDefaults,
   },
   quiz: {
     id: "quiz", name: "Quiz", description: "Sprawdźcie wiedzę w trybie Casual albo zmierzcie się w teleturniejowej rywalizacji.", help: ["Najpierw wybierzcie wariant Casual albo Rywalizacja.", "Casual pozwala hostowi ustawić liczbę i czas pytań.", "Rywalizacja dobiera graczy do szybkiego meczu 2–4 osób."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"?", art:"quiz", audience:"everyone", badges:["new"], render:renderQuizGame, defaultSettings:quizDefaults,

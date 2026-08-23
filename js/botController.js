@@ -17,10 +17,11 @@ import { PokemonEngine } from "./pokemon.js?v=20260822-8";
 import { WavelengthEngine } from "./wavelength.js?v=20260822-1";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
-import { MarkerEngine } from "./marker.js?v=20260822-8";
+import { MarkerEngine } from "./marker.js?v=20260823-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
+import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-2";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
@@ -219,6 +220,7 @@ function timeoutMutation(room, game, bot) {
     case "family": return g => FamilyEngine.timeout(g);
     case "word-chain": return g => WordChainEngine.timeout(g);
     case "sequence": return g => SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
+    case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     default: return null;
   }
 }
@@ -357,6 +359,22 @@ export function botMutation(room) {
         if (game.phase === "answer" && game.currentUid === bot) return g => {
           const word = wordChainBotWord(g);
           return correct() && word ? WordChainEngine.answer(g, bot, word) : WordChainEngine.timeout(g);
+        };
+        break;
+      case "number-mystery":
+        if (game.phase === "ask" && game.turnUid === bot) return g => {
+          if (game.roundMode === "race" && Math.random() < (correct() ? .08 : .16)) {
+            const value = correct() ? g.numbers?.[bot] : Math.max(1, Math.min(150, Number(g.numbers?.[bot] || 75) + (Math.random() < .5 ? -1 : 1) * (5 + Math.floor(Math.random() * 20))));
+            NumberMysteryEngine.guess(g, bot, value);
+            if (g.finished) return;
+          }
+          const question = numberMysteryQuickQuestions[Math.floor(Math.random() * numberMysteryQuickQuestions.length)];
+          return NumberMysteryEngine.ask(g, bot, question);
+        };
+        if (game.phase === "answer" && game.responder === bot) return g => NumberMysteryEngine.answer(g, bot, Math.random() < (correct() ? .72 : .5) ? "yes" : Math.random() < .5 ? "no" : "maybe");
+        if (game.phase === "guess" && !game.guesses?.[bot]) return g => {
+          const target = Number(g.numbers?.[bot] || 75), value = correct() ? target : Math.max(1, Math.min(150, target + (Math.random() < .5 ? -1 : 1) * (4 + Math.floor(Math.random() * 18))));
+          return NumberMysteryEngine.guess(g, bot, value);
         };
         break;
       default: break;
