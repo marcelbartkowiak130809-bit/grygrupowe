@@ -173,19 +173,58 @@ const impostorClueWords = {
   "Emocje":["radość","strach","złość","spokój","niespodzianka"],
   "Twórcy internetowi":["kanał","film","stream","widzowie","subskrypcja"]
 };
-function impostorBotClue(game) {
+const impostorSpecificClues = {
+  pizza:["ser","ciasto","piekarnik","okrągłe","dostawa"], burger:["bułka","grill","sos","fast food","dłonie"], kebab:["lawasz","sos","budka","mięso","noc"],
+  rosół:["bulion","marchew","niedziela","makaron","garnek"], pierogi:["farsz","lepienie","mąka","śmietana","barszcz"], sushi:["ryż","pałeczki","surowe","soja","Japonia"],
+  frytki:["ziemniaki","sól","chrupiące","olej","fast food"], czekolada:["kakao","tabliczka","słodkie","czekolada","deser"],
+  ziemniak:["bulwa","obieranie","gotowanie","placki","warzywo"], pomidor:["czerwone","sałatka","sok","pestki","warzywo"], ogórek:["zielone","kiszenie","sałatka","chrupiące","warzywo"],
+  jabłko:["sad","skórka","chrupiące","owoc","szarlotka"], arbuz:["lato","pestki","soczyste","skórka","owoc"], mango:["tropiki","słodkie","pestka","żółte","owoc"],
+  pies:["smycz","szczeka","łapy","spacer","zwierzę"], kot:["mruczenie","wąsy","kuweta","drapanie","zwierzę"], lew:["grzywa","sawanna","ryczenie","drapieżnik","stado"], rekin:["płetwa","ocean","zęby","głębia","drapieżnik"],
+  zeszyt:["kartki","notatki","linia","szkoła","okładka"], długopis:["atrament","pisanie","wkład","biurko","szkoła"], matematyka:["liczby","zadanie","wzory","lekcja","obliczenia"], plecak:["ramiona","zamek","książki","szkoła","kieszeń"],
+  telefon:["ekran","połączenie","aplikacja","kieszeń","ładowanie"], laptop:["klawiatura","praca","ekran","bateria","biurko"], klawiatura:["klawisze","pisanie","spacja","biurko","enter"], słuchawki:["dźwięk","uszy","muzyka","kabel","głośność"], wifi:["router","zasięg","internet","hasło","sygnał"],
+  minecraft:["bloki","kopanie","crafting","creeper","piksel"], fortnite:["skórki","budowanie","battle royale","wyspa","sezon"], roblox:["avatar","serwery","obby","platforma","gry"],
+  "harry potter":["magia","różdżka","szkoła","czary","blizna"], shrek:["bagno","ogre","bajka","osioł","zielony"], "star wars":["kosmos","miecz","galaktyka","moc","roboty"], marvel:["bohaterowie","komiks","uniwersum","supermoce","kino"],
+  gitara:["struny","akordy","instrument","koncert","muzyka"], spotify:["playlista","streaming","słuchawki","piosenki","aplikacja"], rap:["rym","bit","zwrotka","mikrofon","muzyka"], koncert:["scena","publiczność","bilety","głośno","muzyka"],
+  "piłka nożna":["bramka","boisko","mecz","korki","sędzia"], koszykówka:["kosz","piłka","parkiet","rzut","mecz"], tenis:["rakieta","kort","siatka","serwis","mecz"], rower:["pedały","kask","koła","trasa","jazda"],
+  Warszawa:["stolica","Wisła","centrum","Polska","metro"], Kraków:["Wawel","Rynek","smok","Małopolska","turystyka"], Paryż:["wieża","Francja","metro","moda","stolica"], Tokio:["Japonia","wieżowce","metro","tłum","technologia"],
+  kubek:["ucho","napój","stół","ceramika","kuchnia"], widelec:["sztućce","zęby","obiad","kuchnia","metal"], kanapa:["salon","siedzenie","poduszki","meble","relaks"], parasol:["deszcz","rączka","pogoda","mokro","składany"],
+  YouTube:["film","kanał","subskrypcja","twórca","wideo"], TikTok:["krótkie filmy","pionowo","trend","muzyka","aplikacja"], discord:["serwer","kanał","rozmowa","głos","społeczność"], mem:["internet","żart","obrazek","viral","humor"],
+  Creeper:["wybuch","zielony","Minecraft","noc","potwór"], diament:["kopalnia","niebieski","rzadkie","klejnot","Minecraft"], Nether:["portal","lava","wymiar","Minecraft","ogień"],
+  Pikachu:["elektryczny","żółty","Pokemon","uszy","iskry"], Charmander:["ogień","ogon","Pokemon","smok","płomień"], Mewtwo:["legendarny","psychiczny","Pokemon","laboratorium","moc"],
+  cola:["gazowane","puszka","lód","napój","słodkie"], herbata:["kubek","gorące","liście","napój","czajnik"], kawa:["rano","filiżanka","kofeina","gorące","ziarna"], pizza:["ser","ciasto","piekarnik","okrągłe","dostawa"],
+  lodówka:["zimne","kuchnia","jedzenie","drzwi","półki"], szampon:["włosy","łazienka","piana","mycie","butelka"], klucz:["zamek","drzwi","metal","kieszeń","otwieranie"],
+  hotel:["pokój","nocleg","recepcja","wakacje","rezerwacja"], lotnisko:["samolot","walizka","odprawa","terminal","podróż"], mapa:["droga","kierunek","trasa","papier","nawigacja"],
+  Netflix:["serial","ekran","subskrypcja","seans","platforma"], Steam:["gry","biblioteka","komputer","zakup","platforma"], Among\ Us:["impostor","statek","zadania","głosowanie","załoga"],
+  radość:["uśmiech","szczęście","emocje","świętowanie","dobra wiadomość"], stres:["nerwy","presja","egzamin","napięcie","emocje"]
+};
+const clueKey = value => normalizeAnswer(value).replace(/[^a-z0-9]/g, "");
+const pick = values => values[Math.floor(Math.random() * values.length)] || "";
+function impostorBotClue(game, room, bot) {
   const category = String(game?.category || "").trim();
+  const secret = String(game?.roles?.[bot]?.word || game?.mainWord || "").trim();
   const normalizedMain = normalizeAnswer(game?.mainWord || "");
-  const pool = [...(impostorClueWords[category] || [])]
+  const normalizedSecret = normalizeAnswer(secret);
+  const used = new Set(array(game?.clues).map(clue => normalizeAnswer(clue?.text || clue)).filter(Boolean));
+  const specific = Object.entries(impostorSpecificClues).find(([word]) => clueKey(word) === clueKey(secret))?.[1] || [];
+  const generic = impostorClueWords[category] || [];
+  const difficulty = botDifficulty(room, bot).id;
+  const specificChance = { easy:.25, normal:.55, hard:.82, expert:.95 }[difficulty] ?? .55;
+  const preferred = Math.random() < specificChance ? [...specific, ...generic] : [...generic, ...specific];
+  const pool = [...new Set(preferred)]
     .filter(Boolean)
     .filter(word => {
       const normalized = normalizeAnswer(word);
-      return normalized && normalized !== normalizedMain && !normalized.includes(normalizedMain);
+      return normalized && normalized !== normalizedMain && normalized !== normalizedSecret && !normalized.includes(normalizedMain) && !used.has(normalized);
     });
-  // Never show the old generic text (or an empty fallback) as a clue. If a
-  // newly added category has no dedicated bank yet, use one real word from
-  // the category instead; the clue engine will still validate it normally.
-  return pool[Math.floor(Math.random() * pool.length)] || category || "gra";
+  if (pool.length) return pick(pool);
+  const variants = ["Kojarzy mi się z {word}.", "Pierwsze skojarzenie: {word}.", "Dla mnie pasuje tu {word}.", "Mam z tym związek przez {word}."];
+  const base = [...new Set([...specific, ...generic])].filter(word => {
+    const normalized = normalizeAnswer(word);
+    return normalized && normalized !== normalizedSecret && normalized !== normalizedMain && !normalized.includes(normalizedMain);
+  });
+  const freshVariants = base.flatMap(word => variants.map(template => template.replace("{word}", word)))
+    .filter(text => !used.has(normalizeAnswer(text)));
+  return pick(freshVariants) || base[0] || (category ? `skojarzenie z kategorią ${category.toLowerCase()}` : "codzienne skojarzenie");
 }
 function wavelengthOffset(room, bot) {
   const id=botDifficulty(room,bot).id, roll=Math.random();
@@ -278,7 +317,7 @@ export function botMutation(room) {
         break;
       case "impostor":
         if (game.phase === "roleReveal" && !game.acknowledged?.[bot]) return g => ImpostorEngine.acknowledge(g, bot, settings);
-        if (game.phase === "clues" && orderUid(game, ["turnOrder"]) === bot) return g => ImpostorEngine.clue(g, bot, impostorBotClue(g), settings);
+        if (game.phase === "clues" && orderUid(game, ["turnOrder"]) === bot) return g => ImpostorEngine.clue(g, bot, impostorBotClue(g, room, bot), settings);
         if (game.phase === "continueDecision" && game.decisionPlayer === bot) return g => ImpostorEngine.decide(g, bot, correct(), settings);
         if (game.phase === "voting" && !game.votes?.[bot]) return g => ImpostorEngine.vote(g, bot, players.find(uid => uid !== bot) || players[0]);
         if (game.phase === "finalGuess" && game.result?.expelled === bot) return g => correct() ? ImpostorEngine.finalGuess(g, bot, g.mainWord || "") : ImpostorEngine.finalSurrender(g, bot);
