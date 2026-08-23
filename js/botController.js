@@ -1,5 +1,6 @@
 import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260822-1";
 import { categories } from "./categories.js?v=20260612-1";
+import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20260822-1";
 import { IdentityEngine } from "./identity.js?v=20260611-1";
@@ -125,6 +126,45 @@ const wavelengthCluePools = [
   ["Skrajnie po stronie {right}","Prawie całkiem {right}","Bardzo blisko końca {right}","Niemal sam {right}","Mocno przechylone na {right}","Prawie bez domieszki {left}","Zdecydowanie {right}","Prawie maksymalnie {right}","Daleko od {left}","Najbliżej {right} jak się da"],
   ["Na samym skraju {right}","Prawie poza skalą po stronie {right}","Maksymalnie {right}","Niemal ekstremalne {right}","Prawie tylko {right}","Bardzo mocno {right}","Zdecydowanie przy końcu {right}","Prawie całkowicie {right}","Minimalnie brakuje do skraju {right}","Skrajna wersja {right}"]
 ];
+
+const impostorClueWords = {
+  "Jedzenie":["smak","sos","talerz","obiad","przepis"],
+  "Warzywa":["ogród","sałatka","liście","stragan","witamina"],
+  "Owoce":["sad","sok","słodkie","pestka","witamina"],
+  "Zwierzęta":["łapy","futro","dzikie","ogon","las"],
+  "Szkoła":["lekcja","klasa","nauczyciel","sprawdzian","przerwa"],
+  "Dom":["pokój","meble","klucz","sprzątanie","sąsiad"],
+  "Napoje":["szklanka","lód","smak","butelka","łyk"],
+  "Podróże":["bagaż","mapa","hotel","lotnisko","wakacje"],
+  "Miasta":["ulica","centrum","most","metro","rynek"],
+  "Kraje":["granica","język","flaga","stolica","kultura"],
+  "Sport":["mecz","trening","drużyna","stadion","wynik"],
+  "Gry":["gracz","poziom","plansza","wynik","rozgrywka"],
+  "Filmy i seriale":["aktor","scena","fabuła","odcinek","reżyser"],
+  "Muzyka":["refren","koncert","rytm","słuchawki","melodia"],
+  "Technologia":["ekran","aplikacja","internet","bateria","urządzenie"],
+  "Aplikacje":["telefon","konto","wiadomość","powiadomienie","profil"],
+  "Internet i memy":["sieć","post","komentarz","viral","obrazek"],
+  "Minecraft":["kopalnia","blok","crafting","jaskinia","potwór"],
+  "Roblox":["avatar","serwer","mapa","gra","przedmiot"],
+  "Pokémon":["trener","walka","typ","ewolucja","pokeball"],
+  "Moda":["ubranie","kolor","buty","styl","sklep"],
+  "Praca":["biuro","szef","projekt","wypłata","spotkanie"],
+  "Rzeczy codzienne":["rano","zakupy","dom","telefon","czas"],
+  "Emocje":["radość","strach","złość","spokój","niespodzianka"],
+  "Twórcy internetowi":["kanał","film","stream","widzowie","subskrypcja"]
+};
+function impostorBotClue(game) {
+  const category = String(game?.category || "").trim();
+  const normalizedMain = normalizeAnswer(game?.mainWord || "");
+  const pool = [...(impostorClueWords[category] || []), category || "klasyk"]
+    .filter(Boolean)
+    .filter(word => {
+      const normalized = normalizeAnswer(word);
+      return normalized && normalized !== normalizedMain && !normalized.includes(normalizedMain);
+    });
+  return pool[Math.floor(Math.random() * pool.length)] || "klasyk";
+}
 function wavelengthOffset(room, bot) {
   const id=botDifficulty(room,bot).id, roll=Math.random();
   if(id==="easy") return roll<.5?0:roll<.65?-1:roll<.8?1:roll<.9?-2:2;
@@ -214,7 +254,7 @@ export function botMutation(room) {
         break;
       case "impostor":
         if (game.phase === "roleReveal" && !game.acknowledged?.[bot]) return g => ImpostorEngine.acknowledge(g, bot, settings);
-        if (game.phase === "clues" && orderUid(game, ["turnOrder"]) === bot) return g => ImpostorEngine.clue(g, bot, correct() ? "To cos zwiazanego z tematem" : "Brzmi znajomo", settings);
+        if (game.phase === "clues" && orderUid(game, ["turnOrder"]) === bot) return g => ImpostorEngine.clue(g, bot, impostorBotClue(g), settings);
         if (game.phase === "continueDecision" && game.decisionPlayer === bot) return g => ImpostorEngine.decide(g, bot, correct(), settings);
         if (game.phase === "voting" && !game.votes?.[bot]) return g => ImpostorEngine.vote(g, bot, players.find(uid => uid !== bot) || players[0]);
         if (game.phase === "finalGuess" && game.result?.expelled === bot) return g => correct() ? ImpostorEngine.finalGuess(g, bot, g.mainWord || "") : ImpostorEngine.finalSurrender(g, bot);
