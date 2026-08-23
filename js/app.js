@@ -47,7 +47,7 @@ import { equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260822-2";
-import { happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260804-1";
+import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260823-1";
 
 const root = $("#app");
 const APP_VERSION = "v4.1.2";
@@ -94,6 +94,7 @@ let roundAdvanceInterval = 0;
 const roundAdvanceDeadlines = new Map();
 let happyHourTimer = 0;
 let happyHourRefreshTimer = 0;
+let happyHourResizeObserver = null;
 let roomPresenceStop = () => {};
 let roomPresenceId = "";
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
@@ -1970,8 +1971,12 @@ function addHonorPrompt(view, room) {
 function renderHappyHourBanner() {
   window.clearInterval(happyHourTimer);
   window.clearTimeout(happyHourRefreshTimer);
+  happyHourResizeObserver?.disconnect();
+  happyHourResizeObserver = null;
   happyHourTimer = 0;
   happyHourRefreshTimer = 0;
+  root.classList.remove("has-happy-hour-banner");
+  root.style.removeProperty("--happy-hour-height");
   document.querySelectorAll(".happy-hour-banner").forEach(item => item.remove());
   const event = happyHourAt(serverNow());
   const nextChange = happyHourNextChange(serverNow());
@@ -1980,10 +1985,25 @@ function renderHappyHourBanner() {
   const banner = root.querySelector(".happy-hour-banner"), countdown = banner?.querySelector("[data-happy-hour-countdown]");
   const seenKey = `happy-hour-seen:${event.eventId}`;
   if (!localStorage.getItem(seenKey)) { localStorage.setItem(seenKey, "1"); message(`${event.icon} Happy Hour: ${event.label}`, "info"); }
+  root.classList.add("has-happy-hour-banner");
+  const syncBannerLayout = () => {
+    if (!banner?.isConnected) return;
+    const topbar = root.querySelector(".topbar");
+    const topbarBottom = topbar?.getBoundingClientRect().bottom || 0;
+    banner.style.setProperty("--happy-hour-top", `${Math.ceil(topbarBottom + 12)}px`);
+    root.style.setProperty("--happy-hour-height", `${Math.ceil(banner.getBoundingClientRect().height)}px`);
+  };
+  syncBannerLayout();
+  if (window.ResizeObserver) {
+    happyHourResizeObserver = new ResizeObserver(syncBannerLayout);
+    const topbar = root.querySelector(".topbar");
+    if (topbar) happyHourResizeObserver.observe(topbar);
+    happyHourResizeObserver.observe(banner);
+  }
   happyHourTimer = window.setInterval(() => {
     if (!banner?.isConnected) return window.clearInterval(happyHourTimer);
     const left = Math.max(0, Math.ceil((event.endsAt - serverNow()) / 1000));
-    if (countdown) countdown.textContent = `${left}s`;
+    if (countdown) countdown.textContent = formatHappyHourCountdown(left);
     if (!left) { window.clearInterval(happyHourTimer); happyHourTimer = 0; banner.remove(); render(); }
   }, 1000);
 }

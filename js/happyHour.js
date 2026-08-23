@@ -38,8 +38,19 @@ export function happyHourMultiplier(room, kind, now = Date.now()) {
   if (event.rewardMultiplier && (!event.modes?.length || event.modes.includes(room?.gameMode))) return event.rewardMultiplier;
   return 1;
 }
+export function formatHappyHourCountdown(totalSeconds) {
+  const seconds = Math.max(0, Math.ceil(Number(totalSeconds) || 0));
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    return `${hours} godz. ${minutes % 60} min`;
+  }
+  if (minutes) return `${minutes} min ${rest} sek.`;
+  return `${rest} sek.`;
+}
 export function happyHourBannerHtml(event) {
   if (!event) return "";
   const label = event.id === "modeOfDay" ? `${event.label}: ${event.mode}` : event.label;
-  return `<div class="happy-hour-banner" data-happy-hour-end="${event.endsAt}" role="status"><span>${event.icon}</span><div><b>HAPPY HOUR</b><strong>${escapeHtml(label)}</strong></div><time data-happy-hour-countdown>${Math.max(0, Math.ceil((event.endsAt - Date.now()) / 1000))}s</time></div>`;
+  return `<div class="happy-hour-banner" data-happy-hour-end="${event.endsAt}" role="status"><span>${event.icon}</span><div><b>HAPPY HOUR</b><strong>${escapeHtml(label)}</strong><small>Pozostało</small></div><time data-happy-hour-countdown>${formatHappyHourCountdown((event.endsAt - Date.now()) / 1000)}</time></div>`;
 }
