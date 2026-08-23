@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260823-8";
+import { gamesList } from "./games.js?v=20260823-9";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260822-1";
@@ -10,6 +10,7 @@ const filters = [
   ["all", "WSZYSTKIE"],
   ["new", "NOWE"],
   ["popular", "POPULARNE"],
+  ["tiktok", "HIT TIKTOKA"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
@@ -46,7 +47,7 @@ function categoryTag(mode) {
 }
 
 function badgeTag(type) {
-  const labels = { popular:"Popularne 🔥", new:"Nowe ✨", newQuestions:"Nowe pytania ✅" };
+  const labels = { popular:"Popularne 🔥", new:"Nowe ✨", newQuestions:"Nowe pytania ✅", tiktok:"HIT TIKTOKA 🎵" };
   return labels[type] ? `<span class="tag game-badge game-badge-${type}">${labels[type]}</span>` : "";
 }
 
