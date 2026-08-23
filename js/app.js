@@ -2055,7 +2055,12 @@ function render(options = {}) {
   if(screen==="game") {
     try {
       const mode=getGameMode(room.gameMode);
-      if(!room.game || typeof room.game!=="object" || Array.isArray(room.game)) throw new Error("Brak stanu gry w pokoju.");
+      if(!room.game || typeof room.game!=="object" || Array.isArray(room.game)) {
+        view.innerHTML = `<main class="page enter"><section class="panel center"><p class="eyebrow">SYNCHRONIZACJA GRY</p><h1>Przygotowujemy rozgrywkę…</h1><p class="muted">Pokój został uruchomiony. Czekam na pełny stan gry z serwera.</p><div class="choice-row"><button class="primary" id="retry-game-render">Sprawdź ponownie</button><button class="ghost" id="leave-broken-game">Wyjdź z pokoju</button></div></section></main>`;
+        $("#retry-game-render")?.addEventListener("click", render);
+        $("#leave-broken-game")?.addEventListener("click", () => actions.leaveRoom("platform"));
+        return finish();
+      }
       if(mode.id==="marker") room.game.markerSkin=state.accounts[state.currentUser]?.selectedMarkerSkin||"defaultMarker";
       claimPendingProgress(room);
       const repaired=repairGameStateForPlayers(room);
