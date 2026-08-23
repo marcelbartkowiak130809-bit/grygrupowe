@@ -23,6 +23,7 @@ import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-2";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
+import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
@@ -49,6 +50,10 @@ export function botActor(room) {
   const game = room?.game;
   const bots = botsOf(room);
   if (!game || !bots.length) return "";
+  if (room.gameMode === "udowodnij") {
+    const active = game.phase === "initialBid" ? game.starter : game.phase === "bidding" ? game.decisionPlayer : game.phase === "answering" ? game.currentBidder : "";
+    return isBotId(active) && bots.includes(active) ? active : "";
+  }
   if (game.mode === "wavelength" || room.gameMode === "wavelength") {
     if (game.phase === "clue") return bots.find(uid => uid !== game.guesserUid && !game.clues?.[uid]) || bots.find(uid => uid !== game.guesserUid) || "";
     if (game.phase === "guess" && bots.includes(game.guesserUid)) return game.guesserUid;
@@ -257,8 +262,8 @@ export function botMutation(room) {
   try {
     switch (room.gameMode) {
       case "udowodnij":
-        if (game.phase === "initialBid" && game.starter === bot) return g => { g.currentBid = Math.max(1, Math.min(Number(g.maxBid || 5), 1 + Math.floor(Math.random() * 4))); g.phase = "bidding"; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; g.phaseEndsAt = Date.now() + 4000; };
-        if (game.phase === "bidding" && game.decisionPlayer === bot) return g => { if (correct() && Math.random() < .45) { g.currentBid = Number(g.currentBid || 1) + 1; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; } else { g.phase = "answering"; g.requiredCount = g.currentBid || 1; g.answers = []; g.validCount = 0; } g.phaseEndsAt = Date.now() + Number(settings.answerTime || 20) * 1000; };
+        if (game.phase === "initialBid" && game.starter === bot) return g => { g.currentBid = Math.max(1, Math.min(Number(g.maxBid || 5), 1 + Math.floor(Math.random() * 4))); g.phase = "bidding"; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; g.phaseEndsAt = serverNow() + Math.max(1, Math.round(Number(settings.answerTime || 20) / 2)) * 1000; };
+        if (game.phase === "bidding" && game.decisionPlayer === bot) return g => { if (correct() && Math.random() < .45) { g.currentBid = Number(g.currentBid || 1) + 1; g.currentBidder = bot; g.decisionPlayer = players[(players.indexOf(bot) + 1) % players.length]; g.phaseEndsAt = serverNow() + Math.max(1, Math.round(Number(settings.answerTime || 20) / 2)) * 1000; } else { g.phase = "answering"; g.requiredCount = g.currentBid || 1; g.answers = []; g.validCount = 0; g.phaseEndsAt = serverNow() + Math.max(1, Number(settings.answerTime || 20)) * 1000; } };
         if (game.phase === "answering" && game.currentBidder === bot) return g => {
           const attempts = array(g.answers).length;
           const rawValid = proveAnswer(g);
