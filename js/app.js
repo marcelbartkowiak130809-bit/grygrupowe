@@ -43,7 +43,7 @@ import { loadPresenceUsers } from "./firebase.js?v=20260822-21";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260823-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
-import { equipmentModal } from "./equipment.js?v=20260804-3";
+import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260822-2";
@@ -1448,13 +1448,23 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async usePotion(itemId) {
     if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby użyć potki." };
     let result = await usePotionRemote(itemId);
-    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable"].includes(result.code);
-    if (!result?.ok && backendUnavailable && hasOnlineBackend()) result = await usePotionDatabase(state.currentUser, itemId);
+    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
+    const online = hasOnlineBackend();
+    if (!result?.ok && backendUnavailable && online) result = await usePotionDatabase(state.currentUser, itemId);
+    if (!result?.ok && !online) {
+      const item = equipmentById[itemId], user = profile(), quantity = Number(user?.potionInventory?.[itemId]) || 0;
+      if (!item) result = { ok:false, error:"Nieprawidłowa potka." };
+      else if (quantity < 1) result = { ok:false, error:"Nie masz tej potki w ekwipunku." };
+      else {
+        const now = Date.now(), key = item.effect === "xp" ? "xpBooster" : "coinBooster", current = user[key] || {};
+        result = { ok:true, message:`Użyto potki ${item.name}. Boost jest aktywny.`, profile:{ ...user, potionInventory:{ ...(user.potionInventory || {}), [itemId]:quantity - 1 }, [key]:{ multiplier:Math.max(Number(current.multiplier) || 1, item.multiplier), expiresAt:Math.max(Number(current.expiresAt) || 0, now + item.durationMs) } } };
+      }
+    }
     if (result?.ok && result.profile) {
       state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, updatedAt:Date.now() };
       saveAccounts(state.accounts); render({ preserveDrafts:true });
       message(result.message || "Potka została użyta.", "info");
-    }
+    } else if (!result?.ok) message(result?.error || "Nie udało się użyć potki. Spróbuj ponownie.");
     return result;
   },
   setProfilePrivacy(key, value) {
