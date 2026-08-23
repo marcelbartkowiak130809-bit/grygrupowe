@@ -1452,13 +1452,23 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async usePotion(itemId) {
     if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby użyć potki." };
     let result = await usePotionRemote(itemId);
-    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
     const online = hasOnlineBackend();
-    if (!result?.ok && backendUnavailable && online) {
+    const localQuantity = Number(profile()?.potionInventory?.[itemId]) || 0;
+    const isMissingPotion = value => ["failed-precondition", "functions/failed-precondition"].includes(String(value?.code || ""));
+    // The wheel can be won in one tab while the profile cache in another tab
+    // is newer than Firebase. Repair that specific inventory mismatch, then
+    // retry the server-side consume instead of showing a false empty-inventory
+    // message to a player who can already see the potion in the backpack.
+    if (!result?.ok && online && localQuantity > 0 && isMissingPotion(result)) {
+      await syncPlayerProfile(state.currentUser, profile());
+      result = await usePotionRemote(itemId);
+    }
+    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
+    if (!result?.ok && (backendUnavailable || isMissingPotion(result)) && online) {
       result = await usePotionDatabase(state.currentUser, itemId);
       // A just-won potion may be visible locally while an older profile is
       // still in Firebase. Repair that write and retry the atomic consume.
-      if (!result?.ok && result?.code === "failed-precondition" && Number(profile()?.potionInventory?.[itemId]) > 0) {
+      if (!result?.ok && isMissingPotion(result) && Number(profile()?.potionInventory?.[itemId]) > 0) {
         await syncPlayerProfile(state.currentUser, profile());
         result = await usePotionDatabase(state.currentUser, itemId);
       }
