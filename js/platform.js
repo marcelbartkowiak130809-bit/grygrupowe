@@ -3,7 +3,7 @@ import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260822-1";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260823-2";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260823-3";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260804-1";
 
 const filters = [
