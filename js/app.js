@@ -1397,8 +1397,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (!local.ok) return local;
     const claim = await claimLuckySpinDatabase(state.currentUser, { claimId:uid("spin"), lastSpinAt:local.profile.luckySpin.lastSpinAt, nextSpinAt:local.nextSpinAt, reward:local.reward });
     if (claim?.ok === false) return claim;
-    updateProfile(local.profile);
-    return local;
+    // Keep the server profile in sync before the freshly won potion can be
+    // consumed from the equipment modal.
+    const syncedProfile = { ...local.profile, updatedAt:Date.now() };
+    await syncPlayerProfile(state.currentUser, syncedProfile);
+    updateProfile(syncedProfile);
+    return { ...local, profile:syncedProfile };
   },
   openEquipment() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
@@ -1450,7 +1454,15 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     let result = await usePotionRemote(itemId);
     const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
     const online = hasOnlineBackend();
-    if (!result?.ok && backendUnavailable && online) result = await usePotionDatabase(state.currentUser, itemId);
+    if (!result?.ok && backendUnavailable && online) {
+      result = await usePotionDatabase(state.currentUser, itemId);
+      // A just-won potion may be visible locally while an older profile is
+      // still in Firebase. Repair that write and retry the atomic consume.
+      if (!result?.ok && result?.code === "failed-precondition" && Number(profile()?.potionInventory?.[itemId]) > 0) {
+        await syncPlayerProfile(state.currentUser, profile());
+        result = await usePotionDatabase(state.currentUser, itemId);
+      }
+    }
     if (!result?.ok && !online) {
       const item = equipmentById[itemId], user = profile(), quantity = Number(user?.potionInventory?.[itemId]) || 0;
       if (!item) result = { ok:false, error:"Nieprawidłowa potka." };

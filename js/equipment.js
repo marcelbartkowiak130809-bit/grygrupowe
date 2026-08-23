@@ -1,12 +1,12 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
 
 export const potionEquipment = [
-  { id:"coins-i", name:"Coins I", subtitle:"+10% monet · 5 min", effect:"coins", multiplier:1.10, durationMs:5*60*1000, rarity:"common", image:"./assets/equipment/coins-i.jpg" },
-  { id:"coins-ii", name:"Coins II", subtitle:"+25% monet · 10 min", effect:"coins", multiplier:1.25, durationMs:10*60*1000, rarity:"rare", image:"./assets/equipment/coins-ii.jpg" },
-  { id:"coins-iii", name:"Coins III", subtitle:"+50% monet · 20 min", effect:"coins", multiplier:1.50, durationMs:20*60*1000, rarity:"legendary", image:"./assets/equipment/coins-iii.jpg" },
-  { id:"xp-i", name:"XP I", subtitle:"+10% XP · 5 min", effect:"xp", multiplier:1.10, durationMs:5*60*1000, rarity:"common", image:"./assets/equipment/xp-i.jpg" },
-  { id:"xp-ii", name:"XP II", subtitle:"+25% XP · 10 min", effect:"xp", multiplier:1.25, durationMs:10*60*1000, rarity:"rare", image:"./assets/equipment/xp-ii.jpg" },
-  { id:"xp-iii", name:"XP III", subtitle:"+50% XP · 20 min", effect:"xp", multiplier:1.50, durationMs:20*60*1000, rarity:"legendary", image:"./assets/equipment/xp-iii.jpg" },
+  { id:"coins-i", name:"Coins I", subtitle:"+10% monet · 5 min", effect:"coins", multiplier:1.10, durationMs:5*60*1000, rarity:"common", image:"./assets/equipment/coins-i.png" },
+  { id:"coins-ii", name:"Coins II", subtitle:"+25% monet · 10 min", effect:"coins", multiplier:1.25, durationMs:10*60*1000, rarity:"rare", image:"./assets/equipment/coins-ii.png" },
+  { id:"coins-iii", name:"Coins III", subtitle:"+50% monet · 20 min", effect:"coins", multiplier:1.50, durationMs:20*60*1000, rarity:"legendary", image:"./assets/equipment/coins-iii.png" },
+  { id:"xp-i", name:"XP I", subtitle:"+10% XP · 5 min", effect:"xp", multiplier:1.10, durationMs:5*60*1000, rarity:"common", image:"./assets/equipment/xp-i.png" },
+  { id:"xp-ii", name:"XP II", subtitle:"+25% XP · 10 min", effect:"xp", multiplier:1.25, durationMs:10*60*1000, rarity:"rare", image:"./assets/equipment/xp-ii.png" },
+  { id:"xp-iii", name:"XP III", subtitle:"+50% XP · 20 min", effect:"xp", multiplier:1.50, durationMs:20*60*1000, rarity:"legendary", image:"./assets/equipment/xp-iii.png" },
 ];
 
 export const equipmentItems = potionEquipment;
