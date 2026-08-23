@@ -20,6 +20,7 @@ import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
 import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-2";
+import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -274,6 +275,9 @@ export const gamesRegistry = {
   },
   "number-mystery": {
     id: "number-mystery", name: "Tajemnicza liczba", description: "Zadawaj nieoczywiste pytania i spróbuj odgadnąć swój ukryty numer.", help: ["Każdy gracz dostaje losowy numer od 1 do 150 i widzi numer przeciwnika, ale nie swój.", "Pytania są pośrednie — nie wpisuj w nich liczb ani ich nazw.", "Wybierz własne pytania, gotową bazę albo oba sposoby naraz.", "Możesz wygrać od razu po trafieniu albo po ustalonej liczbie rund."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔢", art:"number-mystery", audience:"everyone", badges:["new", "tiktok"], render:renderNumberMysteryGame, defaultSettings:numberMysteryDefaults,
+  },
+  "unique-answer": {
+    id: "unique-answer", name: "Bez powtórek", description: "Odpowiedz na wspólne pytanie tak, żeby nikt nie podał tego samego.", help: ["Wszyscy dostają jedno pytanie i wpisują po jednej odpowiedzi.", "Każda powtórzona odpowiedź zabiera życie wszystkim, którzy jej użyli.", "Po utracie wszystkich żyć gracz odpada, a ostatnia osoba w grze wygrywa.", "Przy 5–8 graczach host może sam wymyślać pytania."], allowReports:true, players:"3-8 osób", minPlayers:3, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🧩", art:"unique-answer", audience:"everyone", badges:["tiktok"], render:renderUniqueAnswerGame, defaultSettings:uniqueAnswerDefaults,
   },
   quiz: {
     id: "quiz", name: "Quiz", description: "Sprawdźcie wiedzę w trybie Casual albo zmierzcie się w teleturniejowej rywalizacji.", help: ["Najpierw wybierzcie wariant Casual albo Rywalizacja.", "Casual pozwala hostowi ustawić liczbę i czas pytań.", "Rywalizacja dobiera graczy do szybkiego meczu 2–4 osób."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"?", art:"quiz", audience:"everyone", badges:["new"], render:renderQuizGame, defaultSettings:quizDefaults,

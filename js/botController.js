@@ -22,6 +22,7 @@ import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-2";
+import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
@@ -85,6 +86,16 @@ const familyAnswer = game => {
   return array(question?.answers).find((item, index) => !revealed.has(index))?.[0] || array(question?.answers)[0]?.[0] || "jabłko";
 };
 const numberAnswer = game => Number(game?.target ?? game?.correctAnswer ?? game?.answer ?? game?.value ?? 50) || 50;
+const uniqueAnswerPool = ["pies", "kot", "słoń", "samolot", "telefon", "plecak", "pizza", "morze", "las", "rower", "książka", "czekolada", "parasol", "film", "muzyka", "hotel", "kawa", "lody", "zamek", "rakieta", "góry", "piłka", "aparat", "kurtka"];
+function uniqueAnswerBot(game, room, bot) {
+  const used = new Set(Object.values(game?.answers || {}).map(value => String(value).trim().toLocaleLowerCase("pl-PL")));
+  const same = [...used][0];
+  // Lower difficulties occasionally copy an existing answer; higher ones
+  // prefer an answer nobody has used yet, but keep a little natural variance.
+  if (same && botDifficulty(room, bot).id === "easy" && Math.random() < .35) return same;
+  const free = uniqueAnswerPool.filter(value => !used.has(value));
+  return free[Math.floor(Math.random() * free.length)] || uniqueAnswerPool[Math.floor(Math.random() * uniqueAnswerPool.length)];
+}
 const sequenceItems = game => array(game?.set?.items || game?.items || game?.elements || game?.order);
 const orderAnswer = game => sequenceItems(game).map(item => typeof item === "string" ? item : item?.id || item?.name).filter(Boolean);
 const guard = game => ({ phase:game?.phase, phaseEndsAt:game?.phaseEndsAt, startedAt:game?.startedAt, countdownEndsAt:game?.countdownEndsAt, turnUid:game?.turnUid, turnIndex:game?.turnIndex });
@@ -221,6 +232,7 @@ function timeoutMutation(room, game, bot) {
     case "word-chain": return g => WordChainEngine.timeout(g);
     case "sequence": return g => SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
+    case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
     default: return null;
   }
 }
@@ -376,6 +388,9 @@ export function botMutation(room) {
           const target = Number(g.numbers?.[bot] || 75), value = correct() ? target : Math.max(1, Math.min(150, target + (Math.random() < .5 ? -1 : 1) * (4 + Math.floor(Math.random() * 18))));
           return NumberMysteryEngine.guess(g, bot, value);
         };
+        break;
+      case "unique-answer":
+        if (game.phase === "answering" && isMissing(game.answers, bot)) return g => UniqueAnswerEngine.answer(g, bot, uniqueAnswerBot(g, room, bot), settings);
         break;
       default: break;
     }

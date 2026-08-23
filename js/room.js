@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260823-9";
+import { getGameMode } from "./games.js?v=20260823-10";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260822-1";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
@@ -21,6 +21,7 @@ import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260822-2";
 import { renderNumberMysteryLobbySettings } from "./numberMystery.js?v=20260823-2";
+import { renderUniqueAnswerLobbySettings } from "./uniqueAnswer.js?v=20260823-5";
 import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 
@@ -64,6 +65,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "family") return renderFamilyLobbySettings(room, isHost);
   if (mode.id === "word-chain") return renderWordChainLobbySettings(room, isHost);
   if (mode.id === "number-mystery") return renderNumberMysteryLobbySettings(room, isHost);
+  if (mode.id === "unique-answer") return renderUniqueAnswerLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -139,6 +141,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
+  root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-add-bot]").forEach(button => button.addEventListener("click", () => actions.addBot()));
