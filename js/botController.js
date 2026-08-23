@@ -1,4 +1,4 @@
-import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260822-1";
+import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260823-2";
 import { categories } from "./categories.js?v=20260612-1";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
@@ -65,6 +65,7 @@ export function botActor(room) {
     : playerList[Number(game.describerIndex) % Math.max(1, playerList.length)] || "";
   if (isBotId(describer) && bots.includes(describer)) return describer;
   for (const map of [game.answers, game.votes, game.submissions, game.guesses, game.acknowledged, game.selectedTypes, game.poisonChoices]) {
+    if (!map || typeof map !== "object" || Array.isArray(map)) continue;
     const uid = firstMissingBot(room, map);
     if (uid && isMissing(map, uid)) return uid;
   }

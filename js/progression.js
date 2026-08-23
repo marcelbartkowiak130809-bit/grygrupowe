@@ -1,5 +1,5 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260804-1";
-import { botTooltip } from "./bots.js?v=20260822-1";
+import { botTooltip } from "./bots.js?v=20260823-2";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 

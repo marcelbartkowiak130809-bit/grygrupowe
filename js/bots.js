@@ -33,5 +33,5 @@ export function botProfile(uid, index, difficulty = "normal") {
   return { uid, nick: botName(index), nickOnly: true, isBot: true, botDifficulty: difficulty, adultStatus: "unknown", money: 1000000000, sessionMoney: 1000000000, xp: 0, avatarImage: "", selectedAvatarFrame: "defaultFrame", selectedNickEffect: "defaultNick", selectedAura: "noAura", selectedCandySkin: "defaultCandy", selectedBombSkin: "defaultBomb", selectedClockSkin: "defaultClock" };
 }
 export function roomAllowsBots(room, mode) {
-  return Boolean(room?.status === "lobby" && mode?.supportsLobby && !["co-wolisz", "ranking"].includes(mode.id) && !(mode.id === "quiz" && room.settings?.quizVariant === "competitive"));
+  return Boolean(room?.status === "lobby" && mode?.supportsLobby && mode.id !== "co-wolisz");
 }
