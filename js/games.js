@@ -19,7 +19,7 @@ import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260823-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
-import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-2";
+import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-3";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
 
 export const gamesRegistry = {

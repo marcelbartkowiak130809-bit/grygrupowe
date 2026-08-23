@@ -21,7 +21,7 @@ import { MarkerEngine } from "./marker.js?v=20260823-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
-import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-2";
+import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-3";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
