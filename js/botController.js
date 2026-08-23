@@ -194,7 +194,7 @@ const impostorSpecificClues = {
   cola:["gazowane","puszka","lód","napój","słodkie"], herbata:["kubek","gorące","liście","napój","czajnik"], kawa:["rano","filiżanka","kofeina","gorące","ziarna"], pizza:["ser","ciasto","piekarnik","okrągłe","dostawa"],
   lodówka:["zimne","kuchnia","jedzenie","drzwi","półki"], szampon:["włosy","łazienka","piana","mycie","butelka"], klucz:["zamek","drzwi","metal","kieszeń","otwieranie"],
   hotel:["pokój","nocleg","recepcja","wakacje","rezerwacja"], lotnisko:["samolot","walizka","odprawa","terminal","podróż"], mapa:["droga","kierunek","trasa","papier","nawigacja"],
-  Netflix:["serial","ekran","subskrypcja","seans","platforma"], Steam:["gry","biblioteka","komputer","zakup","platforma"], Among\ Us:["impostor","statek","zadania","głosowanie","załoga"],
+  Netflix:["serial","ekran","subskrypcja","seans","platforma"], Steam:["gry","biblioteka","komputer","zakup","platforma"], "Among Us":["impostor","statek","zadania","głosowanie","załoga"],
   radość:["uśmiech","szczęście","emocje","świętowanie","dobra wiadomość"], stres:["nerwy","presja","egzamin","napięcie","emocje"]
 };
 const clueKey = value => normalizeAnswer(value).replace(/[^a-z0-9]/g, "");
