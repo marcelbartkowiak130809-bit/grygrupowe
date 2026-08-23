@@ -136,6 +136,7 @@ const impostorClueWords = {
   "Dom":["pokój","meble","klucz","sprzątanie","sąsiad"],
   "Napoje":["szklanka","lód","smak","butelka","łyk"],
   "Podróże":["bagaż","mapa","hotel","lotnisko","wakacje"],
+  "Podroze":["bagaż","mapa","hotel","lotnisko","wakacje"],
   "Miasta":["ulica","centrum","most","metro","rynek"],
   "Kraje":["granica","język","flaga","stolica","kultura"],
   "Sport":["mecz","trening","drużyna","stadion","wynik"],
@@ -157,13 +158,16 @@ const impostorClueWords = {
 function impostorBotClue(game) {
   const category = String(game?.category || "").trim();
   const normalizedMain = normalizeAnswer(game?.mainWord || "");
-  const pool = [...(impostorClueWords[category] || []), category || "klasyk"]
+  const pool = [...(impostorClueWords[category] || [])]
     .filter(Boolean)
     .filter(word => {
       const normalized = normalizeAnswer(word);
       return normalized && normalized !== normalizedMain && !normalized.includes(normalizedMain);
     });
-  return pool[Math.floor(Math.random() * pool.length)] || "klasyk";
+  // Never show the old generic text (or an empty fallback) as a clue. If a
+  // newly added category has no dedicated bank yet, use one real word from
+  // the category instead; the clue engine will still validate it normally.
+  return pool[Math.floor(Math.random() * pool.length)] || category || "gra";
 }
 function wavelengthOffset(room, bot) {
   const id=botDifficulty(room,bot).id, roll=Math.random();
