@@ -182,6 +182,7 @@ export const Audio = {
   play(name) {
     if (!started || settings.muted || settings.sfxVolume === 0) return;
     if (name === "shopOpen") return sequence([[420,.07,"triangle",.38],[560,.08,"triangle",.44],[760,.13,"sine",.36]],55);
+    if (name === "wardrobeOpen") return sequence([[220,.08,"sine",.24],[360,.08,"triangle",.3],[520,.1,"triangle",.34],[760,.16,"sine",.28]],68);
     if (name === "catalogOpen") return sequence([[520,.05,"sine",.25],[660,.05,"sine",.28],[820,.08,"triangle",.34],[1040,.12,"sine",.26]],42);
     if (name === "equip") return sequence([[740,.05,"triangle",.5],[980,.08,"sine",.46],[620,.11,"triangle",.28]],48);
     if (name === "cosmeticCommon") return sequence([[520,.07,"triangle",.32],[660,.09,"sine",.26]],58);

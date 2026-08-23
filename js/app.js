@@ -92,6 +92,8 @@ const botSchedules = new Map();
 let roundAdvanceTimer = 0;
 let roundAdvanceInterval = 0;
 const roundAdvanceDeadlines = new Map();
+let happyHourTimer = 0;
+let happyHourRefreshTimer = 0;
 let roomPresenceStop = () => {};
 let roomPresenceId = "";
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
@@ -226,6 +228,8 @@ let stopOnlineSubscription=()=>{};
 let stopGlobalStatsSubscription=()=>{};
 let stopPresence=()=>{};
 let lastRenderedRoute="";
+let renderFrame=0;
+let pendingRenderOptions=null;
 const gameTransitionKeys=new Map();
 const identityVoiceChat=createIdentityVoiceChat(()=>{ if(Router.current==="game") render({preserveDrafts:true}); });
 
@@ -1398,7 +1402,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   openEquipment() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
     const modal = equipmentModal(profile(), actions.closeModal, itemId => actions.usePotion(itemId));
-    document.body.append(modal); Audio.play("modalOpen");
+    document.body.append(modal); Audio.play("wardrobeOpen");
   },
   openHonor(room = activeRoom()) {
     if (!room || !state.currentUser || !(room.players || []).includes(state.currentUser)) return false;
@@ -1964,19 +1968,23 @@ function addHonorPrompt(view, room) {
   view.append(prompt);
 }
 function renderHappyHourBanner() {
+  window.clearInterval(happyHourTimer);
+  window.clearTimeout(happyHourRefreshTimer);
+  happyHourTimer = 0;
+  happyHourRefreshTimer = 0;
   document.querySelectorAll(".happy-hour-banner").forEach(item => item.remove());
   const event = happyHourAt(serverNow());
   const nextChange = happyHourNextChange(serverNow());
-  if (!event) { if (nextChange) window.setTimeout(() => { if (root.isConnected) render(); }, Math.max(100, nextChange - serverNow() + 80)); return; }
+  if (!event) { if (nextChange) happyHourRefreshTimer = window.setTimeout(() => { if (root.isConnected) render(); }, Math.max(100, nextChange - serverNow() + 80)); return; }
   root.insertAdjacentHTML("beforeend", happyHourBannerHtml(event));
   const banner = root.querySelector(".happy-hour-banner"), countdown = banner?.querySelector("[data-happy-hour-countdown]");
   const seenKey = `happy-hour-seen:${event.eventId}`;
   if (!localStorage.getItem(seenKey)) { localStorage.setItem(seenKey, "1"); message(`${event.icon} Happy Hour: ${event.label}`, "info"); }
-  const timer = window.setInterval(() => {
-    if (!banner?.isConnected) return window.clearInterval(timer);
+  happyHourTimer = window.setInterval(() => {
+    if (!banner?.isConnected) return window.clearInterval(happyHourTimer);
     const left = Math.max(0, Math.ceil((event.endsAt - serverNow()) / 1000));
     if (countdown) countdown.textContent = `${left}s`;
-    if (!left) { window.clearInterval(timer); banner.remove(); render(); }
+    if (!left) { window.clearInterval(happyHourTimer); happyHourTimer = 0; banner.remove(); render(); }
   }, 1000);
 }
 
@@ -2031,7 +2039,7 @@ function setupRoundAdvance(view, room, actions) {
   }, Math.max(100, deadline - Date.now() + 50));
 }
 
-function render(options = {}) {
+function renderNow(options = {}) {
   updateDocumentTitle();
   const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
   const drafts = (options?.preserveDrafts || softRender) ? captureInputDrafts(root) : {fields:[]};
@@ -2057,7 +2065,7 @@ function render(options = {}) {
   };
   const view=document.createElement("div"); root.append(view); const screen=Router.current;
   if(screen!=="solo") stopWouldYouRather();
-  view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")}`;
+  view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
@@ -2091,6 +2099,21 @@ function render(options = {}) {
   const renderedRoom = renderRoom(view,{room,accounts:state.accounts,currentUser:state.currentUser},actions);
   renderHostAnnouncements(view, room, state.currentUser, actions, () => { if (Router.current === "room" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); });
   return finish(renderedRoom);
+}
+function render(options = {}) {
+  pendingRenderOptions = {
+    ...(pendingRenderOptions || {}),
+    ...options,
+    preserveDrafts: Boolean(pendingRenderOptions?.preserveDrafts || options?.preserveDrafts),
+    forceEnter: Boolean(pendingRenderOptions?.forceEnter || options?.forceEnter),
+  };
+  if (renderFrame) return;
+  renderFrame = requestAnimationFrame(() => {
+    renderFrame = 0;
+    const nextOptions = pendingRenderOptions || {};
+    pendingRenderOptions = null;
+    renderNow(nextOptions);
+  });
 }
 function connectRooms(){
   stopRoomsSubscription();

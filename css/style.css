@@ -750,3 +750,46 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 .light-theme .route-game .word-chain-roster>span.eliminated{color:#64748b}
 
 .number-mystery-panel{width:min(100%,980px);margin-inline:auto}.number-mystery-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0;padding:13px 16px;border:1px solid rgba(103,232,249,.24);border-radius:14px;background:linear-gradient(135deg,rgba(8,145,178,.12),rgba(124,58,237,.12))}.number-mystery-status b{color:#67e8f9;font-size:22px}.number-mystery-composer{display:grid;gap:16px}.number-mystery-composer form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.number-mystery-quick{padding:16px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.025)}.number-mystery-quick .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:280px;overflow:auto;padding-right:4px}.number-mystery-quick button{min-height:48px;text-align:left}.number-mystery-answer,.number-mystery-waiting,.number-mystery-guess{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035)}.number-mystery-guess label{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}.number-mystery-guess label input{grid-column:1}.number-mystery-guess label button{grid-column:2;grid-row:1}.number-mystery-history{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}.number-mystery-history ol{display:grid;gap:8px;max-height:280px;overflow:auto;margin:12px 0 0;padding-left:24px}.number-mystery-history li{padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.03)}.number-mystery-history li span{color:#67e8f9;font-weight:800}.number-mystery-results{display:grid;gap:10px;margin:20px 0;text-align:left}.number-mystery-result-row{display:flex;justify-content:space-between;gap:12px;padding:13px 15px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.04)}.number-mystery-result-row span{color:var(--muted);text-align:right}.light-theme .number-mystery-quick,.light-theme .number-mystery-answer,.light-theme .number-mystery-waiting,.light-theme .number-mystery-guess,.light-theme .number-mystery-history li,.light-theme .number-mystery-result-row{background:#f8fafc;border-color:rgba(100,116,139,.24)}.light-theme .number-mystery-status{background:linear-gradient(135deg,#ecfeff,#eef2ff);border-color:rgba(14,116,144,.24)}.light-theme .number-mystery-status b,.light-theme .number-mystery-history li span{color:#0f766e}@media(max-width:620px){.number-mystery-composer form,.number-mystery-guess label{grid-template-columns:1fr}.number-mystery-composer form button,.number-mystery-guess label button{grid-column:1;grid-row:auto;width:100%}.number-mystery-quick .choice-grid{grid-template-columns:1fr;max-height:330px}.number-mystery-result-row{align-items:flex-start;flex-direction:column}.number-mystery-result-row span{text-align:left}}
+.mobile-money{display:none}@media(max-width:720px){.top-actions .money{order:-1}.top-actions .money{display:inline-flex}.mobile-money{display:none}}
+
+/* Smooth shell motion: only a fresh route animates. Soft synchronisation renders stay still. */
+.route-view.initial-route > .page,
+.route-view.initial-route > main,
+.route-view.initial-route > section { animation: routeSoftReveal .34s cubic-bezier(.16,1,.3,1) both; }
+.route-view.soft-route > .page,
+.route-view.soft-route > main,
+.route-view.soft-route > section { animation: none !important; }
+.topbar .brand,
+.topbar .top-actions > *,
+.topbar .account-button { transition: transform .2s cubic-bezier(.16,1,.3,1), border-color .2s ease, background-color .2s ease, box-shadow .2s ease; }
+.topbar .brand:hover,
+.topbar .top-actions > button:hover,
+.topbar .account-button:hover { transform: translateY(-1px); }
+.topbar .top-actions > button:active,
+.topbar .account-button:active { transform: translateY(1px) scale(.98); }
+.route-shop.initial-route .shop-page > .room-header { animation: shopHeaderDrop .5s cubic-bezier(.16,1,.3,1) both; }
+.route-shop.initial-route .shop-page > .shop-grid { animation: shopCardDeal .55s .08s cubic-bezier(.16,1,.3,1) both; }
+.route-shop.initial-route .shop-page > .owned-cosmetics-panel { animation: wardrobeSlideUp .48s .16s cubic-bezier(.16,1,.3,1) both; }
+.route-shop .shop-item { backface-visibility: hidden; contain: layout paint; }
+.route-shop .wardrobe-category,
+.route-shop .cosmetic-catalog .wardrobe-category { content-visibility: auto; contain-intrinsic-size: 180px; }
+.route-shop .shop-page { will-change: transform, opacity; }
+.equipment-modal.enter { animation: wardrobeOpen .46s cubic-bezier(.16,1,.3,1) both; }
+.shop-page .shop-item:hover { transform: translateY(-5px) scale(1.008); }
+@keyframes wardrobeOpen {
+  0% { opacity: 0; transform: translateY(-26px) rotateX(-4deg) scale(.96); filter: blur(5px); }
+  62% { opacity: 1; transform: translateY(3px) rotateX(1deg) scale(1.005); filter: blur(0); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-view.initial-route > .page,
+  .route-view.initial-route > main,
+  .route-view.initial-route > section,
+  .route-shop.initial-route .shop-page > .room-header,
+  .route-shop.initial-route .shop-page > .shop-grid,
+  .route-shop.initial-route .shop-page > .owned-cosmetics-panel,
+  .equipment-modal.enter { animation: none !important; }
+  .topbar .brand,
+  .topbar .top-actions > *,
+  .topbar .account-button { transition: none !important; }
+}
