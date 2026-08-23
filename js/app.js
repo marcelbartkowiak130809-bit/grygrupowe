@@ -174,13 +174,20 @@ function signatureGame(game, gameMode, players) {
     objectField("scores"); objectField("current"); arrayField("order"); arrayField("history");
   } else if (gameMode === "zegar") {
     objectField("stops"); objectField("scores"); arrayField("ranking");
+  } else if (gameMode === "word-chain") {
+    objectField("hearts"); arrayField("chain"); arrayField("used"); arrayField("eliminated"); arrayField("missedPlayers");
   }
   return copy;
 }
 function activeRoomSignature(room = activeRoom()) {
   if (!room) return "";
   const players = normalizedRoomPlayers(room);
-  const playerProfiles = Object.fromEntries(players.map(uid => [uid, room.playerProfiles?.[uid] || state.accounts[uid] || {}]));
+  const playerProfiles = Object.fromEntries(players.map(uid => {
+    const source = room.playerProfiles?.[uid] || state.accounts[uid] || {};
+    const normalized = publicProfile(source);
+    if (source.botDifficulty) normalized.botDifficulty = source.botDifficulty;
+    return [uid, normalized];
+  }));
   return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, hostAnnouncement:room.hostAnnouncement, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
 }
 function lobbySignature() {
@@ -204,6 +211,7 @@ const roomSyncChains=new Map();
 const roomSyncRetryAttempts=new Map();
 const roomSyncReconnectTimers=new Map();
 const repairedRoomSignatures=new Map();
+const claimedPendingProgress=new Map();
 const roomRosterSnapshots=new Map();
 const roomPhaseSnapshots=new Map();
 let lastRenderedScreenSignature="";
@@ -251,7 +259,14 @@ function updateDocumentTitle() {
   const screenTitle = mode?.name || (Router.current === "shop" ? "Sklep" : "Gry grupowe!");
   document.title = screenTitle === "Gry grupowe!" ? screenTitle : `${screenTitle} · Gry grupowe!`;
 }
-function trackSiteEvent(event) { recordSiteEvent(event).catch?.(() => {}); }
+const trackedSiteEvents = new Set();
+function trackSiteEvent(event) {
+  const key = `${String(event?.type || "")}:${String(event?.eventId || "")}`;
+  if (!event?.type || !event?.eventId || trackedSiteEvents.has(key)) return false;
+  trackedSiteEvents.add(key);
+  recordSiteEvent(event).catch?.(() => {});
+  return true;
+}
 function refreshPresence() {
   stopPresence();
   const user=profile();
@@ -259,7 +274,7 @@ function refreshPresence() {
 }
 function connectOnlineCount() {
   stopOnlineSubscription();
-  stopOnlineSubscription=subscribeOnlineCount(count=>{state.onlineCount=Math.max(1,Number(count)||1);updateOnlineCountPill();recordSiteEvent({type:"onlinePeak",eventId:`online:${Math.floor(Date.now()/30000)}:${state.currentUser||"guest"}`,value:state.onlineCount});});
+  stopOnlineSubscription=subscribeOnlineCount(count=>{state.onlineCount=Math.max(1,Number(count)||1);updateOnlineCountPill();trackSiteEvent({type:"onlinePeak",eventId:`online:${Math.floor(Date.now()/30000)}:${state.currentUser||"guest"}`,value:state.onlineCount});});
   stopGlobalStatsSubscription();
   stopGlobalStatsSubscription=subscribeSiteStats(stats=>{state.globalStats={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}};window.__globalStats=state.globalStats;if(Router.current==="platform")render({preserveDrafts:true});});
 }
@@ -370,7 +385,7 @@ async function mutateRoomGame(mutator,{sound,after}={}) {
     if(sound)Audio.play(sound);render();return true;
   }
   if(remote){if(remote.error)message(remote.error,remote.rejected?"info":"error");return false;}
-  const error=mutator(room.game,room);if(error){message(error,"info");return false;}
+  const beforeGame=JSON.stringify(room.game),error=mutator(room.game,room);if(error){message(error,"info");return false;}if(JSON.stringify(room.game)===beforeGame)return false;
   if(after)after(room);touchRoom(room);if(sound)Audio.play(sound);render();return true;
 }
 function applyPlayerMoney(playerId, amount) {
@@ -457,6 +472,14 @@ function playCurrentUserResultSound(winners = []) {
 }
 function claimPendingProgress(room) {
   const money=Number(room?.pendingRewards?.[state.currentUser])||0,xp=Number(room?.pendingXp?.[state.currentUser])||0,fee=Number(room?.pendingEntryFees?.[state.currentUser])||0;if((!money&&!xp&&!fee)||!profile())return false;
+  const claimKey=`${room.roomId}:${room.game?.siteGameId||room.game?.startedAt||""}:${money}:${xp}:${fee}`;
+  if(claimedPendingProgress.get(room.roomId)===claimKey){
+    if(room.pendingRewards)delete room.pendingRewards[state.currentUser];
+    if(room.pendingXp)delete room.pendingXp[state.currentUser];
+    if(room.pendingEntryFees)delete room.pendingEntryFees[state.currentUser];
+    return false;
+  }
+  claimedPendingProgress.set(room.roomId,claimKey);
   room.pendingRewards={...(room.pendingRewards||{})};room.pendingXp={...(room.pendingXp||{})};room.pendingEntryFees={...(room.pendingEntryFees||{})};delete room.pendingRewards[state.currentUser];delete room.pendingXp[state.currentUser];delete room.pendingEntryFees[state.currentUser];
   if(money)applyPlayerMoney(state.currentUser,money);if(xp)applyPlayerXp(state.currentUser,xp);if(fee)applyPlayerMoney(state.currentUser,-fee);saveAccounts(state.accounts);touchRoom(room);return true;
 }

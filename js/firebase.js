@@ -883,15 +883,17 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
     const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
       if(!current?.gameState){mutationError="Stan gry nie jest dostępny.";return;}
       const game=normalizeFirebaseValue(JSON.parse(JSON.stringify(current.gameState)));
+      const beforeGame=JSON.stringify(game);
       mutationError=mutate(game,current)||"";
       if(mutationError)return;
       // Akcje różnych trybów są mutowane w jednym wspólnym transakcyjnym
       // kanale. Odfiltruj undefined/NaN przed zapisem, bo RTDB odrzuca wtedy
       // cały zapis i gracz zostaje z lokalnym, rozjechanym ekranem.
       const cleanGame=cleanFirebaseWrite(game);
+      if(JSON.stringify(cleanGame)===beforeGame){mutationError="Akcja jest już nieaktualna.";return current;}
       return {...current,gameState:cleanGame,chat:Array.isArray(cleanGame?.chat)?cleanGame.chat:[],updatedAt:Math.max(serverNow(),Number(current.updatedAt||0)+1)};
     });
-    if(!result.committed)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
+    if(!result.committed||mutationError)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
     const value=result.snapshot.val();
     return value?{ok:true,room:normalizeRemoteRoom(value)}:{ok:false,error:"Pokój już nie istnieje."};
   } catch(error) {
