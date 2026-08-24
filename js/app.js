@@ -2069,7 +2069,11 @@ function setupRoundAdvance(view, room, actions) {
   button.setAttribute("aria-disabled", String(!isHost));
   button.classList.add("host-round-control");
   if (!isHost) button.title = "Tylko host może rozpocząć następną rundę.";
-  const key = `${room.roomId}:${room.gameMode}:${game.round || 0}:${game.phase}`;
+  // Wynik rankingu może mieć ten sam numer rundy po ponownym użyciu pokoju.
+  // revealedAt rozróżnia konkretne podsumowanie, dzięki czemu stary timer nie
+  // przejmuje nowego wyniku i nie przeskakuje go natychmiast.
+  const resultIdentity = room.gameMode === "ranking" ? (game.revealedAt || game.resultId || "") : "";
+  const key = `${room.roomId}:${room.gameMode}:${game.round || 0}:${game.phase}:${resultIdentity}`;
   const delay = Number(config.delay) || 10000;
   const deadline = roundAdvanceDeadlines.get(key) || Date.now() + delay;
   roundAdvanceDeadlines.set(key, deadline);
