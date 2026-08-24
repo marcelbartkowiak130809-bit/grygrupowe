@@ -162,6 +162,24 @@ export const rankingDefaults = {
 
 const categoryMap = Object.fromEntries(rankingCategories.map(category => [category.id, category]));
 
+// Kolejność układana przez gracza jest roboczym stanem UI. Nie zapisujemy jej do
+// pokoju przed kliknięciem „Zapisz ranking”, ale musimy zachować ją między
+// renderami wywołanymi przez synchronizację odpowiedzi innych graczy.
+const rankingDrafts = new Map();
+
+function rankingDraftKey(room, game, currentUser) {
+  return `${room.roomId}:${game.round || 1}:${game.set?.id || "set"}:${currentUser}`;
+}
+
+function validRankingOrder(order, ids) {
+  return Array.isArray(order) && order.length === ids.length && new Set(order).size === ids.length && order.every(id => ids.includes(id));
+}
+
+function rememberRankingDraft(key, order) {
+  rankingDrafts.set(key, [...order]);
+  if (rankingDrafts.size > 40) rankingDrafts.delete(rankingDrafts.keys().next().value);
+}
+
 export function sanitizeRankingSettings(raw = {}) {
   const selected = [...new Set(arrayOrEmpty(raw.categories).filter(id => categoryMap[id]))];
   const categories = selected.length ? selected : rankingDefaults.categories;
@@ -306,15 +324,17 @@ function itemLabel(game, id) {
   return game.set.items.find(item => item.id === id)?.label || id;
 }
 
-function rankingList(game, currentUser) {
+function rankingList(game, currentUser, draftOrder) {
   const submitted = currentUser in objectOrEmpty(game.submissions);
-  const order = submitted ? game.submissions[currentUser] : arrayOrEmpty(game.baseOrder).length ? game.baseOrder : game.set.items.map(item => item.id);
+  const ids = game.set.items.map(item => item.id);
+  const fallback = arrayOrEmpty(game.baseOrder).length ? game.baseOrder : ids;
+  const order = submitted ? game.submissions[currentUser] : validRankingOrder(draftOrder, ids) ? draftOrder : fallback;
   return `<div class="ranking-sorter ${submitted ? "ranking-locked" : ""}" id="ranking-sorter">${order.map((id, index) => `<article class="ranking-tile" draggable="${submitted ? "false" : "true"}" data-rank-id="${escapeHtml(id)}">
     <b>${index + 1}</b><span>${escapeHtml(itemLabel(game, id))}</span><div class="ranking-move-buttons"><button type="button" data-rank-move="up" ${submitted || index === 0 ? "disabled" : ""}>&uarr;</button><button type="button" data-rank-move="down" ${submitted || index === order.length - 1 ? "disabled" : ""}>&darr;</button></div>
   </article>`).join("")}</div>`;
 }
 
-function rankingStage(room, accounts, currentUser, game) {
+function rankingStage(room, accounts, currentUser, game, draftOrder) {
   const done = Object.keys(game.submissions || {}).length;
   const submitted = currentUser in objectOrEmpty(game.submissions);
   return `<section class="ranking-stage">
@@ -325,7 +345,7 @@ function rankingStage(room, accounts, currentUser, game) {
       <div class="truth-progress"><span style="width:${Math.round(done / Math.max(1, room.players.length) * 100)}%"></span></div>
       <small>${done}/${room.players.length} rankingow zapisanych</small>
     </div>
-    <div class="ranking-play-area">${rankingList(game, currentUser)}${submitted ? `<div class="waiting-state ranking-waiting"><span class="waiting-pulse">OK</span><h3>Ranking zapisany</h3><p>Czekamy na reszte ekipy.</p></div>` : `<button class="primary big" id="ranking-submit">Zapisz ranking</button>`}</div>
+    <div class="ranking-play-area">${rankingList(game, currentUser, draftOrder)}${submitted ? `<div class="waiting-state ranking-waiting"><span class="waiting-pulse">OK</span><h3>Ranking zapisany</h3><p>Czekamy na reszte ekipy.</p></div>` : `<button class="primary big" id="ranking-submit">Zapisz ranking</button>`}</div>
     <div class="truth-answer-grid">${room.players.map(uid => `<article class="${uid in objectOrEmpty(game.submissions) ? "answered" : ""}">${playerMiniHtml(accounts[uid])}<b>${uid in objectOrEmpty(game.submissions) ? "Gotowe" : "Uklada..."}</b></article>`).join("")}</div>
   </section>`;
 }
@@ -365,15 +385,17 @@ function refreshTileNumbers(list) {
   });
 }
 
-function setupRankingDrag(root) {
+function setupRankingDrag(root, onChange) {
   const list = $("#ranking-sorter", root);
   if (!list || list.classList.contains("ranking-locked")) return;
+  const changed = () => { refreshTileNumbers(list); onChange?.([...list.querySelectorAll(".ranking-tile")].map(tile => tile.dataset.rankId)); };
   let dragged = null;
   list.addEventListener("dragstart", event => {
     dragged = event.target.closest(".ranking-tile");
     if (!dragged) return;
     dragged.classList.add("dragging");
     event.dataTransfer?.setData("text/plain", dragged.dataset.rankId || "");
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
   });
   list.addEventListener("dragover", event => {
     event.preventDefault();
@@ -381,9 +403,9 @@ function setupRankingDrag(root) {
     if (!dragged || !target || target === dragged) return;
     const rect = target.getBoundingClientRect();
     list.insertBefore(dragged, event.clientY < rect.top + rect.height / 2 ? target : target.nextSibling);
-    refreshTileNumbers(list);
+    changed();
   });
-  list.addEventListener("dragend", () => { dragged?.classList.remove("dragging"); dragged = null; refreshTileNumbers(list); });
+  list.addEventListener("dragend", () => { dragged?.classList.remove("dragging"); dragged = null; changed(); });
   let pointerTile = null;
   list.addEventListener("pointerdown", event => {
     if (event.target.closest("button")) return;
@@ -398,13 +420,13 @@ function setupRankingDrag(root) {
     if (!target || target === pointerTile || !list.contains(target)) return;
     const rect = target.getBoundingClientRect();
     list.insertBefore(pointerTile, event.clientY < rect.top + rect.height / 2 ? target : target.nextSibling);
-    refreshTileNumbers(list);
+    changed();
   });
   list.addEventListener("pointerup", event => {
     pointerTile?.releasePointerCapture?.(event.pointerId);
     pointerTile?.classList.remove("dragging");
     pointerTile = null;
-    refreshTileNumbers(list);
+    changed();
   });
   list.addEventListener("click", event => {
     const button = event.target.closest("[data-rank-move]");
@@ -412,16 +434,20 @@ function setupRankingDrag(root) {
     const tile = button.closest(".ranking-tile");
     if (button.dataset.rankMove === "up" && tile.previousElementSibling) list.insertBefore(tile, tile.previousElementSibling);
     if (button.dataset.rankMove === "down" && tile.nextElementSibling) list.insertBefore(tile.nextElementSibling, tile);
-    refreshTileNumbers(list);
+    changed();
   });
 }
 
 export function renderRankingGame(root, { room, accounts, currentUser }, actions) {
   const game = normalize(room.game, room.players);
-  const stage = game.phase === "ranking" ? rankingStage(room, accounts, currentUser, game) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
+  const draftKey = rankingDraftKey(room, game, currentUser);
+  const submitted = currentUser in objectOrEmpty(game.submissions);
+  if (submitted) rankingDrafts.delete(draftKey);
+  const draftOrder = submitted ? null : rankingDrafts.get(draftKey);
+  const stage = game.phase === "ranking" ? rankingStage(room, accounts, currentUser, game, draftOrder) : game.phase === "roundResult" ? resultStage(room, accounts, game) : summaryStage(room, accounts, game);
   root.innerHTML = `<main class="page ranking-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
-  setupRankingDrag(root);
+  setupRankingDrag(root, order => rememberRankingDraft(draftKey, order));
   $("#ranking-submit")?.addEventListener("click", () => actions.rankingSubmit([...root.querySelectorAll(".ranking-tile")].map(tile => tile.dataset.rankId)));
   $("#ranking-next-round")?.addEventListener("click", actions.rankingNext);
   $("#ranking-lobby")?.addEventListener("click", actions.returnToRoom);
