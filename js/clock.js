@@ -25,19 +25,27 @@ function miniClockHtml(profile) {
 export const clockDefaults = {
   rounds:8,
   targetScore:5,
+  minSeconds:3,
+  maxSeconds:15,
 };
 
 export function sanitizeClockSettings(raw = {}) {
+  const minSeconds=clamp(raw.minSeconds ?? clockDefaults.minSeconds,1,20);
+  const maxSeconds=clamp(raw.maxSeconds ?? clockDefaults.maxSeconds,1,20);
   return {
     ...clockDefaults,
     ...raw,
     rounds:clamp(raw.rounds || clockDefaults.rounds, 3, 20),
     targetScore:clamp(raw.targetScore || clockDefaults.targetScore, 3, 20),
+    minSeconds:Math.min(minSeconds,maxSeconds),
+    maxSeconds:Math.max(minSeconds,maxSeconds),
   };
 }
 
-function targetMs() {
-  return (3 + Math.floor(Math.random() * 13)) * 1000;
+function targetMs(settings) {
+  const min=Number(settings.minSeconds)||clockDefaults.minSeconds;
+  const max=Number(settings.maxSeconds)||clockDefaults.maxSeconds;
+  return (min + Math.floor(Math.random() * (max - min + 1))) * 1000;
 }
 
 function createRound(players, settings, round, scores = {}) {
@@ -45,7 +53,7 @@ function createRound(players, settings, round, scores = {}) {
   return {
     phase:"countdown",
     round,
-    targetMs:targetMs(),
+    targetMs:targetMs(settings),
     countdownEndsAt:createdAt + countdownMs,
     startedAt:null,
     roundEndsAt:null,
@@ -141,7 +149,9 @@ export function renderClockLobbySettings(room, isHost) {
   return `<div class="impostor-settings-grid clock-settings-grid">
     <label>Liczba rund<select data-clock-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,8,10,12,15,20].map(n => `<option value="${n}" ${settings.rounds === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
     <label>Punkty do wygranej<select data-clock-setting="targetScore" ${isHost ? "" : "disabled"}>${[3,5,7,10,12,15,20].map(n => `<option value="${n}" ${settings.targetScore === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-  </div>`;
+    <label>Minimalny czas<select data-clock-setting="minSeconds" ${isHost ? "" : "disabled"}>${Array.from({length:20},(_,index)=>index+1).map(n => `<option value="${n}" ${settings.minSeconds === n ? "selected" : ""}>${n}s</option>`).join("")}</select></label>
+    <label>Maksymalny czas<select data-clock-setting="maxSeconds" ${isHost ? "" : "disabled"}>${Array.from({length:20},(_,index)=>index+1).map(n => `<option value="${n}" ${settings.maxSeconds === n ? "selected" : ""}>${n}s</option>`).join("")}</select></label>
+  </div><p class="tiny">Cel rundy będzie losowany w wybranym zakresie: ${settings.minSeconds}–${settings.maxSeconds} s.</p>`;
 }
 
 const secondsText = ms => `${(Number(ms || 0) / 1000).toLocaleString("pl-PL", { minimumFractionDigits:2, maximumFractionDigits:2 })}s`;
