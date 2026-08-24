@@ -81,6 +81,7 @@ function gameContent(room, accounts, currentUser) {
   return `<section class="panel center result-card prove-turn-card">${roundLabel}
     <h1>${game.result?.success ? "Dał radę!" : "Nie dał rady!"}</h1><p>${game.result?.text}</p>
     ${game.result?.leftRoom ? '<p class="muted">Gracz został usunięty z kolejnych rund. Ta runda nie przyznaje coinów.</p>' : game.result?.success ? '<p class="money-pop">Udowadniający gracz dostał +100$</p>' : '<p class="money-pop">Pozostali gracze dostali +100$</p>'}
+    <div class="answer-list result-answer-list"><p class="eyebrow">ODPOWIEDZI W TEJ RUNDZIE</p><div class="answers">${answerList(game.answers).map(answer => `<span class="answer ${answer.valid ? "valid" : "invalid"}">${escapeHtml(answer.raw)}</span>`).join("") || '<span class="muted">Brak wpisanych odpowiedzi.</span>'}</div></div>
     <button class="primary" id="next-round">${Number(game.round) >= Number(game.totalRounds || room.settings?.rounds || 5) ? "Pokaż wyniki" : "Następna runda"}</button>
   </section>`;
 }

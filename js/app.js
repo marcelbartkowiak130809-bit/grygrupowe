@@ -4,7 +4,7 @@ import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-21";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260824-2";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
 import { gamesList, getGameMode } from "./games.js?v=20260823-10";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260825-1";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
@@ -2078,13 +2078,13 @@ function renderHappyHourBanner() {
 }
 
 const roundAdvanceControls = {
-  udowodnij: { selector: "#next-round", action: "nextRound" },
+  udowodnij: { selector: "#next-round", action: "nextRound", delay: 3000 },
   "inne-pytanie": { selector: "#other-next", action: "otherNext" },
   "kto-najpredzej": { selector: "#most-next", action: "mostLikelyNext" },
   bomba: { selector: "#bomb-next-round", action: "bombNextRound" },
   "najblizej-prawdy": { selector: "#truth-next-round", action: "closestTruthNext" },
   ranking: { selector: "#ranking-next-round", action: "rankingNext" },
-  zegar: { selector: "#clock-next-round", action: "clockNextRound" },
+  zegar: { selector: "#clock-next-round", action: "clockNextRound", delay: 5000 },
   wavelength: { selector: "#wavelength-next", action: "wavelengthNext" },
   "test-znajomosci": { selector: "#friend-round-next", action: "friendshipRoundNext" },
   "zatruty-cukierek": { selector: "#candy-next-round", action: "poisonCandyNextRound", delay: 15000 },
@@ -2114,9 +2114,11 @@ function setupRoundAdvance(view, room, actions) {
   const delay = Number(config.delay) || 10000;
   const deadline = roundAdvanceDeadlines.get(key) || Date.now() + delay;
   roundAdvanceDeadlines.set(key, deadline);
+  const finalReveal=(room.gameMode === "zegar" && game.result?.gameOver) || (room.gameMode === "udowodnij" && Number(game.round || 1) >= Number(game.totalRounds || room.settings?.rounds || 5));
   const notice = document.createElement("p");
   notice.className = "round-advance-notice";
-  notice.innerHTML = isHost ? `Kolejna runda rozpocznie się automatycznie za <b data-round-advance-countdown></b>.` : `Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b data-round-advance-countdown></b>.`;
+  const autoLabel=finalReveal ? "Podsumowanie pokaże się automatycznie za" : "Kolejna runda rozpocznie się automatycznie za";
+  notice.innerHTML = isHost ? `${autoLabel} <b data-round-advance-countdown></b>.` : `Czekamy na hosta. ${autoLabel} <b data-round-advance-countdown></b>.`;
   button.insertAdjacentElement("afterend", notice);
   const update = () => {
     const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));

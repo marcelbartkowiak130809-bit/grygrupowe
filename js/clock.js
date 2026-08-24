@@ -93,12 +93,9 @@ function finishRound(game, players, settings) {
   const winners = ranking.filter(row => row.differenceMs === best).map(row => row.uid);
   winners.forEach(uid => game.scores[uid] = Number(game.scores?.[uid] || 0) + 1);
   game.ranking = ranking.map((row, index) => ({ ...row, place:row.differenceMs === best ? 1 : index + 1, points:winners.includes(row.uid) ? 1 : 0 }));
+  const gameOver=Number(game.round) >= Number(settings.rounds) || Math.max(0, ...Object.values(game.scores || {}).map(Number)) >= Number(settings.targetScore);
   game.phase = "roundResult";
-  game.result = { winners, at:now() };
-  if (Number(game.round) >= Number(settings.rounds) || Math.max(0, ...Object.values(game.scores || {}).map(Number)) >= Number(settings.targetScore)) {
-    game.phase = "gameSummary";
-    game.result.gameOver = true;
-  }
+  game.result = { winners, at:now(), gameOver };
 }
 
 export const ClockEngine = {
@@ -139,6 +136,11 @@ export const ClockEngine = {
     const settings = sanitizeClockSettings(rawSettings);
     normalize(game, players);
     if (game.phase !== "roundResult") return "Najpierw trzeba zobaczyc wyniki rundy.";
+    if (game.result?.gameOver) {
+      game.phase="gameSummary";
+      game.finished=true;
+      return null;
+    }
     Object.assign(game, createRound(players, settings, Number(game.round || 1) + 1, game.scores));
     return null;
   },
@@ -204,7 +206,7 @@ function resultStage(room, accounts, game) {
       }).join("")}
     </div>
     <div class="truth-round-ranking final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${index === 0 ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div>
-    <button class="primary" id="clock-next-round">Nastepna runda</button>
+    <button class="primary" id="clock-next-round">${game.result?.gameOver ? "Pokaz podsumowanie" : "Nastepna runda"}</button>
   </section>`;
 }
 
