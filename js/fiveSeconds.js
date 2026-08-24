@@ -7,7 +7,8 @@ let tickBeat = 0;
 let lastCountdown = 0;
 
 const now = () => Date.now();
-const prepareMs = 3000;
+const introMs = 5000;
+const prepareMs = 2500;
 const promptMs = 2000;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
@@ -61,8 +62,10 @@ function makeTurn(players, settings, turnNumber, scores = {}, history = [], orde
   const player = nextOrder[0] || players[0] || "";
   const category = categoryForTurn(settings);
   const createdAt = now();
+  const firstTurn = Number(turnNumber) === 1;
+  const prePromptMs = firstTurn ? introMs : prepareMs;
   return {
-    phase:"prepare",
+    phase:firstTurn ? "intro" : "prepare",
     turnNumber,
     round:Math.floor((turnNumber - 1) / Math.max(1, players.length)) + 1,
     order:nextOrder.slice(1),
@@ -74,9 +77,9 @@ function makeTurn(players, settings, turnNumber, scores = {}, history = [], orde
     history:arrayOrEmpty(history),
     current:null,
     startedAt:null,
-    phaseEndsAt:createdAt + prepareMs,
-    prepareEndsAt:createdAt + prepareMs,
-    promptEndsAt:createdAt + prepareMs + promptMs,
+    phaseEndsAt:createdAt + prePromptMs,
+    prepareEndsAt:createdAt + prePromptMs,
+    promptEndsAt:createdAt + prePromptMs + promptMs,
   };
 }
 
@@ -138,10 +141,10 @@ export const FiveSecondsEngine = {
   advance(game, players, rawSettings, expected = {}) {
     const settings = sanitizeFiveSecondsSettings(rawSettings);
     normalize(game, players);
-    if (!["prepare","prompt"].includes(game.phase)) return;
+    if (!["intro","prepare","prompt"].includes(game.phase)) return;
     if (expected.phase && expected.phase !== game.phase) return "Faza gry juz sie zmienila.";
     if (expected.phaseEndsAt && Number(game.phaseEndsAt || 0) !== Number(expected.phaseEndsAt)) return "Tura juz sie zmienila.";
-    if (game.phase === "prepare") {
+    if (["intro","prepare"].includes(game.phase)) {
       game.phase = "prompt";
       game.phaseEndsAt = Number(game.promptEndsAt || now() + promptMs);
       return null;
@@ -199,15 +202,16 @@ function latestResult(game, accounts) {
 
 function prepStage(room, accounts, game) {
   const left = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - now()) / 1000));
+  const intro = game.phase === "intro";
   const reveal = game.phase === "prompt";
   return `<section class="five-stage" style="--danger:${reveal ? 62 : 24}">
-    <div class="five-head"><div><p class="eyebrow">RUNDA ${game.round}</p><h1>${reveal ? `Wymien 3 ${escapeHtml(game.prompt)}` : "Przygotuj sie"}</h1></div><div class="five-timer ${left <= 2 ? "timer-urgent" : ""}" id="five-turn-timer">${left}</div></div>
+    <div class="five-head"><div><p class="eyebrow">${intro ? "JAK GRAĆ" : `RUNDA ${game.round}`}</p><h1>${intro ? "Za chwilę zaczynamy" : reveal ? `Wymien 3 ${escapeHtml(game.prompt)}` : "Przygotuj sie"}</h1></div><div class="five-timer ${left <= 2 ? "timer-urgent" : ""}" id="five-turn-timer">${left}</div></div>
     <div class="five-table">
       <div class="five-player-now"><p class="eyebrow">ZARAZ GRA</p>${playerMiniHtml(accounts[game.activeUid])}<strong>${escapeHtml(accounts[game.activeUid]?.nick || "Gracz")}</strong></div>
       <div class="five-pressure"><i></i><i></i><b>${reveal ? "CZYTAJ" : "START"}</b></div>
       ${latestResult(game, accounts)}
     </div>
-    <div class="waiting-state five-waiting"><span class="waiting-pulse">${reveal ? "TEMAT" : "READY"}</span><h3>${reveal ? escapeHtml(game.categoryName) : "Mentalne przygotowanie"}</h3><p>${reveal ? "Za chwile ruszy czas odpowiedzi." : "Temat pojawi sie po 3 sekundach."}</p></div>
+    <div class="waiting-state five-waiting"><span class="waiting-pulse">${intro ? "ZASADY" : reveal ? "TEMAT" : "READY"}</span><h3>${intro ? "Wymień 3 odpowiedzi" : reveal ? escapeHtml(game.categoryName) : "Mentalne przygotowanie"}</h3><p>${intro ? `Aktywny gracz ma ${Number(room.settings?.answerTime) || 5} sekund. Wpisz odpowiedzi oddzielone przecinkami i zatwierdź, zanim czas minie.` : reveal ? "Za chwile ruszy czas odpowiedzi." : "Nastepna tura zacznie sie za chwile."}</p></div>
   </section>`;
 }
 
@@ -235,8 +239,8 @@ function summaryStage(room, accounts, game) {
 export function renderFiveSecondsGame(root, { room, accounts, currentUser }, actions) {
   stopFiveSecondsTimer();
   const game = normalize(room.game, room.players);
-  const stage = ["prepare","prompt"].includes(game.phase) ? prepStage(room, accounts, game) : game.phase === "turn" ? gameStage(room, accounts, currentUser, game) : summaryStage(room, accounts, game);
-  root.innerHTML = `<main class="page five-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { activeUid:["prepare","prompt","turn"].includes(game.phase) ? game.activeUid : "", scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
+  const stage = ["intro","prepare","prompt"].includes(game.phase) ? prepStage(room, accounts, game) : game.phase === "turn" ? gameStage(room, accounts, currentUser, game) : summaryStage(room, accounts, game);
+  root.innerHTML = `<main class="page five-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { activeUid:["intro","prepare","prompt","turn"].includes(game.phase) ? game.activeUid : "", scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
   $("#five-answer-form")?.addEventListener("submit", event => {
     event.preventDefault();
@@ -244,7 +248,7 @@ export function renderFiveSecondsGame(root, { room, accounts, currentUser }, act
   });
   $("#five-answer-input")?.focus();
   $("#five-lobby")?.addEventListener("click", actions.returnToRoom);
-  if (["prepare","prompt","turn"].includes(game.phase)) startFiveSecondsTimer(game, actions);
+  if (["intro","prepare","prompt","turn"].includes(game.phase)) startFiveSecondsTimer(game, actions);
 }
 
 function startFiveSecondsTimer(game, actions) {
