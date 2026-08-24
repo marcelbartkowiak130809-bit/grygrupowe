@@ -8,7 +8,7 @@ import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.j
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260822-9";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20260621-1";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
-import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260824-1";
+import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260824-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260824-1";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260613-1";
 import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260822-8";
