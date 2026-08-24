@@ -33,7 +33,7 @@ import { createRoomModal, renderLobby } from "./lobby.js?v=20260823-2";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260823-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom } from "./room.js?v=20260822-2";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260824-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
@@ -197,6 +197,11 @@ function activeRoomSignature(room = activeRoom()) {
     return [uid, normalized];
   }));
   return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, hostAnnouncement:room.hostAnnouncement, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+}
+function roomSettingsOnlyChanged(previous, next) {
+  if (!previous || !next || previous.roomId !== next.roomId || previous.status !== "lobby" || next.status !== "lobby") return false;
+  const withoutSettings = room => { const copy = { ...room }; delete copy.settings; return stableStringify(copy); };
+  return withoutSettings(previous) === withoutSettings(next) && stableStringify(previous.settings) !== stableStringify(next.settings);
 }
 function lobbySignature() {
   const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status, settings:room.settings }));
@@ -2176,6 +2181,7 @@ function connectRooms(){
   clearInterval(activeRoomPollTimer);
   state.onlineBackend=hasOnlineBackend()?null:false;
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
+    const previousActiveRoom = activeRoom();
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
     const ghostRooms=remoteRooms.filter(room=>["lobby","playing"].includes(room.status)&&!roomHasHumanPlayers(room));
     ghostRooms.filter(room=>room.players.includes(state.currentUser)).forEach(room=>removeRemoteRoom(room.roomId));
@@ -2201,13 +2207,19 @@ function connectRooms(){
     if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
     if(!restoredRoom&&room){restoredRoom=true;setRoomUrl(room);return Router.go(room.game?"game":"room");}
-    if(["platform","lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});
+    if(["platform","lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature){
+      if(Router.current === "room" && roomSettingsOnlyChanged(previousActiveRoom, room) && refreshRoomSettings(root,{room,currentUser:state.currentUser},actions)){
+        lastRenderedScreenSignature=currentScreenSignature();
+        return;
+      }
+      render({preserveDrafts:true});
+    }
   },()=>{
     state.onlineBackend=false;
     if(profile())message("Serwer odrzucil dostep do pokoi. Zaloguj sie ponownie.");
     if(["lobby","room","game"].includes(Router.current))render();
   });
-  activeRoomPollTimer=setInterval(async()=>{const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;const playersChanged=JSON.stringify(remote.room.players)!==JSON.stringify(local.players);if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature)render({preserveDrafts:true});}},2000);
+  activeRoomPollTimer=setInterval(async()=>{const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;const playersChanged=JSON.stringify(remote.room.players)!==JSON.stringify(local.players);if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature){if(Router.current === "room" && roomSettingsOnlyChanged(local,remote.room) && refreshRoomSettings(root,{room:remote.room,currentUser:state.currentUser},actions)){lastRenderedScreenSignature=currentScreenSignature();return;}render({preserveDrafts:true});}}},2000);
 }
 async function checkFriendNotifications(bucket = null) {
   const user=profile(); if(!user)return;

@@ -70,6 +70,52 @@ function settingsHtml(mode, room, isHost, actions) {
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
 
+function bindRoomSettings(root, actions) {
+  root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
+  root.querySelectorAll("[data-room-rounds]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds))));
+  root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
+  root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));
+  root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-other-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-other-category]:checked")].map(item => item.dataset.otherCategory))));
+  root.querySelectorAll("[data-most-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setMostCategories([...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
+  root.querySelectorAll("[data-friend-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-friend-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-friend-category]:checked")].map(item => item.dataset.friendCategory))));
+  root.querySelectorAll("[data-candy-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-bomb-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-bomb-category]").forEach(input => input.addEventListener("change", () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory))));
+  root.querySelectorAll("[data-truth-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-truth-category]").forEach(input => input.addEventListener("change", () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory))));
+  root.querySelectorAll("[data-ranking-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-ranking-category]").forEach(input => input.addEventListener("change", () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory))));
+  root.querySelectorAll("[data-five-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-five-category]").forEach(input => input.addEventListener("change", () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory))));
+  root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-pokemon-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
+  root.querySelectorAll("[data-wavelength-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value)));
+  root.querySelectorAll("[data-quiz-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-math-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory))));
+  root.querySelectorAll("[data-marker-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.markerSetting, input.value)));
+  root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
+  root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
+}
+
+export function refreshRoomSettings(root, { room, currentUser }, actions) {
+  const panel = root.querySelector(".lobby-settings");
+  if (!panel || !room || room.status !== "lobby") return false;
+  const mode = getGameMode(room.gameMode);
+  panel.innerHTML = `<p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, room.hostUid === currentUser, actions)}`;
+  bindRoomSettings(root, actions);
+  return true;
+}
+
 export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const mode = getGameMode(room.gameMode);
   const isHost = room.hostUid === currentUser;
@@ -108,40 +154,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   root.querySelector("#copy-invite-link")?.addEventListener("click", () => actions.copyInviteLink(room.roomId));
   root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
   root.querySelector("#invite-friend")?.addEventListener("click", () => actions.openFriends({ inviteMode:true }));
-  root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
-  root.querySelectorAll("[data-room-rounds]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds))));
-  root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
-  root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));
-  root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-other-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-other-category]:checked")].map(item => item.dataset.otherCategory))));
-  root.querySelectorAll("[data-most-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setMostCategories([...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
-  root.querySelectorAll("[data-friend-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-friend-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-friend-category]:checked")].map(item => item.dataset.friendCategory))));
-  root.querySelectorAll("[data-candy-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-bomb-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-bomb-category]").forEach(input => input.addEventListener("change", () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory))));
-  root.querySelectorAll("[data-truth-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-truth-category]").forEach(input => input.addEventListener("change", () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory))));
-  root.querySelectorAll("[data-ranking-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-ranking-category]").forEach(input => input.addEventListener("change", () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory))));
-  root.querySelectorAll("[data-five-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-five-category]").forEach(input => input.addEventListener("change", () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory))));
-  root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-pokemon-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
-  root.querySelectorAll("[data-wavelength-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value)));
-  root.querySelectorAll("[data-quiz-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-math-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory))));
-  root.querySelectorAll("[data-marker-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.markerSetting, input.value)));
-  root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
-  root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
+  bindRoomSettings(root, actions);
   root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
   root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
   root.querySelectorAll("[data-add-bot]").forEach(button => button.addEventListener("click", () => actions.addBot()));
