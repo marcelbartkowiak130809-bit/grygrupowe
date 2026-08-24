@@ -263,13 +263,16 @@ export function startRoomPresence(roomId, userId) {
   if (!canUseRemote() || !roomId || !userId) return () => {};
   const clientId = clientPresenceId();
   const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/presence/${userId}/${clientId}`);
-  const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now() }).catch(() => {});
+  const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now(), online:true }).catch(() => {});
   let stopped = false, timer = null;
   const stop = () => { stopped = true; if (timer) clearInterval(timer); firebaseDatabaseApi.remove(presenceRef).catch(() => {}); };
   // Rejestruj obecność od razu. Sprawdzanie /players przed pierwszym heartbeatem
   // powodowało wyścig przy dołączaniu: drugi klient był już na liście graczy,
   // ale nie zdążył jeszcze pojawić się w obecności i pokój zamykał się błędnie.
-  Promise.resolve(firebaseDatabaseApi.onDisconnect?.(presenceRef)?.remove?.()).catch(() => {});
+  // Przy zamknięciu karty zostaw znacznik offline zamiast usuwać wpis. Dzięki
+  // temu inne klienty mogą odróżnić nieaktywny pokój od świeżo utworzonego
+  // lobby, a po krótkim odświeżeniu nadal działa bezpieczny okres tolerancji.
+  Promise.resolve(firebaseDatabaseApi.onDisconnect?.(presenceRef)?.set?.({ seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now(), online:false })).catch(() => {});
   touch();
   timer = setInterval(() => { if (!stopped) touch(); }, 10000);
   return stop;
@@ -931,8 +934,14 @@ export async function removeRemoteRoom(roomId) {
 export function subscribeRemoteRooms(callback, onError = () => {}) {
   const normalize=rooms=>Object.values(rooms||{}).filter(room=>room?.roomId).map(normalizeRemoteRoom);
   if(remoteDatabase&&remoteAuth?.currentUser){
-    const stopRemote=firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase,"rooms"),snapshot=>{const rooms=snapshot.val()||{};saveLocal(LOCAL_ROOMS_KEY,rooms);callback(normalize(rooms),"remote");},onError);
-    return()=>stopRemote();
+    const roomsRef=firebaseDatabaseApi.ref(remoteDatabase,"rooms");
+    const emit=snapshot=>{const rooms=snapshot.val()||{};saveLocal(LOCAL_ROOMS_KEY,rooms);callback(normalize(rooms),"remote");};
+    const stopRemote=firebaseDatabaseApi.onValue(roomsRef,emit,onError);
+    // Heartbeat pokoju zmienia się tylko co kilka sekund, ale sam upływ TTL
+    // nie generuje zdarzenia RTDB. Odświeżenie listy pozwala więc wygasić
+    // osierocone pokoje także wtedy, gdy nikt już w nich nie siedzi.
+    const cleanupTimer=setInterval(()=>firebaseDatabaseApi.get(roomsRef).then(emit).catch(()=>{}),15000);
+    return()=>{clearInterval(cleanupTimer);stopRemote();};
   }
   if(remoteDatabase){callback([],"waiting");return()=>{};}
   callback(normalize(readLocal(LOCAL_ROOMS_KEY)),"local");

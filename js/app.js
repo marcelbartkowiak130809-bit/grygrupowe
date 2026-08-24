@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260822-21";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260825-22";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
 import { gamesList, getGameMode } from "./games.js?v=20260823-10";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260825-1";
@@ -97,6 +97,9 @@ let happyHourRefreshTimer = 0;
 let happyHourResizeObserver = null;
 let roomPresenceStop = () => {};
 let roomPresenceId = "";
+const ROOM_PRESENCE_TTL_MS = 45000;
+const ROOM_STALE_JOIN_GRACE_MS = 15000;
+const staleRoomCleanupLocks = new Set();
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
 function ensureRoomPresence(room) {
@@ -316,7 +319,7 @@ function onlineCountLabel() {
 }
 function roomIsFresh(room){const age=Date.now()-Number(room.updatedAt||room.createdAt||0),limit=room.status==="playing"?2*60*60*1000:30*60*1000;return age<=limit;}
 function roomHasHumanPlayers(room){return normalizedRoomPlayers(room).some(uid=>!isBotId(uid));}
-function activityStats(){const stats={};state.rooms.filter(room=>roomIsFresh(room)&&["lobby","playing"].includes(room.status)&&roomHasHumanPlayers(room)).forEach(room=>{const mode=getGameMode(room.gameMode),players=normalizedRoomPlayers(room).length;if(!stats[mode.id])stats[mode.id]={players:0,lobbies:0};stats[mode.id].players+=players;if(room.status==="lobby")stats[mode.id].lobbies+=1;});return stats;}
+function activityStats(){const stats={};state.rooms.filter(room=>roomIsFresh(room)&&["lobby","playing"].includes(room.status)&&roomHasHumanPlayers(room)).forEach(room=>{const mode=getGameMode(room.gameMode),players=normalizedRoomPlayers(room).filter(uid=>!isBotId(uid)).length;if(!stats[mode.id])stats[mode.id]={players:0,lobbies:0};stats[mode.id].players+=players;if(room.status==="lobby")stats[mode.id].lobbies+=1;});return stats;}
 function updateOnlineCountPill() {
   const pill=document.querySelector(".online-count-pill");
   if(!pill)return;
@@ -859,7 +862,33 @@ function interruptProveRoundWithMissingPlayer(room) {
   const missingPlayer=requiredProvePlayers(room).find(uid=>!room.players.includes(uid));
   return Boolean(missingPlayer&&interruptProveRoundForDeparture(room,missingPlayer));
 }
-const normalizedRoomPlayers = room => Array.isArray(room?.players) ? [...new Set(room.players.filter(Boolean))] : Object.keys(room?.players || {});
+const rawRoomPlayers = room => Array.isArray(room?.players)
+  ? [...new Set(room.players.filter(Boolean))]
+  : Object.keys(room?.players || {}).filter(Boolean);
+function roomPlayerPresenceClients(room, uid) {
+  const clients = room?.presence?.[uid];
+  return clients && typeof clients === "object" ? Object.values(clients).filter(Boolean) : [];
+}
+function roomPlayerIsStale(room, uid, now = Date.now()) {
+  if (!uid || isBotId(uid)) return false;
+  const joinedAt = Number(room?.joinedAt?.[uid] || room?.playerProfiles?.[uid]?.joinedAt || 0);
+  if (joinedAt && now - joinedAt < ROOM_STALE_JOIN_GRACE_MS) return false;
+  const clients = roomPlayerPresenceClients(room, uid);
+  // Brak wpisu nie oznacza jeszcze opuszczenia — drugi klient może być w
+  // trakcie dołączania. Stary wpis offline/heartbeat wygaszamy dopiero po TTL.
+  if (!clients.length) return false;
+  return !clients.some(client => {
+    const seenAt = Number(client?.seenAt || 0);
+    return seenAt > 0 && now - seenAt < ROOM_PRESENCE_TTL_MS;
+  });
+}
+function staleRoomPlayerIds(room, now = Date.now()) {
+  return rawRoomPlayers(room).filter(uid => roomPlayerIsStale(room, uid, now));
+}
+function roomHasLiveHumanPlayers(room) {
+  return rawRoomPlayers(room).some(uid => !isBotId(uid) && !roomPlayerIsStale(room, uid));
+}
+const normalizedRoomPlayers = room => rawRoomPlayers(room).filter(uid => !roomPlayerIsStale(room, uid));
 function ensureScoreObject(target, players, defaultValue = 0) {
   let changed = false;
   if (!target || typeof target !== "object" || Array.isArray(target)) return Object.fromEntries(players.map(uid => [uid, defaultValue]));
@@ -2210,11 +2239,43 @@ function render(options = {}) {
     renderNow(nextOptions);
   });
 }
+function cleanStaleRoomSnapshot(room) {
+  const stale = staleRoomPlayerIds(room);
+  if (!stale.length) return room;
+  const players = rawRoomPlayers(room);
+  const humans = players.filter(uid => !isBotId(uid));
+  const liveHumans = humans.filter(uid => !stale.includes(uid));
+  const currentIsLive = state.currentUser && liveHumans.includes(state.currentUser);
+  // W aktywnej rozgrywce dwuosobowej odejście jednej osoby kończy pokój —
+  // nie zostawiaj drugiego gracza w nieskończonym oczekiwaniu.
+  const shouldClose = !liveHumans.length || (room.status === "playing" && humans.length === 2 && liveHumans.length === 1);
+  if (shouldClose) {
+    if (currentIsLive && players.includes(state.currentUser)) {
+      removeRemoteRoom(room.roomId);
+      removeRoomLocally(room.roomId);
+    }
+    return null;
+  }
+  const keptPlayers = players.filter(uid => !stale.includes(uid));
+  const playerProfiles = { ...(room.playerProfiles || {}) };
+  const joinedAt = { ...(room.joinedAt || {}) };
+  const presence = { ...(room.presence || {}) };
+  stale.forEach(uid => { delete playerProfiles[uid]; delete joinedAt[uid]; delete presence[uid]; });
+  const hostUid = stale.includes(room.hostUid) ? liveHumans[0] : room.hostUid;
+  const cleaned = { ...room, players:keptPlayers, playerProfiles, joinedAt, presence, hostUid };
+  if (currentIsLive && !staleRoomCleanupLocks.has(room.roomId)) {
+    staleRoomCleanupLocks.add(room.roomId);
+    cleaned.updatedAt = Math.max(serverNow(), Number(room.updatedAt || 0) + 1);
+    syncRoomState(cleaned).finally(() => staleRoomCleanupLocks.delete(room.roomId));
+  }
+  return cleaned;
+}
 function connectRooms(){
   stopRoomsSubscription();
   clearInterval(activeRoomPollTimer);
   state.onlineBackend=hasOnlineBackend()?null:false;
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
+    if (source === "remote") remoteRooms = remoteRooms.map(cleanStaleRoomSnapshot).filter(Boolean);
     const previousActiveRoom = activeRoom();
     state.onlineBackend=source==="remote"?true:source==="local"?false:null;
     const ghostRooms=remoteRooms.filter(room=>["lobby","playing"].includes(room.status)&&!roomHasHumanPlayers(room));
