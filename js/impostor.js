@@ -7,6 +7,7 @@ import { botTooltip } from "./bots.js?v=20260823-2";
 let timerId;
 let lastCountdown;
 let lastTimeoutKey = "";
+let timerRunId = 0;
 const clueReviewMs = 5000;
 export const impostorDefaults = { impostorCount:1, whiteEnabled:false, whiteCount:0, clueTime:20, minRounds:2, chatEnabled:true, category:"Wszystkie", categories:["Jedzenie","Gry","Filmy i seriale"] };
 export const maxSpecialRoles = playerCount => Math.floor(playerCount / 2);
@@ -169,21 +170,21 @@ function roleRevealSummary(game,accounts){
 function finalGuessPanel(game,accounts,currentUser,expelled){
   return `<section class="panel center result-card"><p class="eyebrow">OSTATNIA SZANSA IMPOSTORA</p><h1>${escapeHtml(accounts[expelled]?.nick||"Impostor")} zgaduje haslo</h1>${timer(game)}<p class="muted">Impostor zostal wyglosowany, ale ma 15 sekund. Jesli trafi haslo obywateli, mimo glosowania wygrywa.</p><div class="result-focus-player">${playerMini(accounts[expelled])}</div>${currentUser===expelled?`<form id="impostor-final-guess" class="answer-form"><input id="impostor-final-input" placeholder="wpisz haslo obywateli" autocomplete="off"><button class="primary">Zgadnij</button></form><button class="ghost" id="impostor-final-surrender">Poddaje sie</button>`:'<p>Czekamy na decyzje wyrzuconego impostora...</p>'}</section>`;
 }
-export function stopImpostorTimer(){clearInterval(timerId);timerId=null;lastCountdown=null;}
+export function stopImpostorTimer(){clearInterval(timerId);timerId=null;lastCountdown=null;timerRunId += 1;}
 export function renderImpostorGame(root,{room,accounts,currentUser},actions){
   stopImpostorTimer(); const game=normalizeImpostorGame(room.game, Array.isArray(room.players) ? room.players : Object.keys(room.players || {}));
   const role=game.roles[currentUser] || { role:"citizen", word:game.mainWord || "" }, current=game.turnOrder[game.turnIndex] || game.turnOrder[0], voted=currentUser in (game.votes||{}), decided=currentUser in (game.continueVotes||{});
   const result = game.result || {}, resultCounts = result.counts || {}, expelled = result.expelled || game.turnOrder[0] || currentUser;
   const revealedRole = result.revealedRole || game.roles[expelled]?.role || "citizen", revealedWord = result.revealedWord ?? game.roles[expelled]?.word;
   const citizensWin = result.citizensWin ?? revealedRole !== "citizen";
-  if(game.phase==="roleReveal"){root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell enter">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<p class="center muted">${Object.keys(game.acknowledged).length}/${game.turnOrder.length} graczy zna już swoją rolę.</p><div class="center"><button class="ghost" id="leave-room">Wyjdź z pokoju</button></div></main>`;$("#ack-role")?.addEventListener("click",actions.impostorAcknowledgeRole);$("#leave-room").addEventListener("click",actions.leaveRoom);return;}
+  if(game.phase==="roleReveal"){root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<p class="center muted">${Object.keys(game.acknowledged).length}/${game.turnOrder.length} graczy zna już swoją rolę.</p><div class="center"><button class="ghost" id="leave-room">Wyjdź z pokoju</button></div></main>`;$("#ack-role")?.addEventListener("click",actions.impostorAcknowledgeRole);$("#leave-room").addEventListener("click",actions.leaveRoom);return;}
   const phasePanel=game.phase==="clues"?`<section class="panel impostor-main"><div class="game-top"><div><p class="eyebrow">RUNDA ${game.round}</p><h2>Podpowiada: ${escapeHtml(accounts[current]?.nick||"Gracz")}</h2></div>${timer(game)}</div>${current===currentUser?'<form id="clue-form" class="answer-form"><input id="clue-input" placeholder="jedno słowo lub krótka podpowiedź" autocomplete="off"><button class="primary">Dodaj</button></form>':'<p class="muted">Czekamy na podpowiedź...</p>'}${clues(game,accounts)}</section>`
   :game.phase==="clueReview"?`<section class="panel impostor-main center"><div class="game-top"><div><p class="eyebrow">OSTATNIA PODPOWIEDZ</p><h2>Za chwile decyzja ekipy</h2></div>${timer(game)}</div><p class="muted">Macie 5 sekund, zeby zobaczyc ostatnia podpowiedz przed wyborem: glosowanie czy gramy dalej.</p>${clues(game,accounts)}</section>`
   :game.phase==="continueDecision"?`<section class="panel center"><p class="eyebrow">DECYZJA EKIPY</p><h1>Głosujemy?</h1>${timer(game)}<p class="muted">Możecie zagrać dalej jeszcze ${3-game.continueCount} razy.</p>${decided?'<p>Twój głos został zapisany.</p>':'<div class="choice-row"><button class="danger" id="vote-now">Głosujemy</button><button class="primary" id="keep-playing">Gramy dalej</button></div>'}</section>`
   :game.phase==="finalGuess"?finalGuessPanel(game,accounts,currentUser,expelled)
   :game.phase==="voting"?`<section class="panel center"><p class="eyebrow">GŁOSOWANIE</p><h1>Kto jest podejrzany?</h1>${timer(game)}${voted?'<p>Twój głos został zapisany.</p>':`<div class="vote-grid">${room.players.map(uid=>`<button data-vote-player="${uid}">${playerMini(accounts[uid])}</button>`).join("")}</div>`}</section>`
   :`<section class="panel center result-card"><p class="eyebrow">WYNIK</p><h1>${citizensWin?"Obywatele wygrywają!":"Specjalne role wygrywają!"}</h1><p>Wyrzucony gracz:</p><div class="result-focus-player">${playerMini(accounts[expelled])}</div><div class="revealed-role">${roleLabel(revealedRole)}${revealedWord?` · ${escapeHtml(revealedWord)}`:" · bez słowa"}</div><div class="vote-results">${Object.entries(resultCounts).map(([uid,count])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")}: <b>${count}</b></span>`).join("")}</div>${revealedRole!=="impostor"?`<h3>Ujawnione role</h3>${roleRevealSummary(game,accounts)}`:""}<p class="money-pop">Zwycięzcy dostają +150$</p><button class="primary" id="impostor-again">Zagraj ponownie</button></section>`;
-  root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell enter"><section class="panel secret-strip"><span>Twoja rola: <b>${roleLabel(role.role)}</b></span><span>${role.word?`Słowo: <b>${escapeHtml(role.word)}</b>`:"Bez tajnego słowa"}</span></section>${playerRail(game,accounts)}<div class="impostor-layout"><div>${phasePanel}</div>${room.settings.chatEnabled?chat(game,accounts):""}</div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
+  root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell"><section class="panel secret-strip"><span>Twoja rola: <b>${roleLabel(role.role)}</b></span><span>${role.word?`Słowo: <b>${escapeHtml(role.word)}</b>`:"Bez tajnego słowa"}</span></section>${playerRail(game,accounts)}<div class="impostor-layout"><div>${phasePanel}</div>${room.settings.chatEnabled?chat(game,accounts):""}</div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
   if(game.phase==="results")Effects.play(citizensWin?"citizensWin":"impostorWin",`${room.roomId}:impostor:${expelled}`);
   $("#leave-room").addEventListener("click",actions.leaveRoom);$("#clue-form")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorSubmitClue($("#clue-input").value);});$("#vote-now")?.addEventListener("click",()=>actions.impostorDecision(false));$("#keep-playing")?.addEventListener("click",()=>actions.impostorDecision(true));root.querySelectorAll("[data-vote-player]").forEach(b=>b.addEventListener("click",()=>actions.impostorVote(b.dataset.votePlayer)));root.querySelectorAll("[data-reaction]").forEach(b=>b.addEventListener("click",()=>actions.impostorReact(b.dataset.reaction)));$("#chat-form")?.addEventListener("submit",async e=>{e.preventDefault();const input=$("#chat-input"),text=input.value;if(await actions.impostorChat(text)!==false)input.value="";});$("#impostor-final-guess")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorFinalGuess($("#impostor-final-input").value);});$("#impostor-final-surrender")?.addEventListener("click",actions.impostorFinalSurrender);$("#impostor-again")?.addEventListener("click",actions.impostorPlayAgain);if(["clues","clueReview","continueDecision","voting","finalGuess"].includes(game.phase))startTimer(actions,game);
 }
@@ -193,9 +194,33 @@ export function renderImpostorGameStable(root,{room,accounts,currentUser},action
   const game=normalizeImpostorGame(room.game, Array.isArray(room.players) ? room.players : Object.keys(room.players || {}));
   const role=game.roles[currentUser] || { role:"citizen", word:game.mainWord || "" };
   if(!game.phaseEndsAt)game.phaseEndsAt=now()+15000;
-  root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell enter">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<div class="center">${timer(game)}</div><p class="center muted">${Object.keys(game.acknowledged||{}).length}/${game.turnOrder.length} graczy zna już swoją rolę.</p><p class="center tiny">Gra ruszy automatycznie po 15 sekundach.</p><div class="center"><button class="ghost" id="leave-room">Wyjdź z pokoju</button></div></main>`;
+  root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell">${playerRail(game,accounts)}${roleCard(game,currentUser,accounts)}<div class="center">${timer(game)}</div><p class="center muted">${Object.keys(game.acknowledged||{}).length}/${game.turnOrder.length} graczy zna już swoją rolę.</p><p class="center tiny">Gra ruszy automatycznie po 15 sekundach.</p><div class="center"><button class="ghost" id="leave-room">Wyjdź z pokoju</button></div></main>`;
   $("#ack-role")?.addEventListener("click",actions.impostorAcknowledgeRole);
   $("#leave-room")?.addEventListener("click",actions.leaveRoom);
   startTimer(actions,game);
 }
-function startTimer(actions,game){clearInterval(timerId);const timeoutGuard={phase:game?.phase||"",phaseEndsAt:game?.phaseEndsAt||0,round:game?.round||0,turnIndex:game?.turnIndex??""};const timeoutKey=`${timeoutGuard.phase}:${timeoutGuard.phaseEndsAt}:${timeoutGuard.round}:${timeoutGuard.turnIndex}`;const finish=()=>{if(lastTimeoutKey===timeoutKey)return;lastTimeoutKey=timeoutKey;setTimeout(()=>actions.impostorTimeout(timeoutGuard),0);};const tick=()=>{const timer=$("#impostor-timer");if(!timer)return;const left=Math.max(0,Number(timer.textContent.replace("s",""))-1);timer.textContent=`${left}s`;timer.parentElement.classList.toggle("timer-urgent",left<=5);if(left>0&&left<=3&&lastCountdown!==left){lastCountdown=left;Audio.play("countdown");}if(left===0){stopImpostorTimer();finish();}};const timer=$("#impostor-timer");if(timer&&Number(timer.textContent.replace("s",""))<=0){finish();return;}timerId=setInterval(tick,1000);}
+function startTimer(actions,game){
+  stopImpostorTimer();
+  const endsAt=Number(game?.phaseEndsAt||0);
+  if(!endsAt)return;
+  const runId=timerRunId;
+  const timeoutGuard={phase:game?.phase||"",phaseEndsAt:endsAt,round:game?.round||0,turnIndex:game?.turnIndex??""};
+  const timeoutKey=`${timeoutGuard.phase}:${timeoutGuard.phaseEndsAt}:${timeoutGuard.round}:${timeoutGuard.turnIndex}`;
+  const finish=()=>{
+    if(runId!==timerRunId||lastTimeoutKey===timeoutKey)return;
+    lastTimeoutKey=timeoutKey;
+    window.setTimeout(()=>{if(runId===timerRunId)actions.impostorTimeout(timeoutGuard);},0);
+  };
+  const tick=()=>{
+    if(runId!==timerRunId)return;
+    const timer=$("#impostor-timer");
+    if(!timer){clearInterval(timerId);timerId=null;return;}
+    const left=Math.max(0,Math.ceil((endsAt-Date.now())/1000));
+    timer.textContent=`${left}s`;
+    timer.parentElement?.classList.toggle("timer-urgent",left<=5);
+    if(left>0&&left<=3&&lastCountdown!==left){lastCountdown=left;Audio.play("countdown");}
+    if(left<=0){clearInterval(timerId);timerId=null;finish();}
+  };
+  tick();
+  if(runId===timerRunId)timerId=window.setInterval(tick,250);
+}

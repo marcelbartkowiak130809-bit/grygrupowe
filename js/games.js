@@ -1,5 +1,5 @@
 import { renderGame } from "./game.js?v=20260822-4";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260822-1";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260825-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260611-1";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260822-7";
