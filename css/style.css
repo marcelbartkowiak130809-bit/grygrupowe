@@ -798,3 +798,9 @@ input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-inn
 .equipment-card-art{background:transparent}
 .equipment-card-art img{object-fit:contain;padding:2px}
 .light-theme .equipment-card-art{background:transparent}
+.route-room .mini-player,.route-game .mini-player{cursor:pointer}
+.public-profile-modal{width:min(720px,calc(100vw - 32px));max-height:min(90dvh,860px);overflow-y:auto}
+.public-profile-head{display:flex;align-items:center;gap:16px;margin:4px 0 18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.035)}
+.public-profile-head h2{margin:2px 0 5px}.public-profile-avatar{width:68px;height:68px;flex:none}.public-profile-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}.public-profile-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.public-profile-history{display:grid;gap:7px;margin:0;padding:0;list-style:none}.public-profile-history li{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.035)}.public-profile-history b{color:var(--accent)}.bot-profile-note{color:#fbbf24}
+.light-theme .public-profile-head,.light-theme .public-profile-section .account-summary,.light-theme .public-profile-history li{background:#f8fafc;border-color:rgba(100,116,139,.24)}
+@media(max-width:560px){.public-profile-head{align-items:flex-start}.public-profile-stats{grid-template-columns:1fr}.public-profile-modal{width:min(100vw - 20px,720px)}}

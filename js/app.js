@@ -35,7 +35,7 @@ import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage 
 import { Router } from "./router.js";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260824-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
-import { $, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
+import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260823-3";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
@@ -216,6 +216,23 @@ function currentScreenSignature() {
 const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => normalizeNick(account.nick) === normalizeNick(nick) && !account.nickOnly);
 const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), isBot:Boolean(player?.isBot), adultStatus:adultStatusFor(player), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(player?.honorCounts||{})}, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedBombSkin:player?.selectedBombSkin || "defaultBomb", selectedClockSkin:player?.selectedClockSkin || "defaultClock", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
 const directoryProfile = player => { const privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(player?.privacy||{})}, result={...publicProfile(player),privacy}; if(privacy.historyPublic)result.gameHistory=Array.isArray(player?.gameHistory)?player.gameHistory.slice(-50):[]; if(privacy.statsPublic){result.gameStats=player?.gameStats||{};result.stats=player?.stats||{};} if(privacy.friendsPublic)result.friends=Array.isArray(player?.friends)?player.friends:[]; return result; };
+const publicHonorTypes = [{id:"nicePlayer",emoji:"👍",label:"Miły gracz"},{id:"goodOpponent",emoji:"🧠",label:"Dobry przeciwnik"},{id:"greatHost",emoji:"🎉",label:"Świetny host"},{id:"notVerySmart",emoji:"🤦",label:"Niezbyt inteligentny",negative:true},{id:"poorSport",emoji:"🙄",label:"Uciążliwy gracz",negative:true}];
+function publicProfileContent(player = {}) {
+  const honor={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(player.honorCounts||{})};
+  const total=publicHonorTypes.reduce((sum,type)=>sum+(Number(honor[type.id])||0),0);
+  const privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(player.privacy||{})};
+  const stats=player.gameStats||player.stats||{};
+  const statCards=privacy.statsPublic ? `<section class="public-profile-section"><div class="section-heading"><div><p class="eyebrow">STATYSTYKI</p><h3>Wyniki gracza</h3></div></div><div class="account-summary public-profile-stats"><div><span class="muted">Rozegrane</span><b>${Number(stats.played)||0}</b></div><div><span class="muted">Wygrane</span><b>${Number(stats.wins)||0}</b></div><div><span class="muted">Porażki</span><b>${Number(stats.losses)||0}</b></div></div></section>` : `<section class="public-profile-section"><p class="muted">Statystyki tego gracza są prywatne.</p></section>`;
+  const history=privacy.historyPublic ? (Array.isArray(player.gameHistory)&&player.gameHistory.length ? `<ul class="public-profile-history">${player.gameHistory.slice(-5).reverse().map(item=>`<li><span>${escapeHtml(item.modeName||item.mode||"Gra")}</span><b>${escapeHtml(item.result||"Rozegrano")}</b></li>`).join("")}</ul>` : `<p class="muted">Brak zapisanej historii gier.</p>`) : `<p class="muted">Historia gier tego gracza jest prywatna.</p>`;
+  const friends=privacy.friendsPublic ? `<p class="muted">Znajomi: <b>${Array.isArray(player.friends)?player.friends.length:0}</b></p>` : `<p class="muted">Lista znajomych tego gracza jest prywatna.</p>`;
+  return `<div class="public-profile-head">${avatarHtml(player,"public-profile-avatar")}<div><p class="eyebrow">${player.isBot?"BOT EKSPERYMENTALNY":"PROFIL GRACZA"}</p><h2>${escapeHtml(player.nick||"Gracz")}</h2>${player.isBot?`<p class="tiny bot-profile-note">Boty są nadal rozwijane i w części trybów mogą działać niedokładnie.</p>`:`<p class="muted">Poziom doświadczenia: <b>${Number(player.xp||player.sessionXp)||0} XP</b></p>`}</div></div><section class="honor-summary"><div class="section-heading"><div><p class="eyebrow">HONOR</p><h3>Otrzymane wyróżnienia</h3></div><span class="badge">${total}</span></div><div class="honor-summary-grid">${publicHonorTypes.map(type=>`<div class="honor-count${type.negative?" honor-count-negative":""}"><span>${type.emoji}</span><strong>${Number(honor[type.id])||0}</strong><small>${type.label}</small></div>`).join("")}</div></section>${statCards}<section class="public-profile-section"><div class="section-heading"><div><p class="eyebrow">HISTORIA</p><h3>Ostatnie gry</h3></div></div>${history}</section><section class="public-profile-section"><div class="section-heading"><div><p class="eyebrow">SPOŁECZNOŚĆ</p><h3>Znajomi</h3></div></div>${friends}</section>`;
+}
+function publicProfileModal(player, closeAction) {
+  const backdrop=document.createElement("div"); backdrop.className="modal-backdrop public-profile-backdrop";
+  backdrop.innerHTML=`<section class="modal account-modal public-profile-modal enter" role="dialog" aria-modal="true" aria-labelledby="public-profile-title"><div class="modal-title"><div><p class="eyebrow">PROFIL GRACZA</p><h2 id="public-profile-title">${escapeHtml(player.nick||"Gracz")}</h2></div><button class="icon-btn" data-close aria-label="Zamknij">${icon("x",18)}</button></div><div data-public-profile-content>${publicProfileContent(player)}</div></section>`;
+  const close=()=>closeAction?.(backdrop); backdrop.querySelector("[data-close]").addEventListener("click",close); backdrop.addEventListener("click",event=>{if(event.target===backdrop)close();});
+  return backdrop;
+}
 const normalizeRoomProfile = item => ({ ...item, nickOnly:Boolean(item?.nickOnly || (Number(item?.sessionXp || 0) > 0 && !Number(item?.xp || 0))), adultStatus:item?.adultStatus || "unknown", selectedBombSkin:item?.selectedBombSkin || "defaultBomb", selectedClockSkin:item?.selectedClockSkin || "defaultClock" });
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode,quizVariant:state.quizVariant});
 let restoredRoom=false;
@@ -1380,6 +1397,21 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (!profile()) return actions.openAuth({ title: "Zaloguj się lub utwórz konto", description: "Konto zapisuje coiny, kosmetyki i efekty nicku." });
     const modal = accountModal(profile(), actions); document.body.append(modal); Audio.play("modalOpen");
   },
+  async openPlayerProfile(targetUid) {
+    const room=activeRoom();
+    if (!room || !targetUid || !(room.players||[]).includes(targetUid)) return false;
+    const initial={...(room.playerProfiles?.[targetUid]||{}),...(state.accounts[targetUid]||{}),uid:targetUid};
+    const modal=publicProfileModal(directoryProfile(initial),actions.closeModal);
+    document.body.append(modal); Audio.play("modalOpen");
+    if (isBotId(targetUid) || targetUid === state.currentUser) return true;
+    const [remote,honors]=await Promise.all([loadRemoteProfile(targetUid),loadHonorCounts(targetUid)]);
+    if (!modal.isConnected) return true;
+    const merged={...initial,...(remote||{}),honorCounts:honors && typeof honors === "object" ? honors : (remote?.honorCounts||initial.honorCounts)};
+    const safe=directoryProfile(merged);
+    const content=modal.querySelector("[data-public-profile-content]");
+    if (content) content.innerHTML=publicProfileContent(safe);
+    return true;
+  },
   openLuckySpin() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby odebrać nagrody", description:"Lucky Spin zapisuje darmowy spin i nagrodę na serwerze." });
     const modal = luckySpinModal({
@@ -2259,6 +2291,23 @@ async function checkFriendNotifications(bucket = null) {
   }
 }
 function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
+function clickedRoomPlayerUid(target) {
+  const room=activeRoom(), mini=target?.closest?.(".mini-player");
+  if (!room || !mini || target.closest?.(".account-button")) return "";
+  const tagged=mini.closest("[data-player-uid]")?.dataset.playerUid;
+  if (tagged && (room.players||[]).includes(tagged)) return tagged;
+  const nick=mini.querySelector(".nick")?.textContent?.trim();
+  if (!nick) return "";
+  return (room.players||[]).find(uid=>String(state.accounts[uid]?.nick||room.playerProfiles?.[uid]?.nick||"").trim()===nick) || "";
+}
+document.addEventListener("click", event => {
+  const target=event.target;
+  const targetUid=clickedRoomPlayerUid(target);
+  if (!targetUid) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  actions.openPlayerProfile(targetUid);
+}, true);
 document.addEventListener("click", event => {
   const changelogButton = event.target.closest?.("#open-changelog");
   if (!changelogButton) return;
