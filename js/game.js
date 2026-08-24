@@ -1,4 +1,4 @@
-import { categories } from "./categories.js?v=20260824-1";
+import { categories } from "./categories.js?v=20260824-2";
 import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js?v=20260822-1";
 import { playerMini } from "./room.js?v=20260822-1";
 import { Audio } from "./audio.js";

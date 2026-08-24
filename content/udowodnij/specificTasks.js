@@ -327,7 +327,7 @@ const additionalAnswers = {
   transport_parts: "akumulator|alternator|wał napędowy|zawieszenie|amortyzator|sprężyna|pasek rozrządu|filtr oleju|chłodnica|wycieraczka",
   transport_station: "torowisko|rozkład jazdy|bilet|rozkład|tablica informacyjna|kontrola paszportowa|odprawa|stanowisko|przejście podziemne|schody ruchome",
   clothes_winter: "kaptur|komin|nauszniki|kalesony|bielizna termiczna|spodnie narciarskie|buty śniegowe|puchówka|kamizelka|rękawice",
-  clothes_summer: "krótkie spodenki|koszula z krótkim rękawem|kapelusz|japonki|tunika|pareo|strój plażowy|narzutka|lniane spodnie",
+  clothes_summer: "krótkie spodenki|szorty|shorty|bermudy|krótka koszulka|koszula z krótkim rękawem|bluzka|top|crop top|tank top|koszula hawajska|kapelusz|czapka|japonki|espadrile|sukienka letnia|spódnica|tunika|pareo|strój plażowy|strój kąpielowy|kostium kąpielowy|kąpielówki|spodenki kąpielowe|narzutka|lniane spodnie|kolarki|body|okulary przeciwsłoneczne|sandały|klapki|ręcznik plażowy",
   clothes_formal: "frak|tuxedo|garsonka|suknia wieczorowa|elegancka koszula|eleganckie spodnie|mokasyny|lakierki|żakiet|apaszka|zegarek",
   clothes_patterns: "krata|kwiatowy|geometryczny|zwierzęcy|paisley|wężowy|tie-dye|ombre|kamuflaż|groszki|jodełka",
   nature_landforms: "płaskowyż|nizina|wyżyna|kotlina|archipelag|wąwóz|przełęcz|delta|klif|półwysep",
@@ -351,7 +351,7 @@ const additionalAnswers = {
   travel_items: "mapa|przewodnik|pieniądze|karta płatnicza|leki|czapka|kurtka|parasol|butelka|adapter podróżny",
   travel_transport: "łódź|jacht|skuter|helikopter|pieszo|carsharing|kolejka linowa|tuk-tuk|samochód terenowy",
   travel_city: "ratusz|stadion|dworzec|zoo|cmentarz|mury miejskie|wieżowiec|opera|biblioteka|targ",
-  travel_hotel: "restauracja|bar|siłownia|parking|sejf|sprzątanie|rezerwacja|meldunek|wymeldowanie|klucz",
+  travel_hotel: "hotel|nocleg|pokój hotelowy|apartament|łóżko|pościel|poduszka|kołdra|szlafrok|kapcie|recepcja|rezerwacja|zameldowanie|meldunek|wymeldowanie|klucz|karta do pokoju|obsługa|personel|pokojówka|sprzątanie|śniadanie|restauracja|bar|room service|basen|sauna|jacuzzi|spa|siłownia|parking|garaż|winda|lobby|klimatyzacja|telewizor|minibar|sejf|ręcznik|suszarka|wifi|widok|opłata|walizka|bagaż|autokar|plaża|leżak|parasol|relaks|wakacje|urlop|turysta|resort|pensjonat|hostel",
 };
 
 for (const [id, answers] of Object.entries(additionalAnswers)) {

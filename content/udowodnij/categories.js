@@ -2,7 +2,7 @@ import { pokemonAnswers } from "./pokemon.js";
 import { aliases, expandedPools, focusedPools, mergeUnique, supplementalPools } from "./expandedPools.js?v=20260604-8";
 import { newCategoryDefinitions, newCategoryPools, newCategoryPrompts } from "./newCategories.js?v=20260602-2";
 import { moreAnswerPools } from "./moreAnswers.js?v=20260602-3";
-import { specificTasks } from "./specificTasks.js?v=20260824-1";
+import { specificTasks } from "./specificTasks.js?v=20260824-2";
 
 // Każda kategoria ma współdzieloną, szeroką pulę odpowiedzi. Dzięki temu nowe
 // warianty pytań nie odrzucają popularnych odpowiedzi tylko przez zbyt krótką listę.
