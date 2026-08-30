@@ -33,14 +33,14 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260823-2";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-3";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260830-3";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-2";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-3";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-21";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";

@@ -3,7 +3,7 @@ import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260822-1";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260830-2";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260830-3";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260804-1";
 
 const filters = [
@@ -86,6 +86,15 @@ function gameCard(mode) {
 
 function lockedModeTitle(mode, unlock) {
   return `Nowy tryb odblokuje sie ${unlock.label}`;
+}
+
+function compareMainModes(left, right) {
+  const leftPokemon = left.audience === "pokemon", rightPokemon = right.audience === "pokemon";
+  if (leftPokemon !== rightPokemon) return leftPokemon ? 1 : -1;
+  const leftUnlock = modeUnlockInfo(left.id), rightUnlock = modeUnlockInfo(right.id);
+  if (leftUnlock.locked !== rightUnlock.locked) return leftUnlock.locked ? 1 : -1;
+  if (leftUnlock.locked && rightUnlock.locked) return leftUnlock.unlockTime - rightUnlock.unlockTime;
+  return 0;
 }
 
 function normalizeModeSearch(value) {
@@ -192,7 +201,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon").map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
+      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon").sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;

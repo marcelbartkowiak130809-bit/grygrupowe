@@ -3,9 +3,6 @@
 // Daty są zapisane z offsetem Warszawy, żeby harmonogram nie zależał od strefy
 // ustawionej w przeglądarce gracza.
 export const MODE_UNLOCKS_ENABLED = true;
-// Tymczasowy przełącznik do ręcznych testów przed właściwym odblokowaniem.
-// Usuń te trzy identyfikatory po zakończeniu testów.
-export const TEMPORARILY_UNLOCKED_MODES = new Set(["polacz-nas", "klamca", "falszywa-wiadomosc"]);
 export const futureModeUnlocks = {
   bomba: "2026-08-07T20:00:00+02:00",
   "najblizej-prawdy": "2026-08-10T20:00:00+02:00",
@@ -47,7 +44,7 @@ export function formatUnlockDate(unlockAt) {
 export function modeUnlockInfo(modeId, now = Date.now()) {
   const unlockAt = upcomingModeUnlocks[modeId];
   const unlockTime = unlockAt ? new Date(unlockAt).getTime() : 0;
-  const locked = Boolean(unlockAt && Number.isFinite(unlockTime) && unlockTime > now && !TEMPORARILY_UNLOCKED_MODES.has(modeId));
+  const locked = Boolean(unlockAt && Number.isFinite(unlockTime) && unlockTime > now);
   return { modeId, unlockAt, unlockTime, locked, label: unlockAt ? formatUnlockDate(unlockAt) : "" };
 }
 
