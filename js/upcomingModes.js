@@ -24,6 +24,9 @@ export const futureModeUnlocks = {
   family: "2026-09-28T20:00:00+02:00",
   "pokemon-match-type": "2026-10-01T20:00:00+02:00",
   "word-chain": "2026-10-04T20:00:00+02:00",
+  "polacz-nas": "2026-10-07T20:00:00+02:00",
+  klamca: "2026-10-10T20:00:00+02:00",
+  "falszywa-wiadomosc": "2026-10-13T20:00:00+02:00",
 };
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? futureModeUnlocks : {};
 
