@@ -22,6 +22,7 @@ import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./fami
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260822-2";
 import { renderNumberMysteryLobbySettings } from "./numberMystery.js?v=20260823-4";
 import { renderUniqueAnswerLobbySettings } from "./uniqueAnswer.js?v=20260823-5";
+import { renderConnectLobbySettings } from "./connect.js?v=20260830-1";
 import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 
@@ -66,6 +67,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "word-chain") return renderWordChainLobbySettings(room, isHost);
   if (mode.id === "number-mystery") return renderNumberMysteryLobbySettings(room, isHost);
   if (mode.id === "unique-answer") return renderUniqueAnswerLobbySettings(room, isHost);
+  if (mode.id === "polacz-nas") return renderConnectLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -105,6 +107,7 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
   root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-connect-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.connectSetting, input.value)));
 }
 
 export function refreshRoomSettings(root, { room, currentUser }, actions) {

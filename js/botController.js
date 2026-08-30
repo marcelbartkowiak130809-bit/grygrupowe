@@ -23,6 +23,7 @@ import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
+import { ConnectEngine } from "./connect.js?v=20260830-1";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -277,6 +278,7 @@ function timeoutMutation(room, game, bot) {
     case "sequence": return g => SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
+    case "polacz-nas": return g => ConnectEngine.timeout(g);
     default: return null;
   }
 }
@@ -435,6 +437,13 @@ export function botMutation(room) {
         break;
       case "unique-answer":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => UniqueAnswerEngine.answer(g, bot, uniqueAnswerBot(g, room, bot), settings);
+        break;
+      case "polacz-nas":
+        if (game.phase === "answering" && isMissing(game.answers, bot)) return g => ConnectEngine.answer(g, bot, ConnectEngine.botAnswer(g, bot));
+        if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
+          const target = Object.keys(g.answers || {}).find(uid => uid !== bot && g.answers?.[uid]) || Object.keys(g.answers || {}).find(uid => uid !== bot);
+          return target ? ConnectEngine.vote(g, bot, target) : null;
+        };
         break;
       default: break;
     }
