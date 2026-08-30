@@ -25,6 +25,7 @@ import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMyster
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { ConnectEngine } from "./connect.js?v=20260830-1";
 import { LiarEngine } from "./liar.js?v=20260830-1";
+import { FalseMessageEngine } from "./falseMessage.js?v=20260830-1";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -59,6 +60,10 @@ export function botActor(room) {
   if (game.mode === "wavelength" || room.gameMode === "wavelength") {
     if (game.phase === "clue") return bots.find(uid => uid !== game.guesserUid && !game.clues?.[uid]) || bots.find(uid => uid !== game.guesserUid) || "";
     if (game.phase === "guess" && bots.includes(game.guesserUid)) return game.guesserUid;
+  }
+  if (room.gameMode === "falszywa-wiadomosc") {
+    if (game.phase === "answering") return bots.find(uid => uid !== game.heroUid && isMissing(game.answers, uid)) || "";
+    if (game.phase === "selecting" && isBotId(game.heroUid) && !game.selectedAnswerUid) return game.heroUid;
   }
   if (game.phase === "responses") {
     const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
@@ -281,6 +286,7 @@ function timeoutMutation(room, game, bot) {
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
     case "polacz-nas": return g => ConnectEngine.timeout(g);
     case "klamca": return g => LiarEngine.timeout(g, settings);
+    case "falszywa-wiadomosc": return g => FalseMessageEngine.timeout(g, settings);
     default: return null;
   }
 }
@@ -457,6 +463,10 @@ export function botMutation(room) {
           const target = bot === g.liarUid ? (citizens[0] || targets[0]) : (shouldDetect ? g.liarUid : targets[Math.floor(Math.random() * targets.length)]);
           return target ? LiarEngine.vote(g, bot, target) : null;
         };
+        break;
+      case "falszywa-wiadomosc":
+        if (game.phase === "answering" && bot && bot !== game.heroUid && isMissing(game.answers, bot)) return g => FalseMessageEngine.answer(g, bot, FalseMessageEngine.botAnswer(g), settings);
+        if (game.phase === "selecting" && bot && bot === game.heroUid && !game.selectedAnswerUid) return g => FalseMessageEngine.choose(g, bot, FalseMessageEngine.botChoose(g));
         break;
       default: break;
     }

@@ -23,6 +23,7 @@ import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
 import { connectDefaults, renderConnectGame } from "./connect.js?v=20260830-1";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260830-1";
+import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260830-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -286,6 +287,9 @@ export const gamesRegistry = {
   },
   klamca: {
     id: "klamca", name: "Kłamca", description: "Wszyscy odpowiadają na to samo pytanie, ale jedna osoba musi skłamać. Znajdźcie kłamcę.", help: ["Wszyscy dostają to samo pytanie o opinię albo doświadczenie.", "Jedna osoba widzi tajną instrukcję i musi odpowiedzieć kłamstwem.", "Po odpowiedziach czytacie wypowiedzi i głosujecie, kto jest Kłamcą.", "Trafiony gracz daje głosującym punkt, a niewykryty Kłamca dostaje 2 punkty."], allowReports: true, players: "3-8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎭", art: "impostor", audience: "everyone", badges: ["new", "tiktok"], render: renderLiarGame, defaultSettings: liarDefaults,
+  },
+  "falszywa-wiadomosc": {
+    id: "falszywa-wiadomosc", name: "Fałszywa wiadomość", description: "Co napisałby twój znajomy w absurdalnej sytuacji? Podszyj się pod niego i daj się nabrać.", help: ["W każdej rundzie jeden gracz zostaje bohaterem sytuacji.", "Pozostali piszą anonimowe wiadomości, które bohater może wysłać.", "Bohater wybiera wiadomość najbardziej pasującą do niego, a jej autor zdobywa punkt.", "Każdy dostaje swoją rundę bohatera, a na końcu wygrywa najlepszy autor wiadomości."], allowReports: true, players: "3-8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "📱", art: "chat", audience: "everyone", badges: ["new", "tiktok"], render: renderFalseMessageGame, defaultSettings: falseMessageDefaults,
   },
   quiz: {
     id: "quiz", name: "Quiz", description: "Sprawdźcie wiedzę w trybie Casual albo zmierzcie się w teleturniejowej rywalizacji.", help: ["Najpierw wybierzcie wariant Casual albo Rywalizacja.", "Casual pozwala hostowi ustawić liczbę i czas pytań.", "Rywalizacja dobiera graczy do szybkiego meczu 2–4 osób."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"?", art:"quiz", audience:"everyone", badges:["new"], render:renderQuizGame, defaultSettings:quizDefaults,

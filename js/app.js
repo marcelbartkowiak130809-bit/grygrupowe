@@ -5,7 +5,7 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260804-1";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260825-22";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
-import { gamesList, getGameMode } from "./games.js?v=20260830-2";
+import { gamesList, getGameMode } from "./games.js?v=20260830-3";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260825-1";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
@@ -31,11 +31,12 @@ import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } 
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260823-5";
 import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260830-1";
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
+import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260823-2";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-2";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260830-2";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260830-3";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
@@ -43,7 +44,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260823-3
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-21";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260830-2";
+import { scheduleBot } from "./botController.js?v=20260830-3";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { honorModal } from "./honor.js?v=20260804-2";
@@ -195,6 +196,9 @@ function signatureGame(game, gameMode, players) {
   }
   if (gameMode === "klamca") {
     objectField("answers"); objectField("votes"); objectField("scores"); objectField("roundResult"); objectField("liarCounts"); arrayField("players"); arrayField("usedQuestions"); arrayField("liarHistory");
+    copy.players = Array.isArray(copy.players) ? copy.players : players;
+  } else if (gameMode === "falszywa-wiadomosc") {
+    objectField("answers"); objectField("scores"); objectField("heroCounts"); objectField("roundResult"); arrayField("players"); arrayField("usedSituations"); arrayField("heroHistory");
     copy.players = Array.isArray(copy.players) ? copy.players : players;
   }
   return copy;
@@ -653,13 +657,13 @@ function settleQuizResult(room) {
   room.players.forEach(uid=>addPlayerMoney(uid,25+Number(scores[uid]||0)*5+(winners.includes(uid)?40:0))); if(room.game.variant==="competitive"){const leaderboard=JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}");winners.forEach(uid=>{const nick=state.accounts[uid]?.nick||uid;leaderboard[nick]=(Number(leaderboard[nick])||0)+1;});localStorage.setItem("quizCompetitiveLeaderboard",JSON.stringify(leaderboard));} rewardRoomXp(room,30,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleAdditionalModeResult(room) {
-  const supported = new Set(["marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca"]);
+  const supported = new Set(["marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc"]);
   if (!room?.game || !supported.has(room.gameMode) || !["result", "gameSummary"].includes(room.game.phase) || !room.game.finished || room.game.rewarded) return;
   const scores = room.game.scores && typeof room.game.scores === "object" ? room.game.scores : {};
   const max = Math.max(0, ...room.players.map(uid => Number(scores[uid] || 0)));
   const winners = room.game.winner ? [room.game.winner] : room.players.filter(uid => max > 0 && Number(scores[uid] || 0) === max);
-  const coinBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45 }[room.gameMode] || 35;
-  const xpBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45 }[room.gameMode] || 35;
+  const coinBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45 }[room.gameMode] || 35;
+  const xpBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45 }[room.gameMode] || 35;
   room.players.forEach(uid => addPlayerMoney(uid, coinBase + Number(scores[uid] || 0) * 5 + (winners.includes(uid) ? 45 : 0)));
   rewardRoomXp(room, xpBase, winners); playCurrentUserResultSound(winners);
   room.game.rewarded = true; room.status = "results"; saveAccounts(state.accounts); touchRoom(room); Audio.play("roundEnd");
@@ -1169,6 +1173,21 @@ function repairGameStateForPlayers(room) {
     if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
     if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = sanitizeLiarSettings(room.settings).rounds; changed = true; }
     if (game.phase === "answering" && game.players.length && game.players.every(uid => uid in game.answers)) { game.phase = "discussion"; game.phaseEndsAt = Date.now() + sanitizeLiarSettings(room.settings).discussionTime * 1000; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(10, Number(room.settings?.answerTime) || 30) * 1000; changed = true; }
+  }
+  if (room.gameMode === "falszywa-wiadomosc") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    ["answers", "scores", "heroCounts"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
+    if (!Array.isArray(game.usedSituations)) { game.usedSituations = []; changed = true; }
+    if (!Array.isArray(game.heroHistory)) { game.heroHistory = []; changed = true; }
+    Object.keys(game.answers).forEach(uid => { if (!players.includes(uid) || uid === game.heroUid) { delete game.answers[uid]; changed = true; } });
+    const beforeScores = JSON.stringify(game.scores); game.scores = ensureScoreObject(game.scores, players, 0); if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    players.forEach(uid => { if (!Number.isFinite(Number(game.heroCounts[uid]))) { game.heroCounts[uid] = 0; changed = true; } });
+    if (!players.includes(game.heroUid)) { game.heroUid = players[0] || ""; changed = true; }
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = sanitizeFalseMessageSettings(room.settings).rounds || players.length; changed = true; }
+    if (game.phase === "answering" && game.players.filter(uid => uid !== game.heroUid).every(uid => uid in game.answers)) { game.phase = "selecting"; game.phaseEndsAt = Date.now() + sanitizeFalseMessageSettings(room.settings).voteTime * 1000; changed = true; }
     if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(10, Number(room.settings?.answerTime) || 30) * 1000; changed = true; }
   }
   if (room.gameMode === "family") {
@@ -1807,7 +1826,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); animateHostSettingChange(value);
   },
-  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},
+  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);if(room.gameMode==="falszywa-wiadomosc")room.settings=sanitizeFalseMessageSettings(room.settings);touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},
   setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);if(addingAdult&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wlaczyc kategorii 18+.", "info");const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:next.some(item=>String(item).startsWith("18+"))};touchRoom(room);animateHostSettingChange(true);};if(addingAdult)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   setBombCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="bomba")return;room.settings=sanitizeBombSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
   setClosestTruthCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="najblizej-prawdy")return;room.settings=sanitizeClosestTruthSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
@@ -1827,6 +1846,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
     room.status = "playing"; room.everStarted = true; room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):room.settings;
     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : {};
+    if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
     if(fee){room.game.entryFee=fee;room.game.betPot=fee*room.players.length;room.pendingEntryFees=Object.fromEntries(room.players.map(uid=>[uid,fee]));}
     touchRoom(room); setRoomUrl(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
@@ -1978,6 +1998,10 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   liarVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return LiarEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
   liarTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="klamca")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";LiarEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   liarNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>LiarEngine.nextRound(game,current.settings),{sound:"turn"});},
+  falseMessageAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";return FalseMessageEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
+  falseMessageChoose(answerUid, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas wyboru już minął.";return FalseMessageEngine.choose(game,state.currentUser,answerUid);},{sound:"choice"});},
+  falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
+  falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
   friendshipAnswer(text){return mutateRoomGame((game,room)=>FriendshipTestEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
   friendshipGuess(answerId,target){return mutateRoomGame((game,room)=>FriendshipTestEngine.guess(game,state.currentUser,answerId,target,room.players),{sound:"vote"});},
   friendshipTimeout(){const room=activeRoom();if(!room||room.gameMode!=="test-znajomosci")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";FriendshipTestEngine.timeout(game,current.players,current.settings);});},
@@ -1992,7 +2016,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
-const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext"];
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext"];
 hostOnlyRoundActions.forEach(actionName => {
   const original = actions[actionName];
   if (!original) return;
@@ -2220,7 +2244,7 @@ function renderNow(options = {}) {
   window.__activityStats=activityStats();
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
-  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer(); stopSequenceTimer(); stopMarkerTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer();
+  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer(); stopSequenceTimer(); stopMarkerTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
