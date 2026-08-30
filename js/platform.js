@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260823-10";
+import { gamesList } from "./games.js?v=20260830-2";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260822-1";
@@ -53,7 +53,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭" };
 function visualSymbol(mode) {
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);

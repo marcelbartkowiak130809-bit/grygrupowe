@@ -24,6 +24,7 @@ import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { ConnectEngine } from "./connect.js?v=20260830-1";
+import { LiarEngine } from "./liar.js?v=20260830-1";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -279,6 +280,7 @@ function timeoutMutation(room, game, bot) {
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
     case "polacz-nas": return g => ConnectEngine.timeout(g);
+    case "klamca": return g => LiarEngine.timeout(g, settings);
     default: return null;
   }
 }
@@ -443,6 +445,17 @@ export function botMutation(room) {
         if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
           const target = Object.keys(g.answers || {}).find(uid => uid !== bot && g.answers?.[uid]) || Object.keys(g.answers || {}).find(uid => uid !== bot);
           return target ? ConnectEngine.vote(g, bot, target) : null;
+        };
+        break;
+      case "klamca":
+        if (game.phase === "answering" && isMissing(game.answers, bot)) return g => LiarEngine.answer(g, bot, LiarEngine.botAnswer(g, bot), settings);
+        if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
+          const targets = players.filter(uid => uid !== bot && uid in object(g.answers));
+          if (!targets.length) return null;
+          const citizens = targets.filter(uid => uid !== g.liarUid);
+          const shouldDetect = botShouldBeCorrect(room, bot) && Math.random() < .9;
+          const target = bot === g.liarUid ? (citizens[0] || targets[0]) : (shouldDetect ? g.liarUid : targets[Math.floor(Math.random() * targets.length)]);
+          return target ? LiarEngine.vote(g, bot, target) : null;
         };
         break;
       default: break;

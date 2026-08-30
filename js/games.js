@@ -22,6 +22,7 @@ import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=2026082
 import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-4";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
 import { connectDefaults, renderConnectGame } from "./connect.js?v=20260830-1";
+import { liarDefaults, renderLiarGame } from "./liar.js?v=20260830-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -282,6 +283,9 @@ export const gamesRegistry = {
   },
   "polacz-nas": {
     id: "polacz-nas", name: "Połącz nas", description: "Dwie zupełnie różne rzeczy. Wymyśl najlepsze połączenie między nimi i przekonaj resztę.", help: ["W każdej rundzie dostajecie dwie pozornie niezwiązane rzeczy.", "Każdy gracz pisze własne logiczne albo zabawne wyjaśnienie.", "Potem anonimowo głosujecie na najlepszą odpowiedź — nie można głosować na siebie.", "Po ostatniej rundzie wygrywa osoba z największą liczbą punktów."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🔗", art:"connect", audience:"everyone", badges:["new"], render:renderConnectGame, defaultSettings:connectDefaults,
+  },
+  klamca: {
+    id: "klamca", name: "Kłamca", description: "Wszyscy odpowiadają na to samo pytanie, ale jedna osoba musi skłamać. Znajdźcie kłamcę.", help: ["Wszyscy dostają to samo pytanie o opinię albo doświadczenie.", "Jedna osoba widzi tajną instrukcję i musi odpowiedzieć kłamstwem.", "Po odpowiedziach czytacie wypowiedzi i głosujecie, kto jest Kłamcą.", "Trafiony gracz daje głosującym punkt, a niewykryty Kłamca dostaje 2 punkty."], allowReports: true, players: "3-8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎭", art: "impostor", audience: "everyone", badges: ["new", "tiktok"], render: renderLiarGame, defaultSettings: liarDefaults,
   },
   quiz: {
     id: "quiz", name: "Quiz", description: "Sprawdźcie wiedzę w trybie Casual albo zmierzcie się w teleturniejowej rywalizacji.", help: ["Najpierw wybierzcie wariant Casual albo Rywalizacja.", "Casual pozwala hostowi ustawić liczbę i czas pytań.", "Rywalizacja dobiera graczy do szybkiego meczu 2–4 osób."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"?", art:"quiz", audience:"everyone", badges:["new"], render:renderQuizGame, defaultSettings:quizDefaults,
