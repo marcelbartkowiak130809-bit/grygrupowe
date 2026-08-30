@@ -26,6 +26,7 @@ import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { ConnectEngine } from "./connect.js?v=20260830-1";
 import { LiarEngine } from "./liar.js?v=20260830-1";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260830-1";
+import { SecretRuleEngine } from "./secretRule.js?v=20260830-1";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -64,6 +65,12 @@ export function botActor(room) {
   if (room.gameMode === "falszywa-wiadomosc") {
     if (game.phase === "answering") return bots.find(uid => uid !== game.heroUid && isMissing(game.answers, uid)) || "";
     if (game.phase === "selecting" && isBotId(game.heroUid) && !game.selectedAnswerUid) return game.heroUid;
+  }
+  if (room.gameMode === "tajna-zasada") {
+    if (game.phase === "rules") return bots.find(uid => !game.secretRules?.[uid]) || "";
+    if (game.phase === "turn" && isBotId(game.turnUid)) return game.turnUid;
+    if (["reviewExample", "reviewGuess"].includes(game.phase) && isBotId(game.reviewerUid)) return game.reviewerUid;
+    if (game.phase === "guessing" && isBotId(game.guessUid)) return game.guessUid;
   }
   if (game.phase === "responses") {
     const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
@@ -287,6 +294,7 @@ function timeoutMutation(room, game, bot) {
     case "polacz-nas": return g => ConnectEngine.timeout(g);
     case "klamca": return g => LiarEngine.timeout(g, settings);
     case "falszywa-wiadomosc": return g => FalseMessageEngine.timeout(g, settings);
+    case "tajna-zasada": return g => SecretRuleEngine.timeout(g, settings);
     default: return null;
   }
 }
@@ -467,6 +475,13 @@ export function botMutation(room) {
       case "falszywa-wiadomosc":
         if (game.phase === "answering" && bot && bot !== game.heroUid && isMissing(game.answers, bot)) return g => FalseMessageEngine.answer(g, bot, FalseMessageEngine.botAnswer(g), settings);
         if (game.phase === "selecting" && bot && bot === game.heroUid && !game.selectedAnswerUid) return g => FalseMessageEngine.choose(g, bot, FalseMessageEngine.botChoose(g));
+        break;
+      case "tajna-zasada":
+        if (game.phase === "rules" && bot && !game.secretRules?.[bot]) return g => SecretRuleEngine.setRule(g, bot, SecretRuleEngine.botRule(g, bot), settings);
+        if (game.phase === "turn" && game.turnUid === bot) return g => SecretRuleEngine.canGuess(g, bot, settings) && Math.random() < .2 ? SecretRuleEngine.startGuess(g, bot, settings) : SecretRuleEngine.example(g, bot, SecretRuleEngine.botExample(g), settings);
+        if (game.phase === "reviewExample" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewExample(g, bot, Boolean(g.autoVerdict));
+        if (game.phase === "guessing" && game.guessUid === bot) return g => SecretRuleEngine.guess(g, bot, SecretRuleEngine.botGuess(g), settings);
+        if (game.phase === "reviewGuess" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewGuess(g, bot, Boolean(g.autoGuessCorrect));
         break;
       default: break;
     }

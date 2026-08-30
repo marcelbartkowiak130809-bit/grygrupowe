@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260830-3";
+import { getGameMode } from "./games.js?v=20260830-4";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260825-1";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
@@ -25,11 +25,12 @@ import { renderUniqueAnswerLobbySettings } from "./uniqueAnswer.js?v=20260823-5"
 import { renderConnectLobbySettings } from "./connect.js?v=20260830-1";
 import { renderLiarLobbySettings } from "./liar.js?v=20260830-1";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260830-1";
+import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260830-1";
 import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱" };
+const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠" };
 function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : (modeEmojis[mode.id] || mode.symbol); }
 
 export function playerMini(profile = {}, options = {}) {
@@ -72,6 +73,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "polacz-nas") return renderConnectLobbySettings(room, isHost);
   if (mode.id === "klamca") return renderLiarLobbySettings(room, isHost);
   if (mode.id === "falszywa-wiadomosc") return renderFalseMessageLobbySettings(room, isHost);
+  if (mode.id === "tajna-zasada") return renderSecretRuleLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -115,6 +117,9 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-liar-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.liarSetting, input.value)));
   root.querySelectorAll("[data-false-message-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.falseMessageSetting, input.value)));
   root.querySelectorAll("[data-false-message-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-false-message-category]:checked")].map(item => item.dataset.falseMessageCategory))));
+  root.querySelectorAll("[data-secret-rule-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.secretRuleSetting, input.value)));
+  root.querySelectorAll("[data-secret-rule-category]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("category", button.dataset.secretRuleCategory)));
+  root.querySelector("#secret-rule-random-category")?.addEventListener("click", () => actions.randomSecretRuleCategory());
 }
 
 export function refreshRoomSettings(root, { room, currentUser }, actions) {

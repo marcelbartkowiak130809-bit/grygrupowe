@@ -24,6 +24,7 @@ import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?
 import { connectDefaults, renderConnectGame } from "./connect.js?v=20260830-1";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260830-1";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260830-1";
+import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260830-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -308,6 +309,9 @@ export const gamesRegistry = {
   },
   "word-chain": {
     id: "word-chain", name: "Łańcuch słów", description: "Budujcie łańcuch słów, pilnując ostatniej litery.", help: ["Pierwsze słowo jest losowane z dużego słownika.", "Każde kolejne słowo zaczyna się ostatnią literą poprzedniego.", "Host może włączyć język angielski oraz kontrolowane powtórki."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↔", art:"word-chain", audience:"everyone", badges:["new"], render:renderWordChainGame, defaultSettings:wordChainDefaults,
+  },
+  "tajna-zasada": {
+    id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
   },
 };
 

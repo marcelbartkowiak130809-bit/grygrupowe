@@ -27,6 +27,7 @@ export const futureModeUnlocks = {
   "polacz-nas": "2026-10-07T20:00:00+02:00",
   klamca: "2026-10-10T20:00:00+02:00",
   "falszywa-wiadomosc": "2026-10-13T20:00:00+02:00",
+  "tajna-zasada": "2026-10-16T20:00:00+02:00",
 };
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? futureModeUnlocks : {};
 
