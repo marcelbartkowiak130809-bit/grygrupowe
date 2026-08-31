@@ -119,7 +119,7 @@ export const ImpostorEngine = {
     normalizeImpostorGame(game);
     if(game.phase!=="roleReveal") return "Wybor roli jest mozliwy tylko przed startem gry.";
     if(game.rolePurchaseResults[uid]) return "Wykorzystałeś już wybór roli.";
-    const allowed = requestedRole === "impostor" || (requestedRole === "white" && settings.whiteEnabled && Number(settings.whiteCount) > 0);
+    const allowed = requestedRole === "citizen" || requestedRole === "impostor" || (requestedRole === "white" && settings.whiteEnabled && Number(settings.whiteCount) > 0);
     if(!allowed) return "Ta rola nie jest dostępna w tym pokoju.";
     const requests = Array.isArray(game.roleRequests[requestedRole]) ? game.roleRequests[requestedRole] : [];
     if(requests.includes(uid)) return "Wykorzystałeś już wybór roli.";
@@ -203,7 +203,7 @@ function rolePurchasePanel(game,currentUser,settings,account={}){
   const purchase=inGamePurchaseById("impostor-role"), requested=Object.values(game.roleRequests||{}).some(list=>Array.isArray(list)&&list.includes(currentUser));
   if(!purchase || requested) return requested ? `<section class="panel role-purchase-panel"><p class="eyebrow">ZAKUP W GRZE</p><b>Wybrana rola oczekuje na losowanie.</b><p class="tiny">Jeśli więcej osób wybierze tę samą rolę, gra rozstrzygnie to losowo.</p></section>` : "";
   const enough=Number(account?.money||account?.sessionMoney||0)>=purchase.price;
-  return `<section class="panel role-purchase-panel"><p class="eyebrow">DODATKOWA OPCJA</p><h3>Wybierz rolę · ${purchase.price}$</h3><p class="tiny">Jednorazowy zakup jest prywatny. Przy dwóch chętnych na tę samą rolę gra losuje zwycięzcę.</p><div class="choice-row"><button class="ghost" data-impostor-role="impostor" ${enough?"":"disabled"}>🎭 Impostor</button>${settings.whiteEnabled&&Number(settings.whiteCount)>0?`<button class="ghost" data-impostor-role="white" ${enough?"":"disabled"}>⚪ Pan Biały</button>`:""}</div>${enough?"":"<small class=\"tiny\">Za mało monet na ten zakup.</small>"}</section>`;
+  return `<section class="panel role-purchase-panel"><p class="eyebrow">DODATKOWA OPCJA</p><h3>Wybierz rolę · ${purchase.price}$</h3><p class="tiny">Jednorazowy zakup jest prywatny. Przy dwóch chętnych na tę samą rolę gra losuje zwycięzcę.</p><div class="choice-row"><button class="ghost" data-impostor-role="citizen" ${enough?"":"disabled"}>🙂 Obywatel</button><button class="ghost" data-impostor-role="impostor" ${enough?"":"disabled"}>🎭 Impostor</button>${settings.whiteEnabled&&Number(settings.whiteCount)>0?`<button class="ghost" data-impostor-role="white" ${enough?"":"disabled"}>⚪ Pan Biały</button>`:""}</div>${enough?"":"<small class=\"tiny\">Za mało monet na ten zakup.</small>"}</section>`;
 }
 export function stopImpostorTimer(){clearInterval(timerId);timerId=null;lastCountdown=null;timerRunId += 1;}
 export function renderImpostorGame(root,{room,accounts,currentUser},actions){
