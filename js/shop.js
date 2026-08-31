@@ -73,10 +73,10 @@ function cosmeticCard(item, profile, { catalog = false } = {}) {
 }
 
 function groupSection(group, items, profile, idPrefix, options = {}) {
-  const base = defaultCosmetics[group.type] ? [defaultCosmetics[group.type]] : [];
-  const defaultId = defaultCosmetics[group.type]?.id;
-  const filtered = items.filter(item => item.type === group.type && item.id !== defaultId);
-  const sorted = [...base, ...sortCosmeticsByRarity(filtered, { rareFirst:idPrefix !== "owned" })];
+  const defaultItem = defaultCosmetics[group.type];
+  const source = defaultItem ? [defaultItem, ...items] : items;
+  const filtered = source.filter((item, index, all) => item.type === group.type && all.findIndex(candidate => candidate.id === item.id) === index);
+  const sorted = sortCosmeticsByRarity(filtered, { rareFirst:idPrefix !== "owned" });
   const content = sorted.map(item => cosmeticCard(item, profile, options)).join("");
   return `<div class="wardrobe-category">
     <div class="wardrobe-category-title"><h3>${group.title}</h3><span>${sorted.length}</span></div>
