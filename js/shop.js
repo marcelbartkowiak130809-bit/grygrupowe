@@ -1,4 +1,4 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260804-1";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-1";
 import { $, formatClock, icon } from "./utils.js?v=20260822-1";
 
 let shopTimer;
@@ -42,6 +42,14 @@ const defaultCosmetics = {
   lose:{ id:"defaultLose", type:"lose", name:"Zwykła przegrana", rarity:"common", description:"Bez dodatkowej animacji przegranej.", defaultOnly:true },
 };
 
+const defaultSelections = {
+  marker:{ key:"selectedMarkerSkin", value:"defaultMarker" },
+  sequence:{ key:"selectedSequenceSkin", value:"defaultSequence" },
+  idle:{ key:"selectedIdleAnimation", value:"" },
+  win:{ key:"selectedWinAnimation", value:"" },
+  lose:{ key:"selectedLoseAnimation", value:"" },
+};
+
 const rail = (id, content, count, side = "owned") => `<div class="cosmetic-carousel ${count > 7 ? "has-carousel-arrows" : "no-carousel-arrows"} ${side === "catalog" ? "catalog-carousel" : "owned-carousel"}">
   <button class="carousel-arrow" data-scroll-cosmetics="${id}" data-dir="-1" aria-label="Przewin w lewo">‹</button>
   <div class="cosmetic-list cosmetic-rail" id="${id}">${content}</div>
@@ -50,8 +58,9 @@ const rail = (id, content, count, side = "owned") => `<div class="cosmetic-carou
 
 function cosmeticCard(item, profile, { catalog = false } = {}) {
   const owned = item.defaultOnly || Boolean(profile.ownedCosmetics?.[item.id]);
+  const defaultSelection = defaultSelections[item.type];
   const active = item.defaultOnly
-    ? !({ idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type] && profile[{ idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]])
+    ? Boolean(defaultSelection && (profile[defaultSelection.key] || defaultSelection.value) === defaultSelection.value)
     : equipped(profile, item.id);
   const disabled = catalog ? !owned : false;
   const action = item.defaultOnly ? `data-equip="${item.id}"` : owned ? `data-equip="${item.id}"` : "";
