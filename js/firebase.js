@@ -1,3 +1,5 @@
+import { drawPotionPackItems, potionPackById } from "./potionPacks.js?v=20260831-1";
+
 const ACCOUNTS_KEY = "udowodnij_prototype_accounts_v1";
 const SESSION_KEY = "udowodnij_session_v1";
 const LOCAL_ROOMS_KEY = "udowodnij_local_rooms_v1";
@@ -604,6 +606,37 @@ export async function usePotion(itemId) {
     return { ok:true, ...(result.data || {}) };
   } catch (error) {
     return { ok:false, code:error?.code || "unknown", error:error?.message || "Nie udało się użyć potki." };
+  }
+}
+export async function buyPotionPackDatabase(uid, packId) {
+  const pack = potionPackById(packId);
+  if (!canUseRemote() || !uid || remoteAuth?.currentUser?.uid !== uid || !pack) return null;
+  const rewards = drawPotionPackItems(pack);
+  try {
+    const profileRef = firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`);
+    const result = await firebaseDatabaseApi.runTransaction(profileRef, current => {
+      const profile = current && typeof current === "object" ? { ...current } : {};
+      if (profile.nickOnly || (Number(profile.money) || 0) < pack.price) return;
+      const inventory = profile.potionInventory && typeof profile.potionInventory === "object" ? { ...profile.potionInventory } : {};
+      rewards.forEach(itemId => { inventory[itemId] = (Number(inventory[itemId]) || 0) + 1; });
+      profile.money = (Number(profile.money) || 0) - pack.price;
+      profile.potionInventory = inventory;
+      profile.updatedAt = serverNow();
+      return profile;
+    }, { applyLocally:false });
+    if (!result.committed) return { ok:false, code:"failed-precondition", error:"Nie masz wystarczająco monet albo nie możesz kupić tego zestawu." };
+    return { ok:true, databaseFallback:true, packId, profile:result.snapshot.val() || {} };
+  } catch (error) {
+    return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się kupić zestawu potek." };
+  }
+}
+export async function buyPotionPack(packId) {
+  if (!remoteFunctions || !firebaseFunctionsApi?.httpsCallable) return { ok:false, error:"Zakup zestawu wymaga połączenia z serwerem." };
+  try {
+    const result = await firebaseFunctionsApi.httpsCallable(remoteFunctions, "buyPotionPack")({ packId });
+    return { ok:true, ...(result.data || {}) };
+  } catch (error) {
+    return { ok:false, code:error?.code || "unknown", error:error?.message || "Nie udało się kupić zestawu potek." };
   }
 }
 export async function submitHonor({ roomId, fromUid, targetUid, type }) {

@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260831-2";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-23";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-24";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
 import { gamesList, getGameMode } from "./games.js?v=20260831-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-1";
@@ -49,6 +49,7 @@ import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botR
 import { scheduleBot } from "./botController.js?v=20260830-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
+import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20260822-2";
@@ -497,7 +498,7 @@ function keepRoomCategoryUsage(room) {
 function addPlayerMoney(playerId, amount) {
   const room=activeRoom();if(!room)return;
   if(room.roomType === "betting" && room.game?.wagerSettled && !room.game?.wagerPaying)return;
-  if(playerId===state.currentUser) amount=Math.floor(Number(amount||0)*activeBoosterMultiplier(profile(),"coinBooster"));
+  if(playerId===state.currentUser && room.roomType !== "betting") amount=Math.floor(Number(amount||0)*activeBoosterMultiplier(profile(),"coinBooster"));
   if(!(room.roomType === "betting" && room.game?.wagerPaying)) amount=Math.floor(Number(amount||0)*botRewardMultiplier(room));
   amount=Math.floor(Number(amount||0)*happyHourMultiplier(room,"coins",serverNow()));
   if(Number(amount) > 0) trackSiteEvent({ type:"coinsEarned", eventId:`coins:${room.game?.siteGameId || room.roomId}:${playerId}`, amount:Number(amount) });
@@ -2112,6 +2113,19 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     updateProfile({ money:Number(user.money||0)-item.price, gamePasses:{...(user.gamePasses||{}),[id]:{level:1,purchasedAt:Date.now()}} });
     Audio.play("purchase"); message(`Odblokowano gamepass „${item.name}”.`, "info");
     return true;
+  },
+  async buyPotionPack(id) {
+    const pack=potionPackById(id), user=profile();
+    if(!pack||!user||user.nickOnly)return {ok:false,error:"Zaloguj się na konto, żeby kupować zestawy potek."};
+    if(Number(user.money||0)<pack.price){const result={ok:false,error:`Potrzebujesz ${pack.price.toLocaleString("pl-PL")}$, aby kupić ten zestaw.`};message(result.error,"info");return result;}
+    let result=await buyPotionPackRemote(id);
+    const unavailable=!result?.code||["functions/internal","functions/not-found","functions/unavailable","internal","not-found","unavailable"].includes(String(result.code));
+    if(!result?.ok&&unavailable&&hasOnlineBackend())result=await buyPotionPackDatabase(state.currentUser,id);
+    if(result?.ok&&result.profile){
+      state.accounts[state.currentUser]={...state.accounts[state.currentUser],...result.profile,potionInventory:normalizePotionInventory(result.profile.potionInventory),updatedAt:Date.now()};
+      saveAccounts(state.accounts);render({preserveDrafts:true});Audio.play("purchase");message(`Kupiono ${pack.name}. Potki czekają w ekwipunku.`,"info");
+    } else if(!result?.ok)message(result?.error||"Nie udało się kupić zestawu potek.");
+    return result;
   },
   upgradeGamePass(id) {
     const item=gamePassById(id), user=profile();

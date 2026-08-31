@@ -12,7 +12,10 @@ export const potionEquipment = [
 export const equipmentItems = potionEquipment;
 export const equipmentById = Object.fromEntries(equipmentItems.map(item => [item.id, item]));
 export const defaultEquipmentInventory = {};
-const rarityLabel = { common:"SŁABA", rare:"ŚREDNIA", legendary:"MOCNA" };
+const durationLabel = durationMs => {
+  const minutes = Math.round(Number(durationMs || 0) / 60000);
+  return minutes >= 60 ? `${Math.round(minutes / 60)} godz.` : `${minutes} min`;
+};
 
 function itemVisual(item) {
   return `<img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">`;
@@ -28,7 +31,7 @@ function itemCard(item, profile, onUse) {
   const active = activeBoost(profile, item);
   return `<article class="equipment-card rarity-${item.rarity} ${quantity ? "is-owned" : "is-locked"}">
     <span class="equipment-card-art">${itemVisual(item)}</span>
-    <span class="equipment-card-copy"><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.subtitle)}</small><em>${rarityLabel[item.rarity]} · ${quantity} szt.</em></span>
+    <span class="equipment-card-copy"><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.effect === "xp" ? `+${Math.round((item.multiplier - 1) * 100)}% XP` : `+${Math.round((item.multiplier - 1) * 100)}% monet`)}</small><em>${durationLabel(item.durationMs)} · ${quantity} szt.</em></span>
     <button class="secondary potion-use-button" data-potion-id="${item.id}" type="button" ${quantity ? "" : "disabled"}>${active ? "Aktywna" : "Użyj"}</button>
   </article>`;
 }

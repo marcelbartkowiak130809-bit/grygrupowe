@@ -1,5 +1,6 @@
 import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-2";
 import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260831-1";
+import { potionPackShopHtml } from "./potionPacks.js?v=20260831-1";
 import { $, formatClock, icon } from "./utils.js?v=20260822-1";
 
 let shopTimer;
@@ -117,6 +118,7 @@ export function renderShop(root, { profile }, actions) {
         <button class="${owned ? "" : "primary"}" data-${owned ? "equip" : "buy"}="${item.id}" ${active ? "disabled" : ""}>${active ? "Zalozone" : owned ? "Zaloz" : "Kup"}</button>
       </article>`;
     }).join("")}</div></section>` : ""}
+    ${potionPackShopHtml(profile)}
     ${gamePassShopHtml(profile)}
     <section class="panel owned-cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">GARDEROBA</p><h2>Twoje kosmetyki</h2></div><span class="badge">${ownedItems.length}</span></div><p class="muted">Kliknij karte, aby zalozyc efekt. Strzalki pojawiaja sie dopiero gdy w kategorii jest wiecej niz 7 kart.</p>
       <div class="wardrobe-sections">${wardrobeHtml}</div>
@@ -148,4 +150,9 @@ export function renderShop(root, { profile }, actions) {
   root.querySelectorAll("[data-equip]").forEach(button => button.addEventListener("click", () => { if(!button.classList.contains("equipped-cosmetic")) actions.equipCosmetic(button.dataset.equip); }));
   root.querySelectorAll("[data-buy-gamepass]").forEach(button => button.addEventListener("click", () => actions.buyGamePass(button.dataset.buyGamepass)));
   root.querySelectorAll("[data-upgrade-gamepass]").forEach(button => button.addEventListener("click", () => actions.upgradeGamePass(button.dataset.upgradeGamepass)));
+  root.querySelectorAll("[data-buy-potion-pack]").forEach(button => button.addEventListener("click", async () => {
+    button.disabled = true;
+    const result = await actions.buyPotionPack(button.dataset.buyPotionPack);
+    if (!result?.ok) button.disabled = false;
+  }));
 }

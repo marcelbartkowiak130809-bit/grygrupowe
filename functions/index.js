@@ -31,6 +31,15 @@ const POTION_EFFECTS = {
   "coins-i": { effect:"coins", multiplier:1.10, durationMs:5*60*1000 }, "coins-ii": { effect:"coins", multiplier:1.25, durationMs:10*60*1000 }, "coins-iii": { effect:"coins", multiplier:1.50, durationMs:20*60*1000 },
   "xp-i": { effect:"xp", multiplier:1.10, durationMs:5*60*1000 }, "xp-ii": { effect:"xp", multiplier:1.25, durationMs:10*60*1000 }, "xp-iii": { effect:"xp", multiplier:1.50, durationMs:20*60*1000 },
 };
+const POTION_PACKS = {
+  "potion-pack": { price:5000, contents:{ 1:10, 2:5, 3:3 } },
+  "mega-potion-pack": { price:10000, contents:{ 1:25, 2:15, 3:7 } },
+};
+const POTION_TIER_POOLS = {
+  1: ["coins-i", "xp-i"],
+  2: ["coins-ii", "xp-ii"],
+  3: ["coins-iii", "xp-iii"],
+};
 const HONOR_TYPES = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 
 function spinId() {
@@ -210,6 +219,37 @@ exports.usePotion = onCall(async (request) => {
   });
   if (!result.committed) throw new HttpsError("failed-precondition", "Nie masz tej potki w ekwipunku.");
   return { ok:true, message:`Użyto potki ${itemId}. Boost jest aktywny.`, profile:safeProfilePatch(result.snapshot.val() || {}) };
+});
+
+exports.buyPotionPack = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  const packId = String(request.data?.packId || "").trim();
+  const pack = POTION_PACKS[packId];
+  if (!uid) throw new HttpsError("unauthenticated", "Zaloguj się, aby kupić zestaw potek.");
+  if (!pack) throw new HttpsError("invalid-argument", "Nieprawidłowy zestaw potek.");
+
+  const rewards = [];
+  Object.entries(pack.contents).forEach(([tier, count]) => {
+    const pool = POTION_TIER_POOLS[tier] || POTION_TIER_POOLS[1];
+    for (let index = 0; index < count; index += 1) rewards.push(pool[crypto.randomInt(0, pool.length)]);
+  });
+  const profileRef = db.ref(`profiles/${uid}`);
+  const result = await profileRef.transaction(current => {
+    const profile = current && typeof current === "object" ? { ...current } : {};
+    if (profile.nickOnly || (Number(profile.money) || 0) < pack.price) return;
+    const inventory = profile.potionInventory && typeof profile.potionInventory === "object" ? { ...profile.potionInventory } : {};
+    rewards.forEach(itemId => { inventory[itemId] = (Number(inventory[itemId]) || 0) + 1; });
+    profile.money = (Number(profile.money) || 0) - pack.price;
+    profile.potionInventory = inventory;
+    profile.updatedAt = Date.now();
+    return profile;
+  });
+  if (!result.committed) {
+    const current = result.snapshot.val() || {};
+    if (current.nickOnly) throw new HttpsError("failed-precondition", "Zestawy potek są dostępne tylko dla zapisanych kont.");
+    throw new HttpsError("failed-precondition", "Nie masz wystarczająco monet na ten zestaw.");
+  }
+  return { ok:true, packId, profile:safeProfilePatch(result.snapshot.val() || {}) };
 });
 
 function roomHasPlayer(room, uid) {
