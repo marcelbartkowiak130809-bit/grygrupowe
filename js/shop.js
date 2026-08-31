@@ -72,7 +72,7 @@ function cosmeticCard(item, profile, { catalog = false } = {}) {
 }
 
 function groupSection(group, items, profile, idPrefix, options = {}) {
-  const base = idPrefix === "owned" && defaultCosmetics[group.type] ? [defaultCosmetics[group.type]] : [];
+  const base = defaultCosmetics[group.type] ? [defaultCosmetics[group.type]] : [];
   const defaultId = defaultCosmetics[group.type]?.id;
   const filtered = items.filter(item => item.type === group.type && item.id !== defaultId);
   const sorted = [...base, ...sortCosmeticsByRarity(filtered, { rareFirst:idPrefix !== "owned" })];
