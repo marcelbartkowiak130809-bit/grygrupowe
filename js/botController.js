@@ -2,31 +2,31 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20260825-1";
-import { IdentityEngine } from "./identity.js?v=20260611-1";
+import { ImpostorEngine } from "./impostor.js?v=20260831-4";
+import { IdentityEngine } from "./identity.js?v=20260831-3";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
 import { MostLikelyEngine } from "./mostLikely.js?v=20260612-1";
 import { FriendshipTestEngine } from "./friendshipTest.js?v=20260605-1";
-import { PoisonCandyEngine } from "./poisonCandy.js?v=20260822-9";
+import { PoisonCandyEngine } from "./poisonCandy.js?v=20260831-11";
 import { BombEngine, bombCategories } from "./bomb.js?v=20260621-1";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
-import { ClockEngine } from "./clock.js?v=20260825-1";
-import { PokemonEngine } from "./pokemon.js?v=20260822-8";
-import { WavelengthEngine } from "./wavelength.js?v=20260822-1";
+import { ClockEngine } from "./clock.js?v=20260831-3";
+import { PokemonEngine } from "./pokemon.js?v=20260831-10";
+import { WavelengthEngine } from "./wavelength.js?v=20260831-4";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260823-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
-import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260823-4";
+import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260831-3";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
-import { ConnectEngine } from "./connect.js?v=20260830-1";
-import { LiarEngine } from "./liar.js?v=20260830-1";
-import { FalseMessageEngine } from "./falseMessage.js?v=20260830-1";
-import { SecretRuleEngine } from "./secretRule.js?v=20260830-1";
+import { ConnectEngine } from "./connect.js?v=20260831-3";
+import { LiarEngine } from "./liar.js?v=20260831-3";
+import { FalseMessageEngine } from "./falseMessage.js?v=20260831-3";
+import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
 import { serverNow } from "./firebase.js?v=20260822-21";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -479,9 +479,9 @@ export function botMutation(room) {
       case "tajna-zasada":
         if (game.phase === "rules" && bot && !game.secretRules?.[bot]) return g => SecretRuleEngine.setRule(g, bot, SecretRuleEngine.botRule(g, bot), settings);
         if (game.phase === "turn" && game.turnUid === bot) return g => SecretRuleEngine.canGuess(g, bot, settings) && Math.random() < .2 ? SecretRuleEngine.startGuess(g, bot, settings) : SecretRuleEngine.example(g, bot, SecretRuleEngine.botExample(g), settings);
-        if (game.phase === "reviewExample" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewExample(g, bot, Boolean(g.autoVerdict));
+        if (game.phase === "reviewExample" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewExample(g, bot, Boolean(g.autoVerdict), settings);
         if (game.phase === "guessing" && game.guessUid === bot) return g => SecretRuleEngine.guess(g, bot, SecretRuleEngine.botGuess(g), settings);
-        if (game.phase === "reviewGuess" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewGuess(g, bot, Boolean(g.autoGuessCorrect));
+        if (game.phase === "reviewGuess" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewGuess(g, bot, Boolean(g.autoGuessCorrect), settings);
         break;
       default: break;
     }

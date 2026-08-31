@@ -31,7 +31,7 @@ export function createNewRound(players, answerTime, round = 1, totalRounds = 5) 
     currentBid: 1, currentBidder: starter,
     decisionPlayer: nextProvePlayer(players, starter),
     answers: [], validCount: 0, requiredCount: 1, result: null,
-    answerTime, round:Math.max(1, Number(round) || 1), totalRounds:Math.max(1, Number(totalRounds) || 5), roundWins:Object.fromEntries(players.map(uid => [uid, 0])), phaseEndsAt: provePhaseEnd(answerTime),
+    answerTime, round:Math.max(1, Number(round) || 1), totalRounds:Math.max(1, Number(totalRounds) || 5), roundWins:Object.fromEntries(players.map(uid => [uid, 0])), passUses:{}, lastChance:false, phaseEndsAt: provePhaseEnd(answerTime),
   };
 }
 
@@ -73,7 +73,7 @@ function gameContent(room, accounts, currentUser) {
   </section>`;
   if (game.phase === "answering") return `<section class="panel center prove-turn-card">${roundLabel}
     <p class="eyebrow">UDOWODNIJ</p><h2>${accounts[game.currentBidder]?.nick} musi udowodnić: <span class="bid">${game.validCount}/${game.requiredCount}</span></h2>
-    <div class="answering-layout">
+    ${game.lastChance ? '<p class="warning">⏳ Ostatnia szansa aktywna — masz jeszcze 8 sekund na odpowiedź.</p>' : ""}<div class="answering-layout">
       <div>${game.currentBidder === currentUser ? '<form class="answer-form" id="answer-form"><input id="answer-input" placeholder="wpisz odpowiedź..." autocomplete="off" autofocus><button class="primary" type="submit">Dodaj</button></form><button class="danger full" id="surrender-round" type="button">Poddaję się</button>' : '<p class="muted">Czekamy na odpowiedzi gracza.</p>'}</div>
       <aside class="answer-list"><p class="eyebrow">WPISANE ODPOWIEDZI</p><div class="answers">${answerList(game.answers).map(answer => `<span class="answer ${answer.valid ? "valid" : "invalid"}">${escapeHtml(answer.raw)}</span>`).join("") || '<span class="muted">Jeszcze brak odpowiedzi.</span>'}</div></aside>
     </div>

@@ -1,6 +1,7 @@
 import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260822-1";
 import { Effects } from "./effects.js";
 import { Audio } from "./audio.js";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 let timerId;
 const shuffle = items => [...items].sort(() => Math.random() - .5);
@@ -56,6 +57,8 @@ export function createPoisonCandyGame(players, rawSettings) {
     totalRounds:settings.rounds,
     scores:Object.fromEntries(players.map(uid => [uid, 0])),
     roundWinners:[],
+    passUses:{},
+    purchaseUses:{},
     phaseEndsAt:Date.now()+poisonPickMs,
   };
 }
@@ -76,6 +79,8 @@ function normalize(game) {
   game.totalRounds = Math.max(1, Number(game.totalRounds) || 5);
   game.scores = objectOrEmpty(game.scores);
   game.roundWinners = arrayOrEmpty(game.roundWinners);
+  game.passUses = objectOrEmpty(game.passUses);
+  game.purchaseUses = objectOrEmpty(game.purchaseUses);
   if (game.phase === "poisoning" && !Number(game.phaseEndsAt)) game.phaseEndsAt = Date.now()+poisonPickMs;
   return game;
 }
@@ -156,7 +161,7 @@ export const PoisonCandyEngine = {
     });
     finishPoisoning(game, players);
   },
-  eat(game, uid, candyId, players = [], settings = {}) {
+  eat(game, uid, candyId, players = [], settings = {}, options = {}) {
     normalize(game);
     if (game.phase !== "eating") return "Teraz nie jemy cukierkow.";
     if (activeUid(game) !== uid) return "To nie jest twoja kolej.";
@@ -171,6 +176,20 @@ export const PoisonCandyEngine = {
     game.lastEvent = { type:died ? "poisoned" : "safe", candyId, uid, poisoner, ownerUid:candy.ownerUid, at:Date.now() };
     if (died) {
       const lives = sanitizePoisonCandySettings(settings, game.order.length).lives;
+      const hits = Number(game.hits[uid] || 0);
+      const threatsLeftAfterPick = game.candies.filter(item => !item.eatenBy && item.id !== candyId && arrayOrEmpty(item.poisoners).some(id => id !== uid)).length;
+      const canProtect = lives > 1 && hits < lives - 1 && threatsLeftAfterPick >= lives - hits;
+      const charmAvailable = options.survivorCharm && !game.passUses?.[uid]?.["survivor-charm"];
+      const shieldAvailable = options.candyShield && !game.purchaseUses?.[uid]?.["candy-shield"];
+      if (canProtect && (charmAvailable || shieldAvailable)) {
+        const protection = charmAvailable ? "survivor-charm" : "candy-shield";
+        if (protection === "survivor-charm") game.passUses[uid] = { ...(game.passUses[uid] || {}), [protection]:true };
+        else game.purchaseUses[uid] = { ...(game.purchaseUses[uid] || {}), [protection]:true };
+        game.lastEvent = { type:"protected", candyId, uid, poisoner, ownerUid:candy.ownerUid, protection, lives, hits, at:Date.now() };
+        advanceTurn(game);
+        finishIfNeeded(game);
+        return null;
+      }
       game.hits[uid] = Number(game.hits[uid] || 0) + 1;
       const dead = game.hits[uid] >= lives;
       game.lastEvent.lives = lives;
@@ -194,7 +213,8 @@ export const PoisonCandyEngine = {
     const next = createPoisonCandyGame(players, { ...settings, rounds:game.totalRounds });
     const scores = { ...game.scores };
     const roundWinners = [...game.roundWinners];
-    Object.assign(game, next, { round:game.round + 1, totalRounds:game.totalRounds, scores, roundWinners });
+    const passUses = { ...game.passUses }, purchaseUses = { ...game.purchaseUses };
+    Object.assign(game, next, { round:game.round + 1, totalRounds:game.totalRounds, scores, roundWinners, passUses, purchaseUses });
     return null;
   },
 };
@@ -254,6 +274,7 @@ function eventHtml(game, accounts) {
   const event = game.lastEvent;
   if (!event?.uid) return "";
   const nick = escapeHtml(accounts[event.uid]?.nick || "Gracz");
+  if (event.type === "protected") return `<div class="candy-event safe-event protected-event"><strong>AMULET ZADZIAŁAŁ!</strong><b>${nick} uniknął utraty życia</b><span>Trafienie zostało pochłonięte, ale nadal można odpaść w tej grze.</span><i></i><i></i><i></i></div>`;
   if (event.type === "poisoned") return `<div class="candy-event poison-event ${event.dead ? "death-event" : "hit-event"}"><strong class="death-flash">${event.dead ? "ELIMINACJA!" : "TRAFIENIE!"}</strong><b>${nick} trafil na zatrutego cukierka</b><span>${event.dead ? "Umiera i oglada dalsza gre." : `Przetrwal, ale ma ${event.hits}/${event.lives} trafien.`}</span><i></i><i></i><i></i></div>`;
   return `<div class="candy-event safe-event"><b>${nick} zjadl bezpiecznego cukierka</b><span>Kolejka leci dalej.</span><i></i><i></i><i></i></div>`;
 }
@@ -286,7 +307,7 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
     ? `<section class="panel center candy-result"><p class="eyebrow">KONIEC GRY</p><h1>${escapeHtml(safeAccounts[overallWinner]?.nick || "Nikt")} wygrywa</h1><p class="muted">Rozegrano ${game.totalRounds} rund. Każdy punkt oznacza wygraną rundę.</p><div class="final-ranking candy-final-ranking">${resultOrder.map(uid => `<article class="${Number(game.scores?.[uid] || 0) === topScore && topScore > 0 ? "winner-card" : ""}"><b>${Number(game.scores?.[uid] || 0) === topScore && topScore > 0 ? "WIN" : ""}</b>${mini(safeAccounts[uid] || room.playerProfiles?.[uid] || { nick:"Gracz" })}<div class="candy-summary-life"><strong>${Number(game.scores?.[uid] || 0)} pkt</strong><span>${Number(game.roundWinners?.filter(winner => winner === uid).length || 0)} wygranych rund</span></div></article>`).join("")}</div><button class="primary" id="candy-lobby">Wroc do lobby</button></section>`
     : game.phase === "roundSummary"
       ? `<section class="panel center candy-result candy-round-summary"><p class="eyebrow">PODSUMOWANIE RUNDY ${game.round}/${game.totalRounds}</p><h1>${escapeHtml(safeAccounts[game.result?.winner]?.nick || "Nikt")} wygrywa rundę</h1><p class="muted">Następna runda przywróci wszystkim życia i rozłoży nowy stół cukierków.</p><div class="final-ranking candy-final-ranking">${resultOrder.map(uid => `<article class="${uid === game.result?.winner ? "winner-card" : ""}">${mini(safeAccounts[uid] || room.playerProfiles?.[uid] || { nick:"Gracz" })}<div class="candy-summary-life"><strong>${Number(game.scores?.[uid] || 0)} pkt łącznie</strong><span>${uid === game.result?.winner ? "wygrana runda" : "pokonany"}</span></div></article>`).join("")}</div><button class="primary" id="candy-next-round">${game.round >= game.totalRounds ? "Pokaż wyniki" : "Następna runda"}</button></section>`
-    : `<section class="poison-candy-stage"><div class="candy-topline"><div><p class="eyebrow">${game.phase === "poisoning" ? "ZATRUWANIE" : "JEDZENIE"}</p><h1>${game.phase === "poisoning" ? "Wybierz zatrute cukierki" : `${escapeHtml(safeAccounts[active]?.nick || "Gracz")} wybiera cukierka`}</h1></div><div class="candy-top-status">${poisonTimer}<span class="badge">${livePlayers(game).length} zywych</span></div></div>${playersRing(game, safeAccounts, active, settings)}<div class="candy-table">${game.candies.map((candy, index) => candyHtml(candy, index, game.candies.length, game, safeAccounts, currentUser, game.phase === "poisoning" ? !game.poisonChoices[currentUser] : isTurn && isAlive, settings)).join("")}</div><div class="candy-event-slot">${eventHtml(game, safeAccounts)}</div>${game.phase === "poisoning" ? (game.poisonChoices[currentUser] ? `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Cukierki zatrute</h3><p>Czekamy jeszcze na ${Math.max(0, players.length - Object.keys(game.poisonChoices).length)} graczy. Brakujace wybory po czasie zostana dolosowane.</p></div>` : `<section class="panel candy-action-panel"><h3>Wybierz ${needed}</h3><p class="muted">Tylko ty widzisz swoje zatrute cukierki. Masz 30 sekund, potem gra przyzna brakujace zatrucia losowo.</p><button class="primary" id="candy-poison-submit" disabled>Zatruj wybrane</button></section>`) : (!isAlive ? `<div class="waiting-state"><span class="waiting-pulse">X</span><h3>Odpadasz, ale ogladzasz gre</h3><p>Stol dalej gra do ostatniego zywego gracza.</p></div>` : isTurn ? `<section class="panel candy-action-panel"><h3>Twoja kolej</h3><p class="muted">Wybierz cukierka, ktory nie jest twoim zatrutym.</p></section>` : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Czekasz na ruch gracza</h3><p>Kamera trzyma stol i aktywnego gracza.</p></div>`)}</section>`;
+    : `<section class="poison-candy-stage"><div class="candy-topline"><div><p class="eyebrow">${game.phase === "poisoning" ? "ZATRUWANIE" : "JEDZENIE"}</p><h1>${game.phase === "poisoning" ? "Wybierz zatrute cukierki" : `${escapeHtml(safeAccounts[active]?.nick || "Gracz")} wybiera cukierka`}</h1></div><div class="candy-top-status">${poisonTimer}<span class="badge">${livePlayers(game).length} zywych</span></div></div>${playersRing(game, safeAccounts, active, settings)}<div class="candy-table">${game.candies.map((candy, index) => candyHtml(candy, index, game.candies.length, game, safeAccounts, currentUser, game.phase === "poisoning" ? !game.poisonChoices[currentUser] : isTurn && isAlive, settings)).join("")}</div><div class="candy-event-slot">${eventHtml(game, safeAccounts)}</div>${game.phase === "poisoning" ? (game.poisonChoices[currentUser] ? `<div class="waiting-state"><span class="waiting-pulse">OK</span><h3>Cukierki zatrute</h3><p>Czekamy jeszcze na ${Math.max(0, players.length - Object.keys(game.poisonChoices).length)} graczy. Brakujace wybory po czasie zostana dolosowane.</p></div>` : `<section class="panel candy-action-panel"><h3>Wybierz ${needed}</h3><p class="muted">Tylko ty widzisz swoje zatrute cukierki. Masz 30 sekund, potem gra przyzna brakujace zatrucia losowo.</p><button class="primary" id="candy-poison-submit" disabled>Zatruj wybrane</button></section>`) : (!isAlive ? `<div class="waiting-state"><span class="waiting-pulse">X</span><h3>Odpadasz, ale ogladzasz gre</h3><p>Stol dalej gra do ostatniego zywego gracza.</p></div>` : isTurn ? `<section class="panel candy-action-panel"><h3>Twoja kolej</h3><p class="muted">Wybierz cukierka, ktory nie jest twoim zatrutym.</p>${hasGamePass(safeAccounts[currentUser], "survivor-charm") && settings.gamePassesEnabled !== false ? `<small>🍀 Amulet: zadziała tylko, gdy po trafieniu nadal pozostanie realne ryzyko odpadnięcia.</small>` : ""}${settings.gamePurchases !== false && !game.purchaseUses?.[currentUser]?.["candy-shield"] ? `<button class="ghost" data-candy-shield>🍬 Uzbrój tarczę za 1800$</button>` : ""}</section>` : `<div class="waiting-state"><span class="waiting-pulse">...</span><h3>Czekasz na ruch gracza</h3><p>Kamera trzyma stol i aktywnego gracza.</p></div>`)}</section>`;
   const roundLabel = `RUNDA ${Math.min(game.round, game.totalRounds)}/${game.totalRounds}`;
   root.innerHTML = `<main class="page poison-candy-page board-shell"><section class="panel game-top candy-game-header"><div><p class="eyebrow">ZATRUTY CUKIEREK · ${roundLabel}</p><h1>${["gameSummary", "results"].includes(game.phase) ? "Podsumowanie gry" : "Zatruty cukierek!"}</h1></div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></section>${body}</main>`;
   requestAnimationFrame(() => window.scrollTo({ top:scrollY, left:0, behavior:"auto" }));
@@ -312,6 +333,7 @@ export function renderPoisonCandyGame(root, { room, accounts, currentUser }, act
     Audio.play("candyPick");actions.poisonCandyEat(id);
   }));
   $("#candy-poison-submit")?.addEventListener("click", () => { try { sessionStorage.removeItem(selectionKey); } catch {} actions.poisonCandyPoison([...selected]); });
+  root.querySelector("[data-candy-shield]")?.addEventListener("click", () => actions.poisonCandyBuyShield?.());
   if (game.phase === "poisoning") startPoisonTimer(game, actions);
 }
 function startPoisonTimer(game, actions) {

@@ -1,4 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 export const connectDefaults = { rounds: 5, answerTime: 30, category: "random" };
 
@@ -70,7 +71,7 @@ function pickPair(game, settings) {
 
 export function createConnectGame(players, settings = {}) {
   const s = sanitizeConnectSettings(settings);
-  const game = { mode: "polacz-nas", phase: "answering", round: 1, totalRounds: s.rounds, players: [...players], pair: [], category: s.category, answers: {}, votes: {}, scores: Object.fromEntries(players.map(uid => [uid, 0])), usedPairs: [], roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
+  const game = { mode: "polacz-nas", phase: "answering", round: 1, totalRounds: s.rounds, players: [...players], pair: [], category: s.category, answers: {}, votes: {}, scores: Object.fromEntries(players.map(uid => [uid, 0])), usedPairs: [], creativeEdits: {}, passUses: {}, roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
   game.pair = pickPair(game, s);
   return game;
 }
@@ -94,6 +95,16 @@ function resolveVoting(game) {
 }
 
 export const ConnectEngine = {
+  editAnswer(game, uid, text) {
+    if (game.phase !== "answering") return "Odpowiedź może być poprawiona tylko przed końcem rundy.";
+    if (!(uid in object(game.answers))) return "Najpierw zapisz odpowiedź.";
+    if (game.passUses?.[uid]?.["creative-license"]) return "Licencja kreatywności została już użyta w tej grze.";
+    if (!validText(text)) return "Napisz krótkie wyjaśnienie (2–240 znaków).";
+    game.answers[uid] = cleanText(text);
+    game.passUses = { ...(game.passUses || {}), [uid]: { ...(game.passUses?.[uid] || {}), "creative-license": true } };
+    game.creativeEdits = { ...(game.creativeEdits || {}), [uid]:true };
+    return null;
+  },
   answer(game, uid, text) {
     if (game.phase !== "answering") return "Czas na odpowiedzi już minął.";
     if (!active(game).includes(uid)) return "Nie bierzesz już udziału w tej rundzie.";
@@ -122,7 +133,7 @@ export const ConnectEngine = {
   nextRound(game, settings = {}) {
     if (game.phase !== "roundResult") return "Wynik rundy nie jest jeszcze gotowy.";
     if (Number(game.round) >= Number(game.totalRounds || settings.rounds || 5)) { game.phase = "gameSummary"; game.finished = true; game.phaseEndsAt = null; return; }
-    const nextSettings = sanitizeConnectSettings(settings); game.round += 1; game.pair = pickPair(game, nextSettings); game.answers = {}; game.votes = {}; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(nextSettings.answerTime); 
+    const nextSettings = sanitizeConnectSettings(settings); game.round += 1; game.pair = pickPair(game, nextSettings); game.answers = {}; game.votes = {}; game.creativeEdits = {}; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(nextSettings.answerTime);
   },
   botAnswer(game, uid) {
     const [left, right] = game.pair || [];
@@ -152,12 +163,13 @@ export function renderConnectGame(root, { room, accounts, currentUser }, actions
   const expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt };
   const timer = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - Date.now()) / 1000));
   let content = `<p class="eyebrow">POŁĄCZ NAS · RUNDA ${Math.min(game.round, game.totalRounds)}/${game.totalRounds}</p><h1>Co łączy te dwie rzeczy?</h1><div class="connect-pair"><span>${escapeHtml(game.pair?.[0] || "—")}</span><b>＋</b><span>${escapeHtml(game.pair?.[1] || "—")}</span></div>`;
-  if (game.phase === "answering") content += currentUser in (game.answers || {}) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p></div>` : `<form id="connect-answer-form" class="connect-answer-form"><label for="connect-answer">Co je łączy?</label><textarea id="connect-answer" maxlength="240" required placeholder="Wymyśl logiczne albo zabawne połączenie..."></textarea><button class="primary">Wyślij odpowiedź</button></form><p class="connect-timer">Czas: <b>${timer}s</b></p><p class="muted">Odpowiedzi są ukryte do końca tej fazy.</p>`;
+  if (game.phase === "answering") content += currentUser in (game.answers || {}) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && room.settings?.gamePassesEnabled !== false && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="connect-edit-form" class="creative-edit-form"><textarea id="connect-edit" maxlength="240" placeholder="Możesz jeszcze poprawić własne połączenie"></textarea><button class="ghost">Popraw odpowiedź za darmo</button></form>` : ""}</div>` : `<form id="connect-answer-form" class="connect-answer-form"><label for="connect-answer">Co je łączy?</label><textarea id="connect-answer" maxlength="240" required placeholder="Wymyśl logiczne albo zabawne połączenie..."></textarea><button class="primary">Wyślij odpowiedź</button></form><p class="connect-timer">Czas: <b>${timer}s</b></p><p class="muted">Odpowiedzi są ukryte do końca tej fazy.</p>`;
   else if (game.phase === "voting") content += `<h2>Wybierz najlepsze połączenie</h2><p class="muted">Odpowiedzi są anonimowe. Nie możesz głosować na siebie.</p><div class="connect-answers">${answerCards(game, accounts, currentUser)}</div><p class="connect-timer">Głosowanie kończy się za <b>${timer}s</b></p>`;
   else if (game.phase === "roundResult") { const winners = game.roundResult?.winners || []; content += `<h2>Wynik rundy</h2><div class="connect-answers">${answerCards(game, accounts, currentUser, true)}</div><p class="connect-winner">${winners.length ? `🏆 Wygrywa: ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ")}` : "Nikt nie zdobył punktu."}</p><div class="connect-ranking">${rankingHtml(game, accounts)}</div><button id="connect-next" class="primary">${Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda"}</button><p class="round-advance-notice">${currentUser === room.hostUid ? `Podsumowanie pojawi się automatycznie za <b>${timer}s</b>.` : `Czekamy na hosta. Następna runda rozpocznie się automatycznie za <b>${timer}s</b>.`}</p>`; }
   else { const top = Math.max(...Object.values(game.scores || {}).map(Number), 0); const winners = (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top); content += `<div class="connect-final"><span>🏆</span><h2>Koniec gry</h2><p>Najlepsze połączenia wygrywają rundy. Dzięki za grę!</p><div class="connect-ranking">${rankingHtml(game, accounts)}</div><p class="connect-winner">Zwycięzca: ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") || "brak"}</p></div><button id="connect-lobby" class="primary">Zagraj ponownie</button>`; }
   root.innerHTML = `<main class="page connect-page enter"><section class="panel connect-panel">${content}</section><button id="connect-leave" class="ghost">Wyjdź z pokoju</button></main>`;
   root.querySelector("#connect-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.connectAnswer(root.querySelector("#connect-answer").value, expected); });
+  root.querySelector("#connect-edit-form")?.addEventListener("submit", event => { event.preventDefault(); actions.connectEditAnswer(root.querySelector("#connect-edit").value, expected); });
   root.querySelectorAll("[data-connect-vote]").forEach(button => button.addEventListener("click", () => actions.connectVote(button.dataset.connectVote, expected)));
   root.querySelector("#connect-next")?.addEventListener("click", () => actions.connectNext());
   root.querySelector("#connect-lobby")?.addEventListener("click", () => actions.returnToRoom());

@@ -1,4 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 export const falseMessageDefaults = { rounds: 0, answerTime: 30, voteTime: 25, categories: ["all"] };
 
@@ -124,7 +125,7 @@ function chooseSituation(game, settings) {
 }
 
 export function createFalseMessageGame(players, settings = {}) {
-  const s = sanitizeFalseMessageSettings(settings), game = { mode: "falszywa-wiadomosc", phase: "answering", round: 1, totalRounds: s.rounds || players.length, players: [...players], heroUid: "", heroHistory: [], heroCounts: Object.fromEntries(players.map(uid => [uid, 0])), situation: "", situationCategory: "all", usedSituations: [], answers: {}, selectedAnswerUid: "", scores: Object.fromEntries(players.map(uid => [uid, 0])), roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
+  const s = sanitizeFalseMessageSettings(settings), game = { mode: "falszywa-wiadomosc", phase: "answering", round: 1, totalRounds: s.rounds || players.length, players: [...players], heroUid: "", heroHistory: [], heroCounts: Object.fromEntries(players.map(uid => [uid, 0])), situation: "", situationCategory: "all", usedSituations: [], answers: {}, selectedAnswerUid: "", scores: Object.fromEntries(players.map(uid => [uid, 0])), creativeEdits: {}, passUses: {}, roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
   game.heroUid = chooseHero(game); game.situation = chooseSituation(game, s); return game;
 }
 
@@ -137,6 +138,17 @@ function resolveSelection(game) {
 }
 
 export const FalseMessageEngine = {
+  editAnswer(game, uid, text) {
+    if (game.phase !== "answering") return "Wiadomość może być poprawiona tylko przed końcem rundy.";
+    if (uid === game.heroUid || !(uid in object(game.answers))) return "Najpierw zapisz własną wiadomość.";
+    if (game.passUses?.[uid]?.["creative-license"]) return "Licencja kreatywności została już użyta w tej grze.";
+    const answer = clean(text);
+    if (answer.length < 2) return "Napisz krótką wiadomość.";
+    game.answers[uid] = answer;
+    game.passUses = { ...(game.passUses || {}), [uid]: { ...(game.passUses?.[uid] || {}), "creative-license": true } };
+    game.creativeEdits = { ...(game.creativeEdits || {}), [uid]:true };
+    return null;
+  },
   answer(game, uid, text, settings = {}) {
     if (game.phase !== "answering") return "Czas na wiadomości już minął.";
     if (uid === game.heroUid) return "Bohater sytuacji nie pisze wiadomości w swojej rundzie.";
@@ -161,7 +173,7 @@ export const FalseMessageEngine = {
     const s = sanitizeFalseMessageSettings(settings);
     if (game.phase !== "roundResult") return "Wynik rundy nie jest jeszcze gotowy.";
     if (Number(game.round) >= Number(game.totalRounds || s.rounds || game.players.length)) { game.phase = "gameSummary"; game.finished = true; game.phaseEndsAt = null; return; }
-    game.round += 1; game.heroUid = chooseHero(game); game.situation = chooseSituation(game, s); game.answers = {}; game.selectedAnswerUid = ""; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(s.answerTime);
+    game.round += 1; game.heroUid = chooseHero(game); game.situation = chooseSituation(game, s); game.answers = {}; game.creativeEdits = {}; game.selectedAnswerUid = ""; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(s.answerTime);
   },
   botAnswer(game) {
     const choices = ["Nie pytajcie, długa historia.", "To był zdecydowanie mój najbardziej charakterystyczny moment.", "Mam na to wiadomość, ale brzmi zbyt absurdalnie.", "W tej sytuacji zachowałbym się dokładnie tak, jak wszyscy myślicie.", "Najpierw udawałbym, że nic się nie stało."];
@@ -196,7 +208,7 @@ export function renderFalseMessageGame(root, { room, accounts, currentUser }, ac
   const game = room.game, expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt }, timer = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - Date.now()) / 1000)), hero = nick(accounts, game.heroUid);
   let content = "<p class=\"eyebrow\">FAŁSZYWA WIADOMOŚĆ · RUNDA " + Math.min(game.round, game.totalRounds) + "/" + game.totalRounds + "</p><h1>Co napisze " + escapeHtml(hero) + "?</h1><div class=\"false-message-situation\"><span>BOHATER SYTUACJI</span><strong>" + escapeHtml(hero) + "</strong><p>" + escapeHtml(situationText(game, accounts)) + "</p></div>";
   if (game.phase === "answering") {
-    content += currentUser === game.heroUid ? "<div class=\"waiting-state\"><h2>To Twoja runda ✓</h2><p>Nie piszesz wiadomości. Gdy pozostali odpowiedzą, wybierzesz anonimowo tę, która najbardziej do Ciebie pasuje.</p></div>" : currentUser in object(game.answers) ? "<div class=\"waiting-state\"><h2>Wiadomość zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p></div>" : "<form id=\"false-message-answer-form\" class=\"false-message-answer-form\"><label for=\"false-message-answer\">Napisz wiadomość w imieniu bohatera</label><textarea id=\"false-message-answer\" maxlength=\"280\" required placeholder=\"Co " + escapeHtml(hero) + " napisałby teraz?\"></textarea><button class=\"primary\">Wyślij wiadomość</button></form>";
+    content += currentUser === game.heroUid ? "<div class=\"waiting-state\"><h2>To Twoja runda ✓</h2><p>Nie piszesz wiadomości. Gdy pozostali odpowiedzą, wybierzesz anonimowo tę, która najbardziej do Ciebie pasuje.</p></div>" : currentUser in object(game.answers) ? `<div class="waiting-state"><h2>Wiadomość zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && room.settings?.gamePassesEnabled !== false && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="false-message-edit-form" class="creative-edit-form"><textarea id="false-message-edit" maxlength="280" placeholder="Możesz poprawić własną wiadomość"></textarea><button class="ghost">Popraw wiadomość za darmo</button></form>` : ""}</div>` : "<form id=\"false-message-answer-form\" class=\"false-message-answer-form\"><label for=\"false-message-answer\">Napisz wiadomość w imieniu bohatera</label><textarea id=\"false-message-answer\" maxlength=\"280\" required placeholder=\"Co " + escapeHtml(hero) + " napisałby teraz?\"></textarea><button class=\"primary\">Wyślij wiadomość</button></form>";
     content += "<p class=\"false-message-timer\">Czas: <b>" + timer + "s</b></p>";
   } else if (game.phase === "selecting") {
     const canChoose = currentUser === game.heroUid;
@@ -210,6 +222,7 @@ export function renderFalseMessageGame(root, { room, accounts, currentUser }, ac
   }
   root.innerHTML = "<main class=\"page false-message-page enter\"><section class=\"panel false-message-panel\">" + content + "</section><button id=\"false-message-leave\" class=\"ghost\">Wyjdź z pokoju</button></main>";
   root.querySelector("#false-message-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.falseMessageAnswer(root.querySelector("#false-message-answer").value, expected); });
+  root.querySelector("#false-message-edit-form")?.addEventListener("submit", event => { event.preventDefault(); actions.falseMessageEditAnswer(root.querySelector("#false-message-edit").value, expected); });
   root.querySelectorAll("[data-false-message-choice]").forEach(button => button.addEventListener("click", () => actions.falseMessageChoose(button.dataset.falseMessageChoice, expected)));
   root.querySelector("#false-message-next")?.addEventListener("click", () => actions.falseMessageNext());
   root.querySelector("#false-message-lobby")?.addEventListener("click", () => actions.returnToRoom());

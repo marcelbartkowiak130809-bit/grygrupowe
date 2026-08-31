@@ -5,48 +5,48 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260831-2";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-24";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
-import { gamesList, getGameMode } from "./games.js?v=20260831-1";
-import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-3";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-2";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
+import { gamesList, getGameMode } from "./games.js?v=20260831-3";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-4";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-3";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
 import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260822-7";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260822-9";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260831-11";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20260621-1";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20260612-3";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260824-2";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260824-1";
-import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260825-1";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260822-8";
-import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260822-1";
+import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260831-3";
+import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260831-10";
+import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260831-4";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260823-5";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260805-1";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260823-1";
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
-import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260831-1";
+import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260831-3";
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260823-5";
-import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260830-1";
-import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
-import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
-import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260830-1";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-3";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-5";
+import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260831-3";
+import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-3";
+import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-3";
+import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-4";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-4";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260831-6";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-2";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260831-3";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-3";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260831-4";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-4";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-21";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260830-4";
+import { scheduleBot } from "./botController.js?v=20260831-6";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -953,6 +953,7 @@ function repairGameStateForPlayers(room) {
     const beforeWins = JSON.stringify(game.roundWins || {});
     game.roundWins = ensureScoreObject(game.roundWins, players, 0);
     if (JSON.stringify(game.roundWins) !== beforeWins) changed = true;
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
   }
   if (room.gameMode === "sequence") {
     if (!Array.isArray(game.players)) { game.players = players.slice(0, 2); changed = true; }
@@ -1025,6 +1026,9 @@ function repairGameStateForPlayers(room) {
     if (game.turnIndex >= game.order.length) { game.turnIndex = 0; changed = true; }
     if (!game.responses || typeof game.responses !== "object") { game.responses = {}; changed = true; }
     if (!game.extendVotes || typeof game.extendVotes !== "object") { game.extendVotes = {}; changed = true; }
+    if (!game.letterHints || typeof game.letterHints !== "object" || Array.isArray(game.letterHints)) { game.letterHints = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
+    if (!game.purchaseUses || typeof game.purchaseUses !== "object" || Array.isArray(game.purchaseUses)) { game.purchaseUses = {}; changed = true; }
   }
   if (room.gameMode === "inne-pytanie") {
     const beforeScores = JSON.stringify(game.scores || {});
@@ -1067,6 +1071,8 @@ function repairGameStateForPlayers(room) {
     if (!game.scores || typeof game.scores !== "object" || Array.isArray(game.scores)) { game.scores = {}; changed = true; }
     players.forEach(uid => { if (!(uid in game.scores)) { game.scores[uid] = 0; changed = true; } });
     if (!Array.isArray(game.roundWinners)) { game.roundWinners = []; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
+    if (!game.purchaseUses || typeof game.purchaseUses !== "object" || Array.isArray(game.purchaseUses)) { game.purchaseUses = {}; changed = true; }
     if (!Number(game.round)) { game.round = 1; changed = true; }
     if (!Number(game.totalRounds)) { game.totalRounds = sanitizePoisonCandySettings(room.settings, players.length).rounds; changed = true; }
     if (game.turnIndex >= game.order.length) { game.turnIndex = 0; changed = true; }
@@ -1168,6 +1174,8 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.history)) { game.history = []; changed = true; }
     if (!game.guesses || typeof game.guesses !== "object" || Array.isArray(game.guesses)) { game.guesses = {}; changed = true; }
     if (!game.wrongGuesses || typeof game.wrongGuesses !== "object" || Array.isArray(game.wrongGuesses)) { game.wrongGuesses = {}; changed = true; }
+    if (!game.oracleHints || typeof game.oracleHints !== "object" || Array.isArray(game.oracleHints)) { game.oracleHints = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
     if (!game.players.includes(game.turnUid) && game.phase !== "result") { game.turnUid = game.players[0] || ""; changed = true; }
     if (!Number.isFinite(Number(game.phaseEndsAt)) && !["result", "guess"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(10, Number(game.questionTime) || 30) * 1000; changed = true; }
   }
@@ -1182,6 +1190,8 @@ function repairGameStateForPlayers(room) {
     if (!Array.isArray(game.pair) || game.pair.length < 2) { game.pair = ["kot", "samochód"]; changed = true; }
     if (!Array.isArray(game.usedPairs)) { game.usedPairs = []; changed = true; }
     ["answers", "votes", "scores"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
+    if (!game.creativeEdits || typeof game.creativeEdits !== "object" || Array.isArray(game.creativeEdits)) { game.creativeEdits = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
     Object.keys(game.answers).forEach(uid => { if (!players.includes(uid)) { delete game.answers[uid]; changed = true; } });
     Object.keys(game.votes).forEach(uid => { if (!players.includes(uid) || !players.includes(game.votes[uid])) { delete game.votes[uid]; changed = true; } });
     const beforeScores = JSON.stringify(game.scores); game.scores = ensureScoreObject(game.scores, players, 0); if (JSON.stringify(game.scores) !== beforeScores) changed = true;
@@ -1191,6 +1201,8 @@ function repairGameStateForPlayers(room) {
     const order = keepPlayers(game.players);
     if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
     ["answers", "votes", "scores", "liarCounts"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
+    if (!game.creativeEdits || typeof game.creativeEdits !== "object" || Array.isArray(game.creativeEdits)) { game.creativeEdits = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
     if (!Array.isArray(game.usedQuestions)) { game.usedQuestions = []; changed = true; }
     if (!Array.isArray(game.liarHistory)) { game.liarHistory = []; changed = true; }
     Object.keys(game.answers).forEach(uid => { if (!players.includes(uid)) { delete game.answers[uid]; changed = true; } });
@@ -1207,6 +1219,8 @@ function repairGameStateForPlayers(room) {
     const order = keepPlayers(game.players);
     if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
     ["answers", "scores", "heroCounts"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
+    if (!game.creativeEdits || typeof game.creativeEdits !== "object" || Array.isArray(game.creativeEdits)) { game.creativeEdits = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
     if (!Array.isArray(game.usedSituations)) { game.usedSituations = []; changed = true; }
     if (!Array.isArray(game.heroHistory)) { game.heroHistory = []; changed = true; }
     Object.keys(game.answers).forEach(uid => { if (!players.includes(uid) || uid === game.heroUid) { delete game.answers[uid]; changed = true; } });
@@ -1228,6 +1242,7 @@ function repairGameStateForPlayers(room) {
     const beforeScores = JSON.stringify(game.scores); game.scores = ensureScoreObject(game.scores, players.slice(0, 2), 0); if (JSON.stringify(game.scores) !== beforeScores) changed = true;
     if (!game.guessBlocked || typeof game.guessBlocked !== "object" || Array.isArray(game.guessBlocked)) { game.guessBlocked = {}; changed = true; }
     if (!game.guessCheckpoint || typeof game.guessCheckpoint !== "object" || Array.isArray(game.guessCheckpoint)) { game.guessCheckpoint = {}; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
     if (!game.players.includes(game.turnUid) && !["rules", "result"].includes(game.phase)) { game.turnUid = game.players[0] || ""; changed = true; }
     if (!game.category) { game.category = "Wszystko"; changed = true; }
     if (game.phase === "rules" && game.players.every(uid => String(game.secretRules[uid] || "").trim())) { game.phase = "turn"; game.turnUid = game.players[0] || ""; game.phaseEndsAt = 0; changed = true; }
@@ -1254,6 +1269,7 @@ function repairGameStateForPlayers(room) {
     Object.keys(game.stops).forEach(uid => { if (!players.includes(uid)) { delete game.stops[uid]; changed = true; } });
     if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
     game.ranking = game.ranking.filter(row => players.includes(row.uid));
+    ["passUses", "firstStops", "pendingSecondChance"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
   }
   if (room.gameMode === "pokemon-last-letter") {
     const order = keepPlayers(game.order);
@@ -1291,6 +1307,8 @@ function repairGameStateForPlayers(room) {
     if (!game.answers || typeof game.answers !== "object" || Array.isArray(game.answers)) { game.answers = {}; changed = true; }
     if (!Array.isArray(game.ranking)) { game.ranking = []; changed = true; }
     if (!Array.isArray(game.eliminated)) { game.eliminated = []; changed = true; }
+    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
+    if (!game.scoutHints || typeof game.scoutHints !== "object" || Array.isArray(game.scoutHints)) { game.scoutHints = {}; changed = true; }
     if (room.gameMode === "pokemon-auction") {
       if (!game.budgets || typeof game.budgets !== "object" || Array.isArray(game.budgets)) { game.budgets = {}; changed = true; }
       if (!game.teams || typeof game.teams !== "object" || Array.isArray(game.teams)) { game.teams = {}; changed = true; }
@@ -1308,6 +1326,7 @@ function repairGameStateForPlayers(room) {
     const beforeScores = JSON.stringify(game.scores || {});
     game.scores = ensureScoreObject(game.scores, players, 0);
     if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    ["passUses", "proHints"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
   }
   if (room.gameMode === "quiz") {
     if (!Array.isArray(game.questionIds)) { game.questionIds = []; changed = true; }
@@ -1919,15 +1938,15 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(accepted&&submittedAnswer)Effects.hit(submittedAnswer.valid);
     return accepted;
   },
-  failRound(loser, text) {
-    return mutateRoomGame(game=>{if(game.phase!=="answering"||game.result||game.currentBidder!==loser)return"Runda odpowiedzi została już zakończona.";game.phase="result";game.result={success:false,loser,text};},{after:settleProveResult});
+  failRound(loser, text, options={}) {
+    return mutateRoomGame((game,room)=>{if(game.phase!=="answering"||game.result||game.currentBidder!==loser)return"Runda odpowiedzi została już zakończona.";const canUse=options.allowPass!==false&&room.settings?.gamePassesEnabled!==false&&hasGamePass(profile(),"proof-last-chance")&&!game.passUses?.[loser]?.["proof-last-chance"]&&!game.lastChance;if(canUse){game.passUses=game.passUses||{};game.passUses[loser]={...(game.passUses[loser]||{}),"proof-last-chance":true};game.lastChance=true;game.phaseEndsAt=provePhaseEnd(8);return;}game.lastChance=false;game.phase="result";game.result={success:false,loser,text};},{after:settleProveResult});
   },
   surrenderRound() {
     const room=activeRoom();
     if(!room?.game||room.game.phase!=="answering"||room.game.currentBidder!==state.currentUser)return;
-    return actions.failRound(state.currentUser,`${state.accounts[state.currentUser]?.nick || "Gracz"} poddał się.`);
+    return actions.failRound(state.currentUser,`${state.accounts[state.currentUser]?.nick || "Gracz"} poddał się.`,{allowPass:false});
   },
-  nextRound() { const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="result")return"Ta runda jeszcze się nie zakończyła.";const total=Math.max(1,Number(game.totalRounds||current.settings?.rounds)||5);if(Number(game.round||1)>=total){game.phase="gameSummary";game.finished=true;game.summary=game.roundWins||{};current.status="results";return;}const wins=game.roundWins||{};Object.assign(game,createNewRound(current.players,current.settings.answerTime,Number(game.round||1)+1,total));game.roundWins=wins;},{sound:"turn"}); },
+  nextRound() { const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="result")return"Ta runda jeszcze się nie zakończyła.";const total=Math.max(1,Number(game.totalRounds||current.settings?.rounds)||5);if(Number(game.round||1)>=total){game.phase="gameSummary";game.finished=true;game.summary=game.roundWins||{};current.status="results";return;}const wins=game.roundWins||{}, passUses=game.passUses||{};Object.assign(game,createNewRound(current.players,current.settings.answerTime,Number(game.round||1)+1,total));game.roundWins=wins;game.passUses=passUses;},{sound:"turn"}); },
   async impostorAcknowledgeRole(){
     const room=activeRoom();if(!room?.game||room.gameMode!=="impostor"||room.game.phase!=="roleReveal")return;
     if(room.game.acknowledged?.[state.currentUser])return;
@@ -1976,6 +1995,19 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   identityRespond(response){return mutateRoomGame((game,room)=>IdentityEngine.respond(game,state.currentUser,response,room.settings,room.customWords),{sound:"choice",after:settleIdentityResult});},
   identityRepeatRequest(){return mutateRoomGame(game=>IdentityEngine.repeat(game,state.currentUser),{sound:"notification"});},
   identityExtendVote(addRound){return mutateRoomGame((game,room)=>IdentityEngine.extendVote(game,state.currentUser,addRound,room.players,room.settings),{sound:"vote",after:settleIdentityResult});},
+  async identityRevealLetter(source = "identity-insight") {
+    const room = activeRoom(), user = profile(), pass = source === "identity-insight";
+    if (!room?.game || room.gameMode !== "kim-jestem" || !user) return false;
+    const item = inGamePurchaseById("identity-letter");
+    if (pass && (!hasGamePass(user, "identity-insight") || room.settings?.gamePassesEnabled === false)) return message("Nie masz aktywnego Wzroku detektywa.", "error");
+    if (!pass && (room.settings?.gamePurchases === false || !item)) return message("Zakupy w tej grze są wyłączone.", "error");
+    if (!pass && Number(user.money || 0) < item.price) return message("Nie masz wystarczająco coinów.", "error");
+    const changed = await mutateRoomGame((game, current) => IdentityEngine.revealLetter(game, state.currentUser, current.settings, source), { sound:"choice" });
+    if (!changed) return false;
+    if (!pass) updateProfile({ money:Number(user.money || 0) - item.price });
+    message(pass ? "Wzrok detektywa pokazał jedną literę." : "Kupiono podpowiedź z jedną literą.", "info");
+    return true;
+  },
   identityTimeout(){const room=activeRoom();if(!room||room.gameMode!=="kim-jestem")return;const phase=room.game?.phase;return mutateRoomGame((game,current)=>{if(game.phase!==phase)return"Faza gry juz sie zmienila.";IdentityEngine.timeout(game,current.settings,current.customWords);},{after:settleIdentityResult});},
   otherAnswer(text){return mutateRoomGame((game,room)=>OtherQuestionEngine.answer(game,state.currentUser,text,room.settings),{sound:"submit"});},
   otherChat(text){const room=activeRoom();if(!room?.settings.chatEnabled)return;return mutateRoomGame(game=>OtherQuestionEngine.chat(game,state.currentUser,text),{sound:"chat"});},
@@ -2002,7 +2034,15 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   mostLikelyNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="roundResult")return"Runda została już zmieniona.";MostLikelyEngine.next(game,current.settings);},{after:settleMostLikelyResult});},
   poisonCandyPoison(ids){return mutateRoomGame((game,room)=>PoisonCandyEngine.poison(game,state.currentUser,ids,room.players,room.settings),{sound:"candyPoison"});},
   poisonCandyTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zatruty-cukierek")return;return mutateRoomGame((game,current)=>{if(game.phase!=="poisoning")return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";PoisonCandyEngine.timeoutPoisoning(game,current.players,current.settings);},{sound:"candyPoison"});},
-  poisonCandyEat(id){return mutateRoomGame((game,room)=>PoisonCandyEngine.eat(game,state.currentUser,id,room.players,room.settings),{sound:"candyPick",after:room=>{const event=room.game?.lastEvent;Audio.play(event?.type==="poisoned"&&event.dead?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
+  poisonCandyEat(id){return mutateRoomGame((game,room)=>PoisonCandyEngine.eat(game,state.currentUser,id,room.players,room.settings,{survivorCharm:room.settings?.gamePassesEnabled!==false&&hasGamePass(profile(),"survivor-charm"),candyShield:Boolean(game.purchaseUses?.[state.currentUser]?.["candy-shield"])}),{sound:"candyPick",after:room=>{const event=room.game?.lastEvent;Audio.play(event?.type==="poisoned"&&event.dead?"candyDeath":"candySafe");settlePoisonCandyResult(room);}});},
+  async poisonCandyBuyShield() {
+    const room=activeRoom(), user=profile(), item=inGamePurchaseById("candy-shield");
+    if (!room?.game || room.gameMode!=="zatruty-cukierek" || !user || room.settings?.gamePurchases===false || !item) return false;
+    if (Number(user.money||0)<item.price) return message("Nie masz wystarczająco coinów.","error");
+    const changed=await mutateRoomGame(game=>{game.purchaseUses??={};game.purchaseUses[state.currentUser]??={};if(game.purchaseUses[state.currentUser][item.id])return"Tarcza została już uzbrojona.";game.purchaseUses[state.currentUser][item.id]=true;},{sound:"purchase"});
+    if(!changed)return false;
+    updateProfile({money:Number(user.money||0)-item.price});message("Tarcza cukierka uzbrojona.","info");return true;
+  },
   poisonCandyNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>PoisonCandyEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   bombAnswer(text){return mutateRoomGame((game,room)=>BombEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit",after:settleBombResult});},
   bombTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bomba")return;return mutateRoomGame((game,current)=>BombEngine.timeout(game,expected.activeUid,current.players,current.settings,expected),{sound:"roundEnd",after:settleBombResult});},
@@ -2015,7 +2055,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   fiveSecondsAnswer(text, expected={}){return mutateRoomGame((game,room)=>FiveSecondsEngine.answer(game,state.currentUser,text,room.players,room.settings,expected),{sound:"submit",after:settleFiveSecondsResult});},
   fiveSecondsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="5-sekund")return;return mutateRoomGame((game,current)=>FiveSecondsEngine.timeout(game,current.players,current.settings,expected),{sound:"turn",after:settleFiveSecondsResult});},
   clockStart(expected={}){return mutateRoomGame((game,room)=>ClockEngine.start(game,room.players,room.settings,expected),{sound:"turn"});},
-  clockStop(expected={}){return mutateRoomGame((game,room)=>ClockEngine.stop(game,state.currentUser,room.players,room.settings,expected),{sound:"submit",after:settleClockResult});},
+  clockStop(expected={}){return mutateRoomGame((game,room)=>ClockEngine.stop(game,state.currentUser,room.players,room.settings,expected,{secondChancePass:room.settings?.gamePassesEnabled!==false&&hasGamePass(profile(),"clock-second-chance-pass")}),{sound:"submit",after:settleClockResult});},
+  clockSecondChance(){const room=activeRoom();if(room?.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"clock-second-chance-pass"))return message("Nie masz aktywnego gamepassa Drugiego pomiaru.","error");return mutateRoomGame((game,current)=>ClockEngine.useSecondChance(game,state.currentUser,current.players,current.settings,{secondChancePass:true}),{sound:"submit",after:settleClockResult});},
+  clockKeepFirst(){const room=activeRoom();if(room?.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"clock-second-chance-pass"))return message("Nie masz aktywnego gamepassa Drugiego pomiaru.","error");return mutateRoomGame((game,current)=>ClockEngine.keepFirst(game,state.currentUser,current.players,current.settings,{secondChancePass:true}),{sound:"choice",after:settleClockResult});},
   clockTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="zegar")return;return mutateRoomGame((game,current)=>ClockEngine.timeout(game,current.players,current.settings,expected),{sound:"roundEnd",after:settleClockResult});},
   clockNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>ClockEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   pokemonAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta odpowiedź jest już spóźniona.";return PokemonEngine.answer(game,state.currentUser,text,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-answer-${Date.now()}`);return ok;});},
@@ -2025,9 +2067,11 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   pokemonPass(){return mutateRoomGame((game,room)=>PokemonEngine.pass(game,state.currentUser,room.players),{sound:"turn"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-pass-${Date.now()}`);return ok;});},
   pokemonTimeout(expected={}){const room=activeRoom();if(!room?.game||room.game.mode?.startsWith("pokemon")!==true)return;return mutateRoomGame((game,current)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";PokemonEngine.timeout(game,expected.activeUid||state.currentUser,current.players,current.settings);},{sound:"turn"}).then(ok=>{if(ok)Effects.play("roundFail",`pokemon-timeout-${Date.now()}`);return ok;});},
   pokemonNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>PokemonEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
+  pokemonUseScout(){const room=activeRoom();if(!room?.game||!room.gameMode?.startsWith("pokemon-")||room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"pokemon-scout"))return message("Nie masz aktywnego Skanera Pokédex.","error");return mutateRoomGame((game,current)=>PokemonEngine.useScout(game,state.currentUser,current.players,current.settings),{sound:"choice"});},
   wavelengthClue(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WavelengthEngine.clue(game,state.currentUser,text,room.players,room.settings);},{sound:"clue"});},
   wavelengthMove(position, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WavelengthEngine.move(game,state.currentUser,position,room.players);},{sound:"turn"});},
-  wavelengthConfirm(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WavelengthEngine.confirm(game,state.currentUser,room.players,room.settings);},{sound:"roundEnd"});},
+  wavelengthConfirm(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WavelengthEngine.confirm(game,state.currentUser,room.players,room.settings,{secondChancePass:room.settings?.gamePassesEnabled!==false&&hasGamePass(profile(),"wavelength-second-chance")});},{sound:"roundEnd"});},
+  wavelengthRevealPro(){const room=activeRoom();if(!room?.game||room.gameMode!=="wavelength"||room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"wavelength-pro"))return message("Nie masz aktywnego Wavelength Pro.","error");return mutateRoomGame((game,current)=>WavelengthEngine.revealPro(game,state.currentUser,current.players),{sound:"choice"});},
   wavelengthTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="wavelength")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";WavelengthEngine.timeout(game,current.players,current.settings);},{sound:"roundEnd"});},
   wavelengthNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>WavelengthEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   quizAnswer(option, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return QuizEngine.answer(game,state.currentUser,option,room.players,room.settings);},{sound:"submit"});},
@@ -2067,31 +2111,40 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     message("Wskazówka została użyta.","info");
     return true;
   },
+  numberMysteryUseOracle(){
+    const room=activeRoom();
+    if(!room?.game||room.gameMode!=="number-mystery"||room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"number-oracle"))return message("Nie masz aktywnej Wyroczni liczb.","error");
+    return mutateRoomGame((game)=>NumberMysteryEngine.oracle(game,state.currentUser),{sound:"choice"});
+  },
   numberMysteryTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="number-mystery")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";NumberMysteryEngine.timeout(game);},{sound:"roundEnd"});},
   uniqueAnswerSubmit(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta runda jest już zakończona.";return UniqueAnswerEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit",after:settleAdditionalModeResult});},
   uniqueAnswerHostPrompt(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Pytanie jest już ustawione.";return UniqueAnswerEngine.hostPrompt(game,state.currentUser,text,room.settings);},{sound:"clue"});},
   uniqueAnswerTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="unique-answer")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Runda już się skończyła.";UniqueAnswerEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   uniqueAnswerNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>UniqueAnswerEngine.nextRound(game,current.settings),{sound:"turn"});},
   connectAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";return ConnectEngine.answer(game,state.currentUser,text);},{sound:"submit"});},
+  connectEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";if(room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return ConnectEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   connectVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return ConnectEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
   connectTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="polacz-nas")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";ConnectEngine.timeout(game);},{sound:"roundEnd"});},
   connectNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=ConnectEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn"});},
   liarAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";return LiarEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
+  liarEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";if(room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return LiarEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   liarStartVoting(expected={}){const room=activeRoom();if(!room||room.gameMode!=="klamca")return;if(room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć głosowanie.","info");return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Dyskusja już się zakończyła.";return LiarEngine.startVoting(game,current.settings);},{sound:"turn"});},
   liarVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return LiarEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
   liarTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="klamca")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";LiarEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   liarNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>LiarEngine.nextRound(game,current.settings),{sound:"turn"});},
   falseMessageAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";return FalseMessageEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
+  falseMessageEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";if(room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return FalseMessageEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   falseMessageChoose(answerUid, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas wyboru już minął.";return FalseMessageEngine.choose(game,state.currentUser,answerUid);},{sound:"choice"});},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
   randomSecretRuleCategory(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="tajna-zasada")return;room.settings={...room.settings,category:secretRuleCategories[Math.floor(Math.random()*secretRuleCategories.length)]};touchRoom(room);animateHostSettingChange(room.settings.category);render({preserveDrafts:true});},
   secretRuleSetRule(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Zasady zostały już zapisane.";return SecretRuleEngine.setRule(game,state.currentUser,text,room.settings);},{sound:"ready"});},
   secretRuleExample(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return SecretRuleEngine.example(game,state.currentUser,text,room.settings);},{sound:"submit"});},
-  secretRuleReviewExample(verdict, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta decyzja jest już nieaktualna.";return SecretRuleEngine.reviewExample(game,state.currentUser,verdict);},{sound:"choice"});},
+  secretRuleReviewExample(verdict, expected={}){return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta decyzja jest już nieaktualna.";return SecretRuleEngine.reviewExample(game,state.currentUser,verdict,current.settings);},{sound:"choice"});},
   secretRuleStartGuess(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";return SecretRuleEngine.startGuess(game,state.currentUser,room.settings);},{sound:"choice"});},
+  secretRuleCreativeGuess(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";if(room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return SecretRuleEngine.creativeGuess(game,state.currentUser,room.settings);},{sound:"choice"});},
   secretRuleGuess(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na zgadywanie minął.";return SecretRuleEngine.guess(game,state.currentUser,text,room.settings);},{sound:"submit"});},
-  secretRuleReviewGuess(accepted, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta decyzja jest już nieaktualna.";return SecretRuleEngine.reviewGuess(game,state.currentUser,accepted);},{sound:accepted?"win":"choice",after:settleAdditionalModeResult});},
+  secretRuleReviewGuess(accepted, expected={}){return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta decyzja jest już nieaktualna.";return SecretRuleEngine.reviewGuess(game,state.currentUser,accepted,current.settings);},{sound:accepted?"win":"choice",after:settleAdditionalModeResult});},
   secretRuleTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="tajna-zasada")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";SecretRuleEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   friendshipAnswer(text){return mutateRoomGame((game,room)=>FriendshipTestEngine.answer(game,state.currentUser,text,room.players,room.settings),{sound:"submit"});},
   friendshipGuess(answerId,target){return mutateRoomGame((game,room)=>FriendshipTestEngine.guess(game,state.currentUser,answerId,target,room.players),{sound:"vote"});},

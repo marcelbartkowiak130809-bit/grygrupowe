@@ -61,6 +61,9 @@ function createRound(players, settings, round, scores = {}) {
     scores:{ ...Object.fromEntries(players.map(uid => [uid, 0])), ...scores },
     ranking:[],
     result:null,
+    passUses:{},
+    firstStops:{},
+    pendingSecondChance:{},
   };
 }
 
@@ -70,6 +73,9 @@ export function createClockGame(players, rawSettings) {
 
 function normalize(game, players = []) {
   game.stops = objectOrEmpty(game.stops);
+  game.passUses = objectOrEmpty(game.passUses);
+  game.firstStops = objectOrEmpty(game.firstStops);
+  game.pendingSecondChance = objectOrEmpty(game.pendingSecondChance);
   game.scores = objectOrEmpty(game.scores);
   game.ranking = arrayOrEmpty(game.ranking).filter(row => players.includes(row.uid));
   players.forEach(uid => { if (!(uid in game.scores)) game.scores[uid] = 0; });
@@ -98,6 +104,10 @@ function finishRound(game, players, settings) {
   game.result = { winners, at:now(), gameOver };
 }
 
+function finishIfReady(game, players, settings) {
+  if (players.every(player => game.stops[player]) && !Object.values(game.pendingSecondChance || {}).some(Boolean)) finishRound(game, players, settings);
+}
+
 export const ClockEngine = {
   start(game, players, rawSettings, expected = {}) {
     sanitizeClockSettings(rawSettings);
@@ -110,7 +120,7 @@ export const ClockEngine = {
     game.roundEndsAt = startedAt + 20000;
     return null;
   },
-  stop(game, uid, players, rawSettings, expected = {}) {
+  stop(game, uid, players, rawSettings, expected = {}, options = {}) {
     const settings = sanitizeClockSettings(rawSettings);
     normalize(game, players);
     if (game.phase !== "running") return "Ta runda juz sie zakonczyla.";
@@ -119,7 +129,35 @@ export const ClockEngine = {
     if (expected.startedAt && Number(game.startedAt || 0) !== Number(expected.startedAt)) return "Runda juz sie zmienila.";
     const elapsedMs = Math.max(0, now() - Number(game.startedAt || now()));
     game.stops[uid] = { elapsedMs, at:now() };
-    if (players.every(player => game.stops[player])) finishRound(game, players, settings);
+    if (options.secondChancePass && !game.passUses?.[uid]?.["clock-second-chance-pass"] && Math.abs(elapsedMs - Number(game.targetMs || 0)) > 0) {
+      game.firstStops[uid] = elapsedMs;
+      game.pendingSecondChance[uid] = true;
+    }
+    finishIfReady(game, players, settings);
+    return null;
+  },
+  useSecondChance(game, uid, players, rawSettings, options = {}) {
+    const settings = sanitizeClockSettings(rawSettings);
+    normalize(game, players);
+    if (!options.secondChancePass) return "Drugi pomiar wymaga gamepassa.";
+    if (game.phase !== "running" || !game.pendingSecondChance?.[uid]) return "Drugi pomiar nie jest już dostępny.";
+    const first = Number(game.firstStops?.[uid]);
+    const second = Math.max(0, now() - Number(game.startedAt || now()));
+    const target = Number(game.targetMs || 0);
+    const chosen = Math.abs(second - target) < Math.abs(first - target) ? second : first;
+    game.stops[uid] = { elapsedMs:chosen, at:now(), firstMeasurement:first, secondMeasurement:second };
+    game.pendingSecondChance[uid] = false;
+    game.passUses[uid] = { ...(game.passUses[uid] || {}), "clock-second-chance-pass":true };
+    finishIfReady(game, players, settings);
+    return null;
+  },
+  keepFirst(game, uid, players, rawSettings, options = {}) {
+    const settings = sanitizeClockSettings(rawSettings);
+    normalize(game, players);
+    if (!options.secondChancePass) return "Drugi pomiar wymaga gamepassa.";
+    if (game.phase !== "running" || !game.pendingSecondChance?.[uid]) return "Pierwszy pomiar został już zachowany.";
+    game.pendingSecondChance[uid] = false;
+    finishIfReady(game, players, settings);
     return null;
   },
   timeout(game, players, rawSettings, expected = {}) {
@@ -129,6 +167,7 @@ export const ClockEngine = {
     if (expected.startedAt && Number(game.startedAt || 0) !== Number(expected.startedAt)) return "Runda juz sie zmienila.";
     const elapsedMs = Math.max(0, Number(game.roundEndsAt || now()) - Number(game.startedAt || now()));
     players.forEach(uid => { if (!game.stops[uid]) game.stops[uid] = { elapsedMs, at:now(), auto:true }; });
+    game.pendingSecondChance = {};
     finishRound(game, players, settings);
     return null;
   },
@@ -141,7 +180,9 @@ export const ClockEngine = {
       game.finished=true;
       return null;
     }
+    const passUses = game.passUses || {};
     Object.assign(game, createRound(players, settings, Number(game.round || 1) + 1, game.scores));
+    game.passUses = passUses;
     return null;
   },
 };
@@ -160,6 +201,7 @@ const secondsText = ms => `${(Number(ms || 0) / 1000).toLocaleString("pl-PL", { 
 
 function runningStage(room, accounts, currentUser, game) {
   const stopped = currentUser in objectOrEmpty(game.stops);
+  const pending = Boolean(game.pendingSecondChance?.[currentUser]);
   const done = Object.keys(game.stops || {}).length;
   return `<section class="clock-stage">
     <div class="clock-head"><div><p class="eyebrow">RUNDA ${Number(game.round) || 1}</p><h1>Znajdz ${Math.round(Number(game.targetMs || 0) / 1000)} sekund</h1></div><div class="clock-done">${done}/${room.players.length}</div></div>
@@ -168,7 +210,7 @@ function runningStage(room, accounts, currentUser, game) {
       <div class="clock-side">
         <p class="eyebrow">TWOJ ZEGAR</p>
         ${playerMiniHtml(accounts[currentUser])}
-        ${stopped ? `<div class="waiting-state clock-waiting"><span class="waiting-pulse">STOP</span><h3>Zegar zatrzymany</h3><p>Czekamy na reszte stolu.</p></div>` : `<button class="primary clock-stop-button" id="clock-stop">STOP</button>`}
+        ${pending ? `<div class="waiting-state clock-waiting"><span class="waiting-pulse">DRUGI</span><h3>Drugi pomiar?</h3><p>Pierwszy wynik został zachowany. Wybierz bliższy pomiar.</p><div class="choice-row"><button class="primary" data-clock-second-chance>Zmierz ponownie</button><button class="ghost" data-clock-keep-first>Zostaw pierwszy</button></div></div>` : stopped ? `<div class="waiting-state clock-waiting"><span class="waiting-pulse">STOP</span><h3>Zegar zatrzymany</h3><p>Czekamy na reszte stolu.</p></div>` : `<button class="primary clock-stop-button" id="clock-stop">STOP</button>`}
       </div>
     </div>
     <div class="truth-answer-grid">${room.players.map(uid => `<article class="${uid in objectOrEmpty(game.stops) ? "answered" : ""}">${playerMiniHtml(accounts[uid])}<b>${uid in objectOrEmpty(game.stops) ? "STOP" : "mierzy..."}</b></article>`).join("")}</div>
@@ -224,6 +266,8 @@ export function renderClockGame(root, { room, accounts, currentUser }, actions) 
   root.innerHTML = `<main class="page clock-page board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:game.scores })}${stage}<button class="ghost leave-game" id="leave-room">Wyjdz z pokoju</button></main>`;
   $("#leave-room")?.addEventListener("click", actions.leaveRoom);
   $("#clock-stop")?.addEventListener("click", () => actions.clockStop({ startedAt:game.startedAt }));
+  root.querySelector("[data-clock-second-chance]")?.addEventListener("click", () => actions.clockSecondChance());
+  root.querySelector("[data-clock-keep-first]")?.addEventListener("click", () => actions.clockKeepFirst());
   $("#clock-next-round")?.addEventListener("click", actions.clockNextRound);
   $("#clock-lobby")?.addEventListener("click", actions.returnToRoom);
   if (game.phase === "countdown") startClockCountdown(game, actions);

@@ -1,4 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 export const secretRuleDefaults = {
   category: "random",
@@ -85,7 +86,7 @@ export function createSecretRuleGame(players, settings = {}) {
     mode: "tajna-zasada", phase: "rules", players: order, category, secretRules: {}, history: Object.fromEntries(order.map(uid => [uid, []])),
     turnUid: order[0] || "", currentExample: null, currentGuess: null, reviewerUid: "", autoVerdict: null, autoGuessCorrect: null,
     scores: Object.fromEntries(order.map(uid => [uid, 0])),
-    turnsCompleted: 0, guessBlocked: {}, guessCheckpoint: {}, winner: "", finished: false, phaseEndsAt: deadline(s.ruleTime),
+    turnsCompleted: 0, guessBlocked: {}, guessCheckpoint: {}, passUses: {}, winner: "", finished: false, phaseEndsAt: deadline(s.ruleTime),
   };
 }
 
@@ -106,36 +107,47 @@ export const SecretRuleEngine = {
     game.currentExample = { uid, text: example, number: (game.history?.[uid] || []).length + 1 };
     game.reviewerUid = reviewerUid; game.autoVerdict = autoMatch(example, game.secretRules?.[reviewerUid]); game.phase = "reviewExample"; game.phaseEndsAt = deadline(settings.reviewTime);
   },
-  reviewExample(game, uid, verdict) {
+  reviewExample(game, uid, verdict, settingsRaw = {}) {
+    const settings = sanitizeSecretRuleSettings(settingsRaw);
     if (game.phase !== "reviewExample" || game.reviewerUid !== uid) return "To nie jest Twoja decyzja.";
     const item = game.currentExample; if (!item?.uid || !clean(item.text)) return "Brak przykładu do sprawdzenia.";
     addHistory(game, item.uid, { text: item.text, verdict: Boolean(verdict), manual: Boolean(Boolean(verdict) !== Boolean(game.autoVerdict)) });
     game.turnsCompleted = Number(game.turnsCompleted || 0) + 1;
-    beginTurn(game, uid, { guessMode: "interval", guessInterval: 3 });
+    beginTurn(game, uid, settings);
   },
-  startGuess(game, uid, settings = {}) {
+  startGuess(game, uid, settings = {}, allowEarly = false) {
     if (game.phase !== "turn" || game.turnUid !== uid) return "Zgadywać możesz tylko podczas swojego ruchu.";
-    if (settings.guessMode === "interval" && (Number(game.turnsCompleted) < 1 || Number(game.turnsCompleted) % Number(settings.guessInterval) !== 0 || game.guessBlocked?.[uid])) return "Najpierw odkryj jeszcze kilka przykładów.";
+    if (!allowEarly && settings.guessMode === "interval" && (Number(game.turnsCompleted) < 1 || Number(game.turnsCompleted) % Number(settings.guessInterval) !== 0 || game.guessBlocked?.[uid])) return "Najpierw odkryj jeszcze kilka przykładów.";
     game.guessCheckpoint = object(game.guessCheckpoint); game.guessCheckpoint[uid] = Math.floor(Number(game.turnsCompleted || 0) / Math.max(2, Number(settings.guessInterval) || 3));
     game.phase = "guessing"; game.guessUid = uid; game.phaseEndsAt = deadline(settings.guessTime);
+  },
+  creativeGuess(game, uid, settings = {}) {
+    game.passUses = object(game.passUses);
+    if (game.passUses[uid]?.["creative-license"]) return "Licencja kreatywności została już użyta.";
+    const result = this.startGuess(game, uid, settings, true);
+    if (result) return result;
+    game.passUses[uid] = { ...(game.passUses[uid] || {}), "creative-license":true };
+    return null;
   },
   guess(game, uid, value, settings = {}) {
     if (game.phase !== "guessing" || game.guessUid !== uid) return "To nie jest moment na to zgadywanie.";
     const guess = clean(value); if (guess.length < 2) return "Wpisz swoją propozycję zasady.";
     game.currentGuess = { uid, text: guess }; game.reviewerUid = other(game, uid); game.autoGuessCorrect = ruleSimilarity(guess, game.secretRules?.[game.reviewerUid]); game.phase = "reviewGuess"; game.phaseEndsAt = deadline(settings.reviewTime);
   },
-  reviewGuess(game, uid, accepted) {
+  reviewGuess(game, uid, accepted, settingsRaw = {}) {
+    const settings = sanitizeSecretRuleSettings(settingsRaw);
     if (game.phase !== "reviewGuess" || game.reviewerUid !== uid) return "To nie jest Twoja decyzja.";
     if (accepted) { game.winner = game.currentGuess?.uid || ""; game.scores = object(game.scores); if (game.winner) game.scores[game.winner] = Number(game.scores[game.winner] || 0) + 1; game.phase = "result"; game.finished = true; game.phaseEndsAt = 0; return; }
     const guesser = game.currentGuess?.uid || game.turnUid, next = other(game, guesser);
     game.guessBlocked = { ...object(game.guessBlocked), [guesser]: true };
-    game.turnsCompleted = Number(game.turnsCompleted || 0) + 1; beginTurn(game, next, { guessMode: "interval", guessInterval: 3 });
+    game.turnsCompleted = Number(game.turnsCompleted || 0) + 1; beginTurn(game, next, settings);
   },
-  timeout(game, settings = {}) {
+  timeout(game, settingsRaw = {}) {
+    const settings = sanitizeSecretRuleSettings(settingsRaw);
     if (game.phase === "rules") { game.secretRules = object(game.secretRules); game.players.forEach(uid => { if (!clean(game.secretRules[uid])) game.secretRules[uid] = "Dowolny przykład z kategorii"; }); beginTurn(game, game.players[0], settings); return; }
-    if (game.phase === "reviewExample") { this.reviewExample(game, game.reviewerUid, Boolean(game.autoVerdict)); return; }
-    if (game.phase === "guessing") { this.reviewGuess(game, other(game, game.guessUid), false); return; }
-    if (game.phase === "reviewGuess") { this.reviewGuess(game, game.reviewerUid, false); }
+    if (game.phase === "reviewExample") { this.reviewExample(game, game.reviewerUid, Boolean(game.autoVerdict), settings); return; }
+    if (game.phase === "guessing") { this.reviewGuess(game, other(game, game.guessUid), false, settings); return; }
+    if (game.phase === "reviewGuess") { this.reviewGuess(game, game.reviewerUid, false, settings); }
   },
   canGuess(game, uid, settings = {}) {
     if (game.phase !== "turn" || game.turnUid !== uid) return false;
@@ -168,7 +180,7 @@ export function renderSecretRuleGame(root, { room, accounts, currentUser }, acti
   const game = room.game, me = currentUser, expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt }, ownRule = game.secretRules?.[me] || "";
   let content = `<p class="eyebrow">TAJNA ZASADA · ${game.phase === "result" ? "KONIEC GRY" : "POJEDYNEK 1V1"}</p><div class="secret-rule-category-banner"><span>WSPÓLNA KATEGORIA</span><strong>${escapeHtml(game.category || "—")}</strong></div>`;
   if (game.phase === "rules") content += `<h1>Ustalcie tajne zasady</h1><p class="muted">Wymyśl zasadę dotyczącą elementów kategorii. Przeciwnik jej nie zobaczy.</p><form id="secret-rule-rule-form" class="secret-rule-form">${ownRule ? `<div class="secret-rule-own"><span>🔒 TWOJA TAJNA ZASADA</span><b>${escapeHtml(ownRule)}</b></div>` : `<label for="secret-rule-rule">Twoja tajna zasada<input id="secret-rule-rule" maxlength="120" required placeholder="np. Raperzy albo rzeczy czerwone"></label><button class="primary">Zapisz zasadę</button>`}</form><p class="muted">Gotowe zasady: ${Object.keys(game.secretRules || {}).length}/2</p>`;
-  else if (game.phase === "turn") { const myTurn = game.turnUid === me, canGuess = SecretRuleEngine.canGuess(game, me, room.settings); content += `<h1>${myTurn ? "TWÓJ RUCH" : "RUCH PRZECIWNIKA"}</h1><div class="secret-rule-own"><span>🔒 TWOJA TAJNA ZASADA</span><b>${escapeHtml(ownRule || "ukryta")}</b></div>${myTurn ? `<form id="secret-rule-example-form" class="secret-rule-form"><label for="secret-rule-example">Podaj przykład z kategorii<input id="secret-rule-example" maxlength="180" required placeholder="np. Drake"></label><button class="primary">Sprawdź przykład</button></form>${canGuess ? `<button type="button" class="ghost secret-rule-guess-start" id="secret-rule-start-guess">🎯 Zgadnij tajną zasadę</button>` : ""}` : `<div class="secret-rule-waiting"><b>🔍 Przeciwnik odkrywa Twoją zasadę...</b><p>Gdy zatwierdzi wynik, ruch przejdzie na Ciebie.</p></div>`}${historyHtml(game, me)}`; }
+  else if (game.phase === "turn") { const myTurn = game.turnUid === me, canGuess = SecretRuleEngine.canGuess(game, me, room.settings), creativeReady = myTurn && hasGamePass(accounts?.[me], "creative-license") && room.settings?.gamePassesEnabled !== false && !game.passUses?.[me]?.["creative-license"]; content += `<h1>${myTurn ? "TWÓJ RUCH" : "RUCH PRZECIWNIKA"}</h1><div class="secret-rule-own"><span>🔒 TWOJA TAJNA ZASADA</span><b>${escapeHtml(ownRule || "ukryta")}</b></div>${myTurn ? `<form id="secret-rule-example-form" class="secret-rule-form"><label for="secret-rule-example">Podaj przykład z kategorii<input id="secret-rule-example" maxlength="180" required placeholder="np. Drake"></label><button class="primary">Sprawdź przykład</button></form>${canGuess ? `<button type="button" class="ghost secret-rule-guess-start" id="secret-rule-start-guess">🎯 Zgadnij tajną zasadę</button>` : ""}${creativeReady ? `<button type="button" class="ghost secret-rule-guess-start" id="secret-rule-creative-guess">💡 Zgadnij teraz dzięki Licencji kreatywności</button>` : ""}` : `<div class="secret-rule-waiting"><b>🔍 Przeciwnik odkrywa Twoją zasadę...</b><p>Gdy zatwierdzi wynik, ruch przejdzie na Ciebie.</p></div>`}${historyHtml(game, me)}`; }
   else if (game.phase === "reviewExample") { const item = game.currentExample, reviewer = game.reviewerUid === me; content += `<h1>${reviewer ? "Sprawdź przykład przeciwnika" : "Przeciwnik sprawdza Twój przykład"}</h1>${reviewer ? `<div class="secret-rule-review-card"><span>PRZYKŁAD #${item?.number || "—"}</span><strong>${escapeHtml(item?.text || "—")}</strong><p>Gra uważa: <b>${game.autoVerdict ? "✅ PASUJE" : "❌ NIE PASUJE"}</b></p><div class="choice-row"><button class="primary" data-secret-rule-review="yes">✅ Tak, pasuje</button><button class="ghost" data-secret-rule-review="no">🔄 Nie, nie pasuje</button></div></div>` : `<div class="secret-rule-waiting"><b>🔍 Przeciwnik sprawdza Twój przykład...</b><p>Automatyczna sugestia nie jest jeszcze widoczna — decyzję zatwierdzi właściciel zasady.</p></div>`}${historyHtml(game, me)}${timerHtml(game)}`; }
   else if (game.phase === "guessing") content += `<h1>${game.guessUid === me ? "Spróbuj odgadnąć zasadę" : "Przeciwnik zgaduje zasadę"}</h1>${game.guessUid === me ? `<form id="secret-rule-guess-form" class="secret-rule-form"><label for="secret-rule-guess">Moim zdaniem zasada przeciwnika to:<input id="secret-rule-guess" maxlength="120" required placeholder="np. Rzeczy czerwone"></label><button class="primary">Wyślij zgadywanie</button></form>` : `<div class="secret-rule-waiting"><b>🎯 Przeciwnik zgaduje Twoją zasadę...</b><p>Jeśli odrzucisz propozycję, jego ruch przepada.</p></div>`}${timerHtml(game)}`;
   else if (game.phase === "reviewGuess") { const reviewer = game.reviewerUid === me; content += `<h1>${reviewer ? "Oceń zgadywanie przeciwnika" : "Przeciwnik ocenia Twoją propozycję"}</h1>${reviewer ? `<div class="secret-rule-review-card"><span>PRZECIWNIK ZGADUJE</span><strong>${escapeHtml(game.currentGuess?.text || "—")}</strong><p>Gra uważa: <b>${game.autoGuessCorrect ? "✅ ZNACZENIE PASUJE" : "❌ RACZEJ NIE PASUJE"}</b></p><div class="choice-row"><button class="primary" data-secret-rule-guess-review="yes">✅ Uznaj jako poprawne</button><button class="ghost" data-secret-rule-guess-review="no">❌ Odrzuć</button></div></div>` : `<div class="secret-rule-waiting"><b>🔍 Właściciel zasady ocenia Twoje zgadywanie...</b><p>Jeśli propozycja zostanie odrzucona, stracisz tę turę.</p></div>`}${timerHtml(game)}`; }
@@ -177,6 +189,7 @@ export function renderSecretRuleGame(root, { room, accounts, currentUser }, acti
   root.querySelector("#secret-rule-rule-form")?.addEventListener("submit", event => { event.preventDefault(); actions.secretRuleSetRule(root.querySelector("#secret-rule-rule")?.value || "", expected); });
   root.querySelector("#secret-rule-example-form")?.addEventListener("submit", event => { event.preventDefault(); actions.secretRuleExample(root.querySelector("#secret-rule-example").value, expected); });
   root.querySelector("#secret-rule-start-guess")?.addEventListener("click", () => actions.secretRuleStartGuess(expected));
+  root.querySelector("#secret-rule-creative-guess")?.addEventListener("click", () => actions.secretRuleCreativeGuess(expected));
   root.querySelectorAll("[data-secret-rule-review]").forEach(button => button.addEventListener("click", () => actions.secretRuleReviewExample(button.dataset.secretRuleReview === "yes", expected)));
   root.querySelector("#secret-rule-guess-form")?.addEventListener("submit", event => { event.preventDefault(); actions.secretRuleGuess(root.querySelector("#secret-rule-guess").value, expected); });
   root.querySelectorAll("[data-secret-rule-guess-review]").forEach(button => button.addEventListener("click", () => actions.secretRuleReviewGuess(button.dataset.secretRuleGuessReview === "yes", expected)));

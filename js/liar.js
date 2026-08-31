@@ -1,4 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 export const liarDefaults = { rounds: 5, answerTime: 30, discussionTime: 20, voteTime: 25 };
 
@@ -49,7 +50,7 @@ function chooseLiar(game) {
 
 export function createLiarGame(players, settings = {}) {
   const s = sanitizeLiarSettings(settings);
-  const game = { mode: "klamca", phase: "answering", round: 1, totalRounds: s.rounds, players: [...players], question: "", liarUid: "", liarCounts: Object.fromEntries(players.map(uid => [uid, 0])), liarHistory: [], usedQuestions: [], answers: {}, votes: {}, scores: Object.fromEntries(players.map(uid => [uid, 0])), roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
+  const game = { mode: "klamca", phase: "answering", round: 1, totalRounds: s.rounds, players: [...players], question: "", liarUid: "", liarCounts: Object.fromEntries(players.map(uid => [uid, 0])), liarHistory: [], usedQuestions: [], answers: {}, votes: {}, scores: Object.fromEntries(players.map(uid => [uid, 0])), creativeEdits: {}, passUses: {}, roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
   game.question = chooseQuestion(game); game.liarUid = chooseLiar(game); return game;
 }
 
@@ -70,6 +71,17 @@ function resolveVoting(game) {
 }
 
 export const LiarEngine = {
+  editAnswer(game, uid, text) {
+    if (game.phase !== "answering") return "Odpowiedź może być poprawiona tylko przed końcem rundy.";
+    if (!(uid in object(game.answers))) return "Najpierw zapisz odpowiedź.";
+    if (game.passUses?.[uid]?.["creative-license"]) return "Licencja kreatywności została już użyta w tej grze.";
+    const answer = clean(text);
+    if (answer.length < 2) return "Napisz krótką odpowiedź.";
+    game.answers[uid] = answer;
+    game.passUses = { ...(game.passUses || {}), [uid]: { ...(game.passUses?.[uid] || {}), "creative-license": true } };
+    game.creativeEdits = { ...(game.creativeEdits || {}), [uid]:true };
+    return null;
+  },
   answer(game, uid, text, settings = {}) {
     if (game.phase !== "answering") return "Czas na odpowiedzi już minął.";
     if (!active(game).includes(uid)) return "Nie bierzesz udziału w tej rundzie.";
@@ -98,7 +110,7 @@ export const LiarEngine = {
     const s = sanitizeLiarSettings(settings);
     if (game.phase !== "roundResult") return "Wynik rundy nie jest jeszcze gotowy.";
     if (Number(game.round) >= Number(game.totalRounds || s.rounds)) { game.phase = "gameSummary"; game.finished = true; game.phaseEndsAt = null; return; }
-    game.round += 1; game.question = chooseQuestion(game); game.liarUid = chooseLiar(game); game.answers = {}; game.votes = {}; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(s.answerTime);
+    game.round += 1; game.question = chooseQuestion(game); game.liarUid = chooseLiar(game); game.answers = {}; game.votes = {}; game.creativeEdits = {}; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(s.answerTime);
   },
   botAnswer(game, uid) {
     const truthful = ["Raczej coś prostego, co poprawia mi humor.", "Chyba wybrałbym coś spontanicznego i trochę głupiego.", "Najbardziej pasuje do mnie odpowiedź związana z muzyką.", "Pewnie zależałoby to od dnia, ale mam jedno skojarzenie.", "To byłoby coś, o czym znajomi raczej by się nie zdziwili."];
@@ -133,7 +145,7 @@ export function renderLiarGame(root, { room, accounts, currentUser }, actions) {
   if (game.phase === "answering") {
     const isLiar = currentUser === game.liarUid, instruction = isLiar ? "<strong class=\"liar-role liar-secret\">JESTEŚ KŁAMCĄ 🎭</strong><p>Odpowiedz na pytanie, ale skłam tak, żeby inni ci uwierzyli.</p>" : "<strong class=\"liar-role\">ODPOWIEDZ SZCZERZE</strong><p>Podaj swoją prawdziwą odpowiedź — jedna osoba próbuje was oszukać.</p>";
     content += "<div class=\"liar-instruction\">" + instruction + "</div>";
-    content += currentUser in object(game.answers) ? "<div class=\"waiting-state\"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p></div>" : "<form id=\"liar-answer-form\" class=\"liar-answer-form\"><textarea id=\"liar-answer\" maxlength=\"280\" required placeholder=\"Wpisz swoją odpowiedź...\"></textarea><button class=\"primary\">Wyślij odpowiedź</button></form>";
+    content += currentUser in object(game.answers) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && room.settings?.gamePassesEnabled !== false && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="liar-edit-form" class="creative-edit-form"><textarea id="liar-edit" maxlength="280" placeholder="Możesz poprawić własną odpowiedź"></textarea><button class="ghost">Popraw odpowiedź za darmo</button></form>` : ""}</div>` : "<form id=\"liar-answer-form\" class=\"liar-answer-form\"><textarea id=\"liar-answer\" maxlength=\"280\" required placeholder=\"Wpisz swoją odpowiedź...\"></textarea><button class=\"primary\">Wyślij odpowiedź</button></form>";
     content += "<p class=\"liar-timer\">Czas: <b>" + timer + "s</b></p>";
   } else if (game.phase === "discussion") {
     content += "<h2>Przeczytajcie odpowiedzi</h2><p class=\"muted\">Odpowiedzi są już podpisane nickami. Zastanówcie się, kto mógł nie mówić prawdy.</p><div class=\"liar-answers\">" + answersHtml(game, accounts, currentUser) + "</div>" + (currentUser === room.hostUid ? "<button id=\"liar-start-voting\" class=\"primary\">Przejdź do głosowania</button>" : "<p class=\"waiting-state\">Czekamy na hosta — głosowanie rozpocznie się automatycznie za <b>" + timer + "s</b>.</p>") + "<p class=\"liar-timer\">Dyskusja: <b>" + timer + "s</b></p>";
@@ -148,6 +160,7 @@ export function renderLiarGame(root, { room, accounts, currentUser }, actions) {
   }
   root.innerHTML = "<main class=\"page liar-page enter\"><section class=\"panel liar-panel\">" + content + "</section><button id=\"liar-leave\" class=\"ghost\">Wyjdź z pokoju</button></main>";
   root.querySelector("#liar-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.liarAnswer(root.querySelector("#liar-answer").value, expected); });
+  root.querySelector("#liar-edit-form")?.addEventListener("submit", event => { event.preventDefault(); actions.liarEditAnswer(root.querySelector("#liar-edit").value, expected); });
   root.querySelectorAll("[data-liar-vote]").forEach(button => button.addEventListener("click", () => actions.liarVote(button.dataset.liarVote, expected)));
   root.querySelector("#liar-start-voting")?.addEventListener("click", () => actions.liarStartVoting(expected));
   root.querySelector("#liar-next")?.addEventListener("click", () => actions.liarNext());

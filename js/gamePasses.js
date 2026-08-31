@@ -5,12 +5,15 @@ const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
 export const GAMEPASS_DEFINITIONS = [
   { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:10000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
   { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:10000, scope:"Impostor", maxLevel:5, upgradePrices:[4000,5000,6000,7000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
-  { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:9000, scope:"Kim jestem?", description:"Raz na rundę pozwala podejrzeć dodatkową literę własnego hasła." },
-  { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwa dyskretne podpowiedniki o twoim ukrytym numerze w jednej grze." },
-  { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:9500, scope:"Wavelength", description:"Po podpowiedzi pokazuje właścicielowi celu delikatny podgląd szerokości strefy punktowanej." },
-  { id:"pokemon-scout", icon:"🧬", name:"Skaner Pokédex", price:12000, scope:"Pokémon", description:"Raz na rundę podświetla bezpieczną wskazówkę dotyczącą zadania Pokémon." },
-  { id:"survivor-charm", icon:"🍀", name:"Amulet przetrwania", price:11000, scope:"Zatruty cukierek", description:"Raz w całej grze chroni przed pierwszym pechowym wyborem." },
-  { id:"creative-license", icon:"💡", name:"Licencja kreatywności", price:7500, scope:"Tryby kreatywne", description:"Daje jeden dodatkowy ruch ratunkowy w trybach odpowiedzi i głosowania." },
+  { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:9000, scope:"Kim jestem?", description:"Raz na rundę pokazuje jedną literę własnego hasła za darmo." },
+  { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwie szerokie, nieprecyzyjne podpowiedzi o twoim numerze w jednej grze." },
+  { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:9500, scope:"Wavelength", description:"Raz na rundę pokazuje szeroki, nieprecyzyjny zakres celu — nigdy dokładnego miejsca." },
+  { id:"pokemon-scout", icon:"🧬", name:"Skaner Pokédex", price:12000, scope:"Pokémon", description:"Raz na rundę pokazuje małą, bezpieczną wskazówkę do zadania Pokémon." },
+  { id:"survivor-charm", icon:"🍀", name:"Amulet przetrwania", price:11000, scope:"Zatruty cukierek", description:"Raz w grze absorbuje trafienie tylko przy realnym ryzyku utraty wszystkich żyć; nie działa przy 1 życiu." },
+  { id:"creative-license", icon:"💡", name:"Licencja kreatywności", price:7500, scope:"Tryby kreatywne", description:"Raz w grze pozwala poprawić własną odpowiedź; w Tajnej zasadzie odblokowuje wcześniejsze zgadywanie." },
+  { id:"wavelength-second-chance", icon:"↺", name:"Drugi pomiar", price:7000, scope:"Wavelength", description:"Raz na grę po pierwszym nietrafionym pomiarze pokazuje tylko kierunek celu i daje drugi pomiar." },
+  { id:"proof-last-chance", icon:"⏳", name:"Ostatnia szansa", price:6500, scope:"Udowodnij", description:"Raz na grę po skończeniu czasu odpowiedzi dodaje 8 sekund na ostatnią próbę." },
+  { id:"clock-second-chance-pass", icon:"⏱️", name:"Drugi pomiar", price:7000, scope:"Zegar", description:"Raz na grę pozwala wykonać drugi pomiar i zachowuje bliższy wynik." },
 ];
 
 export const IN_GAME_PURCHASES = [

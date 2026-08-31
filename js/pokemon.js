@@ -1,5 +1,6 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20260822-1";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -53,16 +54,17 @@ function loseLastLetterHeart(game, uid, settings) {
 
 export function createPokemonGame(mode, players, settings) {
   const scores = scoreMap(players);
-  if (mode === "pokemon-dex") return { mode, phase:"answers", round:1, scores, target:pickTarget(settings).id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] };
-  if (mode === "pokemon-last-letter") { const hearts=Math.max(1,Math.min(5,Number(settings.hearts)||3)); return { mode, phase:"chain", round:1, scores, order:[...players], turnIndex:0, chain:[], chainAuthors:[], usedIds:[], hearts:Object.fromEntries(players.map(uid=>[uid,hearts])), eliminated:[], phaseEndsAt:phaseEnd(settings.answerTime) }; }
-  if (mode === "pokemon-evolution") { const base = pickEvolutionBase(settings); return { mode, phase:"answers", round:1, scores, baseId:base.id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[] }; }
+  const extras = { passUses:{}, scoutHints:{} };
+  if (mode === "pokemon-dex") return { mode, phase:"answers", round:1, scores, target:pickTarget(settings).id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[], ...extras };
+  if (mode === "pokemon-last-letter") { const hearts=Math.max(1,Math.min(5,Number(settings.hearts)||3)); return { mode, phase:"chain", round:1, scores, order:[...players], turnIndex:0, chain:[], chainAuthors:[], usedIds:[], hearts:Object.fromEntries(players.map(uid=>[uid,hearts])), eliminated:[], phaseEndsAt:phaseEnd(settings.answerTime), ...extras }; }
+  if (mode === "pokemon-evolution") { const base = pickEvolutionBase(settings); return { mode, phase:"answers", round:1, scores, baseId:base.id, answers:{}, phaseEndsAt:phaseEnd(settings.answerTime), usedTargets:[], ...extras }; }
   if (mode === "pokemon-auction") {
     const teamSize = Number(settings.teamSize) || 6;
     const items = [...candidates(settings)].sort(() => Math.random() - .5).slice(0, Math.max(4, teamSize * players.length));
-    return { mode, phase:"auction", round:1, scores, teamSize:Math.max(2,Math.min(10,teamSize)), items:items.map(item => item.id), auctionIndex:0, budgets:Object.fromEntries(players.map(uid => [uid, Number(settings.budget) || 50])), teams:Object.fromEntries(players.map(uid => [uid, []])), purchases:Object.fromEntries(players.map(uid => [uid, []])), currentBid:0, highestBidder:"", passed:[], phaseEndsAt:phaseEnd(10) };
+    return { mode, phase:"auction", round:1, scores, teamSize:Math.max(2,Math.min(10,teamSize)), items:items.map(item => item.id), auctionIndex:0, budgets:Object.fromEntries(players.map(uid => [uid, Number(settings.budget) || 50])), teams:Object.fromEntries(players.map(uid => [uid, []])), purchases:Object.fromEntries(players.map(uid => [uid, []])), currentBid:0, highestBidder:"", passed:[], phaseEndsAt:phaseEnd(10), ...extras };
   }
-  if (mode === "pokemon-match-type") { const hearts=Math.max(1,Math.min(5,Number(settings.hearts)||3)); return { mode, phase:"answers", round:1, scores, target:pickTarget(settings).id, answers:{}, hearts:Object.fromEntries(players.map(uid=>[uid,hearts])), eliminated:[], phaseEndsAt:phaseEnd(settings.answerTime) }; }
-  return { mode:"pokemon-types", phase:"choose", round:1, scores, selectedTypes:{}, blockedPairs:[], answers:{}, phaseEndsAt:phaseEnd(settings.selectTime) };
+  if (mode === "pokemon-match-type") { const hearts=Math.max(1,Math.min(5,Number(settings.hearts)||3)); return { mode, phase:"answers", round:1, scores, target:pickTarget(settings).id, answers:{}, hearts:Object.fromEntries(players.map(uid=>[uid,hearts])), eliminated:[], phaseEndsAt:phaseEnd(settings.answerTime), ...extras }; }
+  return { mode:"pokemon-types", phase:"choose", round:1, scores, selectedTypes:{}, blockedPairs:[], answers:{}, phaseEndsAt:phaseEnd(settings.selectTime), ...extras };
 }
 
 function finishDex(game, players, settings = {}) {
@@ -124,6 +126,37 @@ function loseMatchTypeHeart(game, uid, settings) {
 }
 
 export const PokemonEngine = {
+  useScout(game, uid, players = [], settings = {}) {
+    if (game.phase === "result") return "Ta runda jest już zakończona.";
+    game.passUses ||= {};
+    if (game.passUses[uid]?.["pokemon-scout"] === Number(game.round || 1)) return "Skaner został już użyty w tej rundzie.";
+    let text = "";
+    if (game.mode === "pokemon-dex") {
+      const target = pokemonDex.find(item => item.id === game.target);
+      text = target ? `Cel pochodzi z generacji ${target.generation}.` : "Cel jest w wybranej puli Pokémonów.";
+    } else if (game.mode === "pokemon-evolution") {
+      const base = pokemonDex.find(item => item.id === game.baseId);
+      const sibling = pokemonDex.find(item => item.evolutionChain === base?.evolutionChain && item.id !== base?.id);
+      text = sibling ? `W tej linii występuje też ${sibling.name}.` : "Cel ma co najmniej jedną powiązaną ewolucję.";
+    } else if (game.mode === "pokemon-match-type") {
+      const target = pokemonDex.find(item => item.id === game.target);
+      text = target?.types?.length ? `Ten Pokémon ma ${target.types.length} typ${target.types.length === 1 ? "" : "y"}.` : "Sprawdź dokładnie wszystkie typy celu.";
+    } else if (game.mode === "pokemon-types") {
+      const selected = Object.values(game.selectedTypes || {});
+      text = selected.length ? `Wspólny Pokémon musi mieć typ: ${selected[0]}.` : "Wybierz typ przed skanowaniem celu.";
+    } else if (game.mode === "pokemon-last-letter") {
+      const previous = game.chain?.at(-1), required = previous ? clean(previous.name).slice(-1).toUpperCase() : "DOWOLNA";
+      text = required === "DOWOLNA" ? "Pierwsza odpowiedź może zaczynać się dowolną literą." : `Następna nazwa zaczyna się na literę ${required}.`;
+    } else if (game.mode === "pokemon-auction") {
+      const target = pokemonDex.find(item => item.id === game.items?.[game.auctionIndex]);
+      text = target ? `Cel ma ${target.types?.length || 1} typ${target.types?.length === 1 ? "" : "y"} i pochodzi z generacji ${target.generation}.` : "Sprawdź aktualnie licytowanego Pokémona.";
+    }
+    if (!text) return "Skaner nie ma jeszcze bezpiecznej wskazówki.";
+    game.scoutHints ||= {};
+    game.scoutHints[uid] = { round:Number(game.round || 1), text };
+    game.passUses[uid] = { ...(game.passUses[uid] || {}), "pokemon-scout":Number(game.round || 1) };
+    return null;
+  },
   matchType(game, uid, types, players, settings) {
     if (game.mode !== "pokemon-match-type" || game.phase !== "answers") return "Ta runda jest już zakończona.";
     game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
@@ -256,7 +289,11 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   if (game.mode === "pokemon-auction") { game.purchases=game.purchases&&typeof game.purchases==="object"&&!Array.isArray(game.purchases)?game.purchases:{}; const item = pokemonDex.find(row => row.id === game.items[game.auctionIndex]); const budget = game.budgets[currentUser] || 0; body = `<div class="pokemon-auction-layout"><div><p class="eyebrow">LICYTACJA TEAMU POKÉMONÓW</p><h1>Aukcja ${game.auctionIndex + 1}/${game.items.length}</h1>${item?card(item):"<p class=muted>Brak Pokémona do licytacji.</p>"}<p class="muted">Aktualna oferta: ${game.currentBid}$ · Budżet: ${budget}$</p>${timerMarkup(game)}<form class="pokemon-bid-form"><input id="pokemon-bid" type="number" min="${game.currentBid + 1}" max="${budget}" placeholder="Oferta"><button class="primary" type="submit">Licytuj</button><button class="ghost" id="pokemon-pass" type="button">Pas</button></form>${auctionStatusMarkup(game, accounts, currentUser)}</div>${auctionTeamMarkup(game,accounts,currentUser)}</div>`; }
   if (game.mode === "pokemon-types") { body = game.phase === "choose" ? `<p class="eyebrow">TYPY NA START</p><h1>Wybierz typ</h1><p class="muted">Każdy gracz wybiera jeden typ. Potem znajdźcie wspólnego Pokémona.</p>${timerMarkup(game)}<div class="pokemon-types">${pokemonTypes.map(type => `<button class="pokemon-type-button pokemon-type-${type}" data-pokemon-type="${type}" data-type-symbol="${typeSymbols[type]}" ${game.selectedTypes[currentUser] ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div>` : `<p class="eyebrow">ODPOWIEDŹ</p><h1>Znajdź Pokémona tych typów</h1><div class="pokemon-picked-types">${Object.values(game.selectedTypes).map(type => `<span class="pokemon-picked-type pokemon-type-${type}">${typeNames[type]}</span>`).join("")}</div>${timerMarkup(game)}${pokemonAnswerFormMarkup("answer")}`; }
   if (game.mode === "pokemon-match-type") { const target = pokemonDex.find(item => item.id === game.target), submitted = Boolean(game.answers?.[currentUser]); body = `<div class="pokemon-match-layout"><div><p class="eyebrow">DOPASUJ TYP · RUNDA ${game.round}</p><h1>Jakie typy ma ten Pokémon?</h1><div class="pokemon-match-target">${matchTypeCard(target)}</div><p class="muted">Zaznacz wszystkie typy tego Pokémona i zatwierdź odpowiedź.</p>${timerMarkup(game)}<div class="pokemon-types pokemon-match-types">${pokemonTypes.map(type => `<button class="pokemon-type-button pokemon-type-${type} ${game.answers?.[currentUser]?.includes(type) ? "is-selected" : ""}" data-pokemon-match-type="${type}" data-type-symbol="${typeSymbols[type]}" ${submitted ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div><button class="primary pokemon-match-submit" data-pokemon-match-submit ${submitted ? "disabled" : ""}>Sprawdź</button></div>${matchTypePlayers(game, accounts, settings)}</div>`; }
-  root.innerHTML = `<main class="page pokemon-game-page enter"><section class="panel pokemon-panel">${body}</section></main>`;
+  const scoutOwned = hasGamePass(accounts?.[currentUser], "pokemon-scout") && room.settings?.gamePassesEnabled !== false;
+  const scoutHint = game.scoutHints?.[currentUser]?.round === Number(game.round || 1) ? game.scoutHints[currentUser].text : "";
+  const scoutUsed = game.passUses?.[currentUser]?.["pokemon-scout"] === Number(game.round || 1);
+  const scoutPanel = scoutOwned ? `<section class="pokemon-scout-panel">${scoutHint ? `<b>🧬 Wskazówka Skanera Pokédex</b><span>${escapeHtml(scoutHint)}</span>` : `<button class="ghost" data-pokemon-scout ${scoutUsed ? "disabled" : ""}>🧬 Użyj Skanera Pokédex</button>`}</section>` : "";
+  root.innerHTML = `<main class="page pokemon-game-page enter"><section class="panel pokemon-panel">${scoutPanel}${body}</section></main>`;
   const expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt, round:game.round, mode:game.mode, activeUid:current };
   const form = root.querySelector("[data-pokemon-form]"); form?.addEventListener("submit", event => { event.preventDefault(); if (root.querySelector("#pokemon-answer")?.disabled) return; actions.pokemonAnswer(root.querySelector("#pokemon-answer").value, expected); });
   root.querySelector("[data-pokemon-evolution-form]")?.addEventListener("submit", event => { event.preventDefault(); const inputs=[...root.querySelectorAll("[data-pokemon-evolution-input]")]; if (inputs.some(input=>input.disabled)) return; actions.pokemonAnswer(inputs.map(input=>input.value), expected); });
@@ -287,6 +324,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const matchSelection = new Set(game.answers?.[currentUser] || []);
   root.querySelectorAll("[data-pokemon-match-type]").forEach(button => button.addEventListener("click", () => { const type=button.dataset.pokemonMatchType; if (matchSelection.has(type)) { matchSelection.delete(type); button.classList.remove("is-selected"); } else { matchSelection.add(type); button.classList.add("is-selected"); } }));
   root.querySelector("[data-pokemon-match-submit]")?.addEventListener("click", () => actions.pokemonMatchType([...matchSelection], expected));
+  root.querySelector("[data-pokemon-scout]")?.addEventListener("click", () => actions.pokemonUseScout());
   root.querySelector(".pokemon-bid-form")?.addEventListener("submit", event => { event.preventDefault(); actions.pokemonBid(root.querySelector("#pokemon-bid").value, expected); });
   root.querySelector("#pokemon-pass")?.addEventListener("click", () => actions.pokemonPass(expected));
   root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound);

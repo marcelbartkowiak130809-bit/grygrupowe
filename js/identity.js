@@ -3,6 +3,7 @@ import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./ut
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
+import { hasGamePass } from "./gamePasses.js?v=20260831-4";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));
@@ -133,6 +134,9 @@ export function createIdentityGame(players, settings, customWords = {}) {
     responses: {},
     extendVotes: {},
     pending: null,
+    letterHints: {},
+    passUses: {},
+    purchaseUses: {},
     scores: Object.fromEntries(players.map(uid => [uid, 0])),
     phaseEndsAt: now() + s.turnTime * 1000,
   };
@@ -146,6 +150,9 @@ function normalizeIdentityGame(game, players = []) {
   game.words = objectOrEmpty(game.words);
   game.wordCategories = objectOrEmpty(game.wordCategories);
   game.categoryUsage = objectOrEmpty(game.categoryUsage);
+  game.letterHints = objectOrEmpty(game.letterHints);
+  game.passUses = objectOrEmpty(game.passUses);
+  game.purchaseUses = objectOrEmpty(game.purchaseUses);
   game.order = Array.isArray(game.order) ? game.order : (players.length ? [...players] : Object.keys(game.words));
   if (!Number.isFinite(Number(game.turnIndex))) game.turnIndex = 0;
   if (!Number.isFinite(Number(game.round))) game.round = 1;
@@ -212,6 +219,27 @@ function settleExtendVote(game, players, settingsRaw, forceEnd = false) {
 }
 
 export const IdentityEngine = {
+  revealLetter(game, uid, settingsRaw, source = "identity-insight") {
+    const settings = settingsWithDefaults(settingsRaw);
+    normalizeIdentityGame(game);
+    if (game.phase === "results") return "Gra jest już zakończona.";
+    const word = String(game.words?.[uid] || "");
+    if (!word) return "Nie znaleziono twojego hasła.";
+    const round = Math.max(1, Number(game.round) || 1);
+    const previous = game.letterHints?.[uid];
+    if (previous?.round === round) return "W tej rundzie znasz już podpowiedź.";
+    if (source === "identity-letter" && game.purchaseUses?.[uid]?.[source] === round) return "Ta litera została już kupiona w tej rundzie.";
+    const visible = [...word].map((letter, index) => ({ letter, index })).filter(item => /\S/.test(item.letter));
+    if (!visible.length) return "To hasło nie ma litery do pokazania.";
+    const picked = visible[Math.floor(Math.random() * visible.length)];
+    game.letterHints[uid] = { round, index:picked.index, letter:picked.letter, source };
+    if (source === "identity-letter") {
+      game.purchaseUses[uid] = { ...(game.purchaseUses[uid] || {}), [source]:round };
+    } else {
+      game.passUses[uid] = { ...(game.passUses[uid] || {}), [source]:round };
+    }
+    return null;
+  },
   submit(game, uid, text, type, settingsRaw, customWords) {
     const settings = settingsWithDefaults(settingsRaw);
     normalizeIdentityGame(game);
@@ -373,6 +401,16 @@ function voiceTurnHtml(me, active, accounts, gameFlow) {
     : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>${external ? "Odpowiedzcie poza strona. Gra przejdzie dalej, gdy aktywny gracz kliknie, ze zadal pytanie, albo skonczy sie czas." : "Po pytaniu gra przelaczy ekran na odpowiedzi grupy."}</p>${external ? "" : '<button id="identity-enable-mic">Polacz mikrofon</button>'}</div>`;
 }
 
+function identityHintHtml(game, accounts, currentUser, settings = {}) {
+  const hint = game.letterHints?.[currentUser];
+  const owned = settings.gamePassesEnabled !== false && hasGamePass(accounts?.[currentUser], "identity-insight");
+  const paidUsed = game.purchaseUses?.[currentUser]?.["identity-letter"] === Number(game.round || 1);
+  const round = Number(game.round || 1);
+  if (hint?.round === round) return `<div class="identity-private-hint"><b>🔍 Twoja podpowiedź</b><span>Litera #${Number(hint.index) + 1}: <strong>${escapeHtml(hint.letter)}</strong></span></div>`;
+  if (owned) return `<button class="ghost identity-hint-button" data-identity-insight>🔍 Pokaż jedną literę za darmo</button>`;
+  return settings.gamePurchases === false ? "" : `<button class="ghost identity-hint-button" data-identity-letter ${paidUsed ? "disabled" : ""}>🔤 Kup jedną literę za 500$</button>`;
+}
+
 function voiceControlsHtml(actions) {
   const state = actions.identityVoiceState?.() || {};
   const label = state.error ? "Blad mikrofonu" : state.requesting ? "Prosba o mikrofon..." : !state.connected ? "Mikrofon nieaktywny" : state.manualMuted ? "Wyciszony recznie" : state.allowedToSpeak ? "Mikrofon aktywny" : "Wyciszony przez ture";
@@ -409,7 +447,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
     ? `<section class="panel center identity-results"><h1>Koniec gry</h1><div class="final-ranking">${Object.entries(g.scores).sort((a,b) => b[1] - a[1]).map(([uid,n], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${n} pkt</strong></article>`).join("")}</div><h2>Kto kim byl</h2>${resultsHistory(g, accounts)}<button class="primary" id="identity-again">Wroc do lobby</button></section>`
     : g.phase === "extendVote"
       ? `<section class="panel identity-main center"><div class="game-top"><div><p class="eyebrow">DOGRYWKA</p><h1>Dodajemy jeszcze jedną rundę?</h1></div>${timer(g)}</div><p class="muted">Głosowanie kończy grę, jeżeli grupa nie chce dogrywki.</p><div class="choice-row"><button class="primary" data-identity-extend="true">Dodaj rundę</button><button data-identity-extend="false">Kończymy</button></div><div class="vote-details">${Object.entries(g.extendVotes || {}).map(([uid, vote]) => `<span>${escapeHtml(accounts[uid]?.nick || "Gracz")}: ${vote ? "jeszcze jedna" : "koniec"}</span>`).join("")}</div></section>`
-      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts, s.gameFlow)) : responsesHtml(g, currentUser, accounts, answers, s)}</section>`;
+      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${identityHintHtml(g, accounts, currentUser, s)}${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts, s.gameFlow)) : responsesHtml(g, currentUser, accounts, answers, s)}</section>`;
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 
@@ -429,6 +467,8 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
   }));
   root.querySelectorAll("[data-identity-response]").forEach(b => b.addEventListener("click", () => actions.identityRespond(b.dataset.identityResponse)));
   root.querySelectorAll("[data-identity-extend]").forEach(b => b.addEventListener("click", () => actions.identityExtendVote(b.dataset.identityExtend === "true")));
+  root.querySelector("[data-identity-insight]")?.addEventListener("click", () => actions.identityRevealLetter("identity-insight"));
+  root.querySelector("[data-identity-letter]")?.addEventListener("click", () => actions.identityRevealLetter("identity-letter"));
   if (g.phase !== "results") startTimer(actions);
 }
 
