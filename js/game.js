@@ -4,7 +4,7 @@ import { playerMini } from "./room.js?v=20260822-1";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { canonicalAnswerKey } from "../content/udowodnij/expandedPools.js?v=20260604-8";
-import { serverNow } from "./firebase.js?v=20260822-21";
+import { serverNow } from "./firebase.js?v=20260831-25";
 
 let timerId;
 let lastCountdown;

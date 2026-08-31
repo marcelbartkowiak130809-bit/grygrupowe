@@ -27,7 +27,7 @@ import { ConnectEngine } from "./connect.js?v=20260831-3";
 import { LiarEngine } from "./liar.js?v=20260831-3";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-3";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
-import { serverNow } from "./firebase.js?v=20260822-21";
+import { serverNow } from "./firebase.js?v=20260831-25";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
