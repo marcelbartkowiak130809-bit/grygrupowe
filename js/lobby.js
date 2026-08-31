@@ -56,7 +56,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
 
 export function createRoomModal(mode, actions) {
   const backdrop = document.createElement("div");
-  backdrop.className = "modal-backdrop";
+  backdrop.className = "modal-backdrop room-create-backdrop";
   let roomType = "standard";
   let entryFee = ENTRY_FEE_OPTIONS[0];
   let maxPlayers = mode.maxPlayers;

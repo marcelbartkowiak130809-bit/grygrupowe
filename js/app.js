@@ -34,7 +34,7 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260830-1";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-2";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-3";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-5";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
@@ -1793,8 +1793,8 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   removeAvatar(){updateProfile({avatarImage:""});message("Zdjęcie profilowe usunięte.","info");},
   setColorblindMode(enabled){updateProfile({colorblindMode:Boolean(enabled)});},
-  openCreateRoom() { const mode = getGameMode(state.selectedGameMode); if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info"); const modal = createRoomModal(mode, actions); document.body.append(modal); Audio.play("modalOpen"); },
-  closeModal(modal) { modal.remove(); Audio.play("modalClose"); },
+  openCreateRoom() { const mode = getGameMode(state.selectedGameMode); if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info"); const modal = createRoomModal(mode, actions); document.body.append(modal); moveHappyHourBannerBelowRoomModal(modal); Audio.play("modalOpen"); },
+  closeModal(modal) { restoreHappyHourBannerFromRoomModal(modal); modal.remove(); Audio.play("modalClose"); },
   inviteLink(roomId = state.activeRoomId) { const room = typeof roomId === "object" ? roomId : state.rooms.find(item=>item.roomId===roomId) || activeRoom(); return room ? roomInviteLink(room) : ""; },
   async copyInviteLink(roomId = state.activeRoomId) {
     const link = actions.inviteLink(roomId); if(!link)return false;
@@ -2274,9 +2274,14 @@ function renderHappyHourBanner() {
   if (!event) { if (nextChange) happyHourRefreshTimer = window.setTimeout(() => { if (root.isConnected) render(); }, Math.max(100, nextChange - serverNow() + 80)); return; }
   root.insertAdjacentHTML("beforeend", happyHourBannerHtml(event));
   const banner = root.querySelector(".happy-hour-banner"), countdown = banner?.querySelector("[data-happy-hour-countdown]");
+  const roomCreateBackdrop = document.querySelector(".room-create-backdrop");
+  if (roomCreateBackdrop?.querySelector(".modal")) {
+    roomCreateBackdrop.append(banner);
+    banner.classList.add("happy-hour-banner--below-modal");
+  }
   const seenKey = `happy-hour-seen:${event.eventId}`;
   if (!localStorage.getItem(seenKey)) { localStorage.setItem(seenKey, "1"); message(`${event.icon} Happy Hour: ${event.label}`, "info"); }
-  root.classList.add("has-happy-hour-banner");
+  if (!banner.classList.contains("happy-hour-banner--below-modal")) root.classList.add("has-happy-hour-banner");
   const syncBannerLayout = () => {
     if (!banner?.isConnected) return;
     const topbar = root.querySelector(".topbar");
@@ -2297,6 +2302,24 @@ function renderHappyHourBanner() {
     if (countdown) countdown.textContent = formatHappyHourCountdown(left);
     if (!left) { window.clearInterval(happyHourTimer); happyHourTimer = 0; banner.remove(); render(); }
   }, 1000);
+}
+
+function moveHappyHourBannerBelowRoomModal(backdrop) {
+  const banner = document.querySelector(".happy-hour-banner");
+  if (!banner || !backdrop?.querySelector(".modal")) return;
+  backdrop.append(banner);
+  banner.classList.add("happy-hour-banner--below-modal");
+  root.classList.remove("has-happy-hour-banner");
+  root.style.removeProperty("--happy-hour-height");
+}
+
+function restoreHappyHourBannerFromRoomModal(backdrop) {
+  const banner = backdrop?.querySelector(".happy-hour-banner");
+  if (!banner) return;
+  banner.classList.remove("happy-hour-banner--below-modal");
+  root.append(banner);
+  root.classList.add("has-happy-hour-banner");
+  root.style.setProperty("--happy-hour-height", `${Math.ceil(banner.getBoundingClientRect().height)}px`);
 }
 
 const roundAdvanceControls = {
