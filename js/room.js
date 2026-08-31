@@ -143,6 +143,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const openSlots = room.status === "lobby" ? Math.min(1, Math.max(0, roomCapacity - room.players.length)) : 0;
   const inviteLink = actions.inviteLink?.(room) || "";
   const activity = Array.isArray(room.activity) ? room.activity.slice().reverse() : [];
+  const activityPanel = activity.length ? `<section class="panel room-activity-panel"><div class="section-heading"><div><p class="eyebrow">OSTATNIE ZDARZENIA</p><h2>Aktywność pokoju</h2></div><span class="badge">${activity.length}</span></div><div class="room-activity-list">${activity.map(item => `<div class="room-activity-item"><i></i><span>${escapeHtml(item.text)}</span><time>${new Date(Number(item.createdAt)||Date.now()).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</time></div>`).join("")}</div></section>` : "";
   room.viewerUid = currentUser;
   root.innerHTML = `<main class="page room-page enter">
     <section class="panel room-header">
@@ -153,7 +154,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}${commerceSummaryHtml(room.gameMode, room.settings, { readOnly:true })}</section>
       <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button>${inviteFriendButton}</div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
-    <section class="panel room-activity-panel"><div class="section-heading"><div><p class="eyebrow">OSTATNIE ZDARZENIA</p><h2>Aktywność pokoju</h2></div><span class="badge">${activity.length}</span></div>${activity.length ? `<div class="room-activity-list">${activity.map(item => `<div class="room-activity-item"><i></i><span>${escapeHtml(item.text)}</span><time>${new Date(Number(item.createdAt)||Date.now()).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</time></div>`).join("")}</div>` : `<p class="muted">Tutaj pojawią się najważniejsze informacje o lobby.</p>`}</section>
+    ${activityPanel}
     <div class="section-intro"><div><p class="eyebrow">EKIPA</p><h2>Gracze w pokoju</h2>${(canAddBots || botIds(room).length) ? `<p class="bot-experimental-note" ${botTooltip}>🤖 Boty są funkcją testową · ${BOT_NOTICE}</p>` : ""}</div><span class="badge">${room.players.length}/${roomCapacity}</span></div>
     <section class="player-grid">${room.players.map(uid => `<article class="player-card">
       ${uid === room.hostUid ? `<span class="crown">${icon("crown", 20)}</span>` : ""}
