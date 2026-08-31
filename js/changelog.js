@@ -18,6 +18,31 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v4.2.0",
+      date: "2026-08-31",
+      title: "Gamepassy, zakupy i wygodniejsze pokoje",
+      changes: [
+        "Dodano kompletny system gamepassów z ulepszeniami konta i efektami przypisanymi do konkretnych trybów.",
+        "Dodano opcjonalne zakupy w trakcie gry, które host może włączyć albo wyłączyć przy tworzeniu pokoju.",
+        "Dodano w lobby sekcję zakupów i gamepassów z krótkimi opisami działania oraz podglądem dostępnych dodatków.",
+        "Dodano Zestaw potek: 10 losowych potek tieru 1, 5 tieru 2 i 3 tieru 3 za 5 000$.",
+        "Dodano Mega zestaw potek: 25 losowych potek tieru 1, 15 tieru 2 i 7 tieru 3 za 10 000$.",
+        "Potki coinów działają tylko w normalnych grach, więc zakłady nie mogą służyć do przerzucania pieniędzy.",
+        "Wyważono ceny gamepassów i poziomów Rekompensaty: odblokowanie kosztuje 10 000$, a kolejne ulepszenia są tańsze.",
+        "Dopracowano Amulet przetrwania, żeby nie gwarantował wygranej i działał tylko wtedy, gdy naprawdę grozi utrata życia.",
+        "Naprawiono synchronizację i odświeżanie ekwipunku potek oraz komunikaty o używaniu posiadanych potek.",
+        "Dodano podpowiedzi gamepassów, które nie są przycinane przez modal i podążają za kursorem.",
+        "Usunięto znak zapytania pojawiający się przy kursorze na elementach z podpowiedziami.",
+        "Uproszczono okno tworzenia pokoju: szerszy układ, kafelki presetów i rodzaju pokoju oraz zwijane dodatki.",
+        "Ukryto wizualne scrollbary w oknie tworzenia pokoju, zachowując przewijanie na małych ekranach.",
+        "Poprawiono responsywność lobby i formularza tworzenia pokoju na komputerach, tabletach i telefonach.",
+        "Dopracowano Happy Hour: prostszy baner, zamykanie do końca wydarzenia i ponowne otwieranie z ikonki.",
+        "Dodano i zintegrowano nowe tryby Połącz nas, Kłamca, Fałszywa wiadomość i Tajna zasada.",
+        "Rozbudowano kolejkę odblokowywania trybów i uporządkowano ich prezentację na ekranie głównym.",
+        "Dodano bezpieczne przejście z changeloga bezpośrednio do sklepu gamepassów i dodatków.",
+      ],
+    },
+    {
       version: "v4.1.2",
       date: "2026-08-22",
       title: "Restart pokoi i odświeżenie aplikacji",
