@@ -687,8 +687,16 @@ export async function loadHonorCounts(uid) {
   const counts = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0 };
   if (!canUseRemote() || !uid) return counts;
   try {
-    const received = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `honorReceived/${uid}`))).val() || {};
+    const [receivedSnapshot, publicSnapshot, ownSnapshot] = await Promise.all([
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `honorReceived/${uid}`)).catch(() => null),
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `publicProfiles/${uid}`)).catch(() => null),
+      firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`)).catch(() => null),
+    ]);
+    const received = receivedSnapshot?.val() || {};
     Object.values(received).forEach(roomVotes => Object.values(roomVotes || {}).forEach(vote => { if (HONOR_TYPE_IDS.has(vote?.type)) counts[vote.type] += 1; }));
+    [publicSnapshot?.val()?.honorCounts, ownSnapshot?.val()?.honorCounts].forEach(source => Object.entries(source || {}).forEach(([type, value]) => {
+      if (HONOR_TYPE_IDS.has(type)) counts[type] = Math.max(counts[type], Number(value) || 0);
+    }));
   } catch {}
   return counts;
 }

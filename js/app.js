@@ -3,7 +3,7 @@ import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260831-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260831-2";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-25";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-26";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
 import { gamesList, getGameMode } from "./games.js?v=20260831-3";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-6";
@@ -44,7 +44,7 @@ import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } 
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-4";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20260831-25";
+import { loadPresenceUsers } from "./firebase.js?v=20260831-26";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260831-6";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
@@ -1647,7 +1647,16 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   openAccount() {
     if (!profile()) return actions.openAuth({ title: "Zaloguj się lub utwórz konto", description: "Konto zapisuje coiny, kosmetyki i efekty nicku." });
-    const modal = accountModal(profile(), actions); document.body.append(modal); Audio.play("modalOpen");
+    const userId=state.currentUser,initial=profile(),modal=accountModal(initial,actions); document.body.append(modal); Audio.play("modalOpen");
+    if (!initial.nickOnly) loadHonorCounts(userId).then(honors => {
+      if (!modal.isConnected || !honors) return;
+      const account=profile(); if (!account) return;
+      const honor={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(account.honorCounts||{})};
+      Object.keys(honor).forEach(type => { honor[type]=Math.max(Number(honor[type])||0,Number(honors[type])||0); });
+      account.honorCounts=honor; state.accounts[userId]=account; saveAccounts(state.accounts);
+      const summary=modal.querySelector(".honor-summary"),values=[honor.nicePlayer,honor.goodOpponent,honor.greatHost,honor.notVerySmart,honor.poorSport];
+      if (summary) { summary.querySelector(".badge").textContent=String(values.reduce((sum,value)=>sum+value,0)); summary.querySelectorAll(".honor-count strong").forEach((element,index)=>{ element.textContent=String(values[index]||0); }); }
+    }).catch(() => {});
   },
   async openPlayerProfile(targetUid) {
     const room=activeRoom();
@@ -1707,7 +1716,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async submitHonor(payload) {
     if (!payload?.targetUid || String(payload.targetUid).startsWith("bot:")) return { ok:false, error:"Botów nie można wyróżniać." };
     const result = await submitHonorRemote(payload);
-    if (result?.ok && (result.local || result.database) && state.accounts[payload.targetUid]) {
+    if (result?.ok && state.accounts[payload.targetUid]) {
       const target = state.accounts[payload.targetUid];
       target.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(target.honorCounts||{}),[payload.type]:(Number(target.honorCounts?.[payload.type])||0)+1};
       saveAccounts(state.accounts);
