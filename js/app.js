@@ -69,9 +69,15 @@ function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
   document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
 }
 function lightThemeEnabled() { return document.documentElement.classList.contains("light-theme"); }
+function normalizePotionInventory(inventory) {
+  const source = inventory && typeof inventory === "object" ? inventory : {};
+  return Object.fromEntries(Object.entries(source)
+    .map(([id, value]) => [id, Math.max(0, Math.floor(Number(value) || 0))])
+    .filter(([id, quantity]) => equipmentById[id] && quantity > 0));
+}
 applyTheme();
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory={...(account.potionInventory||{})};account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory=normalizePotionInventory(account.potionInventory);account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
 Object.values(accounts).forEach(account => { account.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(account.honorCounts||{})}; });
 saveAccounts(accounts);
 const session=loadSession();
@@ -1613,21 +1619,26 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const online = hasOnlineBackend();
     const localQuantity = Number(profile()?.potionInventory?.[itemId]) || 0;
     const isMissingPotion = value => ["failed-precondition", "functions/failed-precondition"].includes(String(value?.code || ""));
-    // The wheel can be won in one tab while the profile cache in another tab
-    // is newer than Firebase. Repair that specific inventory mismatch, then
-    // retry the server-side consume instead of showing a false empty-inventory
-    // message to a player who can already see the potion in the backpack.
+    const refreshRemotePotionInventory = async () => {
+      const remote = await loadRemoteProfile(state.currentUser);
+      if (!remote) return profile();
+      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], potionInventory:normalizePotionInventory(remote.potionInventory) };
+      saveAccounts(state.accounts);
+      return profile();
+    };
+    // Firebase is the source of truth. If an old local cache shows a potion
+    // that the server no longer has, refresh only the inventory instead of
+    // writing stale local data back over the current profile.
     if (!result?.ok && online && localQuantity > 0 && isMissingPotion(result)) {
-      await syncPlayerProfile(state.currentUser, profile());
+      await refreshRemotePotionInventory();
       result = await usePotionRemote(itemId);
     }
     const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
     if (!result?.ok && (backendUnavailable || isMissingPotion(result)) && online) {
       result = await usePotionDatabase(state.currentUser, itemId);
-      // A just-won potion may be visible locally while an older profile is
-      // still in Firebase. Repair that write and retry the atomic consume.
+      // Do not re-upload a stale local inventory after a failed server check.
       if (!result?.ok && isMissingPotion(result) && Number(profile()?.potionInventory?.[itemId]) > 0) {
-        await syncPlayerProfile(state.currentUser, profile());
+        await refreshRemotePotionInventory();
         result = await usePotionDatabase(state.currentUser, itemId);
       }
     }
@@ -1684,7 +1695,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId), isNewAccount=!remote&&!existing;
       if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }
-       state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].gamePasses={...(state.accounts[accountId].gamePasses||{})}; state.accounts[accountId].potionInventory={...(state.accounts[accountId].potionInventory||{})}; state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
+       state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].gamePasses={...(state.accounts[accountId].gamePasses||{})}; state.accounts[accountId].potionInventory=remote ? normalizePotionInventory(remote.potionInventory) : normalizePotionInventory(state.accounts[accountId].potionInventory); state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
       if(isNewAccount) trackSiteEvent({ type:"userRegistered", eventId:`user:${accountId}` });
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
@@ -2490,7 +2501,7 @@ async function checkFriendNotifications(bucket = null) {
   checkFriendNotifications.running = true;
   try {
   const local=loadAccounts(); if(local[state.currentUser])state.accounts[state.currentUser]={...state.accounts[state.currentUser],...local[state.currentUser]};
-  const remote=await loadRemoteProfile(state.currentUser); if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,friendRequests:currentFriendRequests||remote.friendRequests};}
+  const remote=await loadRemoteProfile(state.currentUser); if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,potionInventory:normalizePotionInventory(remote.potionInventory),friendRequests:currentFriendRequests||remote.friendRequests};}
   const syncedHonor=await loadHonorCounts(state.currentUser); if(syncedHonor){const account=state.accounts[state.currentUser];const current=account?.honorCounts||{};account.honorCounts=Object.fromEntries(Object.keys(syncedHonor).map(type=>[type,Math.max(Number(current[type])||0,Number(syncedHonor[type])||0)]));saveAccounts(state.accounts);}
   const remoteRequests=bucket || await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
   const previousIncomingSignature=JSON.stringify(Object.keys(requests.incoming).sort());
