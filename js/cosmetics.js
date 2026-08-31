@@ -1,6 +1,11 @@
 const item = (id, type, name, price, rarity, description, options = {}) => ({ id, type, name, price, rarity, description, ...options });
 export const rarityLabels = { common:"Common", rare:"Rare", epic:"Epic", legendary:"Legendary", mythic:"Mythic" };
 
+// Skins przypisane do jednego trybu powinny być tańsze od uniwersalnych,
+// ale nie mogą kosztować mniej niż jedna nagroda za rozegraną grę.
+const modeSpecificTypes = new Set(["bomb", "clock", "marker", "sequence", "candy"]);
+const modeSpecificMinimums = { common:800, rare:1600, epic:3200, legendary:5200, mythic:6800 };
+
 export const cosmetics = [
   item("defaultBomb","bomb","Klasyczna bomba",0,"common","Domyslna bomba do trybu Bomba."),
   item("mintBomb","bomb","Mietowy ladunek",900,"common","Jasna bomba z chlodnym blyskiem i lekkim wybuchem."),
@@ -222,7 +227,11 @@ export const cosmetics = [
   item("levelDemonFrame","frame","Rogi Arcymistrza",0,"mythic","Ekskluzywna demoniczna ramka za level 55.",{exclusive:true,requiredLevel:55}),
   item("levelVoidLose","lose","Void porazki",0,"mythic","Ekskluzywna porazka za level 80: avatar rozpada sie w szczeline pustki.",{exclusive:true,requiredLevel:80}),
   item("levelHaloAura","aura","Aureola Legendy",0,"mythic","Ekskluzywna aura za level 90.",{exclusive:true,requiredLevel:90}),
-];
+].map(cosmetic => {
+  if (!modeSpecificTypes.has(cosmetic.type) || cosmetic.price <= 0) return cosmetic;
+  const minimum = modeSpecificMinimums[cosmetic.rarity] || 0;
+  return cosmetic.price < minimum ? { ...cosmetic, price:minimum } : cosmetic;
+});
 
 const escapeAttr = value => String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char]);
 export const rarityOrder = { common:0, rare:1, epic:2, legendary:3, mythic:4 };
