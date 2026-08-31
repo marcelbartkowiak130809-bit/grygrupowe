@@ -3,7 +3,7 @@ import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./ut
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { hasGamePass } from "./gamePasses.js?v=20260831-4";
+import { hasGamePass } from "./gamePasses.js?v=20260831-5";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));

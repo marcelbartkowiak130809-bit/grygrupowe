@@ -90,7 +90,7 @@ export function roomCommerceSettings(modeId, settings = {}) {
 }
 
 function commerceList(items) {
-  return items.length ? `<div class="commerce-available-list">${items.map(item => `<span class="commerce-chip" data-commerce-tooltip="${escapeHtml(`${item.icon} ${item.name} — ${item.description}`)}"><b>${item.icon}</b>${escapeHtml(item.name)}<small>${money(item.price)}</small></span>`).join("")}</div>` : "";
+  return items.length ? `<div class="commerce-available-list">${items.map(item => `<span class="commerce-chip" tabindex="0" role="note" data-commerce-tooltip="${escapeHtml(`${item.icon} ${item.name} — ${item.description}`)}"><b>${item.icon}</b>${escapeHtml(item.name)}<small>${money(item.price)}</small></span>`).join("")}</div>` : "";
 }
 
 export function commerceCreationHtml(modeId, settings = {}, options = {}) {

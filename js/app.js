@@ -6,7 +6,7 @@ import { cosmetics } from "./cosmetics.js?v=20260831-2";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-24";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
 import { gamesList, getGameMode } from "./games.js?v=20260831-3";
-import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-4";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-5";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-3";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
@@ -711,6 +711,81 @@ function message(text, type = "error") {
   const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = text; document.body.append(toast);
   setTimeout(() => toast.remove(), 3200);
 }
+let commerceTooltip = null;
+let commerceTooltipOwner = null;
+let commerceTooltipFrame = 0;
+let commerceTooltipPoint = null;
+function commerceChipFromTarget(target) { return target?.closest?.(".commerce-chip") || null; }
+function ensureCommerceTooltip() {
+  if (commerceTooltip?.isConnected) return commerceTooltip;
+  commerceTooltip = document.createElement("div");
+  commerceTooltip.className = "commerce-tooltip";
+  commerceTooltip.setAttribute("role", "tooltip");
+  commerceTooltip.hidden = true;
+  document.body.append(commerceTooltip);
+  return commerceTooltip;
+}
+function positionCommerceTooltip() {
+  commerceTooltipFrame = 0;
+  if (!commerceTooltipOwner || !commerceTooltip?.isConnected || commerceTooltip.hidden) return;
+  const point = commerceTooltipPoint || (() => { const rect = commerceTooltipOwner.getBoundingClientRect(); return { x:rect.right, y:rect.top }; })();
+  const tooltipRect = commerceTooltip.getBoundingClientRect(), gap = 14, margin = 12;
+  let left = point.x + gap, top = point.y + gap;
+  if (left + tooltipRect.width > window.innerWidth - margin) left = point.x - tooltipRect.width - gap;
+  if (top + tooltipRect.height > window.innerHeight - margin) top = point.y - tooltipRect.height - gap;
+  left = Math.max(margin, Math.min(left, window.innerWidth - tooltipRect.width - margin));
+  top = Math.max(margin, Math.min(top, window.innerHeight - tooltipRect.height - margin));
+  commerceTooltip.style.left = `${Math.round(left)}px`;
+  commerceTooltip.style.top = `${Math.round(top)}px`;
+}
+function scheduleCommerceTooltipPosition(point) {
+  commerceTooltipPoint = point;
+  if (!commerceTooltipFrame) commerceTooltipFrame = requestAnimationFrame(positionCommerceTooltip);
+}
+function showCommerceTooltip(chip, point) {
+  const text = chip?.dataset?.commerceTooltip;
+  if (!text) return;
+  commerceTooltipOwner = chip;
+  const tooltip = ensureCommerceTooltip();
+  tooltip.textContent = text;
+  tooltip.hidden = false;
+  scheduleCommerceTooltipPosition(point);
+}
+function hideCommerceTooltip(chip = commerceTooltipOwner) {
+  if (chip && commerceTooltipOwner && chip !== commerceTooltipOwner) return;
+  commerceTooltipOwner = null;
+  commerceTooltipPoint = null;
+  if (commerceTooltip) commerceTooltip.hidden = true;
+  if (commerceTooltipFrame) { cancelAnimationFrame(commerceTooltipFrame); commerceTooltipFrame = 0; }
+}
+document.addEventListener("pointerover", event => {
+  const chip = commerceChipFromTarget(event.target);
+  if (!chip) return;
+  showCommerceTooltip(chip, { x:event.clientX, y:event.clientY });
+});
+document.addEventListener("pointermove", event => {
+  if (!commerceTooltipOwner) return;
+  const chip = commerceChipFromTarget(event.target);
+  if (chip !== commerceTooltipOwner) return;
+  scheduleCommerceTooltipPosition({ x:event.clientX, y:event.clientY });
+});
+document.addEventListener("pointerout", event => {
+  const chip = commerceChipFromTarget(event.target), nextChip = commerceChipFromTarget(event.relatedTarget);
+  if (chip && chip === commerceTooltipOwner && nextChip !== chip) hideCommerceTooltip(chip);
+});
+document.addEventListener("focusin", event => {
+  const chip = commerceChipFromTarget(event.target);
+  if (chip) { const rect = chip.getBoundingClientRect(); showCommerceTooltip(chip, { x:rect.right, y:rect.top }); }
+});
+document.addEventListener("focusout", event => {
+  const chip = commerceChipFromTarget(event.target);
+  if (chip && commerceTooltipOwner === chip && commerceChipFromTarget(event.relatedTarget) !== chip) hideCommerceTooltip(chip);
+});
+document.addEventListener("click", event => {
+  const chip = commerceChipFromTarget(event.target);
+  if (!chip) { hideCommerceTooltip(); return; }
+  if (commerceTooltipOwner !== chip || commerceTooltip?.hidden) { const rect = chip.getBoundingClientRect(); showCommerceTooltip(chip, { x:rect.right, y:rect.top }); }
+});
 const isAdminProfile = item => String(item?.nick || "").toLowerCase() === "panda";
 function validBirthDate(value) {
   const text = String(value || "").trim();
@@ -2425,6 +2500,7 @@ function setupRoundAdvance(view, room, actions) {
 }
 
 function renderNow(options = {}) {
+  hideCommerceTooltip();
   updateDocumentTitle();
   const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
   const drafts = (options?.preserveDrafts || softRender) ? captureInputDrafts(root) : {fields:[]};

@@ -3,7 +3,7 @@ import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { botTooltip } from "./bots.js?v=20260823-2";
-import { inGamePurchaseById } from "./gamePasses.js?v=20260831-4";
+import { inGamePurchaseById } from "./gamePasses.js?v=20260831-5";
 
 let timerId;
 let lastCountdown;
