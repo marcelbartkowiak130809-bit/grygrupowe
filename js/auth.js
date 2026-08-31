@@ -1,5 +1,21 @@
 import { $, avatarHtml, escapeHtml, icon } from "./utils.js?v=20260822-1";
 
+const historyDate = value => {
+  const date = new Date(Number.isFinite(Number(value)) ? Number(value) : value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("pl-PL", { day:"2-digit", month:"2-digit", year:"numeric" });
+};
+const historyResult = value => {
+  const result = String(value || "").toLowerCase();
+  if (["win", "wygrana"].includes(result)) return { label:"Wygrana", className:"is-win" };
+  if (["draw", "remis"].includes(result)) return { label:"Remis", className:"is-draw" };
+  if (["loss", "przegrana"].includes(result)) return { label:"Przegrana", className:"is-loss" };
+  return { label:"Rozegrano", className:"" };
+};
+const accountHistoryMarkup = profile => {
+  const history = Array.isArray(profile.gameHistory) ? profile.gameHistory.slice(-8).reverse() : [];
+  return `<section class="public-profile-section account-history-section"><div class="section-heading"><div><p class="eyebrow">HISTORIA GIER</p><h3>Ostatnie gry</h3></div><span class="badge">${history.length}</span></div>${history.length ? `<div class="account-game-history">${history.map(item => { const result = historyResult(item.result); const date = historyDate(item.playedAt || item.createdAt); const points = Number.isFinite(Number(item.points)) ? `${Number(item.points)} pkt` : ""; return `<div class="account-game-history-row"><div><b>${escapeHtml(item.modeName || item.mode || "Gra")}</b><small>${escapeHtml([date, points].filter(Boolean).join(" · "))}</small></div><strong class="${result.className}">${result.label}</strong></div>`; }).join("")}</div>` : `<p class="muted">Nie rozegrano jeszcze żadnej gry.</p>`}</section>`;
+};
+
 export function authModal(actions, options = {}) {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -24,8 +40,8 @@ export function accountModal(profile, actions) {
   const privacy = { historyPublic:true, statsPublic:true, friendsPublic:true, ...(profile.privacy || {}) };
   const honor = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0, ...(profile.honorCounts || {}) };
   const birthSection = profile.birthDate
-    ? `<section class="account-info-row"><div><span class="muted">Data urodzenia</span><b>${escapeHtml(profile.birthDate)}</b><p class="tiny">Zmiana wymaga prosby do administracji.</p></div><button class="ghost" id="birth-change-request">Zmien</button></section>`
-    : `<section class="account-info-row"><div><span class="muted">Data urodzenia</span><b>nie podano</b><p class="tiny">Mozesz dodac ja raz samodzielnie. Pozniejsza zmiana wymaga administracji.</p></div><form id="birth-add-form" class="inline-date-form"><input id="birth-add-date" type="date" required><button class="primary" type="submit">Dodaj</button></form></section>`;
+    ? `<section class="account-info-row birth-date-card"><div class="birth-date-main"><span class="birth-date-icon" aria-hidden="true">🎂</span><div><span class="muted">Data urodzenia</span><b class="birth-date-value">${escapeHtml(profile.birthDate)}</b></div></div><button class="ghost" id="birth-change-request">Zmień</button></section>`
+    : `<section class="account-info-row birth-date-card"><div class="birth-date-main"><span class="birth-date-icon" aria-hidden="true">🎂</span><div><span class="muted">Data urodzenia</span><b class="birth-date-value">Nie podano</b></div></div><form id="birth-add-form" class="inline-date-form"><input id="birth-add-date" type="date" required><button class="primary" type="submit">Dodaj</button></form></section>`;
   backdrop.innerHTML=`<section class="modal account-modal enter" role="dialog" aria-modal="true" aria-labelledby="account-title">
     <div class="modal-title"><div><p class="eyebrow">TWOJE KONTO</p><h2 id="account-title">${escapeHtml(profile.nick)}</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div>
     <div class="account-summary"><div><span class="muted">Status</span><b>${profile.nickOnly?"Gosc":"Konto zapisane"}</b></div><div><span class="muted">${profile.nickOnly?"Coiny sesyjne":"Coiny"}</span><b>$${profile.nickOnly?profile.sessionMoney||0:profile.money||0}</b></div></div>
@@ -39,7 +55,8 @@ export function accountModal(profile, actions) {
     </div>
     <div class="account-tab-panel" data-account-panel="public" role="tabpanel" hidden>
       <section class="honor-summary"><div class="section-heading"><div><p class="eyebrow">HONOR</p><h3>Otrzymane wyróżnienia</h3></div><span class="badge">${honor.nicePlayer + honor.goodOpponent + honor.greatHost + honor.notVerySmart + honor.poorSport}</span></div><p class="muted">Wyróżnienia otrzymane od innych graczy po zakończeniu gier.</p><div class="honor-summary-grid"><div class="honor-count"><span>👍</span><strong>${honor.nicePlayer}</strong><small>Miły gracz</small></div><div class="honor-count"><span>🧠</span><strong>${honor.goodOpponent}</strong><small>Dobry przeciwnik</small></div><div class="honor-count"><span>🎉</span><strong>${honor.greatHost}</strong><small>Świetny host</small></div><div class="honor-count honor-count-negative"><span>🤦</span><strong>${honor.notVerySmart}</strong><small>Niezbyt inteligentny</small></div><div class="honor-count honor-count-negative"><span>🙄</span><strong>${honor.poorSport}</strong><small>Uciążliwy gracz</small></div></div></section>
-      ${profile.privacy?.statsPublic === false ? `<p class="muted">Twoje statystyki są prywatne.</p>` : `<section class="public-account-stats"><div class="section-heading"><div><p class="eyebrow">WYNIKI</p><h3>Statystyki gier</h3></div></div><div class="public-stat-grid"><div><strong>${Number(profile.gameStats?.played)||0}</strong><small>Rozegrane</small></div><div><strong>${Number(profile.gameStats?.wins)||0}</strong><small>Wygrane</small></div><div><strong>${Number(profile.gameStats?.losses)||0}</strong><small>Przegrane</small></div></div></section>`}
+       ${profile.privacy?.statsPublic === false ? `<p class="muted">Twoje statystyki są prywatne.</p>` : `<section class="public-account-stats"><div class="section-heading"><div><p class="eyebrow">WYNIKI</p><h3>Statystyki gier</h3></div></div><div class="public-stat-grid"><div><strong>${Number(profile.gameStats?.played)||0}</strong><small>Rozegrane</small></div><div><strong>${Number(profile.gameStats?.wins)||0}</strong><small>Wygrane</small></div><div><strong>${Number(profile.gameStats?.losses)||0}</strong><small>Przegrane</small></div></div></section>`}
+       ${accountHistoryMarkup(profile)}
     </div>
   </section>`;
   const close=()=>actions.closeModal(backdrop);backdrop.querySelector("[data-close]").addEventListener("click",close);

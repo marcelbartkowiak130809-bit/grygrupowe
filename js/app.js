@@ -1,4 +1,4 @@
-import { accountModal, authModal } from "./auth.js?v=20260831-1";
+import { accountModal, authModal } from "./auth.js?v=20260831-2";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260831-1";
 import { Effects } from "./effects.js";
@@ -705,6 +705,37 @@ function trackFinishedGame(room) {
   const finished=Boolean(game?.finished || room?.status==="results" || game?.phase==="gameSummary" || (game?.result?.rewarded && ["result", "results"].includes(game?.phase)));
   if(!game?.siteGameId || !finished || room.hostUid!==state.currentUser)return;
   trackSiteEvent({type:"gameFinished",eventId:`game:${game.siteGameId}`,modeId:room.gameMode,minutes:Math.max(1,Math.ceil((serverNow()-Number(game.startedAt||serverNow()))/60000))});
+}
+function gameHistoryWinners(room) {
+  const game=room?.game;if(!game)return [];
+  if(Array.isArray(game.winners)&&game.winners.length)return game.winners.filter(uid=>room.players.includes(uid));
+  if(Array.isArray(game.result?.winners)&&game.result.winners.length)return game.result.winners.filter(uid=>room.players.includes(uid));
+  if(game.winner&&room.players.includes(game.winner))return [game.winner];
+  if(room.gameMode==="udowodnij"&&game.result)return game.result.success?[game.currentBidder]:room.players.filter(uid=>uid!==game.result.loser);
+  if(room.gameMode==="impostor"&&game.result&&game.roles)return room.players.filter(uid=>game.result.citizensWin?game.roles?.[uid]?.role==="citizen":game.roles?.[uid]?.role!=="citizen");
+  if(room.gameMode==="inne-pytanie"&&game.result&&game.impostor)return game.result.caught?room.players.filter(uid=>uid!==game.impostor):[game.impostor];
+  if(game.result?.winner&&room.players.includes(game.result.winner))return [game.result.winner];
+  const source=[game.scores,game.totals,game.roundWins,game.points].find(item=>item&&typeof item==="object"&&!Array.isArray(item));
+  if(!source)return [];
+  const values=room.players.map(uid=>Number(source[uid])||0),max=Math.max(0,...values);
+  return max>0?room.players.filter(uid=>(Number(source[uid])||0)===max):[];
+}
+function recordCurrentUserGameHistory(room) {
+  const game=room?.game,playerId=state.currentUser;
+  const finished=Boolean(game?.finished||room?.status==="results"||["result","results","gameSummary"].includes(game?.phase)||game?.result?.rewarded);
+  if(!playerId||isBotId(playerId)||!game||!finished)return;
+  const player=state.accounts[playerId];if(!player)return;
+  const gameId=String(game.siteGameId||`${room.roomId}:${game.startedAt||game.createdAt||"finished"}`),history=Array.isArray(player.gameHistory)?player.gameHistory:[];
+  if(history.some(item=>String(item?.id||"")===gameId))return;
+  const winners=gameHistoryWinners(room),won=winners.includes(playerId),result=winners.length>1&&won?"Remis":won?"Wygrana":winners.length?"Przegrana":"Rozegrano";
+  const source=[game.scores,game.totals,game.roundWins,game.points].find(item=>item&&typeof item==="object"&&!Array.isArray(item));
+  const rawPoints=source?Number(source[playerId]):NaN;
+  const entry={id:gameId,mode:room.gameMode,modeName:getGameMode(room.gameMode)?.name||"Gra",result,playedAt:serverNow()};
+  if(Number.isFinite(rawPoints))entry.points=rawPoints;
+  const updated={...player,gameHistory:[...history,entry].slice(-50),updatedAt:Date.now()};
+  state.accounts[playerId]=updated;
+  if(room.playerProfiles?.[playerId])room.playerProfiles={...room.playerProfiles,[playerId]:publicProfile(updated)};
+  syncPlayerProfile(playerId,updated);saveAccounts(state.accounts);
 }
 function message(text, type = "error") {
   Audio.play(type === "error" ? "error" : "notification");
@@ -1463,7 +1494,7 @@ async function inboxModal() {
 }
 function birthDateRequestModal() {
   const modal=document.createElement("div");modal.className="modal-backdrop";
-  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">DATA URODZENIA</p><h2>Prośba do administracji</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><label>Co chcesz zmienić?</label><textarea id="birth-request-text" maxlength="700" placeholder="Napisz obecną i poprawną datę oraz krótki powód."></textarea><label>Dokument do weryfikacji</label><input id="birth-request-file" type="file" accept="image/*,.pdf"><p class="tiny">Możesz zamazać wszystko poza datą i elementem potwierdzającym, że dokument nie jest losowym obrazkiem z internetu.</p><div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="submit-birth-request">Wyślij</button></div></section>`;
+  modal.innerHTML=`<section class="modal enter" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">DATA URODZENIA</p><h2>Prośba do administracji</h2></div><button class="icon-btn" data-close>${icon("x",18)}</button></div><p class="birth-request-notice"><b>Zmiana wymaga akceptacji administracji.</b> Opisz korektę i dołącz dokument potwierdzający datę.</p><label>Co chcesz zmienić?</label><textarea id="birth-request-text" maxlength="700" placeholder="Napisz obecną i poprawną datę oraz krótki powód."></textarea><label>Dokument do weryfikacji</label><input id="birth-request-file" type="file" accept="image/*,.pdf"><p class="tiny">Możesz zamazać wszystko poza datą i elementem potwierdzającym, że dokument nie jest losowym obrazkiem z internetu.</p><div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="submit-birth-request">Wyślij</button></div></section>`;
   modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>actions.closeModal(modal)));
   modal.querySelector("#submit-birth-request").addEventListener("click",async()=>{const file=modal.querySelector("#birth-request-file").files[0];if(await actions.requestBirthDateChange(modal.querySelector("#birth-request-text").value,file))actions.closeModal(modal);});
   document.body.append(modal);Audio.play("modalOpen");
@@ -2547,7 +2578,7 @@ function renderNow(options = {}) {
       claimPendingProgress(room);
       const repaired=repairGameStateForPlayers(room);
       if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}}
-      settleAllResults(room); trackFinishedGame(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
+      settleAllResults(room); trackFinishedGame(room); recordCurrentUserGameHistory(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
       const finalOutcome=finalGameOutcome(room); markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}`);
