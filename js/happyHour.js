@@ -52,5 +52,5 @@ export function formatHappyHourCountdown(totalSeconds) {
 export function happyHourBannerHtml(event) {
   if (!event) return "";
   const label = event.id === "modeOfDay" ? `${event.label}: ${event.mode}` : event.label;
-  return `<div class="happy-hour-banner" data-happy-hour-end="${event.endsAt}" role="status"><span>${event.icon}</span><div><b>HAPPY HOUR</b><strong>${escapeHtml(label)}</strong><small>Pozostało</small></div><time data-happy-hour-countdown>${formatHappyHourCountdown((event.endsAt - Date.now()) / 1000)}</time></div>`;
+  return `<div class="happy-hour-banner" data-happy-hour-end="${event.endsAt}" role="status"><span class="happy-hour-banner-icon" aria-hidden="true">${event.icon}</span><div class="happy-hour-banner-copy"><b>HAPPY HOUR</b><strong>${escapeHtml(label)}</strong></div><time data-happy-hour-countdown>${formatHappyHourCountdown((event.endsAt - Date.now()) / 1000)}</time><button type="button" class="happy-hour-dismiss" data-happy-hour-dismiss aria-label="Ukryj Happy Hour" title="Ukryj do końca tego Happy Hour">×</button></div><button type="button" class="happy-hour-reopen" data-happy-hour-reopen aria-label="Pokaż Happy Hour" title="Pokaż Happy Hour"><span aria-hidden="true">${event.icon}</span><span class="happy-hour-sr-only">Pokaż Happy Hour: ${escapeHtml(label)}</span></button>`;
 }
