@@ -1,0 +1,15 @@
+{
+  "name": "Gry grupowe",
+  "short_name": "Gry grupowe",
+  "description": "Przeglądarkowe gry multiplayer dla znajomych.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080914",
+  "theme_color": "#080914",
+  "lang": "pl",
+  "icons": [
+    { "src": "/assets/icons/game-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/assets/icons/game-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

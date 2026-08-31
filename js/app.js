@@ -1,4 +1,4 @@
-import { accountModal, authModal } from "./auth.js?v=20260822-1";
+import { accountModal, authModal } from "./auth.js?v=20260831-1";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
@@ -33,16 +33,16 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260830-1";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260823-2";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-1";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-5";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260830-4";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260804-3";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-4";
-import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260804-2";
+import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20260822-21";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260830-4";
@@ -85,7 +85,7 @@ function readUrlRoute() {
   } catch { return { mode:"", room:"", invalidMode:false }; }
 }
 const initialUrlRoute = readUrlRoute();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats() };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats() };
 window.__globalStats = state.globalStats;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
@@ -216,7 +216,7 @@ function activeRoomSignature(room = activeRoom()) {
     if (source.botDifficulty) normalized.botDifficulty = source.botDifficulty;
     return [uid, normalized];
   }));
-  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, hostAnnouncement:room.hostAnnouncement, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, hostAnnouncement:room.hostAnnouncement, activity:room.activity, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
 }
 function roomSettingsOnlyChanged(previous, next) {
   if (!previous || !next || previous.roomId !== next.roomId || previous.status !== "lobby" || next.status !== "lobby") return false;
@@ -330,6 +330,16 @@ function connectOnlineCount() {
   stopGlobalStatsSubscription();
   stopGlobalStatsSubscription=subscribeSiteStats(stats=>{state.globalStats={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}};window.__globalStats=state.globalStats;if(Router.current==="platform")render({preserveDrafts:true});});
 }
+function updateConnectionStatus() {
+  const node = document.querySelector("[data-connection-status]");
+  if (!node) return;
+  const key = !state.networkOnline ? "offline" : state.onlineBackend === null ? "connecting" : state.onlineBackend ? (state.syncStatus === "error" ? "error" : state.syncStatus === "syncing" ? "syncing" : "online") : "local";
+  const labels = { online:"Online", syncing:"Synchronizacja…", error:"Problem z zapisem", connecting:"Łączenie…", local:"Tryb lokalny", offline:"Brak internetu" };
+  node.className = `connection-status-pill connection-status-${key}`;
+  node.dataset.connectionStatus = key;
+  node.innerHTML = `<i></i><span>${labels[key]}</span>`;
+  node.title = key === "online" ? "Pokój jest synchronizowany na żywo." : key === "local" ? "Ta karta działa lokalnie — pokoje online są niedostępne." : labels[key];
+}
 function onlineCountLabel() {
   const entries=Object.entries(activityStats()).filter(([,item])=>item.players>0).sort(([,a],[,b])=>b.players-a.players);
   return [`${state.onlineCount} online`,...entries.map(([id,item])=>`${getGameMode(id).name} — ${item.players}`)].join("\n");
@@ -377,6 +387,7 @@ function scheduleRoomReconnect(roomId) {
 }
 function queueRoomSync(room) {
   const snapshot=JSON.parse(JSON.stringify(room)),version=snapshot.updatedAt,roomId=snapshot.roomId;
+  state.syncStatus="syncing"; updateConnectionStatus();
   pendingRoomSyncs.set(roomId,version);
   const previous=roomSyncChains.get(roomId)||Promise.resolve();
   const current=previous.catch(()=>{}).then(()=>syncRoomState(snapshot)).catch(error=>({ok:false,error:error?.message||error?.code||String(error)}));
@@ -392,13 +403,13 @@ function queueRoomSync(room) {
         window.setTimeout(()=>{if(pendingRoomSyncs.get(roomId)===version)queueRoomSync(snapshot);},500*(attempt+1));
         return;
       }
-      roomSyncRetryAttempts.delete(roomId);
+      roomSyncRetryAttempts.delete(roomId); state.syncStatus="error"; updateConnectionStatus();
       pendingRoomSyncs.set(roomId,version);
       message(`Nie udało się zsynchronizować pokoju po 3 próbach: ${result.error||"Nieznany błąd."}`);
       scheduleRoomReconnect(roomId);
       return;
     }
-    roomSyncRetryAttempts.delete(roomId);
+    roomSyncRetryAttempts.delete(roomId); state.syncStatus="online"; updateConnectionStatus();
     const reconnectTimer=roomSyncReconnectTimers.get(roomId);
     if(reconnectTimer){window.clearTimeout(reconnectTimer);roomSyncReconnectTimers.delete(roomId);}
     if(latest)pendingRoomSyncs.delete(roomId);
@@ -412,6 +423,11 @@ function queueRoomSync(room) {
       }
     }
   });
+}
+function addRoomActivity(room, text, actorUid = state.currentUser) {
+  if (!room || !text) return;
+  const entry = { id:uid("ACT"), text:String(text).slice(0,120), uid:actorUid, createdAt:serverNow() };
+  room.activity = [...(Array.isArray(room.activity) ? room.activity : []), entry].slice(-12);
 }
 function updateProfile(patch) { if (state.currentUser) { state.accounts[state.currentUser] = { ...profile(), ...patch, updatedAt:Date.now() }; syncPlayerProfile(state.currentUser,state.accounts[state.currentUser]); const room=activeRoom();if(normalizedRoomPlayers(room).includes(state.currentUser))touchRoom(room);saveAndRender(); } }
 function touchRoom(room) { room.updatedAt = Math.max(serverNow(),Number(room.updatedAt||0)+1); if(normalizedRoomPlayers(room).includes(state.currentUser)&&profile())room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; queueRoomSync(room); return room; }
@@ -1586,6 +1602,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const now = serverNow();
     if (Number(room.hostAnnouncement?.cooldownUntil || 0) > now) return message("Następny komunikat będzie dostępny za chwilę.", "info");
     room.hostAnnouncement = { id:announcement.id, text:announcement.text, hostUid:state.currentUser, createdAt:now, expiresAt:now + 4800, cooldownUntil:now + 10000 };
+    addRoomActivity(room, `Host: ${announcement.text}`);
     touchRoom(room); Audio.play("notification"); render();
     return true;
   },
@@ -1786,7 +1803,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(await guardBan(mode.id))return false;
     maxPlayers = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(maxPlayers) || mode.maxPlayers));
     const room = { roomId: uid(), gameMode: mode.id, maxPlayers, name: name.trim() || `Pokój ${profile().nick}`, passwordHash:isPrivate?hashRoomPassword(password):"",
-       isPrivate, roomType, entryFee, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings:{...(settings||{})}, createdAt: now, updatedAt: now, game: null };
+       isPrivate, roomType, entryFee, hostUid: state.currentUser, players: [state.currentUser], joinedAt:{[state.currentUser]:now}, playerProfiles:{[state.currentUser]:publicProfile(profile())}, status: "lobby", settings:{...(settings||{})}, activity:[{id:uid("ACT"),text:"Pokój został utworzony.",uid:state.currentUser,createdAt:now}], createdAt: now, updatedAt: now, game: null };
     const result=await syncRoomState(room);if(!result.ok){message(`Nie udało się utworzyć pokoju: ${result.error}`);connectRooms();return false;}
     trackSiteEvent({ type:"roomCreated", eventId:`room:${room.roomId}` });
     state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go("room");
@@ -1810,7 +1827,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (room.roomType === "betting" && !alreadyInRoom && !options.wagerConfirmed) return bettingJoinModal(room, () => actions.joinRoom(roomId,password,{...options,wagerConfirmed:true}));
     if (room.roomType === "betting" && !alreadyInRoom && playerMoney(room,state.currentUser) < roomEntryFee(room)) return fail(`Potrzebujesz co najmniej ${roomEntryFee(room).toLocaleString("pl-PL")}$, aby dołączyć do tego pokoju.`);
     if (!alreadyInRoom) {
-      room.players.push(state.currentUser); room.joinedAt={...(room.joinedAt||{}),[state.currentUser]:Date.now()}; room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; touchRoom(room);
+      room.players.push(state.currentUser); room.joinedAt={...(room.joinedAt||{}),[state.currentUser]:Date.now()}; room.playerProfiles={...(room.playerProfiles||{}),[state.currentUser]:publicProfile(profile())}; addRoomActivity(room, `${profile().nick} dołączył do pokoju.`); touchRoom(room);
       await roomSyncChains.get(room.roomId)?.catch?.(() => {});
     }
     state.rooms = [room, ...state.rooms.filter(item=>item.roomId!==room.roomId)]; state.selectedGameMode = room.gameMode; state.activeRoomId = room.roomId;clearPendingInvite();persistSession(); setRoomUrl(room); Audio.play("joinRoom"); Router.go(room.status === "lobby" ? "room" : "game"); return true;
@@ -1822,12 +1839,13 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     destination = typeof destination === "string" ? destination : "lobby";
     const room = activeRoom(); if (!room) return;
     interruptProveRoundForDeparture(room,state.currentUser);
+    addRoomActivity(room, `${profile()?.nick || "Gracz"} opuścił pokój.`);
     room.players = room.players.filter(id => id !== state.currentUser); if(room.playerProfiles)delete room.playerProfiles[state.currentUser];if(room.joinedAt)delete room.joinedAt[state.currentUser]; if (room.hostUid === state.currentUser) room.hostUid = room.players.find(uid=>!isBotId(uid))||room.players[0];
     state.activeRoomId = null;clearPendingInvite();persistSession();
     if(!roomHasHumanPlayers(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else{touchRoom(room);} state.rooms = state.rooms.filter(item => item.roomId!==room.roomId); destination==="platform"?setUrlRoute("", ""):setModeUrl(state.selectedGameMode); Audio.play("leaveRoom"); Router.go(destination);
   },
-  kickPlayer(playerId) { const room = activeRoom(); if (room?.hostUid === state.currentUser) { interruptProveRoundForDeparture(room,playerId);room.players = room.players.filter(id => id !== playerId); if(room.playerProfiles)delete room.playerProfiles[playerId];if(room.joinedAt)delete room.joinedAt[playerId];if(!room.players.length||shouldCloseLonelyFinishedRoom(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();}else{touchRoom(room);render();} } },
-  setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; touchRoom(room); animateHostSettingChange(answerTime); render({ preserveDrafts:true }); } },
+  kickPlayer(playerId) { const room = activeRoom(); if (room?.hostUid === state.currentUser) { interruptProveRoundForDeparture(room,playerId);const nick=room.playerProfiles?.[playerId]?.nick||"Gracz";addRoomActivity(room, `${nick} został wyrzucony przez hosta.`);room.players = room.players.filter(id => id !== playerId); if(room.playerProfiles)delete room.playerProfiles[playerId];if(room.joinedAt)delete room.joinedAt[playerId];if(!room.players.length||shouldCloseLonelyFinishedRoom(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();}else{touchRoom(room);render();} } },
+  setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; addRoomActivity(room, `Host ustawił czas odpowiedzi na ${answerTime}s.`); touchRoom(room); animateHostSettingChange(answerTime); render({ preserveDrafts:true }); } },
   addBot() {
     const room=activeRoom(), mode=getGameMode(room?.gameMode);
     if(!room||room.hostUid!==state.currentUser||!roomAllowsBots(room,mode))return message("Botów nie można dodawać w tym trybie.","info");
@@ -1835,11 +1853,11 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(room.players.length>=roomCapacity)return message("Brak wolnych miejsc.","info");
     const id=`bot:${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`, index=botCount(room);
     botIds(room).forEach((bot,index)=>{const current={...(room.playerProfiles?.[bot]||{}),nick:botName(index)};room.playerProfiles={...(room.playerProfiles||{}),[bot]:current};state.accounts[bot]=current;});
-    room.players=[...room.players,id];room.joinedAt={...(room.joinedAt||{}),[id]:Date.now()};room.playerProfiles={...(room.playerProfiles||{}),[id]:botProfile(id,index,"normal")};state.accounts[id]={...room.playerProfiles[id]};touchRoom(room);Audio.play("playerJoin");render();return true;
+    room.players=[...room.players,id];room.joinedAt={...(room.joinedAt||{}),[id]:Date.now()};room.playerProfiles={...(room.playerProfiles||{}),[id]:botProfile(id,index,"normal")};state.accounts[id]={...room.playerProfiles[id]};addRoomActivity(room, `${room.playerProfiles[id].nick} dołączył do pokoju.`);touchRoom(room);Audio.play("playerJoin");render();return true;
   },
   setBotDifficulty(botUid, value) {
     const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.status!=="lobby"||!isBotId(botUid))return;
-    const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";const current=room.playerProfiles?.[botUid];if(!current)return;room.playerProfiles={...(room.playerProfiles||{}),[botUid]:{...current,botDifficulty:difficulty}};state.accounts[botUid]={...room.playerProfiles[botUid]};touchRoom(room);render();
+    const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";const current=room.playerProfiles?.[botUid];if(!current)return;room.playerProfiles={...(room.playerProfiles||{}),[botUid]:{...current,botDifficulty:difficulty}};state.accounts[botUid]={...room.playerProfiles[botUid]};addRoomActivity(room, `Poziom bota ${current.nick || "Bot"} zmieniono na ${BOT_DIFFICULTIES.find(item=>item.id===difficulty)?.label || difficulty}.`);touchRoom(room);render();
   },
   setImpostorSetting(key,value) {
     const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;
@@ -1863,7 +1881,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(fee){const missing=players.find(uid=>playerMoney(room,uid)<fee);if(missing)return message(`Gracz ${state.accounts[missing]?.nick||room.playerProfiles?.[missing]?.nick||"Gracz"} nie ma wystarczających środków na wpisowe.`);}
     room.players = players;
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
-    room.status = "playing"; room.everStarted = true; room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):room.settings;
+    room.status = "playing"; room.everStarted = true; addRoomActivity(room, "Host rozpoczął grę."); room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):room.settings;
     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
@@ -2087,7 +2105,7 @@ function changelogModal() {
   modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);}));
   document.body.append(modal);Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), themeLight=lightThemeEnabled(), spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), unread=Array.isArray(user?.inbox)?user.inbox.length:0, spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span><span class="connection-status-pill" data-connection-status="connecting"><i></i><span>Łączenie…</span></span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button><button class="icon-btn inbox-top-button" id="open-inbox" aria-label="Wiadomości" title="Wiadomości">✉️${unread?`<b class="topbar-alert-badge">${unread}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -2277,7 +2295,7 @@ function renderNow(options = {}) {
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-lucky-spin")?.addEventListener("click",actions.openLuckySpin); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-report")?.addEventListener("click",()=>actions.openReportModal());
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-lucky-spin")?.addEventListener("click",actions.openLuckySpin); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
   const finish = result => {
     const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
     if(result?.then)return result.finally(after);
@@ -2374,7 +2392,7 @@ function connectRooms(){
   stopRoomsSubscription=subscribeRemoteRooms((remoteRooms,source)=>{
     if (source === "remote") remoteRooms = remoteRooms.map(cleanStaleRoomSnapshot).filter(Boolean);
     const previousActiveRoom = activeRoom();
-    state.onlineBackend=source==="remote"?true:source==="local"?false:null;
+    state.onlineBackend=source==="remote"?true:source==="local"?false:null; updateConnectionStatus();
     const ghostRooms=remoteRooms.filter(room=>["lobby","playing"].includes(room.status)&&!roomHasHumanPlayers(room));
     ghostRooms.filter(room=>room.players.includes(state.currentUser)).forEach(room=>removeRemoteRoom(room.roomId));
     remoteRooms=remoteRooms.filter(room=>!ghostRooms.some(ghost=>ghost.roomId===room.roomId));
@@ -2407,7 +2425,7 @@ function connectRooms(){
       render({preserveDrafts:true});
     }
   },()=>{
-    state.onlineBackend=false;
+    state.onlineBackend=false; updateConnectionStatus();
     if(profile())message("Serwer odrzucil dostep do pokoi. Zaloguj sie ponownie.");
     if(["lobby","room","game"].includes(Router.current))render();
   });
@@ -2484,4 +2502,6 @@ document.addEventListener("click", event => {
 });
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
 window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const appScreen=Router.appScreenFromPath(window.location.pathname);if(appScreen)return Router.go(appScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
-initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();const routed=routeFromUrlIfNeeded();if((!routed&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))||Router.current==="solo")render();}); render();
+window.addEventListener("online", () => { state.networkOnline = true; state.syncStatus = "idle"; updateConnectionStatus(); if (state.currentUser) connectRooms(); });
+window.addEventListener("offline", () => { state.networkOnline = false; updateConnectionStatus(); });
+initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();updateConnectionStatus();const routed=routeFromUrlIfNeeded();if((!routed&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))||Router.current==="solo")render();}); render();

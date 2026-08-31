@@ -58,10 +58,14 @@ export function createRoomModal(mode, actions) {
   let roomType = "standard";
   let entryFee = ENTRY_FEE_OPTIONS[0];
   let maxPlayers = mode.maxPlayers;
+  let roomPreset = localStorage.getItem("grygrupowe-room-preset") || "standard";
+  const savedCapacity = Number(localStorage.getItem(`grygrupowe-capacity-${mode.id}`));
+  if (savedCapacity >= mode.minPlayers && savedCapacity <= mode.maxPlayers) maxPlayers = savedCapacity;
   let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
   backdrop.innerHTML = `<section class="modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
     <label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy">
+    <label for="room-preset">Szybki preset rozgrywki</label><select id="room-preset"><option value="quick" ${roomPreset === "quick" ? "selected" : ""}>Szybka · krótsze rundy</option><option value="standard" ${roomPreset === "standard" ? "selected" : ""}>Standardowa</option><option value="long" ${roomPreset === "long" ? "selected" : ""}>Długa · więcej rund</option></select><p class="tiny room-preset-help">Preset ustawia tylko domyślny czas i liczbę rund — szczegóły nadal możesz zmienić w lobby.</p>
     <label class="check"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
     <fieldset class="room-type-choice"><legend>Rodzaj pokoju</legend><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked> <span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"> <span><b>◈ Zakłady</b><small>Każdy gracz wpłaca wpisowe, zwycięzcy dzielą pulę.</small></span></label><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
     <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz</button></div>
@@ -71,7 +75,7 @@ export function createRoomModal(mode, actions) {
   maxPlayersField.textContent = "Liczba graczy";
   const maxPlayersSelect = document.createElement("select");
   maxPlayersSelect.id = "room-max-players";
-  maxPlayersSelect.innerHTML = Array.from({length:Math.max(1,mode.maxPlayers-mode.minPlayers+1)},(_,index)=>mode.minPlayers+index).map(value=>`<option value="${value}" ${value===mode.maxPlayers?"selected":""}>${value} ${value===1?"osoba":"osób"}</option>`).join("");
+  maxPlayersSelect.innerHTML = Array.from({length:Math.max(1,mode.maxPlayers-mode.minPlayers+1)},(_,index)=>mode.minPlayers+index).map(value=>`<option value="${value}" ${value===maxPlayers?"selected":""}>${value} ${value===1?"osoba":"osób"}</option>`).join("");
   maxPlayersField.append(maxPlayersSelect);
   backdrop.querySelector("#room-name").insertAdjacentElement("afterend",maxPlayersField);
   if (mode.id === "mathematics") {
@@ -89,9 +93,11 @@ export function createRoomModal(mode, actions) {
   $("#room-private", backdrop).addEventListener("change", event => $("#room-password", backdrop).classList.toggle("hidden", !event.target.checked));
   backdrop.querySelectorAll("[name='room-type']").forEach(input => input.addEventListener("change", () => { roomType=input.value; backdrop.querySelectorAll(".room-type-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); backdrop.querySelector("#entry-fee-field").classList.toggle("hidden",roomType!=="betting"); }));
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
-  backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; });
+  backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; localStorage.setItem(`grygrupowe-capacity-${mode.id}`, String(maxPlayers)); });
+  backdrop.querySelector("#room-preset")?.addEventListener("change", event => { roomPreset=event.target.value; localStorage.setItem("grygrupowe-room-preset", roomPreset); });
   $("#confirm-create", backdrop).addEventListener("click", async () => {
-    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...(mode.id === "mathematics" ? { mathematicsVariant } : {}) } }) !== false) close();
+    const presetSettings = roomPreset === "quick" ? { answerTime:15, rounds:3 } : roomPreset === "long" ? { answerTime:60, rounds:10 } : {};
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...presetSettings, ...(mode.id === "mathematics" ? { mathematicsVariant } : {}) } }) !== false) close();
   });
   return backdrop;
 }
