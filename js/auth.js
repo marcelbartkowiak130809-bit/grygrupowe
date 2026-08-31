@@ -16,6 +16,91 @@ const accountHistoryMarkup = profile => {
   return `<section class="public-profile-section account-history-section"><div class="section-heading"><div><p class="eyebrow">HISTORIA GIER</p><h3>Ostatnie gry</h3></div><span class="badge">${history.length}</span></div>${history.length ? `<div class="account-game-history">${history.map(item => { const result = historyResult(item.result); const date = historyDate(item.playedAt || item.createdAt); const points = Number.isFinite(Number(item.points)) ? `${Number(item.points)} pkt` : ""; return `<div class="account-game-history-row"><div><b>${escapeHtml(item.modeName || item.mode || "Gra")}</b><small>${escapeHtml([date, points].filter(Boolean).join(" · "))}</small></div><strong class="${result.className}">${result.label}</strong></div>`; }).join("")}</div>` : `<p class="muted">Nie rozegrano jeszcze żadnej gry.</p>`}</section>`;
 };
 
+export function avatarCropModal(file) {
+  return new Promise(resolve => {
+    if (!file?.type?.startsWith("image/") || file.size > 8 * 1024 * 1024) return resolve(null);
+    const reader = new FileReader();
+    reader.onerror = () => resolve(null);
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => resolve(null);
+      image.onload = () => {
+        const backdrop = document.createElement("div");
+        backdrop.className = "modal-backdrop avatar-crop-backdrop";
+        backdrop.innerHTML = `<section class="modal avatar-crop-modal enter" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title"><div class="modal-title"><div><p class="eyebrow">ZDJĘCIE PROFILOWE</p><h2 id="avatar-crop-title">Dopasuj zdjęcie</h2></div><button class="icon-btn" data-avatar-crop-cancel aria-label="Anuluj">${icon("x",18)}</button></div><p class="muted avatar-crop-help">Przeciągnij zdjęcie i ustaw kadr. Możesz też je powiększyć.</p><div class="avatar-crop-stage" aria-label="Podgląd kadru"><img alt="Podgląd zdjęcia"><span class="avatar-crop-window" aria-hidden="true"></span></div><label class="avatar-crop-zoom" for="avatar-crop-zoom"><span>Powiększenie</span><output id="avatar-crop-zoom-value">100%</output><input id="avatar-crop-zoom" type="range" min="1" max="3" step="0.01" value="1"></label><div class="modal-actions"><button class="ghost" data-avatar-crop-cancel>Anuluj</button><button class="primary" data-avatar-crop-save>Ustaw zdjęcie</button></div></section>`;
+        const stage = backdrop.querySelector(".avatar-crop-stage");
+        const preview = backdrop.querySelector(".avatar-crop-stage img");
+        const zoomInput = backdrop.querySelector("#avatar-crop-zoom");
+        const zoomValue = backdrop.querySelector("#avatar-crop-zoom-value");
+        const viewport = 280;
+        const baseScale = Math.max(viewport / image.naturalWidth, viewport / image.naturalHeight);
+        let zoom = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let drag = null;
+        const dimensions = () => ({ width:image.naturalWidth * baseScale * zoom, height:image.naturalHeight * baseScale * zoom });
+        const clampOffset = () => {
+          const {width,height} = dimensions();
+          offsetX = Math.min(0, Math.max(viewport - width, offsetX));
+          offsetY = Math.min(0, Math.max(viewport - height, offsetY));
+        };
+        const renderPreview = () => {
+          const {width,height} = dimensions();
+          clampOffset();
+          preview.style.width = `${width}px`;
+          preview.style.height = `${height}px`;
+          preview.style.transform = `translate(${offsetX}px,${offsetY}px)`;
+          zoomValue.value = `${Math.round(zoom * 100)}%`;
+          zoomValue.textContent = zoomValue.value;
+        };
+        const centerPreview = () => {
+          const {width,height} = dimensions();
+          offsetX = (viewport - width) / 2;
+          offsetY = (viewport - height) / 2;
+          renderPreview();
+        };
+        const finish = result => { backdrop.remove(); resolve(result); };
+        preview.src = reader.result;
+        document.body.append(backdrop);
+        centerPreview();
+        stage.addEventListener("pointerdown", event => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          drag = { pointerId:event.pointerId, clientX:event.clientX, clientY:event.clientY, offsetX, offsetY };
+          stage.setPointerCapture?.(event.pointerId);
+          stage.classList.add("is-dragging");
+        });
+        stage.addEventListener("pointermove", event => {
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          offsetX = drag.offsetX + event.clientX - drag.clientX;
+          offsetY = drag.offsetY + event.clientY - drag.clientY;
+          renderPreview();
+        });
+        const stopDrag = event => { if (drag?.pointerId === event.pointerId) { drag = null; stage.classList.remove("is-dragging"); } };
+        stage.addEventListener("pointerup", stopDrag);
+        stage.addEventListener("pointercancel", stopDrag);
+        zoomInput.addEventListener("input", () => {
+          const oldScale = baseScale * zoom;
+          const centerSourceX = (viewport / 2 - offsetX) / oldScale;
+          const centerSourceY = (viewport / 2 - offsetY) / oldScale;
+          zoom = Number(zoomInput.value) || 1;
+          const newScale = baseScale * zoom;
+          offsetX = viewport / 2 - centerSourceX * newScale;
+          offsetY = viewport / 2 - centerSourceY * newScale;
+          renderPreview();
+        });
+        backdrop.querySelectorAll("[data-avatar-crop-cancel]").forEach(button => button.addEventListener("click", () => finish(null)));
+        backdrop.addEventListener("click", event => { if (event.target === backdrop) finish(null); });
+        backdrop.querySelector("[data-avatar-crop-save]").addEventListener("click", () => {
+          const {width,height} = dimensions();
+          finish({ viewport, offsetX, offsetY, displayWidth:width, displayHeight:height });
+        });
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function authModal(actions, options = {}) {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
@@ -61,7 +146,7 @@ export function accountModal(profile, actions) {
   </section>`;
   const close=()=>actions.closeModal(backdrop);backdrop.querySelector("[data-close]").addEventListener("click",close);
   $("#account-logout",backdrop).addEventListener("click",()=>{close();actions.logout();});$("#upgrade-account",backdrop)?.addEventListener("click",()=>{close();actions.openAuth({title:"Zaloguj sie na konto"});});
-  $("#avatar-file",backdrop).addEventListener("change",async event=>{await actions.setAvatar(event.target.files[0]);close();});$("#remove-avatar",backdrop)?.addEventListener("click",()=>{actions.removeAvatar();close();});
+  $("#avatar-file",backdrop).addEventListener("change",async event=>{const file=event.target.files[0];event.target.value="";const crop=await avatarCropModal(file);if(!crop)return;await actions.setAvatar(file,crop);close();});$("#remove-avatar",backdrop)?.addEventListener("click",()=>{actions.removeAvatar();close();});
   $("#password-form",backdrop)?.addEventListener("submit",async event=>{event.preventDefault();if(await actions.changePassword($("#new-password",backdrop).value))close();});
   $("#open-inbox",backdrop)?.addEventListener("click",()=>{close();actions.openInbox();});
   $("#open-admin-panel",backdrop)?.addEventListener("click",()=>{close();actions.openAdminPanel();});

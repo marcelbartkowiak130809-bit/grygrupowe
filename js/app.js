@@ -1,4 +1,4 @@
-import { accountModal, authModal } from "./auth.js?v=20260831-2";
+import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260831-1";
 import { Effects } from "./effects.js";
@@ -1918,12 +1918,14 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     try { await updateAuthPassword(password); updateProfile({ passwordHash:hashRoomPassword(`account:${password}`) }); message("Hasło zostało zmienione.", "info"); return true; }
     catch(error) { message(error?.code==="auth/requires-recent-login"?"Zaloguj się ponownie, aby zmienić hasło.":"Nie udało się zmienić hasła."); return false; }
   },
-  async setAvatar(file) {
+  async setAvatar(file, crop = null) {
     if(!file?.type?.startsWith("image/"))return message("Wybierz plik graficzny.");
     if(file.size>8*1024*1024)return message("Zdjęcie jest za duże. Maksymalnie 8 MB.");
     const image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>{const item=new Image();item.onload=()=>resolve(item);item.onerror=reject;item.src=reader.result;};reader.onerror=reject;reader.readAsDataURL(file);});
-    const canvas=document.createElement("canvas");canvas.width=160;canvas.height=160;const context=canvas.getContext("2d"),side=Math.min(image.width,image.height),x=(image.width-side)/2,y=(image.height-side)/2;
-    context.drawImage(image,x,y,side,side,0,0,160,160);updateProfile({avatarImage:canvas.toDataURL("image/jpeg",.78)});message("Zdjęcie profilowe zapisane.","info");
+    const canvas=document.createElement("canvas");canvas.width=160;canvas.height=160;const context=canvas.getContext("2d");
+    const viewport=Number(crop?.viewport),displayWidth=Number(crop?.displayWidth),displayHeight=Number(crop?.displayHeight),offsetX=Number(crop?.offsetX),offsetY=Number(crop?.offsetY);
+    if([viewport,displayWidth,displayHeight,offsetX,offsetY].every(Number.isFinite)&&viewport>0&&displayWidth>0&&displayHeight>0){const scale=displayWidth/image.width,side=Math.min(image.width,image.height,viewport/scale),x=Math.max(0,Math.min(image.width-side,-offsetX/scale)),y=Math.max(0,Math.min(image.height-side,-offsetY/scale));context.drawImage(image,x,y,side,side,0,0,160,160);}else{const side=Math.min(image.width,image.height),x=(image.width-side)/2,y=(image.height-side)/2;context.drawImage(image,x,y,side,side,0,0,160,160);}
+    updateProfile({avatarImage:canvas.toDataURL("image/jpeg",.78)});message("Zdjęcie profilowe zapisane.","info");
   },
   removeAvatar(){updateProfile({avatarImage:""});message("Zdjęcie profilowe usunięte.","info");},
   setColorblindMode(enabled){updateProfile({colorblindMode:Boolean(enabled)});},
