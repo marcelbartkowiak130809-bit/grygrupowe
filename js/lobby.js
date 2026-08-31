@@ -1,7 +1,7 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { getGameMode } from "./games.js?v=20260831-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260831-1";
+import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260831-2";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
 

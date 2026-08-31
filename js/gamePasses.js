@@ -3,8 +3,8 @@ import { escapeHtml } from "./utils.js?v=20260822-1";
 const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
 
 export const GAMEPASS_DEFINITIONS = [
-  { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:15000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
-  { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:10000, scope:"Impostor", maxLevel:5, upgradePrices:[6000,7000,8500,10000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
+  { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:12000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
+  { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:10000, scope:"Impostor", maxLevel:5, upgradePrices:[5000,6000,7500,8000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
   { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:9000, scope:"Kim jestem?", description:"Raz na rundę pozwala podejrzeć dodatkową literę własnego hasła." },
   { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwa dyskretne podpowiedniki o twoim ukrytym numerze w jednej grze." },
   { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:9500, scope:"Wavelength", description:"Po podpowiedzi pokazuje właścicielowi celu delikatny podgląd szerokości strefy punktowanej." },
