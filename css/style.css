@@ -423,6 +423,80 @@ input[type="range"]:disabled{opacity:.48;cursor:not-allowed;filter:grayscale(.4)
   .candy-table { max-height: 68dvh; }
 }
 
+/* Compact room creation: keep the important choices visible without a tall form. */
+.room-create-modal {
+  width: min(860px, 100%);
+  max-height: min(760px, calc(100dvh - 40px));
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.room-create-modal::-webkit-scrollbar { display: none; }
+.room-create-modal .modal-title { display: flex; align-items: flex-start; flex-direction: row; margin-bottom: 8px; }
+.room-create-subtitle { margin: -3px 0 0; color: var(--muted); font-size: 13px; }
+.room-create-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); align-items: start; gap: 16px; }
+.room-create-main, .room-create-aside, .room-create-field-grid > div { min-width: 0; }
+.room-create-field-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(145px, .42fr); gap: 12px; }
+.room-create-field-grid label, .room-create-field { margin-top: 10px; }
+.room-create-field select { margin-top: 7px; }
+.room-create-subtitle + * { min-width: 0; }
+.room-preset-choice, .room-type-choice { margin: 14px 0 0; padding: 11px; }
+.room-preset-choice legend, .room-type-choice legend { color: #c4b5fd; font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+.room-preset-grid, .room-type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.room-preset-option, .room-type-option { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; min-width: 0; gap: 8px; margin: 0; padding: 10px; border: 1px solid rgba(148,163,184,.16); border-radius: 12px; background: rgba(255,255,255,.035); cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
+.room-preset-option:hover, .room-type-option:hover { transform: translateY(-1px); border-color: rgba(103,232,249,.4); }
+.room-preset-option.is-selected, .room-type-option.is-selected { border-color: rgba(97,230,210,.62); background: rgba(97,230,210,.1); box-shadow: 0 7px 18px rgba(6,182,212,.08); }
+.room-preset-option input, .room-type-option input { width: 15px; height: 15px; margin: 0; flex: 0 0 auto; accent-color: #67e8f9; }
+.room-preset-option > span:last-child, .room-type-option > span { display: grid; min-width: 0; gap: 3px; }
+.room-preset-option b, .room-type-option b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.room-preset-option small, .room-type-option small { overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.room-preset-icon { display: grid; width: 24px; height: 24px; place-items: center; grid-column: 1; grid-row: 1; border-radius: 8px; background: rgba(124,58,237,.22); font-size: 14px; }
+.room-preset-option { grid-template-columns: 24px minmax(0, 1fr); }
+.room-preset-option input { position: absolute; opacity: 0; pointer-events: none; }
+.room-preset-help { margin: 8px 0 0; font-size: 11px; }
+.room-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.room-type-option { align-items: start; }
+.room-private-row { display: flex; align-items: center; gap: 9px; margin: 13px 0 0; padding: 9px 10px; border: 1px solid rgba(148,163,184,.14); border-radius: 11px; background: rgba(255,255,255,.025); }
+.room-private-row input { width: 18px; height: 18px; margin: 0; flex: 0 0 auto; }
+.room-create-modal #room-password { margin-top: 8px; }
+.room-type-choice > #entry-fee-field { display: grid; grid-template-columns: 1fr 150px; align-items: center; gap: 10px; margin-top: 10px; }
+.room-type-choice > #entry-fee-field.hidden { display: none; }
+.room-type-choice > #entry-fee-field select { margin-top: 0; }
+.room-create-aside .commerce-setup { margin-top: 10px; }
+.commerce-setup { padding: 0; overflow: hidden; }
+.commerce-setup-summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 14px; cursor: pointer; list-style: none; }
+.commerce-setup-summary::-webkit-details-marker { display: none; }
+.commerce-setup-summary::marker { display: none; }
+.commerce-setup-summary:hover { background: rgba(255,255,255,.035); }
+.commerce-setup-title { display: grid; min-width: 0; gap: 2px; }
+.commerce-setup-title .eyebrow { margin: 0; font-size: 9px; }
+.commerce-setup-title b { font-size: 14px; }
+.commerce-setup-title small { color: var(--muted); font-size: 10px; line-height: 1.3; }
+.commerce-setup-chevron { color: #67e8f9; font-size: 19px; font-weight: 900; transition: transform .18s; }
+.commerce-setup[open] .commerce-setup-chevron { transform: rotate(180deg); }
+.commerce-setup-content { display: grid; gap: 10px; padding: 0 14px 14px; }
+.commerce-setup-content > .tiny { margin: 0; font-size: 11px; }
+.commerce-setup-content .commerce-toggle { margin: 0; }
+.commerce-setup-content .commerce-available-list { max-height: 68px; overflow: hidden; }
+.room-create-modal .modal-actions { margin-top: 16px; }
+.room-create-modal .modal-actions .primary { min-width: 145px; }
+.light-theme .room-preset-option, .light-theme .room-type-option, .light-theme .room-private-row { background: #f8fafc; border-color: rgba(100,116,139,.24); }
+.light-theme .room-preset-option.is-selected, .light-theme .room-type-option.is-selected { background: #ecfeff; border-color: rgba(14,116,144,.5); }
+.light-theme .commerce-setup-summary:hover { background: rgba(100,116,139,.08); }
+
+@media (max-width: 720px) {
+  .room-create-modal { max-height: calc(100dvh - 20px); padding: 17px; }
+  .room-create-layout { grid-template-columns: 1fr; gap: 12px; }
+  .room-create-aside .commerce-setup { margin-top: 0; }
+}
+@media (max-width: 480px) {
+  .room-create-field-grid, .room-type-grid { grid-template-columns: 1fr; gap: 0; }
+  .room-preset-grid { grid-template-columns: 1fr; }
+  .room-preset-option { min-height: 48px; }
+  .room-type-choice > #entry-fee-field { grid-template-columns: 1fr; gap: 5px; }
+  .room-type-choice > #entry-fee-field select { margin-top: 0; }
+  .room-create-subtitle { font-size: 12px; }
+}
+
 /* Targeted cosmetic polish: only effects named in this cleanup pass. */
 .bubbleIdle:before{content:none!important;display:none!important}.heartbeatIdle{animation:idleHeartFloat 2.6s ease-in-out infinite!important}.heartbeatIdle:before,.heartbeatIdle:after{position:absolute;z-index:4;width:13px;height:13px;background:#fb7185;clip-path:polygon(50% 84%,8% 40%,8% 18%,28% 4%,50% 18%,72% 4%,92% 18%,92% 40%);filter:drop-shadow(0 0 7px rgba(251,113,133,.85));content:""!important}.heartbeatIdle:before{left:-8px;top:8px;animation:heartOrbitA 2.6s ease-in-out infinite}.heartbeatIdle:after{right:-8px;top:10px;animation:heartOrbitB 2.6s ease-in-out infinite}.glitchIdle{animation:idleGlitchTeleport 3.4s steps(1,end) infinite!important}.royalIdle,.levelRoyalIdle{animation:idleRoyalHoverClean 3.2s ease-in-out infinite!important;filter:drop-shadow(0 7px 9px rgba(0,0,0,.25))}.royalIdle:before,.levelRoyalIdle:before{top:-18px!important;width:28px!important;height:17px!important;background:linear-gradient(135deg,transparent 0 14%,#facc15 15% 31%,transparent 32% 40%,#fff7ad 41% 59%,transparent 60% 68%,#facc15 69% 86%,transparent 87%)!important;filter:drop-shadow(0 0 8px #f59e0b)!important;animation:royalTinyCrown 3.2s ease-in-out infinite}.cosmetic-preview:has(.pulseIdle) .preview-glow{width:88px!important;height:88px!important;border-radius:50%!important;background:radial-gradient(circle,rgba(103,232,249,.24),rgba(167,139,250,.14) 48%,transparent 72%)!important}.pulseIdle{overflow:visible!important}
 .fx-win-dodge-meteor{animation:winMeteorDodgeFall 3.1s cubic-bezier(.18,.82,.22,1) infinite!important}.winMeteor .fx-win-dodge-impact{animation:winMeteorDodgeImpact 3.1s ease-out infinite!important}.cosmetic-animation-preview.winMeteor .avatar,.final-ranking article:first-child .winMeteor .avatar,.result-player-grid .winner-card .winMeteor .avatar{animation:avatarMeteorDodgeStand 3.1s cubic-bezier(.18,.82,.22,1) infinite!important}.cosmetic-animation-preview.winMeteor .nick,.final-ranking article:first-child .winMeteor .nick,.result-player-grid .winner-card .winMeteor .nick{animation:nickMeteorDodge 3.1s ease-in-out infinite!important}

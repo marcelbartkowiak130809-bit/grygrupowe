@@ -1,5 +1,5 @@
 import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-2";
-import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260831-5";
+import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260831-6";
 import { potionPackShopHtml } from "./potionPacks.js?v=20260831-1";
 import { $, formatClock, icon } from "./utils.js?v=20260822-1";
 

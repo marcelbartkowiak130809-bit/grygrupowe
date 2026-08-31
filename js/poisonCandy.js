@@ -1,7 +1,7 @@
 import { $, avatarHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260822-1";
 import { Effects } from "./effects.js";
 import { Audio } from "./audio.js";
-import { hasGamePass } from "./gamePasses.js?v=20260831-5";
+import { hasGamePass } from "./gamePasses.js?v=20260831-6";
 
 let timerId;
 const shuffle = items => [...items].sort(() => Math.random() - .5);

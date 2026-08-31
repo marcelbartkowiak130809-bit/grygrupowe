@@ -1,7 +1,7 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { getGameMode } from "./games.js?v=20260831-3";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260831-5";
+import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260831-6";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
 
@@ -60,33 +60,43 @@ export function createRoomModal(mode, actions) {
   let roomType = "standard";
   let entryFee = ENTRY_FEE_OPTIONS[0];
   let maxPlayers = mode.maxPlayers;
-  let roomPreset = localStorage.getItem("grygrupowe-room-preset") || "standard";
+  const savedPreset = localStorage.getItem("grygrupowe-room-preset");
+  let roomPreset = ["quick", "standard", "long"].includes(savedPreset) ? savedPreset : "standard";
   let commerceSettings = normalizeCommerceSettings(mode.id, {}, defaultCommercePreferences());
   const savedCapacity = Number(localStorage.getItem(`grygrupowe-capacity-${mode.id}`));
   if (savedCapacity >= mode.minPlayers && savedCapacity <= mode.maxPlayers) maxPlayers = savedCapacity;
   let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
-  backdrop.innerHTML = `<section class="modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
-    <label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy">
-    <label for="room-preset">Szybki preset rozgrywki</label><select id="room-preset"><option value="quick" ${roomPreset === "quick" ? "selected" : ""}>Szybka · krótsze rundy</option><option value="standard" ${roomPreset === "standard" ? "selected" : ""}>Standardowa</option><option value="long" ${roomPreset === "long" ? "selected" : ""}>Długa · więcej rund</option></select><p class="tiny room-preset-help">Preset ustawia tylko domyślny czas i liczbę rund — szczegóły nadal możesz zmienić w lobby.</p>
-    <label class="check"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
-    <fieldset class="room-type-choice"><legend>Rodzaj pokoju</legend><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked> <span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"> <span><b>◈ Zakłady</b><small>Każdy gracz wpłaca wpisowe, zwycięzcy dzielą pulę.</small></span></label><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
-    ${commerceCreationHtml(mode.id, commerceSettings)}
-    <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz</button></div>
+  backdrop.innerHTML = `<section class="modal room-create-modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2><p class="room-create-subtitle">Ustaw podstawy i zaproś ekipę.</p></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
+    <div class="room-create-layout">
+      <div class="room-create-main">
+        <div class="room-create-field-grid"><div><label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy"></div><div id="room-max-slot"></div></div>
+        <fieldset class="room-preset-choice"><legend>SZYBKI PRESET ROZGRYWKI</legend><div class="room-preset-grid">
+          <label class="room-preset-option ${roomPreset === "quick" ? "is-selected" : ""}"><input type="radio" name="room-preset" value="quick" ${roomPreset === "quick" ? "checked" : ""}><span class="room-preset-icon">⚡</span><span><b>Szybka</b><small>15 s · 3 rundy</small></span></label>
+          <label class="room-preset-option ${roomPreset === "standard" ? "is-selected" : ""}"><input type="radio" name="room-preset" value="standard" ${roomPreset === "standard" ? "checked" : ""}><span class="room-preset-icon">✦</span><span><b>Standardowa</b><small>Domyślne tempo</small></span></label>
+          <label class="room-preset-option ${roomPreset === "long" ? "is-selected" : ""}"><input type="radio" name="room-preset" value="long" ${roomPreset === "long" ? "checked" : ""}><span class="room-preset-icon">🌙</span><span><b>Długa</b><small>60 s · 10 rund</small></span></label>
+        </div><p class="tiny room-preset-help">Preset ustawia startowe tempo. Szczegóły zmienisz później w lobby.</p></fieldset>
+        <label class="check room-private-row"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
+        <fieldset class="room-type-choice"><legend>RODZAJ POKOJU</legend><div class="room-type-grid"><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked><span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"><span><b>◈ Zakłady</b><small>Wpisowe trafia do wspólnej puli.</small></span></label></div><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
+      </div>
+      <div class="room-create-aside">${commerceCreationHtml(mode.id, commerceSettings)}</div>
+    </div>
+    <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz pokój</button></div>
   </section>`;
   const maxPlayersField = document.createElement("label");
+  maxPlayersField.className = "room-create-field";
   maxPlayersField.htmlFor = "room-max-players";
   maxPlayersField.textContent = "Liczba graczy";
   const maxPlayersSelect = document.createElement("select");
   maxPlayersSelect.id = "room-max-players";
   maxPlayersSelect.innerHTML = Array.from({length:Math.max(1,mode.maxPlayers-mode.minPlayers+1)},(_,index)=>mode.minPlayers+index).map(value=>`<option value="${value}" ${value===maxPlayers?"selected":""}>${value} ${value===1?"osoba":"osób"}</option>`).join("");
   maxPlayersField.append(maxPlayersSelect);
-  backdrop.querySelector("#room-name").insertAdjacentElement("afterend",maxPlayersField);
+  backdrop.querySelector("#room-max-slot").append(maxPlayersField);
   if (mode.id === "mathematics") {
     const variantField = document.createElement("fieldset");
     variantField.className = "mathematics-variant-choice";
     variantField.innerHTML = `<legend>Podtryb matematyki</legend><label class="room-type-option ${mathematicsVariant === "single" ? "is-selected" : ""}"><input type="radio" name="math-variant" value="single" ${mathematicsVariant === "single" ? "checked" : ""}> <span><b>1 PYTANIE NA RAZ</b><small>Wspólne pytanie i wspólny limit czasu.</small></span></label><label class="room-type-option ${mathematicsVariant === "full-test" ? "is-selected" : ""}"><input type="radio" name="math-variant" value="full-test" ${mathematicsVariant === "full-test" ? "checked" : ""}> <span><b>CAŁY TEST</b><small>Każdy gracz rozwiązuje test niezależnie.</small></span></label>`;
-    maxPlayersField.insertAdjacentElement("afterend", variantField);
+    backdrop.querySelector(".room-preset-choice").insertAdjacentElement("afterend", variantField);
     variantField.querySelectorAll("[name='math-variant']").forEach(input => input.addEventListener("change", () => {
       mathematicsVariant = input.value;
       variantField.querySelectorAll(".room-type-option").forEach(item => item.classList.toggle("is-selected", item.querySelector("input")?.checked));
@@ -98,7 +108,7 @@ export function createRoomModal(mode, actions) {
   backdrop.querySelectorAll("[name='room-type']").forEach(input => input.addEventListener("change", () => { roomType=input.value; backdrop.querySelectorAll(".room-type-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); backdrop.querySelector("#entry-fee-field").classList.toggle("hidden",roomType!=="betting"); }));
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
   backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; localStorage.setItem(`grygrupowe-capacity-${mode.id}`, String(maxPlayers)); });
-  backdrop.querySelector("#room-preset")?.addEventListener("change", event => { roomPreset=event.target.value; localStorage.setItem("grygrupowe-room-preset", roomPreset); });
+  backdrop.querySelectorAll("[name='room-preset']").forEach(input => input.addEventListener("change", () => { roomPreset=input.value; backdrop.querySelectorAll(".room-preset-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); localStorage.setItem("grygrupowe-room-preset", roomPreset); }));
   backdrop.querySelectorAll("[data-commerce-setting]").forEach(input => input.addEventListener("change", event => { const key=event.target.dataset.commerceSetting; commerceSettings={...commerceSettings,[key]:event.target.checked}; saveCommercePreferences(commerceSettings); }));
   $("#confirm-create", backdrop).addEventListener("click", async () => {
     const presetSettings = roomPreset === "quick" ? { answerTime:15, rounds:3 } : roomPreset === "long" ? { answerTime:60, rounds:10 } : {};

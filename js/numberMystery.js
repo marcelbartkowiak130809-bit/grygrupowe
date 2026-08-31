@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260831-5";
+import { hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260831-6";
 
 export const numberMysteryDefaults = {
   communicationMode: "hybrid",
