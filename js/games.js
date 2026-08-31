@@ -1,5 +1,5 @@
 import { renderGame } from "./game.js?v=20260822-4";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260825-1";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260831-2";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260611-1";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260822-7";
@@ -19,7 +19,7 @@ import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260823-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
-import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260823-4";
+import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260831-1";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
 import { connectDefaults, renderConnectGame } from "./connect.js?v=20260830-1";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260830-1";

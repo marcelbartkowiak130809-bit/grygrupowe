@@ -1,4 +1,5 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-1";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-2";
+import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260831-1";
 import { $, formatClock, icon } from "./utils.js?v=20260822-1";
 
 let shopTimer;
@@ -85,7 +86,8 @@ function groupSection(group, items, profile, idPrefix, options = {}) {
 
 export function renderShop(root, { profile }, actions) {
   stopShopTimer();
-  const rotation = getShopRotation();
+  const premiumRotation = hasGamePass(profile, "premium-rotation");
+  const rotation = getShopRotation(undefined, { premium:premiumRotation });
   const animationsOn = catalogAnimationsEnabled();
   const ownedItems = sortCosmeticsByRarity(cosmetics.filter(item => profile.ownedCosmetics?.[item.id]), { rareFirst:true });
   const wardrobeHtml = groups.map(group => groupSection(group, ownedItems, profile, "owned")).join("");
@@ -106,6 +108,16 @@ export function renderShop(root, { profile }, actions) {
         <button class="${owned ? "" : "primary"}" data-${owned ? "equip" : "buy"}="${item.id}" ${active ? "disabled" : ""}>${active ? "Zalozone" : owned ? "Zaloz" : "Kup"}</button>
       </article>`;
     }).join("")}</section>
+    ${premiumRotation ? `<section class="premium-rotation-panel"><div class="section-heading"><div><p class="eyebrow">✦ PREMIUM ROTACJA</p><h2>Dodatkowe przedmioty</h2></div><span class="badge">3</span></div><p class="muted">Dzięki gamepassowi Premium rotacja masz trzy kolejne, ekskluzywne przedmioty co 15 minut.</p><div class="shop-grid premium-shop-grid">${rotation.premiumItems.map(item => {
+      const owned = profile.ownedCosmetics?.[item.id], active = equipped(profile, item.id);
+      return `<article class="shop-item premium-shop-item rarity-${item.rarity}">
+        <div class="shop-item-head"><span class="rarity">PREMIUM · ${rarityLabels[item.rarity]}</span>${icon("sparkles", 22)}</div>
+        ${cosmeticPreview(item, profile)}
+        <h2>${item.name}</h2><p class="muted">${item.description}</p><div class="price">$${item.price}</div>
+        <button class="${owned ? "" : "primary"}" data-${owned ? "equip" : "buy"}="${item.id}" ${active ? "disabled" : ""}>${active ? "Zalozone" : owned ? "Zaloz" : "Kup"}</button>
+      </article>`;
+    }).join("")}</div></section>` : ""}
+    ${gamePassShopHtml(profile)}
     <section class="panel owned-cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">GARDEROBA</p><h2>Twoje kosmetyki</h2></div><span class="badge">${ownedItems.length}</span></div><p class="muted">Kliknij karte, aby zalozyc efekt. Strzalki pojawiaja sie dopiero gdy w kategorii jest wiecej niz 7 kart.</p>
       <div class="wardrobe-sections">${wardrobeHtml}</div>
     </section>
@@ -134,4 +146,6 @@ export function renderShop(root, { profile }, actions) {
   }));
   root.querySelectorAll("[data-buy]").forEach(button => button.addEventListener("click", () => actions.buyCosmetic(button.dataset.buy)));
   root.querySelectorAll("[data-equip]").forEach(button => button.addEventListener("click", () => { if(!button.classList.contains("equipped-cosmetic")) actions.equipCosmetic(button.dataset.equip); }));
+  root.querySelectorAll("[data-buy-gamepass]").forEach(button => button.addEventListener("click", () => actions.buyGamePass(button.dataset.buyGamepass)));
+  root.querySelectorAll("[data-upgrade-gamepass]").forEach(button => button.addEventListener("click", () => actions.upgradeGamePass(button.dataset.upgradeGamepass)));
 }

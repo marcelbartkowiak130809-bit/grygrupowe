@@ -1,6 +1,7 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260830-4";
+import { getGameMode } from "./games.js?v=20260831-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
+import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260831-1";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
 
@@ -15,7 +16,7 @@ function roomCard(room, mode) {
   const adult = Boolean(mode.adult || [room.settings?.category, ...(Array.isArray(room.settings?.categories) ? room.settings.categories : [])].some(item => String(item || "").startsWith("18+")));
   return `<article class="room-card">
     <div><div class="room-mode">${modeVisual(mode)} ${mode.name} <span class="room-type-badge ${room.roomType === "betting" ? "is-betting" : "is-standard"}">${room.roomType === "betting" ? "◈" : "●"} ${roomTypeLabel(room)}</span></div><h3>${escapeHtml(room.name)}</h3>
-      <p class="muted">${room.roomId} · ${room.players.length}/${room.maxPlayers || mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}</div>
+      <p class="muted">${room.roomId} · ${room.players.length}/${room.maxPlayers || mode.maxPlayers} · ${room.status === "lobby" ? "oczekuje" : "gra trwa"}</p>${adult ? '<span class="adult-room-badge">18+</span>' : ""}${identityFlow}${commerceSummaryHtml(room.gameMode, room.settings, { compact:true })}</div>
     <div class="room-right">${room.isPrivate ? icon("lock", 18) : ""}<button data-join-room="${room.roomId}">Wejdź</button></div>
   </article>`;
 }
@@ -24,6 +25,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
   const mode = getGameMode(selectedGameMode);
   const wavelengthHint = mode.id === "wavelength" && localStorage.getItem("wavelengthTutorialSeen") !== "1" ? '<span class="wavelength-info-hint">↗ Kliknij „i”, aby poznać zasady</span>' : "";
   const modeRooms = rooms.filter(room => room.gameMode === mode.id && room.status === "lobby" && (room.players || []).some(uid => !isBotId(uid)));
+  const commerceHint = commerceSummaryHtml(mode.id, {}, { compact:true }) ? '<p class="commerce-mode-hint">✦ Ten tryb ma opcjonalne zakupy i gamepassy. Host wybiera je przy tworzeniu pokoju.</p>' : "";
   const backendNote = onlineBackend === null
     ? '<section class="online-note">Łączenie z trybem online...</section>'
     : onlineBackend
@@ -32,7 +34,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
   root.innerHTML = `<main class="page lobby-page enter">
     <section class="mode-hero panel">
       <div class="game-symbol game-symbol-${mode.art}">${modeVisual(mode)}</div>
-      <div><p class="eyebrow">WYBRANY TRYB</p><h1>${mode.name}</h1><p class="muted">${mode.description}</p><span class="players-count">${icon("users", 17)} ${mode.players}</span></div>
+      <div><p class="eyebrow">WYBRANY TRYB</p><h1>${mode.name}</h1><p class="muted">${mode.description}</p><span class="players-count">${icon("users", 17)} ${mode.players}</span>${commerceHint}</div>
       <div class="mode-hero-actions">${wavelengthHint}<button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="change-mode">Zmień tryb</button></div>
     </section>
     <section class="panel">
@@ -59,6 +61,7 @@ export function createRoomModal(mode, actions) {
   let entryFee = ENTRY_FEE_OPTIONS[0];
   let maxPlayers = mode.maxPlayers;
   let roomPreset = localStorage.getItem("grygrupowe-room-preset") || "standard";
+  let commerceSettings = normalizeCommerceSettings(mode.id, {}, defaultCommercePreferences());
   const savedCapacity = Number(localStorage.getItem(`grygrupowe-capacity-${mode.id}`));
   if (savedCapacity >= mode.minPlayers && savedCapacity <= mode.maxPlayers) maxPlayers = savedCapacity;
   let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
@@ -68,6 +71,7 @@ export function createRoomModal(mode, actions) {
     <label for="room-preset">Szybki preset rozgrywki</label><select id="room-preset"><option value="quick" ${roomPreset === "quick" ? "selected" : ""}>Szybka · krótsze rundy</option><option value="standard" ${roomPreset === "standard" ? "selected" : ""}>Standardowa</option><option value="long" ${roomPreset === "long" ? "selected" : ""}>Długa · więcej rund</option></select><p class="tiny room-preset-help">Preset ustawia tylko domyślny czas i liczbę rund — szczegóły nadal możesz zmienić w lobby.</p>
     <label class="check"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
     <fieldset class="room-type-choice"><legend>Rodzaj pokoju</legend><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked> <span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"> <span><b>◈ Zakłady</b><small>Każdy gracz wpłaca wpisowe, zwycięzcy dzielą pulę.</small></span></label><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
+    ${commerceCreationHtml(mode.id, commerceSettings)}
     <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz</button></div>
   </section>`;
   const maxPlayersField = document.createElement("label");
@@ -95,9 +99,10 @@ export function createRoomModal(mode, actions) {
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
   backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; localStorage.setItem(`grygrupowe-capacity-${mode.id}`, String(maxPlayers)); });
   backdrop.querySelector("#room-preset")?.addEventListener("change", event => { roomPreset=event.target.value; localStorage.setItem("grygrupowe-room-preset", roomPreset); });
+  backdrop.querySelectorAll("[data-commerce-setting]").forEach(input => input.addEventListener("change", event => { const key=event.target.dataset.commerceSetting; commerceSettings={...commerceSettings,[key]:event.target.checked}; saveCommercePreferences(commerceSettings); }));
   $("#confirm-create", backdrop).addEventListener("click", async () => {
     const presetSettings = roomPreset === "quick" ? { answerTime:15, rounds:3 } : roomPreset === "long" ? { answerTime:60, rounds:10 } : {};
-    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...presetSettings, ...(mode.id === "mathematics" ? { mathematicsVariant } : {}) } }) !== false) close();
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...presetSettings, ...(mode.id === "mathematics" ? { mathematicsVariant } : {}), ...commerceSettings } }) !== false) close();
   });
   return backdrop;
 }

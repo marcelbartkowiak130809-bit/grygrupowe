@@ -213,6 +213,13 @@ export const cosmetics = [
   item("loseBlackHole","lose","Przegrana: czarna dziura",6500,"mythic","Profilowe i nick sa wciagane do rosnacej czarnej dziury."),
   item("loseCrownDrop","lose","Przegrana: spadajaca korona",6900,"mythic","Korona zsuwa sie z profilowego i spada obok przegranego."),
 
+  item("premiumPrismBomb","bomb","Prism core",12500,"mythic","Premium bomba z pryzmatycznym rdzeniem i wielokolorowym wybuchem.",{premiumShop:true}),
+  item("premiumChronoClock","clock","Chrono pulse",12500,"mythic","Premium zegar z pulsującym pierścieniem czasu.",{premiumShop:true}),
+  item("premiumSpectrumMarker","marker","Spectrum marker",11500,"legendary","Premium marker z płynnym spektrum kolorów.",{premiumShop:true}),
+  item("premiumQuantumSequence","sequence","Quantum grid",11000,"legendary","Premium pola z animowanym, kwantowym blaskiem.",{premiumShop:true}),
+  item("premiumGalaxyCandy","candy","Galaxy candy",12500,"mythic","Premium cukierek z kosmicznym połyskiem.",{premiumShop:true}),
+  item("premiumAuroraAura","aura","Aurora premium",15000,"mythic","Ekskluzywna zorza polarna wokół profilowego.",{premiumShop:true}),
+
   item("levelBronzeFrame","frame","Ramka Weterana",0,"rare","Ekskluzywna ramka za level 6.",{exclusive:true,requiredLevel:6}),
   item("levelVioletNick","nick","Nick Awansu",0,"epic","Ekskluzywny fioletowy nick za level 10.",{exclusive:true,requiredLevel:10}),
   item("levelBlazeFrame","frame","Ramka Żaru",0,"epic","Ekskluzywna płonąca ramka za level 18.",{exclusive:true,requiredLevel:18}),
@@ -342,10 +349,12 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
   </div>`;
 }
 
-export function getShopRotation(now = Date.now()) {
-  const paid = cosmetics.filter(item => item.price > 0 && !item.exclusive);
+export function getShopRotation(now = Date.now(), options = {}) {
+  const paid = cosmetics.filter(item => item.price > 0 && !item.exclusive && !item.premiumShop);
+  const premium = cosmetics.filter(item => item.price > 0 && !item.exclusive && item.premiumShop);
   const slot = Math.floor(now / (15 * 60 * 1000));
   const offset = slot % paid.length;
   const items = [0, 17, 31].map(step => paid[(offset + step) % paid.length]);
-  return { slot, items, endsAt:(slot + 1) * 15 * 60 * 1000 };
+  const premiumItems = options.premium && premium.length ? [0, 17, 31].map(step => premium[(offset + step) % premium.length]) : [];
+  return { slot, items, premiumItems, endsAt:(slot + 1) * 15 * 60 * 1000 };
 }

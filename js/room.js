@@ -1,7 +1,7 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260830-4";
+import { getGameMode } from "./games.js?v=20260831-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { renderImpostorLobbySettings } from "./impostor.js?v=20260825-1";
+import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-2";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260611-1";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
@@ -20,7 +20,7 @@ import { renderMarkerLobbySettings } from "./marker.js?v=20260823-1";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260822-2";
-import { renderNumberMysteryLobbySettings } from "./numberMystery.js?v=20260823-4";
+import { renderNumberMysteryLobbySettings } from "./numberMystery.js?v=20260831-1";
 import { renderUniqueAnswerLobbySettings } from "./uniqueAnswer.js?v=20260823-5";
 import { renderConnectLobbySettings } from "./connect.js?v=20260830-1";
 import { renderLiarLobbySettings } from "./liar.js?v=20260830-1";
@@ -28,6 +28,7 @@ import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260830-1"
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260830-1";
 import { adSenseBlock } from "./publicPages.js?v=20260822-1";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
+import { commerceSummaryHtml } from "./gamePasses.js?v=20260831-1";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠" };
@@ -126,7 +127,7 @@ export function refreshRoomSettings(root, { room, currentUser }, actions) {
   const panel = root.querySelector(".lobby-settings");
   if (!panel || !room || room.status !== "lobby") return false;
   const mode = getGameMode(room.gameMode);
-  panel.innerHTML = `<p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, room.hostUid === currentUser, actions)}`;
+  panel.innerHTML = `<p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, room.hostUid === currentUser, actions)}${commerceSummaryHtml(room.gameMode, room.settings, { readOnly:true })}`;
   bindRoomSettings(root, actions);
   return true;
 }
@@ -149,7 +150,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       <div class="room-header-actions"><button class="icon-btn info-button" id="mode-info" aria-label="Jak grać">i</button><button class="ghost" id="leave-room">Wyjdz</button></div>
     </section>
     <section class="lobby-layout">
-      <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}</section>
+      <section class="panel lobby-settings"><p class="eyebrow">USTAWIENIA</p><h2>Przygotuj rozgrywke</h2>${settingsHtml(mode, room, isHost, actions)}${commerceSummaryHtml(room.gameMode, room.settings, { readOnly:true })}</section>
       <aside class="panel room-code"><p class="eyebrow">KOD POKOJU</p><strong>${room.roomId}</strong><p class="muted">Podaj kod znajomym albo wyślij link zaproszenia.</p><label class="tiny" for="invite-link">Link zaproszenia</label><input id="invite-link" class="invite-link-field" value="${escapeHtml(inviteLink)}" readonly><div class="invite-actions"><button class="primary" id="copy-invite-link">Kopiuj link zaproszenia</button><button class="ghost" id="share-invite-link">Udostępnij</button>${inviteFriendButton}</div>${adSenseBlock("Reklama", "lobby")}</aside>
     </section>
     <section class="panel room-activity-panel"><div class="section-heading"><div><p class="eyebrow">OSTATNIE ZDARZENIA</p><h2>Aktywność pokoju</h2></div><span class="badge">${activity.length}</span></div>${activity.length ? `<div class="room-activity-list">${activity.map(item => `<div class="room-activity-item"><i></i><span>${escapeHtml(item.text)}</span><time>${new Date(Number(item.createdAt)||Date.now()).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</time></div>`).join("")}</div>` : `<p class="muted">Tutaj pojawią się najważniejsze informacje o lobby.</p>`}</section>

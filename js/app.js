@@ -2,11 +2,12 @@ import { accountModal, authModal } from "./auth.js?v=20260831-1";
 import { Audio } from "./audio.js";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260822-6";
 import { Effects } from "./effects.js";
-import { cosmetics } from "./cosmetics.js?v=20260831-1";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260825-22";
+import { cosmetics } from "./cosmetics.js?v=20260831-2";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-23";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
-import { gamesList, getGameMode } from "./games.js?v=20260830-4";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260825-1";
+import { gamesList, getGameMode } from "./games.js?v=20260831-1";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-1";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-2";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260611-1";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
@@ -27,17 +28,17 @@ import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=2
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260813-2";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260822-2";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260822-2";
-import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260823-4";
+import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260831-1";
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260823-5";
 import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260830-1";
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260830-1";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260830-1";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260830-1";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-1";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-2";
 import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260830-5";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
 import { Router } from "./router.js";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-1";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-2";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260831-2";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
@@ -70,7 +71,7 @@ function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
 function lightThemeEnabled() { return document.documentElement.classList.contains("light-theme"); }
 applyTheme();
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory={...(account.potionInventory||{})};account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory={...(account.potionInventory||{})};account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
 Object.values(accounts).forEach(account => { account.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(account.honorCounts||{})}; });
 saveAccounts(accounts);
 const session=loadSession();
@@ -159,7 +160,7 @@ function signatureGame(game, gameMode, players) {
   const objectField = key => { if (!copy[key] || typeof copy[key] !== "object" || Array.isArray(copy[key])) copy[key] = {}; };
   const arrayField = key => { if (!Array.isArray(copy[key])) copy[key] = []; };
   if (gameMode === "impostor") {
-    objectField("roles"); objectField("acknowledged"); objectField("reactions"); objectField("reactionCooldowns"); objectField("continueVotes"); objectField("votes");
+    objectField("roles"); objectField("roleRequests"); objectField("rolePurchaseResults"); objectField("rolePurchaseRefunds"); objectField("rolePurchaseRefundsClaimed"); objectField("acknowledged"); objectField("reactions"); objectField("reactionCooldowns"); objectField("continueVotes"); objectField("votes");
     arrayField("clues"); arrayField("chat");
     copy.turnOrder = Array.isArray(copy.turnOrder) ? copy.turnOrder : [];
     if (!copy.turnOrder.length) copy.turnOrder = players;
@@ -189,7 +190,7 @@ function signatureGame(game, gameMode, players) {
   } else if (gameMode === "word-chain") {
     objectField("hearts"); arrayField("chain"); arrayField("used"); arrayField("eliminated"); arrayField("missedPlayers");
   } else if (gameMode === "number-mystery") {
-    objectField("numbers"); objectField("guesses"); objectField("wrongGuesses"); arrayField("history");
+    objectField("numbers"); objectField("guesses"); objectField("wrongGuesses"); objectField("privateHints"); objectField("purchaseUses"); arrayField("history");
     copy.players = Array.isArray(copy.players) ? copy.players : players.slice(0, 2);
   } else if (gameMode === "polacz-nas") {
     objectField("answers"); objectField("votes"); objectField("scores"); objectField("roundResult"); arrayField("players"); arrayField("pair"); arrayField("usedPairs");
@@ -1385,7 +1386,7 @@ async function adminPanelModal() {
   document.body.append(modal);Audio.play("modalOpen");
 }
 function defaultAccount(nick, password, auth = {}, birthDate = "") {
-  return { nick, passwordHash:hashRoomPassword(`account:${password}`), authEmail: nickToEmail(nick), authProvider: auth.provider || "local", money: 0, xp:0, claimedLevelRewards:{}, stats:{},
+  return { nick, passwordHash:hashRoomPassword(`account:${password}`), authEmail: nickToEmail(nick), authProvider: auth.provider || "local", money: 0, xp:0, claimedLevelRewards:{}, stats:{}, gamePasses:{},
     ownedCosmetics: { defaultNick: true, defaultFrame: true, noAura: true, defaultCandy: true, defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true }, selectedNickEffect: "defaultNick",
     selectedAvatarFrame: "defaultFrame", selectedAura: "noAura", selectedCandySkin:"defaultCandy", selectedBombSkin:"defaultBomb", selectedClockSkin:"defaultClock", selectedMarkerSkin:"defaultMarker", selectedSequenceSkin:"defaultSequence", selectedIdleAnimation:"", selectedWinAnimation:"", selectedLoseAnimation:"", potionInventory:{}, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0}, privacy:{historyPublic:true,statsPublic:true,friendsPublic:true}, gameHistory:[], birthDate, adultStatus:adultStatusFor({birthDate}), inbox:[], friends:[], friendRequests:{incoming:{},outgoing:{}}, createdAt: Date.now() };
 }
@@ -1683,7 +1684,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId), isNewAccount=!remote&&!existing;
       if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }
-      state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].potionInventory={...(state.accounts[accountId].potionInventory||{})}; state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
+       state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].gamePasses={...(state.accounts[accountId].gamePasses||{})}; state.accounts[accountId].potionInventory={...(state.accounts[accountId].potionInventory||{})}; state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
       if(isNewAccount) trackSiteEvent({ type:"userRegistered", eventId:`user:${accountId}` });
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
@@ -1798,7 +1799,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   async createRoom({ name, password, settings, isPrivate, maxPlayers, roomType = "standard", entryFee = 0 }) {
     if(!ensureRoomSession()||!profile())return false;
-    const now = Date.now(); const mode = getGameMode(state.selectedGameMode); roomType=roomType === "betting" ? "betting" : "standard"; entryFee=roomType === "betting" ? Math.max(0,Number(entryFee)||0) : 0; if (roomType === "betting" && playerMoney({playerProfiles:{[state.currentUser]:profile()}},state.currentUser) < entryFee) { message(`Potrzebujesz co najmniej ${entryFee.toLocaleString("pl-PL")}$, aby utworzyć taki pokój.`); return false; } if (mode.id === "quiz") settings = { ...settings, quizVariant:state.quizVariant || "casual" };
+    const now = Date.now(); const mode = getGameMode(state.selectedGameMode); roomType=roomType === "betting" ? "betting" : "standard"; entryFee=roomType === "betting" ? Math.max(0,Number(entryFee)||0) : 0; if (roomType === "betting" && playerMoney({playerProfiles:{[state.currentUser]:profile()}},state.currentUser) < entryFee) { message(`Potrzebujesz co najmniej ${entryFee.toLocaleString("pl-PL")}$, aby utworzyć taki pokój.`); return false; } settings = normalizeCommerceSettings(mode.id, settings || {}, defaultCommercePreferences()); if (mode.id === "quiz") settings = { ...settings, quizVariant:state.quizVariant || "casual" };
     if(isModeLocked(mode.id)){message(lockedModeMessage(mode),"info");return false;}
     if(await guardBan(mode.id))return false;
     maxPlayers = Math.max(mode.minPlayers, Math.min(mode.maxPlayers, Number(maxPlayers) || mode.maxPlayers));
@@ -1925,6 +1926,27 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(remote&&!remote.ok)return message(`Nie udało się potwierdzić roli: ${remote.error}`);
     ImpostorEngine.acknowledge(room.game,state.currentUser,room.settings);touchRoom(room);Audio.play("ready");render();
   },
+  async impostorBuyRole(requestedRole){
+    const room=activeRoom(), item=inGamePurchaseById("impostor-role"), user=profile();
+    if(!room?.game||room.gameMode!=="impostor"||room.settings?.gamePurchases===false||!item||!user)return false;
+    if(user.nickOnly)return message("Zaloguj się na konto, żeby kupować dodatki w grze.","info");
+    if(Number(user.money||0)<item.price)return message(`Potrzebujesz ${item.price}$, aby kupić wybór roli.`, "info");
+    const changed=await mutateRoomGame((game,current)=>ImpostorEngine.buyRole(game,state.currentUser,requestedRole,sanitizeImpostorSettings(current.settings,current.players.length)),{sound:"purchase"});
+    if(!changed)return false;
+    updateProfile({money:Number(user.money||0)-item.price});
+    await actions.impostorClaimRoleRefund();
+    return true;
+  },
+  async impostorClaimRoleRefund(){
+    const room=activeRoom(), user=profile(), game=room?.game, level=gamePassState(user,gamePassById("impostor-compensation"));
+    if(!room||room.gameMode!=="impostor"||room.settings?.gamePassesEnabled===false||!user||!game?.rolePurchaseRefunds?.[state.currentUser]||game.rolePurchaseRefundsClaimed?.[state.currentUser]||!hasGamePass(user,"impostor-compensation"))return false;
+    const claimed=await mutateRoomGame(current=>{current.rolePurchaseRefundsClaimed={...(current.rolePurchaseRefundsClaimed||{}),[state.currentUser]:true};},{sound:"success"});
+    if(!claimed)return false;
+    const percent=Math.min(90,40+level.level*10), refund=Math.floor(Number(inGamePurchaseById("impostor-role")?.price||3000)*percent/100);
+    updateProfile({money:Number(profile()?.money||0)+refund});
+    message(`Losowanie roli: rekompensata ${refund}$ (${percent}%).`,"info");
+    return true;
+  },
   impostorSubmitClue(text){return mutateRoomGame((game,room)=>ImpostorEngine.clue(game,state.currentUser,text,room.settings),{sound:"clue"});},
   impostorTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const expectedEnd=Number(expected.phaseEndsAt||0);if(expectedEnd&&Date.now()+250<expectedEnd)return false;const guard={phase:room.game?.phase,phaseEndsAt:room.game?.phaseEndsAt||0,round:room.game?.round||0,turnIndex:room.game?.turnIndex??""};return mutateRoomGame((game,current)=>{if(expected.phase&&game.phase!==expected.phase)return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";if(Number(game.phaseEndsAt||0)>Date.now()+250)return"Czas jeszcze nie minal.";if(expected.round&&Number(game.round||0)!==Number(expected.round))return"Faza gry juz sie zmienila.";if(String(game.turnIndex??"")!==String(expected.turnIndex??guard.turnIndex))return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
   impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:"vote"});},
@@ -2022,6 +2044,17 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   numberMysteryAsk(question, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na pytanie już minął.";return NumberMysteryEngine.ask(game,state.currentUser,question);},{sound:"clue"});},
   numberMysteryAnswer(answer, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return NumberMysteryEngine.answer(game,state.currentUser,answer);},{sound:"choice"});},
   numberMysteryGuess(value, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase&&game.roundMode!=="race")return "Faza gry już się zmieniła.";return NumberMysteryEngine.guess(game,state.currentUser,value);},{sound:"submit"});},
+  async numberMysteryBuyHint(){
+    const room=activeRoom(), item=inGamePurchaseById("number-hint"), user=profile();
+    if(!room?.game||room.gameMode!=="number-mystery"||room.settings?.gamePurchases===false||!item||!user)return false;
+    if(user.nickOnly)return message("Zaloguj się na konto, żeby kupować dodatki w grze.","info");
+    if(Number(user.money||0)<item.price)return message(`Potrzebujesz ${item.price}$, aby kupić wskazówkę.`, "info");
+    const changed=await mutateRoomGame((game)=>{game.purchaseUses=game.purchaseUses&&typeof game.purchaseUses==="object"?game.purchaseUses:{};if(game.purchaseUses[state.currentUser]?.[item.id])return "Ta wskazówka została już wykorzystana.";const number=Number(game.numbers?.[state.currentUser]);if(!Number.isFinite(number))return "Nie udało się przygotować wskazówki.";game.privateHints=game.privateHints&&typeof game.privateHints==="object"?game.privateHints:{};game.privateHints[state.currentUser]=number>75?"Twój numer jest większy niż 75.":"Twój numer jest równy lub mniejszy niż 75.";game.purchaseUses[state.currentUser]={...(game.purchaseUses[state.currentUser]||{}),[item.id]:true};},{sound:"purchase"});
+    if(!changed)return false;
+    updateProfile({money:Number(user.money||0)-item.price});
+    message("Wskazówka została użyta.","info");
+    return true;
+  },
   numberMysteryTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="number-mystery")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";NumberMysteryEngine.timeout(game);},{sound:"roundEnd"});},
   uniqueAnswerSubmit(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Ta runda jest już zakończona.";return UniqueAnswerEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit",after:settleAdditionalModeResult});},
   uniqueAnswerHostPrompt(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Pytanie jest już ustawione.";return UniqueAnswerEngine.hostPrompt(game,state.currentUser,text,room.settings);},{sound:"clue"});},
@@ -2058,6 +2091,26 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (user.nickOnly) return message("Zaloguj się na konto, żeby kupować efekty."); if (user.money < item.price) return message("Nie masz tyle pieniędzy.");
     const quested=noteQuestEvent(noteQuestEvent(user,{type:"bought"}),{type:"spent",amount:item.price});
     Audio.play(`cosmetic${item.rarity[0].toUpperCase()}${item.rarity.slice(1)}`); updateProfile({ questStats:quested.questStats, money: user.money - item.price, ownedCosmetics: { ...user.ownedCosmetics, [itemId]: true } });
+  },
+  buyGamePass(id) {
+    const item=gamePassById(id), user=profile();
+    if (!item || !user || user.nickOnly) return message("Zaloguj się na konto, żeby kupować gamepassy.", "info");
+    const current=gamePassState(user,item);
+    if (current.owned) return actions.upgradeGamePass(id);
+    if (Number(user.money||0)<item.price) return message("Nie masz tyle pieniędzy.", "info");
+    updateProfile({ money:Number(user.money||0)-item.price, gamePasses:{...(user.gamePasses||{}),[id]:{level:1,purchasedAt:Date.now()}} });
+    Audio.play("purchase"); message(`Odblokowano gamepass „${item.name}”.`, "info");
+    return true;
+  },
+  upgradeGamePass(id) {
+    const item=gamePassById(id), user=profile();
+    if (!item || !user || user.nickOnly) return message("Zaloguj się na konto, żeby ulepszać gamepassy.", "info");
+    const current=gamePassState(user,item);
+    if (!current.owned || current.complete) return false;
+    if (Number(user.money||0)<current.nextPrice) return message("Nie masz tyle pieniędzy na ulepszenie.", "info");
+    updateProfile({ money:Number(user.money||0)-current.nextPrice, gamePasses:{...(user.gamePasses||{}),[id]:{level:current.level+1,purchasedAt:user.gamePasses?.[id]?.purchasedAt||Date.now(),updatedAt:Date.now()}} });
+    Audio.play("purchase"); message(`Ulepszono „${item.name}” do poziomu ${current.level+1}.`, "info");
+    return true;
   },
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
