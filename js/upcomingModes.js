@@ -33,14 +33,54 @@ export const futureModeUnlocks = {
   "popularnosc-hitow": "2026-10-25T20:00:00+02:00",
   "popularnosc-solo": "2026-10-25T20:00:00+02:00",
 };
-export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? futureModeUnlocks : {};
+
+// Tymczasowo otwarte do testów właściciela: nowe tryby muzyczne i planszówkowe.
+// Daty zostają zachowane, żeby można było łatwo przywrócić kolejkę po testach.
+export const TEMPORARILY_UNLOCKED_MODE_IDS = new Set([
+  "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "popularnosc-solo",
+  "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi",
+  "board-warcaby", "board-cztery", "board-memory", "board-domino",
+]);
+export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED
+  ? Object.fromEntries(Object.entries(futureModeUnlocks).filter(([modeId]) => !TEMPORARILY_UNLOCKED_MODE_IDS.has(modeId)))
+  : {};
 
 export function formatUnlockDate(unlockAt) {
   const date = new Date(unlockAt);
   if (!Number.isFinite(date.getTime())) return "";
   return new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
     day: "numeric",
     month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function warsawDateKey(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date).reduce((result, part) => {
+    if (part.type !== "literal") result[part.type] = part.value;
+    return result;
+  }, {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+export function isUnlockDay(unlockAt, now = Date.now()) {
+  return Boolean(unlockAt && warsawDateKey(unlockAt) === warsawDateKey(now));
+}
+
+export function formatUnlockTime(unlockAt) {
+  const date = new Date(unlockAt);
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);

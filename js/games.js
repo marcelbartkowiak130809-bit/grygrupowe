@@ -27,6 +27,7 @@ import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-4";
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-2";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-3";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-6";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -314,6 +315,30 @@ export const gamesRegistry = {
   },
   "tajna-zasada": {
     id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
+  },
+  "board-chinczyk": {
+    id:"board-chinczyk", name:"Chińczyk", description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", help:["Rzuć kostką i wyprowadź pionek po wyrzuceniu szóstki.","Zbijaj pionki rywali, wracając je do bazy.","Wszystkie cztery pionki w domu oznaczają zwycięstwo."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🎲", art:"board-ludo", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-chinczyk"],
+  },
+  "board-slowotwor": {
+    id:"board-slowotwor", name:"Słowotwór", description:"Układaj słowa z własnych liter i zbieraj punkty za najciekawsze zagrania.", help:["W swojej turze ułóż słowo wyłącznie z liter na stojaku.","Dłuższe słowa dają więcej punktów.","Po ustalonej liczbie kolejek wygrywa najlepszy słowny strateg."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🔤", art:"board-words", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-slowotwor"],
+  },
+  "board-statki": {
+    id:"board-statki", name:"Statki", description:"Ukryj flotę, namierzaj pola przeciwnika i zatop wszystkie jego statki.", help:["Najpierw wybierz siedem pól dla swojej floty.","Następnie strzelaj naprzemiennie w planszę rywala.","Pierwszy kapitan, który trafi wszystkie pola, wygrywa."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🚢", art:"board-ships", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-statki"],
+  },
+  "board-reversi": {
+    id:"board-reversi", name:"Reversi", description:"Otaczaj pionki przeciwnika i przejmuj planszę kawałek po kawałku.", help:["Kładź pionki tak, aby zamknąć linię pionków przeciwnika.","Zamknięte pionki zmieniają kolor.","Na koniec wygrywa osoba z większą liczbą pól."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"⚫", art:"board-reversi", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-reversi"],
+  },
+  "board-warcaby": {
+    id:"board-warcaby", name:"Warcaby", description:"Planuj bicia, rób damki i zablokuj wszystkie pionki przeciwnika.", help:["Pionki poruszają się po ciemnych polach po skosie.","Bicie jest obowiązkowe, a dojście do końca robi damkę.","Wygrywa gracz, który zbije albo zablokuje rywala."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"♟️", art:"board-checkers", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-warcaby"],
+  },
+  "board-cztery": {
+    id:"board-cztery", name:"Cztery w rzędzie", description:"Wrzuć cztery pionki w jednej linii — poziomo, pionowo albo po skosie.", help:["Wybierz kolumnę, a pionek spadnie na najniższe wolne pole.","Układaj linie i blokuj ruchy przeciwnika.","Pierwsza linia czterech wygrywa."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔴", art:"board-connect", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-cztery"],
+  },
+  "board-memory": {
+    id:"board-memory", name:"Memory", description:"Odkrywaj pary, zapamiętuj położenie kart i zbuduj największy wynik.", help:["Odkryj dwie karty w swojej turze.","Trafiona para daje punkt i dodatkową kolejkę.","Po odkryciu wszystkich par wygrywa najwyższy wynik."], allowReports:true, players:"2–8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🧠", art:"board-memory", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-memory"],
+  },
+  "board-domino": {
+    id:"board-domino", name:"Domino", description:"Dokładaj kostki do łańcucha, dobieraj sprytnie i pozbądź się ręki jako pierwszy.", help:["Dokładaj kostkę do lewego albo prawego końca łańcucha.","Jeśli nie masz ruchu, dobierz kostkę z talii.","Gdy nikt nie może już zagrać, wygrywa najlżejsza ręka."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🁫", art:"board-domino", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-domino"],
   },
   "pojedynek-hitow": {
     id: "pojedynek-hitow", name: "Pojedynek hitów", description: "Wybierzcie piosenki pod wspólny temat i przekonajcie ekipę, który numer wygrywa.", help: ["Wszyscy wybierają po jednym utworze z wyszukiwarki — bez kopiowania linków.", "Po wyborze słuchacie krótkich podglądów i głosujecie na najlepszy numer.", "Każdy głos trafia na jedną piosenkę, a remis daje punkt wszystkim zwycięzcom.", "Po kilku rundach wygrywa osoba z największą liczbą punktów."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎵", art: "music-duel", audience: "everyone", badges: ["new", "tiktok"], render: renderMusicDuelGame, defaultSettings: musicDuelDefaults,

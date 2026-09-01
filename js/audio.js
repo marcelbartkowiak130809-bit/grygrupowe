@@ -50,6 +50,21 @@ const sfx = {
   candySafe: [640, 0.12, "triangle", 0.48],
   candyDeath: [95, 0.38, "sawtooth", 0.68],
   cooldown: [480, 0.07, "square", 0.18],
+  boardTurn: [590, 0.09, "triangle", 0.34],
+  boardMove: [410, 0.08, "triangle", 0.38],
+  boardDice: [250, 0.07, "square", 0.42],
+  boardCapture: [155, 0.16, "sawtooth", 0.48],
+  boardShot: [430, 0.07, "square", 0.35],
+  boardHit: [760, 0.12, "triangle", 0.6],
+  boardMiss: [210, 0.13, "sine", 0.3],
+  boardWord: [520, 0.1, "triangle", 0.46],
+  boardFlip: [670, 0.06, "sine", 0.32],
+  boardPair: [720, 0.16, "triangle", 0.62],
+  boardDrop: [330, 0.12, "triangle", 0.54],
+  boardDomino: [460, 0.09, "triangle", 0.44],
+  boardDraw: [300, 0.1, "sine", 0.34],
+  boardPass: [280, 0.09, "sine", 0.26],
+  boardVictory: [520, 0.24, "triangle", 0.7],
 };
 
 function loadSettings() {
@@ -204,6 +219,21 @@ export const Audio = {
     if (name === "candyPoison") return sequence([[130,.1,"sawtooth",.46],[210,.08,"square",.32],[95,.18,"sawtooth",.28]],55);
     if (name === "candySafe") return sequence([[520,.06,"triangle",.35],[700,.09,"sine",.32]],52);
     if (name === "candyDeath") { percussion("kick"); return sequence([[180,.11,"sawtooth",.58],[90,.34,"square",.4]],78); }
+    if (name === "boardTurn") return sequence([[440,.05,"sine",.26],[660,.09,"triangle",.34]],65);
+    if (name === "boardMove") return sequence([[390,.045,"triangle",.3],[520,.07,"sine",.24]],48);
+    if (name === "boardDice") { noise(.045,settings.sfxVolume*.12,undefined,4200); return sequence([[230,.055,"square",.34],[300,.07,"square",.28],[390,.08,"triangle",.24]],45); }
+    if (name === "boardCapture") { percussion("kick"); return sequence([[180,.1,"sawtooth",.44],[115,.19,"square",.34]],62); }
+    if (name === "boardShot") return sequence([[340,.045,"square",.3],[520,.08,"triangle",.38]],45);
+    if (name === "boardHit") { percussion("snap"); return sequence([[620,.07,"triangle",.46],[880,.13,"sine",.4]],58); }
+    if (name === "boardMiss") return sequence([[240,.1,"sine",.28],[180,.13,"triangle",.2]],70);
+    if (name === "boardWord") return sequence([[520,.06,"triangle",.3],[680,.08,"triangle",.38],[860,.1,"sine",.3]],52);
+    if (name === "boardFlip") return sequence([[580,.045,"sine",.24],[760,.055,"triangle",.28]],44);
+    if (name === "boardPair") { percussion("spark"); return sequence([[660,.08,"triangle",.42],[880,.1,"triangle",.52],[1180,.18,"sine",.38]],62); }
+    if (name === "boardDrop") { percussion("kick"); return sequence([[280,.07,"triangle",.3],[420,.1,"sine",.32]],55); }
+    if (name === "boardDomino") return sequence([[430,.06,"triangle",.3],[570,.1,"sine",.34]],55);
+    if (name === "boardDraw") return sequence([[300,.08,"sine",.26],[400,.1,"triangle",.32]],58);
+    if (name === "boardPass") return sequence([[300,.07,"sine",.2],[240,.1,"sine",.16]],62);
+    if (name === "boardVictory") { percussion("spark"); setTimeout(()=>percussion("spark"),360); return sequence([[392,.1,"triangle",.48],[523,.12,"triangle",.58],[659,.15,"triangle",.64],[784,.3,"sine",.54]],72); }
     if (name === "impactStart") return sequence([[120,.18,"sawtooth",.75],[220,.2,"triangle",.72],[440,.28,"sine",.6]],70);
     if (name === "impactSuccess") return sequence([[160,.09,"square",.58],[520,.14,"triangle",.92],[810,.22,"sine",.72],[1080,.18,"triangle",.45]],52);
     if (name === "impactMiss") return sequence([[190,.18,"sawtooth",.82],[118,.28,"square",.58],[82,.32,"sawtooth",.34]],62);

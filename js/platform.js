@@ -1,9 +1,9 @@
-import { gamesList } from "./games.js?v=20260901-2";
+import { gamesList } from "./games.js?v=20260901-3";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-2";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260901-5";
+import { formatUnlockTime, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-7";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-1";
 
 const filters = [
@@ -17,10 +17,12 @@ const filters = [
   ["solo", "TRYB SOLO"],
 ];
 let pollCountdownTimer;
+let modeUnlockAnnouncementTimer;
 const POLLS_ENABLED = false;
 
 function modeCategory(mode) {
   if (mode.audience === "pokemon") return "pokemon";
+  if (mode.audience === "board") return "board";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
 }
@@ -36,6 +38,16 @@ export function renderPokemonModes(root, actions, context = {}) {
   activatePublicAds(root, "platform");
 }
 
+export function renderBoardModes(root, actions, context = {}) {
+  const activityStats = context.activityStats || window.__activityStats || {};
+  const boardModes = gamesList.filter(game => game.audience === "board");
+  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="games-section board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span></div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  activatePublicAds(root, "platform");
+}
+
 function modeFilterTags(mode) {
   return [modeCategory(mode), mode.supportsSolo ? "solo" : "", ...(mode.badges || [])].filter(Boolean).join(" ");
 }
@@ -43,7 +55,7 @@ function modeFilterTags(mode) {
 function categoryTag(mode) {
   const category = modeCategory(mode);
   if (mode.audience === "pokemon") return "";
-  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY" };
+  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY", board:"PLANSZÓWKI" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
 
@@ -53,7 +65,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
@@ -65,30 +77,70 @@ function pokemonHubCard() {
   return `<article class="game-card pokemon-hub-card" data-pokemon-hub data-mode-category="pokemon" data-mode-tags="pokemon category new everyone" data-mode-search="pokemony pokemon kategoria specjalna strefa"><div class="game-visual game-visual-pokemon-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</span><b class="pokemon-hub-badge">POKÉMON</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-pokemon">KATEGORIA</span></div><h2>POKEMONY</h2><p class="muted">Rywalizujcie w specjalnych trybach z Pokémonami: Pokédex, ewolucje, typy, aukcja i więcej.</p><div class="game-card-activity"><span>6 trybów</span><span>MEWTWO CZEKA</span></div><div class="game-card-footer"><span class="players-count">🧬 SPECJALNA STREFA</span><button class="primary" data-open-pokemon>Wybierz tryb</button></div></div></article>`;
 }
 
+function boardHubCard() {
+  return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe chińczyk statki słowotwór warcaby memory domino reversi"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Słowotwór, Warcaby, Reversi i więcej gier przy jednej planszy.</p><div class="game-card-activity"><span>8 trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
+}
+
 function gameCard(mode) {
-  const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
+  const unlock = modeUnlockInfo(mode.id), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
   const playControls = mode.id === "popularnosc-hitow" && !locked
     ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button><button class="ghost" data-play-solo-mode="popularnosc-solo">🔥 Solo</button></div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-      <span>${locked ? "???" : visualSymbol(mode)}</span>
-      ${locked ? `<div class="coming-lock">${icon("lock", 50)}<b>???</b></div>` : ""}
+      <span>${revealName ? visualSymbol(mode) : locked ? "???" : visualSymbol(mode)}</span>
+      ${locked ? `<div class="coming-lock ${revealName ? "is-revealed" : ""}">${revealName ? `<small>DZIŚ O ${escapeHtml(formatUnlockTime(unlock.unlockAt))}</small>` : icon("lock", 50)}<b>${revealName ? "WKRÓTCE" : "???"}</b></div>` : ""}
     </div>
     <div class="game-card-content">
       <div class="game-card-top">${categoryTag(mode)}${mode.supportsSolo && mode.supportsLobby ? '<span class="tag game-badge game-badge-solo">TRYB SOLO</span>' : ""}${(mode.badges || []).map(badgeTag).join("")}</div>
-      <h2>${locked ? "Nadchodzący tryb" : mode.name}</h2>
-      <p class="muted">${locked ? "Nowa rozgrywka pojawi się wkrótce." : mode.description}</p>
-      ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}
+      <h2>${locked && !revealName ? "Nadchodzący tryb" : mode.name}</h2>
+      <p class="muted">${locked && !revealName ? "Nowa rozgrywka pojawi się wkrótce." : mode.description}</p>
+      ${locked ? `<div class="unlock-date"><span>${revealName ? "Dzisiaj" : "Odblokowanie"}</span><b>${revealName ? `Od ${escapeHtml(formatUnlockTime(unlock.unlockAt))}` : escapeHtml(unlock.label)}</b></div>` : ""}
       <div class="game-card-activity"><span>${mode.activity?.players||0} graczy</span><span>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span>${playControls}</div>
     </div>
   </article>`;
 }
 
 function lockedModeTitle(mode, unlock) {
-  return `Nowy tryb odblokuje sie ${unlock.label}`;
+  return isUnlockDay(unlock.unlockAt) ? `${mode.name} odblokuje się dzisiaj o ${formatUnlockTime(unlock.unlockAt)}` : `Nowy tryb odblokuje sie ${unlock.label}`;
+}
+
+function modeUnlockAnnouncement(now = Date.now()) {
+  const candidates = gamesList
+    .filter(game => !game.hiddenFromLibrary && game.audience !== "pokemon" && game.audience !== "board")
+    .map(game => ({ game, unlock: modeUnlockInfo(game.id, now) }))
+    .filter(({ unlock }) => Boolean(unlock.unlockAt) && isUnlockDay(unlock.unlockAt, now))
+    .sort((left, right) => left.unlock.unlockTime - right.unlock.unlockTime);
+  if (!candidates.length) return null;
+  const first = candidates[0];
+  const sameUnlock = candidates.filter(item => item.unlock.unlockTime === first.unlock.unlockTime);
+  return {
+    games: sameUnlock.map(item => item.game),
+    unlock: first.unlock,
+    live: first.unlock.unlockTime <= now,
+  };
+}
+
+function modeUnlockAnnouncementHtml(now = Date.now()) {
+  const announcement = modeUnlockAnnouncement(now);
+  if (!announcement) return "";
+  const names = announcement.games.map(game => escapeHtml(game.name)).join(" i ");
+  const primaryMode = announcement.games[0];
+  const live = announcement.live;
+  return `<section class="mode-unlock-announcement ${live ? "is-live" : ""}" aria-live="polite">
+    ${live ? '<div class="mode-unlock-fireworks" aria-hidden="true"><i></i><i></i><i></i></div>' : ""}
+    <div class="mode-unlock-copy"><span class="mode-unlock-icon">${live ? "🎉" : "✨"}</span><div><p class="eyebrow">${live ? "NOWY TRYB JUŻ DOSTĘPNY" : "DZISIAJ W GRACH"}</p><h2>${live ? `${names} jest już odblokowany!` : `Tryb ${names} odblokuje się dzisiaj o ${escapeHtml(formatUnlockTime(announcement.unlock.unlockAt))}`}</h2><p>${live ? "Wskakujcie do nowej rozgrywki — czeka na Was w bibliotece gier." : "Nazwa trybu jest już znana. Zagrać będzie można od godziny startu."}</p></div></div>
+    ${live ? `<button class="primary mode-unlock-cta" type="button" data-unlock-mode="${escapeHtml(primaryMode.id)}">${icon("play", 17)} Zagraj teraz</button>` : `<span class="mode-unlock-time">Od ${escapeHtml(formatUnlockTime(announcement.unlock.unlockAt))}</span>`}
+  </section>`;
+}
+
+function scheduleModeUnlockAnnouncementRefresh(actions, now = Date.now()) {
+  clearTimeout(modeUnlockAnnouncementTimer);
+  const refreshTimes = gamesList.map(game => modeUnlockInfo(game.id, now)).filter(unlock => unlock.locked).flatMap(unlock => [unlock.unlockTime - 20 * 60 * 60 * 1000, unlock.unlockTime]);
+  const next = refreshTimes.filter(time => Number.isFinite(time) && time > now).sort((left, right) => left - right)[0];
+  if (next) modeUnlockAnnouncementTimer = window.setTimeout(() => actions.refresh?.(), Math.max(1000, next - now + 500));
 }
 
 function compareMainModes(left, right) {
@@ -181,6 +233,7 @@ function openRandomRoomModal(actions){
 
 export async function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
+  clearTimeout(modeUnlockAnnouncementTimer);
   const activityStats=context.activityStats||window.__activityStats||{};
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page enter">
@@ -199,12 +252,13 @@ export async function renderPlatform(root, actions, context = {}) {
       </div>
       <div class="hero-side-actions"><div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div><button class="ghost global-stats-trigger" id="open-global-stats" type="button">📊 Statystyki strony</button></div>
     </section>
+    ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
+       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -230,9 +284,12 @@ export async function renderPlatform(root, actions, context = {}) {
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelector("[data-unlock-mode]")?.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode));
   root.querySelectorAll("[data-play-solo-mode]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); actions.selectSoloGame(button.dataset.playSoloMode); }));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
+  root.querySelector("[data-board-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goBoardModes(); });
+  root.querySelector("[data-open-board]")?.addEventListener("click", actions.goBoardModes);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");
     if (button) actions.selectGame(button.dataset.playMode);
@@ -257,4 +314,5 @@ export async function renderPlatform(root, actions, context = {}) {
   });
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");
+  scheduleModeUnlockAnnouncementRefresh(actions);
 }

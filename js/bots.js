@@ -30,7 +30,7 @@ export function botShouldBeCorrect(room, uid = "") { return Math.random() < botD
 export function botName(index) { return `Bot ${index + 1}`; }
 export function botUid() { return `${BOT_PREFIX}${Math.random().toString(36).slice(2, 10)}`; }
 export function botProfile(uid, index, difficulty = "normal") {
-  return { uid, nick: botName(index), nickOnly: true, isBot: true, botDifficulty: difficulty, adultStatus: "unknown", money: 1000000000, sessionMoney: 1000000000, xp: 0, avatarImage: "", selectedAvatarFrame: "defaultFrame", selectedNickEffect: "defaultNick", selectedAura: "noAura", selectedCandySkin: "defaultCandy", selectedBombSkin: "defaultBomb", selectedClockSkin: "defaultClock", selectedMarkerSkin: "defaultMarker", selectedSequenceSkin: "defaultSequence" };
+  return { uid, nick: botName(index), nickOnly: true, isBot: true, botDifficulty: difficulty, adultStatus: "unknown", money: 1000000000, sessionMoney: 1000000000, xp: 0, avatarImage: "", selectedAvatarFrame: "defaultFrame", selectedNickEffect: "defaultNick", selectedAura: "noAura", selectedCandySkin: "defaultCandy", selectedBombSkin: "defaultBomb", selectedClockSkin: "defaultClock", selectedMarkerSkin: "defaultMarker", selectedSequenceSkin: "defaultSequence", selectedBoardLudoSkin: "defaultLudoBoard", selectedBoardMemorySkin: "defaultMemoryBoard" };
 }
 export function roomAllowsBots(room, mode) {
   return Boolean(room?.status === "lobby" && mode?.supportsLobby && mode.id !== "co-wolisz");

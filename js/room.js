@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260901-2";
+import { getGameMode } from "./games.js?v=20260901-3";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-3";
@@ -28,9 +28,10 @@ import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-3"
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-4";
 import { adSenseBlock } from "./publicPages.js?v=20260901-2";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-9";
+import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-10";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20260901-2";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260901-3";
+import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-6";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈" };
@@ -80,6 +81,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "pojedynek-hitow") return renderMusicDuelLobbySettings(room, isHost);
   if (mode.id === "bitwa-hitow") return renderMusicArenaLobbySettings(room, isHost);
   if (mode.id === "popularnosc-hitow") return renderPopularityLobbySettings(room, isHost);
+  if (mode.audience === "board") return renderBoardLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -128,6 +130,7 @@ function bindRoomSettings(root, actions) {
   root.querySelector("#secret-rule-random-category")?.addEventListener("click", () => actions.randomSecretRuleCategory());
   root.querySelectorAll("[data-music-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.musicSetting, input.value)));
   root.querySelectorAll("[data-popularity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.popularitySetting, input.value)));
+  root.querySelectorAll("[data-board-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.boardSetting, input.value)));
 }
 
 export function refreshRoomSettings(root, { room, currentUser }, actions) {

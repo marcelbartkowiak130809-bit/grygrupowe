@@ -15,6 +15,7 @@ export const GAMEPASS_DEFINITIONS = [
   { id:"wavelength-second-chance", icon:"↺", name:"Drugi pomiar", price:7000, scope:"Wavelength", description:"Raz na grę po pierwszym nietrafionym pomiarze pokazuje tylko kierunek celu i daje drugi pomiar." },
   { id:"proof-last-chance", icon:"⏳", name:"Ostatnia szansa", price:6500, scope:"Udowodnij", description:"Raz na grę po skończeniu czasu odpowiedzi dodaje 8 sekund na ostatnią próbę." },
   { id:"clock-second-chance-pass", icon:"⏱️", name:"Drugi pomiar", price:7000, scope:"Zegar", description:"Raz na grę pozwala wykonać drugi pomiar i zachowuje bliższy wynik." },
+  { id:"board-pace-control", icon:"⏳", name:"Mistrz tempa", price:6500, scope:"Planszówki", description:"Raz w meczu dodaje ci 15 sekund do własnego ruchu. Użycie jest widoczne dla wszystkich." },
 ];
 
 export const IN_GAME_PURCHASES = [
@@ -32,14 +33,17 @@ export const IN_GAME_PURCHASES = [
   { id:"liar-alibi", mode:"klamca", icon:"🃏", name:"Fałszywy trop", price:1800, visibility:"private", description:"Raz pozwala wysłać dodatkową odpowiedź lub zmienić własną przed głosowaniem." },
   { id:"false-message-redraft", mode:"falszywa-wiadomosc", icon:"📱", name:"Druga wersja", price:1400, visibility:"private", description:"Pozwala poprawić wiadomość przed wyborem bohatera." },
   { id:"secret-rule-example", mode:"tajna-zasada", icon:"🧠", name:"Przykład testowy", price:1400, visibility:"private", description:"Dodaje jeden bezpieczny przykład do sprawdzania zasady przeciwnika." },
+  { id:"board-timeout-token", mode:"board", icon:"⏱️", name:"Dodatkowe 15 sekund", price:900, visibility:"public", description:"Raz w meczu dodaje ci 15 sekund do aktualnego ruchu." },
 ];
 
 export function passesForMode(modeId) {
-  return GAMEPASS_DEFINITIONS.filter(item => item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["polacz-nas","klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license"));
+  const isBoard = String(modeId || "").startsWith("board-");
+  return GAMEPASS_DEFINITIONS.filter(item => item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["polacz-nas","klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license") || (isBoard && item.id === "board-pace-control"));
 }
 
 export function purchasesForMode(modeId) {
-  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (modeId === "pokemon-auction" && item.mode === "pokemon-auction"));
+  const isBoard = String(modeId || "").startsWith("board-");
+  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (isBoard && item.mode === "board") || (modeId === "pokemon-auction" && item.mode === "pokemon-auction"));
 }
 
 export function commerceAvailable(modeId) {

@@ -29,6 +29,7 @@ import { FalseMessageEngine } from "./falseMessage.js?v=20260831-3";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-2";
 import { PopularityEngine } from "./popularity.js?v=20260901-3";
+import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-6";
 import { serverNow } from "./firebase.js?v=20260901-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -73,6 +74,10 @@ export function botActor(room) {
     if (game.phase === "turn" && isBotId(game.turnUid)) return game.turnUid;
     if (["reviewExample", "reviewGuess"].includes(game.phase) && isBotId(game.reviewerUid)) return game.reviewerUid;
     if (game.phase === "guessing" && isBotId(game.guessUid)) return game.guessUid;
+  }
+  if (game.boardMode?.startsWith("board-")) {
+    if (game.boardMode === "board-statki" && game.phase === "placement") return bots.find(uid => !game.placementSubmitted?.[uid]) || "";
+    if (game.phase === "playing" && isBotId(game.currentUid) && bots.includes(game.currentUid)) return game.currentUid;
   }
   if (room.gameMode === "pojedynek-hitow") {
     if (game.phase === "selecting") return bots.find(uid => isMissing(game.submissions, uid)) || "";
@@ -309,7 +314,9 @@ function timeoutMutation(room, game, bot) {
     case "pojedynek-hitow": return g => MusicDuelEngine.timeout(g, settings);
     case "bitwa-hitow": return g => MusicArenaEngine.timeout(g, settings);
     case "popularnosc-hitow": return g => PopularityEngine.timeout(g);
-    default: return null;
+    default:
+      if (room.gameMode?.startsWith("board-")) return g => BoardEngine.action(g, bot, "timeout", "", players, settings);
+      return null;
   }
 }
 
@@ -514,6 +521,18 @@ export function botMutation(room) {
       case "popularnosc-hitow":
         if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g));
         break;
+      case "board-chinczyk":
+      case "board-slowotwor":
+      case "board-statki":
+      case "board-reversi":
+      case "board-warcaby":
+      case "board-cztery":
+      case "board-memory":
+      case "board-domino": {
+        const action = boardBotAction(game, bot, botDifficulty(room, bot).id);
+        if (action) return g => BoardEngine.action(g, bot, action.action, action.payload, players, settings);
+        break;
+      }
       default: break;
     }
   } catch {

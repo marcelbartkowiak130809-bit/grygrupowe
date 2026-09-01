@@ -3,7 +3,7 @@ export const rarityLabels = { common:"Common", rare:"Rare", epic:"Epic", legenda
 
 // Skins przypisane do jednego trybu powinny być tańsze od uniwersalnych,
 // ale nie mogą kosztować mniej niż jedna nagroda za rozegraną grę.
-const modeSpecificTypes = new Set(["bomb", "clock", "marker", "sequence", "candy"]);
+const modeSpecificTypes = new Set(["bomb", "clock", "marker", "sequence", "candy", "board-ludo", "board-memory"]);
 const modeSpecificMinimums = { common:800, rare:1600, epic:3200, legendary:5200, mythic:6800 };
 
 export const cosmetics = [
@@ -41,6 +41,8 @@ export const cosmetics = [
   item("matteSequence","sequence","Matowe pola",160,"common","Matowe pola sekwencji."),
   item("stripeSequence","sequence","Paski",220,"rare","Pola z paskowanym wykończeniem."),
   item("gradientSequence","sequence","Gradientowe pola",320,"rare","Pola z kolorowym gradientem."),
+  item("neonLudoBoard","board-ludo","Neonowy stół",2800,"rare","Neonowa oprawa planszy do Chińczyka.",{mode:"board-chinczyk"}),
+  item("holoMemoryBoard","board-memory","Holograficzne karty",3000,"rare","Holograficzne rewersy i poświata kart w Memory.",{mode:"board-memory"}),
   item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
   item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
@@ -316,6 +318,20 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
       <div class="sequence-preview-board sequence-skin-${item.id}"><div class="sequence-preview-grid"><i></i><i></i><i></i><i></i></div><span class="sequence-preview-shine"></span></div>
       <span class="nick">${escapeAttr(item.name)}</span>
       ${options.hideType ? "" : '<small class="preview-type">POLA SEKWENCJI</small>'}
+    </div>`;
+  }
+  if (item.type === "board-ludo") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-board-ludo">
+      <div class="board-cosmetic-preview board-ludo-mini board-ludo-skin-${item.id}"><div class="board-ludo-mini-track">${Array.from({length:12},(_,index)=>`<i class="${index%4===0?"is-home":""}">${index%4===0?"✦":""}</i>`).join("")}</div><span class="board-mini-token token-a"></span><span class="board-mini-token token-b"></span></div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">CHIŃCZYK</small>'}
+    </div>`;
+  }
+  if (item.type === "board-memory") {
+    return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-board-memory">
+      <div class="board-cosmetic-preview board-memory-mini board-memory-skin-${item.id}">${Array.from({length:8},(_,index)=>`<i class="${index%3===0?"is-open":""}">${index%3===0?"✦":"?"}</i>`).join("")}</div>
+      <span class="nick">${escapeAttr(item.name)}</span>
+      ${options.hideType ? "" : '<small class="preview-type">MEMORY</small>'}
     </div>`;
   }
   if (["idle","win","lose"].includes(item.type)) {

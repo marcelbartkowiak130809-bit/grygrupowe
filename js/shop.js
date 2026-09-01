@@ -1,5 +1,5 @@
-import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260831-2";
-import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260901-9";
+import { cosmeticPreview, cosmetics, getShopRotation, rarityLabels, sortCosmeticsByRarity } from "./cosmetics.js?v=20260901-3";
+import { gamePassShopHtml, hasGamePass } from "./gamePasses.js?v=20260901-10";
 import { potionPackShopHtml } from "./potionPacks.js?v=20260831-1";
 import { $, formatClock, icon } from "./utils.js?v=20260822-1";
 
@@ -17,6 +17,8 @@ const equipped = (profile, id) => [
   profile.selectedClockSkin,
   profile.selectedMarkerSkin,
   profile.selectedSequenceSkin,
+  profile.selectedBoardLudoSkin,
+  profile.selectedBoardMemorySkin,
   profile.selectedIdleAnimation,
   profile.selectedWinAnimation,
   profile.selectedLoseAnimation,
@@ -34,11 +36,15 @@ const groups = [
   { type:"clock", title:"Zegary" },
   { type:"marker", title:"Markery" },
   { type:"sequence", title:"Pola sekwencji" },
+  { type:"board-ludo", title:"Chińczyk" },
+  { type:"board-memory", title:"Memory" },
 ];
 
 const defaultCosmetics = {
   marker:{ id:"defaultMarker", type:"marker", name:"Czarny marker", rarity:"common", description:"Domyślny marker do trybu MARKER.", defaultOnly:true },
   sequence:{ id:"defaultSequence", type:"sequence", name:"Klasyczne pola", rarity:"common", description:"Domyślne pola sekwencji.", defaultOnly:true },
+  "board-ludo":{ id:"defaultLudoBoard", type:"board-ludo", name:"Klasyczny stół", rarity:"common", description:"Domyślna oprawa planszy do Chińczyka.", defaultOnly:true },
+  "board-memory":{ id:"defaultMemoryBoard", type:"board-memory", name:"Klasyczne karty", rarity:"common", description:"Domyślne karty do Memory.", defaultOnly:true },
   idle:{ id:"defaultIdle", type:"idle", name:"Zwykłe idle", rarity:"common", description:"Bez dodatkowej animacji idle.", defaultOnly:true },
   win:{ id:"defaultWin", type:"win", name:"Zwykła wygrana", rarity:"common", description:"Bez dodatkowej animacji wygranej.", defaultOnly:true },
   lose:{ id:"defaultLose", type:"lose", name:"Zwykła przegrana", rarity:"common", description:"Bez dodatkowej animacji przegranej.", defaultOnly:true },
@@ -47,6 +53,8 @@ const defaultCosmetics = {
 const defaultSelections = {
   marker:{ key:"selectedMarkerSkin", value:"defaultMarker" },
   sequence:{ key:"selectedSequenceSkin", value:"defaultSequence" },
+  "board-ludo":{ key:"selectedBoardLudoSkin", value:"defaultLudoBoard" },
+  "board-memory":{ key:"selectedBoardMemorySkin", value:"defaultMemoryBoard" },
   idle:{ key:"selectedIdleAnimation", value:"" },
   win:{ key:"selectedWinAnimation", value:"" },
   lose:{ key:"selectedLoseAnimation", value:"" },
