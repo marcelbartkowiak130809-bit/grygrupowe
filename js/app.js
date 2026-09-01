@@ -1,17 +1,17 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260902-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260901-3";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260902-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260901-6";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260901-2";
-import { gamesList, getGameMode } from "./games.js?v=20260901-12";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260902-2";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260902-1";
+import { gamesList, getGameMode } from "./games.js?v=20260902-14";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-4";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260902-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260605-4";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260831-2";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260902-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260612-1";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260605-1";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260831-12";
@@ -35,22 +35,22 @@ import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from 
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260901-7";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260901-12";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260902-4";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260901-12";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260901-19";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260902-3";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-6";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260901-10";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260902-11";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260901-3";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260901-6";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260901-17";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260902-1";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260902-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20260901-6";
+import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260901-10";
+import { scheduleBot } from "./botController.js?v=20260902-12";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-10";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -102,7 +102,7 @@ function readUrlRoute() {
   } catch { return { mode:"", room:"", invalidMode:false }; }
 }
 const initialUrlRoute = readUrlRoute();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"" };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0 };
 window.__globalStats = state.globalStats;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
@@ -123,6 +123,34 @@ const ROOM_STALE_JOIN_GRACE_MS = 15000;
 const staleRoomCleanupLocks = new Set();
 const profile = () => state.currentUser ? state.accounts[state.currentUser] : null;
 const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRoomId);
+const popularitySoloPlayerId = () => getFirebaseSession()?.uid || state.currentUser || "guest";
+let popularitySoloLeaderboardRequest = null;
+function popularitySoloIsOpen() { return Router.current === "solo" && state.selectedGameMode === "popularnosc-solo"; }
+function popularitySoloBoardSignature(board = {}) { return JSON.stringify(board || {}); }
+async function syncPopularitySoloRecord({ rerender = true } = {}) {
+  const uid = getFirebaseSession()?.uid, user = profile();
+  if (!uid || !user || user.nickOnly || !hasOnlineBackend()) return null;
+  const current = PopularitySoloEngine.get(uid), saved = await savePopularitySoloLeaderboard(uid, current.metricStats, user);
+  if (!saved) return null;
+  state.popularitySoloLeaderboard = { ...state.popularitySoloLeaderboard, [uid]:saved };
+  state.popularitySoloLeaderboardLoadedAt = Date.now();
+  if (rerender && popularitySoloIsOpen()) render({ preserveDrafts:true });
+  return saved;
+}
+function refreshPopularitySoloData({ force = false } = {}) {
+  if (!hasOnlineBackend()) return Promise.resolve(state.popularitySoloLeaderboard);
+  if (popularitySoloLeaderboardRequest) return popularitySoloLeaderboardRequest;
+  if (!force && state.popularitySoloLeaderboardLoadedAt && Date.now() - state.popularitySoloLeaderboardLoadedAt < 15000) return Promise.resolve(state.popularitySoloLeaderboard);
+  popularitySoloLeaderboardRequest = loadPopularitySoloLeaderboard().then(async board => {
+    const before = popularitySoloBoardSignature(state.popularitySoloLeaderboard);
+    state.popularitySoloLeaderboard = board || {};
+    state.popularitySoloLeaderboardLoadedAt = Date.now();
+    await syncPopularitySoloRecord({ rerender:false });
+    if (popularitySoloIsOpen() && before !== popularitySoloBoardSignature(state.popularitySoloLeaderboard)) render({ preserveDrafts:true });
+    return state.popularitySoloLeaderboard;
+  }).catch(() => state.popularitySoloLeaderboard).finally(() => { popularitySoloLeaderboardRequest = null; });
+  return popularitySoloLeaderboardRequest;
+}
 function ensureRoomPresence(room) {
   const nextId = room?.roomId && state.currentUser && room.players?.includes(state.currentUser) ? room.roomId : "";
   if (nextId === roomPresenceId) return;
@@ -2089,7 +2117,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (mode === "nickOnly") {
       try {
         const auth=await authenticateGuest(),guestId=auth.uid; state.accounts[guestId] = { ...defaultAccount(clean, "",auth), nickOnly: true, sessionMoney: 0, sessionXp:0 };
-        state.currentUser = guestId;saveAccounts(state.accounts);persistSession();refreshPresence();connectRooms();actions.finishLogin(); return true;
+        state.currentUser = guestId; state.popularitySoloLeaderboard = {}; state.popularitySoloLeaderboardLoadedAt = 0; saveAccounts(state.accounts);persistSession();refreshPresence();connectRooms();actions.finishLogin(); return true;
       } catch { message("Nie udało się uruchomić gry po nicku. Sprawdź czy Anonymous Auth jest włączone."); return false; }
     }
     if (!password || password.length < 3) { message("Hasło musi mieć minimum 3 znaki."); return false; }
@@ -2104,7 +2132,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
       if(existingEntry?.[0]&&existingEntry[0]!==accountId)delete state.accounts[existingEntry[0]];
-      state.currentUser = accountId; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);refreshPresence();connectRooms();Audio.play("success"); actions.finishLogin(); return true;
+      state.currentUser = accountId; state.popularitySoloLeaderboard = {}; state.popularitySoloLeaderboardLoadedAt = 0; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);refreshPresence();connectRooms();Audio.play("success"); actions.finishLogin(); return true;
     } catch { message("Nie udało się zalogować. Spróbuj ponownie."); return false; }
   },
   finishLogin() { if(state.pendingInviteRoom)return handlePendingInvite();if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; if(destination==="lobby")setModeUrl(state.selectedGameMode); Router.go(destination); },
@@ -2123,7 +2151,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     state.rooms = state.rooms.filter(room => roomHasHumanPlayers(room));
     stopFriendRequestsSubscription(); stopFriendRequestsSubscription=()=>{};
     await logoutAuth();
-    state.currentUser = null; state.activeRoomId = null;clearPendingInvite({clearUrl:true});clearSession();refreshPresence(); Router.go("platform");
+    state.currentUser = null; state.popularitySoloLeaderboard = {}; state.popularitySoloLeaderboardLoadedAt = 0; state.activeRoomId = null;clearPendingInvite({clearUrl:true});clearSession();refreshPresence(); Router.go("platform");
   },
   async submitReport(targetUid, description) {
     const room=activeRoom(), reporter=profile(); if(!room||!reporter||!reportableMode(room))return false;
@@ -2612,11 +2640,11 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   minecraftTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode?.startsWith("minecraft-")!==true)return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";MinecraftEngine.timeout(game,current.players,current.settings);},{sound:"minecraftWrong"});},
   minecraftNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może przejść dalej.","info");return mutateRoomGame((game,current)=>{const result=MinecraftEngine.nextRound(game,current.settings,current.players);if(game.finished)current.status="results";return result;},{sound:room=>room.game?.finished?"minecraftReveal":room.game?.mode==="minecraft-redstone"?"minecraftRedstone":"minecraftReveal",after:settleAdditionalModeResult});},
   minecraftPlayAgain(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć ponowną grę.","info");return mutateRoomGame((game,current)=>{if(game.phase!=="result"&&!game.finished)return "Gra jeszcze się nie skończyła.";const fresh=createMinecraftGame(current.gameMode,current.players,current.settings);Object.keys(game).forEach(key=>delete game[key]);Object.assign(game,fresh);current.status="playing";current.everStarted=true;},{sound:"gameStart",after:current=>{current.status="playing";current.everStarted=true;}});},
-  popularitySoloStart(metric="views"){PopularitySoloEngine.start(state.currentUser||"guest",metric);render({forceEnter:true});},
-  popularitySoloStop(){PopularitySoloEngine.stop(state.currentUser||"guest");render({forceEnter:true});},
-  popularitySoloMetric(metric){PopularitySoloEngine.setMetric(state.currentUser||"guest",metric);render({preserveDrafts:true});},
-  popularitySoloChoose(side){const playerId=state.currentUser||"guest",wasPlaying=PopularitySoloEngine.get(playerId).status==="playing",result=PopularitySoloEngine.choose(playerId,side);if(wasPlaying&&result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));render({forceEnter:true});},
-  popularitySoloNext(){PopularitySoloEngine.next(state.currentUser||"guest");render({forceEnter:true});},
+  popularitySoloStart(metric="views"){PopularitySoloEngine.start(popularitySoloPlayerId(),metric);render({forceEnter:true});},
+  popularitySoloStop(){PopularitySoloEngine.stop(popularitySoloPlayerId());render({forceEnter:true});},
+  popularitySoloMetric(metric){PopularitySoloEngine.setMetric(popularitySoloPlayerId(),metric);render({preserveDrafts:true});},
+  popularitySoloChoose(side){const playerId=popularitySoloPlayerId(),wasPlaying=PopularitySoloEngine.get(playerId).status==="playing",result=PopularitySoloEngine.choose(playerId,side);if(wasPlaying&&result?.lastResult){Effects.hit(Boolean(result.lastResult.correct));void syncPopularitySoloRecord();}render({forceEnter:true});},
+  popularitySoloNext(){PopularitySoloEngine.next(popularitySoloPlayerId());render({forceEnter:true});},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
   randomSecretRuleCategory(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="tajna-zasada")return;room.settings={...room.settings,category:secretRuleCategories[Math.floor(Math.random()*secretRuleCategories.length)]};touchRoom(room);animateHostSettingChange(room.settings.category);render({preserveDrafts:true});},
@@ -2948,7 +2976,7 @@ function renderNow(options = {}) {
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(state.selectedGameMode === "popularnosc-solo" ? renderPopularitySolo(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser,accounts:state.accounts},actions) : renderWouldYouRather(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") refreshPopularitySoloData(); return finish(state.selectedGameMode === "popularnosc-solo" ? renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard},actions) : renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {

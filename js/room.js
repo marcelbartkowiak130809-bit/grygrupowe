@@ -30,7 +30,7 @@ import { adSenseBlock } from "./publicPages.js?v=20260901-6";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20260901-6";
-import { renderPopularityLobbySettings } from "./popularity.js?v=20260901-11";
+import { renderPopularityLobbySettings } from "./popularity.js?v=20260902-4";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 

@@ -28,10 +28,10 @@ import { LiarEngine } from "./liar.js?v=20260831-4";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-6";
-import { PopularityEngine } from "./popularity.js?v=20260901-11";
+import { PopularityEngine } from "./popularity.js?v=20260902-4";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
-import { serverNow } from "./firebase.js?v=20260901-1";
+import { serverNow } from "./firebase.js?v=20260902-2";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);

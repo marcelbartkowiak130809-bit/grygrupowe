@@ -344,6 +344,142 @@ const snapshotRows = [
   ["timber", "Timber", "Pitbull ft. Kesha", 1500000000, 26000000],
   ["international-love", "International Love", "Pitbull ft. Chris Brown", 1100000000, 26000000],
   ["rather-be-clean-bandit", "Rather Be", "Clean Bandit", 1700000000, 28000000],
+  ["greedy-tate", "greedy", "Tate McRae", 1200000000, 78000000],
+  ["exes-tate", "exes", "Tate McRae", 350000000, 78000000],
+  ["beautiful-things", "Beautiful Things", "Benson Boone", 800000000, 70000000],
+  ["a-bar-song", "A Bar Song (Tipsy)", "Shaboozey", 700000000, 55000000],
+  ["i-had-some-help", "I Had Some Help", "Post Malone ft. Morgan Wallen", 650000000, 61000000],
+  ["last-night", "Last Night", "Morgan Wallen", 700000000, 65000000],
+  ["you-proof", "You Proof", "Morgan Wallen", 650000000, 65000000],
+  ["whiskey-glasses", "Whiskey Glasses", "Morgan Wallen", 800000000, 65000000],
+  ["good-luck-babe", "Good Luck, Babe!", "Chappell Roan", 600000000, 50000000],
+  ["pink-pony-club", "Pink Pony Club", "Chappell Roan", 450000000, 50000000],
+  ["hot-to-go", "HOT TO GO!", "Chappell Roan", 700000000, 50000000],
+  ["red-wine-supernova", "Red Wine Supernova", "Chappell Roan", 300000000, 50000000],
+  ["end-of-beginning", "End of Beginning", "Djo", 650000000, 40000000],
+  ["golden-hour", "golden hour", "JVKE", 1200000000, 25000000],
+  ["until-i-found-you", "Until I Found You", "Stephen Sanchez", 700000000, 30000000],
+  ["heather", "Heather", "Conan Gray", 900000000, 22000000],
+  ["maniac-conan", "Maniac", "Conan Gray", 450000000, 22000000],
+  ["from-the-start", "From The Start", "Laufey", 450000000, 35000000],
+  ["valentine-laufey", "Valentine", "Laufey", 250000000, 35000000],
+  ["i-like-the-way-you-kiss-me", "i like the way you kiss me", "Artemas", 450000000, 32000000],
+  ["birds-of-a-feather", "BIRDS OF A FEATHER", "Billie Eilish", 900000000, 82000000],
+  ["lunch", "LUNCH", "Billie Eilish", 450000000, 82000000],
+  ["am-i-wrong", "Am I Wrong", "Nico & Vinz", 1000000000, 18000000],
+  ["old-town-road", "Old Town Road", "Lil Nas X", 2700000000, 35000000],
+  ["montero", "MONTERO (Call Me By Your Name)", "Lil Nas X", 1100000000, 35000000],
+  ["industry-baby", "INDUSTRY BABY", "Lil Nas X & Jack Harlow", 1000000000, 35000000],
+  ["the-real-slim-shady", "The Real Slim Shady", "Eminem", 900000000, 40000000],
+  ["stan", "Stan", "Eminem", 800000000, 40000000],
+  ["godzilla", "Godzilla", "Eminem ft. Juice WRLD", 1000000000, 40000000],
+  ["super-bass", "Super Bass", "Nicki Minaj", 700000000, 30000000],
+  ["starships", "Starships", "Nicki Minaj", 1000000000, 30000000],
+  ["anaconda", "Anaconda", "Nicki Minaj", 1000000000, 30000000],
+  ["mood", "Mood", "24kGoldn ft. iann dior", 1200000000, 30000000],
+  ["provenza", "PROVENZA", "Karol G", 1300000000, 50000000],
+  ["tusa", "Tusa", "Karol G & Nicki Minaj", 1800000000, 50000000],
+  ["qlona", "QLONA", "Karol G & Peso Pluma", 800000000, 50000000],
+  ["mi-gente", "Mi Gente", "J Balvin & Willy William", 3200000000, 55000000],
+  ["ginza", "Ginza", "J Balvin", 1100000000, 55000000],
+  ["ay-vamos", "Ay Vamos", "J Balvin", 1400000000, 55000000],
+  ["waka-waka", "Waka Waka (This Time for Africa)", "Shakira", 4000000000, 45000000],
+  ["hips-dont-lie", "Hips Don't Lie", "Shakira ft. Wyclef Jean", 1800000000, 45000000],
+  ["chantaje", "Chantaje", "Shakira ft. Maluma", 2800000000, 45000000],
+  ["te-felicito", "Te Felicito", "Shakira & Rauw Alejandro", 700000000, 45000000],
+  ["x-nicky-jam", "X", "Nicky Jam & J Balvin", 2200000000, 35000000],
+  ["felices-los-4", "Felices los 4", "Maluma", 2000000000, 40000000],
+  ["hawai", "Hawái", "Maluma", 1200000000, 40000000],
+  ["me-porto-bonito", "Me Porto Bonito", "Bad Bunny & Chencho Corleone", 1200000000, 75000000],
+  ["dakiti", "DÁKITI", "Bad Bunny & Jhayco", 1200000000, 75000000],
+  ["titi-me-pregunto", "Tití Me Preguntó", "Bad Bunny", 700000000, 75000000],
+  ["un-x100to", "un x100to", "Grupo Frontera & Bad Bunny", 600000000, 75000000],
+  ["despecha", "DESPECHÁ", "ROSALÍA", 700000000, 30000000],
+  ["con-altura", "Con Altura", "ROSALÍA & J Balvin", 1000000000, 30000000],
+  ["malamente", "MALAMENTE", "ROSALÍA", 700000000, 30000000],
+  ["todo-de-ti", "Todo de Ti", "Rauw Alejandro", 1000000000, 50000000],
+  ["se-preparo", "Se Preparó", "Ozuna", 1000000000, 45000000],
+  ["la-modelo", "La Modelo", "Ozuna & Cardi B", 1000000000, 45000000],
+  ["dynamite", "Dynamite", "BTS", 2100000000, 35000000],
+  ["butter", "Butter", "BTS", 900000000, 35000000],
+  ["boy-with-luv", "Boy With Luv", "BTS ft. Halsey", 1700000000, 35000000],
+  ["fake-love", "FAKE LOVE", "BTS", 1400000000, 35000000],
+  ["on-bts", "ON", "BTS", 600000000, 35000000],
+  ["how-you-like-that", "How You Like That", "BLACKPINK", 1500000000, 45000000],
+  ["ddu-du-ddu-du", "DDU-DU DDU-DU", "BLACKPINK", 2200000000, 45000000],
+  ["kill-this-love", "Kill This Love", "BLACKPINK", 2000000000, 45000000],
+  ["pink-venom", "Pink Venom", "BLACKPINK", 900000000, 45000000],
+  ["lovesick-girls", "Lovesick Girls", "BLACKPINK", 800000000, 45000000],
+  ["super-shy", "Super Shy", "NewJeans", 300000000, 40000000],
+  ["hype-boy", "Hype Boy", "NewJeans", 350000000, 40000000],
+  ["ditto", "Ditto", "NewJeans", 300000000, 40000000],
+  ["magnetic", "Magnetic", "ILLIT", 200000000, 30000000],
+  ["queencard", "Queencard", "(G)I-DLE", 300000000, 28000000],
+  ["love-dive", "LOVE DIVE", "IVE", 300000000, 35000000],
+  ["after-like", "After LIKE", "IVE", 250000000, 35000000],
+  ["gods-menu", "God's Menu", "Stray Kids", 500000000, 30000000],
+  ["maniac-stray-kids", "MANIAC", "Stray Kids", 400000000, 30000000],
+  ["s-class", "S-Class", "Stray Kids", 250000000, 30000000],
+  ["eight", "eight", "IU ft. SUGA", 300000000, 25000000],
+  ["love-wins-all", "Love wins all", "IU", 250000000, 25000000],
+  ["smoke-on-the-water", "Smoke on the Water", "Deep Purple", 700000000, 8000000],
+  ["sweet-dreams-eurythmics", "Sweet Dreams (Are Made of This)", "Eurythmics", 1000000000, 10000000],
+  ["dont-stop-me-now", "Don't Stop Me Now", "Queen", 1400000000, 23000000],
+  ["we-are-the-champions", "We Are the Champions", "Queen", 900000000, 23000000],
+  ["under-pressure", "Under Pressure", "Queen & David Bowie", 1000000000, 23000000],
+  ["fluorescent-adolescent", "Fluorescent Adolescent", "Arctic Monkeys", 500000000, 32000000],
+  ["r-u-mine", "R U Mine?", "Arctic Monkeys", 700000000, 32000000],
+  ["the-adults-are-talking", "The Adults Are Talking", "The Strokes", 300000000, 22000000],
+  ["reptilia", "Reptilia", "The Strokes", 250000000, 22000000],
+  ["sound-of-silence-disturbed", "The Sound of Silence", "Disturbed", 800000000, 9000000],
+  ["my-immortal", "My Immortal", "Evanescence", 800000000, 17000000],
+  ["wake-me-up-when-september-ends", "Wake Me Up When September Ends", "Green Day", 800000000, 14000000],
+  ["boulevard-of-broken-dreams", "Boulevard of Broken Dreams", "Green Day", 1200000000, 14000000],
+  ["american-idiot", "American Idiot", "Green Day", 600000000, 14000000],
+  ["crawling", "Crawling", "Linkin Park", 800000000, 36000000],
+  ["faint", "Faint", "Linkin Park", 700000000, 36000000],
+  ["given-up", "Given Up", "Linkin Park", 500000000, 36000000],
+  ["last-resort", "Last Resort", "Papa Roach", 900000000, 13000000],
+  ["the-reason", "The Reason", "Hoobastank", 800000000, 12000000],
+  ["iris", "Iris", "Goo Goo Dolls", 1000000000, 12000000],
+  ["chasing-cars", "Chasing Cars", "Snow Patrol", 900000000, 11000000],
+  ["somebody-else", "Somebody Else", "The 1975", 500000000, 25000000],
+  ["robbers", "Robbers", "The 1975", 250000000, 25000000],
+  ["tongue-tied", "Tongue Tied", "Grouplove", 600000000, 12000000],
+  ["malomiasteczkowy", "Małomiasteczkowy", "Dawid Podsiadło", 160000000, 2500000],
+  ["nie-ma-fal", "Nie ma fal", "Dawid Podsiadło", 130000000, 2500000],
+  ["trojkaty-i-kwadraty", "Trójkąty i kwadraty", "Dawid Podsiadło", 110000000, 2500000],
+  ["pastempomat", "Pastempomat", "Dawid Podsiadło", 90000000, 2500000],
+  ["w-dobra-strone", "W dobrą stronę", "Dawid Podsiadło", 75000000, 2500000],
+  ["szampan", "Szampan", "sanah", 180000000, 3200000],
+  ["ale-jazz", "Ale jazz!", "sanah", 140000000, 3200000],
+  ["ten-stan", "ten Stan", "sanah", 100000000, 3200000],
+  ["dwie-zero-zero", "2:00", "sanah", 80000000, 3200000],
+  ["kolonska-i-szlugi", "kolońska i szlugi", "sanah", 80000000, 3200000],
+  ["melodia-sanah", "Melodia", "sanah", 80000000, 3200000],
+  ["krolowa-dram", "Królowa dram", "sanah", 50000000, 3200000],
+  ["ostatnia-nadzieja", "Ostatnia nadzieja", "sanah & Dawid Podsiadło", 55000000, 3200000],
+  ["polskie-tango", "Polskie Tango", "Taco Hemingway", 90000000, 1500000],
+  ["nostalgia-taco", "Nostalgia", "Taco Hemingway", 90000000, 1500000],
+  ["deszcz-na-betonie", "Deszcz na betonie", "Taco Hemingway", 70000000, 1500000],
+  ["fiji-taco", "Fiji", "Taco Hemingway", 60000000, 1500000],
+  ["moj-czy-twoj", "Mój czy twój?", "Quebonafide", 80000000, 1800000],
+  ["candy-quebonafide", "Candy", "Quebonafide", 70000000, 1800000],
+  ["bubbletea", "Bubbletea", "Quebonafide", 60000000, 1800000],
+  ["szubienicapestycydybron", "SZUBIENICAPESTYCYDYBROŃ", "Quebonafide", 50000000, 1800000],
+  ["patointeligencja", "Patointeligencja", "Mata", 110000000, 1200000],
+  ["kiss-cam", "Kiss cam (podryw roku)", "Mata", 70000000, 1200000],
+  ["100-dni-do-matury", "100 dni do matury", "Mata", 55000000, 1200000],
+  ["papuga", "PAPUGA", "Quebonafide ft. Malik Montana", 80000000, 1800000],
+  ["gombao-33", "GOMBAO 33", "Quebonafide", 75000000, 1800000],
+  ["mniej-niz-zero", "Mniej niż zero", "Lady Pank", 80000000, 900000],
+  ["zawsze-tam-gdzie-ty", "Zawsze tam, gdzie Ty", "Lady Pank", 80000000, 900000],
+  ["dmuchawce-latawce-wiatr", "Dmuchawce, latawce, wiatr", "Urszula", 50000000, 600000],
+  ["biala-armia", "Biała armia", "Bajm", 60000000, 700000],
+  ["jest-taki-dzien", "Jest taki dzień", "Czerwone Gitary", 70000000, 600000],
+  ["nie-pytaj-o-polske", "Nie pytaj o Polskę", "Obywatel G.C.", 40000000, 500000],
+  ["dlugosc-dzwieku-samotnosci", "Długość dźwięku samotności", "Myslovitz", 100000000, 900000],
+  ["zanim-pojde", "Zanim pójdę", "Happysad", 100000000, 800000],
 ];
 
 export const popularityTracks = snapshotRows.map(([id, title, artist, views, listeners]) => ({
@@ -755,14 +891,21 @@ function normalizeSoloState(raw, playerId) {
     metricStats[metric] = { streak:Math.max(0, Number(source.streak) || 0), best:Math.max(0, Number(source.best) || 0) };
     metricStats[metric].best = Math.max(metricStats[metric].best, metricStats[metric].streak);
   }
-  const current = metricStats[metric];
+  const status = ["idle", "playing", "reveal", "over"].includes(source.status) ? source.status : "idle";
+  const current = metricStats[metric], hasSavedStreak = Object.prototype.hasOwnProperty.call(source, "streak");
+  const savedStreak = Math.max(0, Number(hasSavedStreak ? source.streak : current.streak) || 0);
+  // `metricStats.streak` used to survive a stopped/failed run. Treat idle and
+  // over states as finished runs, so an old cached value cannot be added to
+  // the first answer of the next run.
+  if (status === "idle" || status === "over") current.streak = 0;
+  else current.streak = savedStreak;
   return {
-    status:["idle", "playing", "reveal", "over"].includes(source.status) ? source.status : "idle",
+    status,
     playerId:owner,
     metric,
     metricStats,
-    streak:current.streak,
-    best:current.best,
+    streak:status === "over" ? savedStreak : status === "idle" ? 0 : current.streak,
+    best:Math.max(current.best, savedStreak),
     round:Math.max(0, Number(source.round) || 0),
     usedIds:array(source.usedIds),
     pair:array(source.pair),
@@ -799,6 +942,7 @@ function saveSoloState(state) {
 function createSoloPair(usedIds, metric) { return nextPair(usedIds, metric); }
 export function startPopularitySolo(playerId, metric = "views") {
   const owner = String(playerId || "guest"), previous = readSoloState(owner), clean = cleanMetric(metric), stats = ensureSoloMetricStats(previous), pair = createSoloPair([], clean);
+  stats[clean] = { ...(stats[clean] || { best:0 }), streak:0 };
   const best = Math.max(0, Number(stats[clean]?.best) || 0);
   soloState = { status:"playing", playerId:owner, metric:clean, metricStats:stats, streak:0, best, round:1, usedIds:pair.map(track => track.id), pair, lastResult:null };
   soloOwner = owner; saveSoloState(soloState); return soloState;
@@ -806,6 +950,7 @@ export function startPopularitySolo(playerId, metric = "views") {
 export function stopPopularitySolo(playerId) {
   const state = readSoloState(playerId);
   const stats = ensureSoloMetricStats(state);
+  stats[state.metric] = { ...(stats[state.metric] || { best:0 }), streak:0 };
   state.status = "idle"; state.pair = []; state.round = 0; state.streak = 0; state.best = Math.max(0, Number(stats[state.metric]?.best) || 0); state.lastResult = null; saveSoloState(state); return state;
 }
 export function getPopularitySoloState(playerId) { return { ...readSoloState(playerId) }; }
@@ -813,6 +958,7 @@ export function setPopularitySoloMetric(playerId, metric) {
   const state = readSoloState(playerId), nextMetric = cleanMetric(metric), stats = ensureSoloMetricStats(state);
   if (state.metric !== nextMetric && state.status === "playing") {
     state.metric = nextMetric;
+    stats[nextMetric] = { ...(stats[nextMetric] || { best:0 }), streak:0 };
     state.streak = 0;
     state.best = Math.max(0, Number(stats[nextMetric]?.best) || 0);
     state.round = 1;
@@ -832,7 +978,7 @@ export function choosePopularitySolo(playerId, side) {
   const stats = ensureSoloMetricStats(state), metricStats = stats[state.metric];
   const answer = correctSide(state.pair, state.metric), correct = answer === "tie" || side === answer;
   state.lastResult = { pair:state.pair.map(item => cloneCompetitionItem(item, state.metric)), metric:state.metric, selected:side, correctSide:answer, correct };
-  if (!correct) { state.status = "over"; state.best = Math.max(Number(state.best) || 0, Number(state.streak) || 0); saveSoloState(state); return state; }
+  if (!correct) { state.status = "over"; state.best = Math.max(Number(state.best) || 0, Number(state.streak) || 0); metricStats.streak = 0; saveSoloState(state); return state; }
   state.streak = Number(state.streak || 0) + 1; state.best = Math.max(Number(state.best) || 0, state.streak); metricStats.streak = state.streak; metricStats.best = state.best; state.status = "reveal";
   saveSoloState(state); return state;
 }
@@ -850,15 +996,17 @@ function storedSoloBest(playerId, metric) { return Number(readStoredSoloState(pl
 function soloMetricLabel(metric) {
   return metric === "views" ? "Wyświetlenia" : metric === "listeners" ? "Słuchacze piosenek" : "Słuchacze artystów";
 }
-function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null) {
-  const currentId = String(playerId || "guest"), accountIds = Object.keys(object(accounts));
-  const ids = [...new Set([...accountIds, currentId])].filter(Boolean);
+function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null, leaderboard = {}) {
+  const currentId = String(playerId || "guest"), accountIds = Object.keys(object(accounts)), remoteIds = Object.keys(object(leaderboard));
+  const ids = [...new Set([...accountIds, ...remoteIds, currentId])].filter(Boolean);
   const currentStats = object(state.metricStats);
   const renderRows = metric => {
     const ranked = ids.map(uid => {
-      const isCurrent = uid === currentId, account = accounts?.[uid] || {};
-      const best = isCurrent ? Math.max(Number(currentStats?.[metric]?.best) || 0, storedSoloBest(uid, metric)) : storedSoloBest(uid, metric);
-      return { uid, best, isCurrent, nick:isCurrent ? (currentProfile?.nick || account.nick || "Ty") : safeNick(accounts, uid) };
+      const isCurrent = uid === currentId, account = accounts?.[uid] || {}, remote = leaderboard?.[uid] || {}, remoteRecords = object(remote.records);
+      const best = isCurrent ? Math.max(Number(currentStats?.[metric]?.best) || 0, storedSoloBest(uid, metric), Number(remoteRecords[metric]) || 0) : Math.max(storedSoloBest(uid, metric), Number(remoteRecords[metric]) || 0);
+      const nick = isCurrent ? (currentProfile?.nick || account.nick || remote.nick || "Ty") : (account.nick || remote.nick || safeNick(accounts, uid));
+      const player = Object.keys(account).length ? userProfile(accounts, null, uid) : { ...remote, nick, uid };
+      return { uid, best, isCurrent, nick, player };
     }).filter(item => item.best > 0 || item.isCurrent).sort((a, b) => b.best - a.best || a.nick.localeCompare(b.nick, "pl"))
       .map((item, index) => ({ ...item, rank:index + 1 }));
     const visible = ranked.slice(0, 8);
@@ -866,7 +1014,7 @@ function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentP
       const current = ranked.find(item => item.isCurrent);
       if (current) visible[visible.length - 1] = current;
     }
-    const rows = visible.length ? visible.map(item => `<div class="popularity-leaderboard-row ${item.isCurrent ? "is-you" : ""}"><span class="popularity-leaderboard-rank">${item.rank}</span>${avatarHtml(userProfile(accounts, null, item.uid), "popularity-avatar", { disableIdle:true })}<span class="popularity-leaderboard-player"><b>${escapeHtml(item.nick)}</b><small>${item.isCurrent ? "Twój rekord" : "Najlepsza seria"}</small></span><strong>${item.best}</strong></div>`).join("") : `<p class="muted">Brak zapisanych serii.</p>`;
+    const rows = visible.length ? visible.map(item => `<div class="popularity-leaderboard-row ${item.isCurrent ? "is-you" : ""}"><span class="popularity-leaderboard-rank">${item.rank}</span>${avatarHtml(item.player, "popularity-avatar", { disableIdle:true })}<span class="popularity-leaderboard-player"><b>${escapeHtml(item.nick)}</b><small>${item.isCurrent ? "Twój rekord" : "Najlepsza seria"}</small></span><strong>${item.best}</strong></div>`).join("") : `<p class="muted">Brak zapisanych serii.</p>`;
     return { count:ranked.length, html:rows };
   };
   const tabs = SOLO_METRICS.map(metric => `<button type="button" class="popularity-leaderboard-tab ${state.metric === metric ? "active" : ""}" data-popularity-leaderboard-metric="${metric}" aria-selected="${state.metric === metric ? "true" : "false"}">${soloMetricLabel(metric)}</button>`).join("");
@@ -882,7 +1030,7 @@ function popularitySoloAnswerLabel(result, metric) {
   return `${entity} ${result?.correctSide === "left" ? "A" : "B"}`;
 }
 
-export function renderPopularitySolo(root, { profile, playerId, accounts = {} }, actions) {
+export function renderPopularitySolo(root, { profile, playerId, accounts = {}, leaderboard = {} }, actions) {
   if (typeof window !== "undefined") stopPopularityTimer();
   const state = readSoloState(playerId), game = { ...state, totalRounds:0 };
   let content = popularityHeader(game, true);
@@ -899,7 +1047,7 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {} },
     const pair = array(state.pair).slice(0, 2);
     content += `<section class="popularity-question"><span>🔥</span><div><b>${escapeHtml(metricQuestion(state.metric))}</b><small>${escapeHtml(metricSource(state.metric))} · bez limitu rund</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", state)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", state)}</div><div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
   }
-  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile)}</div><button id="popularity-solo-home" class="ghost">Wróć do menu</button></main>`;
+  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard)}</div><button id="popularity-solo-home" class="ghost">Wróć do menu</button></main>`;
   root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => button.addEventListener("click", () => { actions.popularitySoloMetric(button.dataset.popularitySoloMetric); }));
   root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => button.addEventListener("click", () => {
     const metric = button.dataset.popularityLeaderboardMetric;

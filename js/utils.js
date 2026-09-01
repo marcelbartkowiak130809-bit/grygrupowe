@@ -1,4 +1,4 @@
-import { levelBadgeHtml } from "./progression.js?v=20260901-6";
+import { levelBadgeHtml } from "./progression.js?v=20260902-1";
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];

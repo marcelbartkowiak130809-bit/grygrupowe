@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20260901-2";
+import { renderGame } from "./game.js?v=20260902-1";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260831-4";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260831-4";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20260831-2";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20260902-2";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260831-12";
@@ -26,7 +26,7 @@ import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-7";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-12";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260902-4";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
 

@@ -1,4 +1,4 @@
-import { claimModeCategoryRelease, getRemotePollVotes, loadModeCategoryReleases, voteRemotePoll } from "./firebase.js?v=20260901-6";
+import { claimModeCategoryRelease, getRemotePollVotes, loadModeCategoryReleases, voteRemotePoll } from "./firebase.js?v=20260902-2";
 
 export const CATEGORY_VOTING_START_AT = "2026-09-01T20:00:00+02:00";
 export const CATEGORY_VOTE_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
@@ -78,6 +78,13 @@ export function isCategoryModeReleased(modeId, releases = readLocalReleases()) {
   const normalizedModeId = releaseModeId(modeId);
   if (PERMANENT_MODE_IDS.has(normalizedModeId)) return true;
   return Object.values(releases).some(release => releaseModeId(release?.modeId) === normalizedModeId);
+}
+
+export function categoryModeProgress(categoryId, releases = readLocalReleases()) {
+  return (CATEGORY_MODE_IDS[categoryId] || []).map(modeId => ({
+    id: modeId,
+    released: isCategoryModeReleased(modeId, releases),
+  }));
 }
 
 export function categoryModesRemaining(categoryId, releases = readLocalReleases()) {

@@ -1,10 +1,10 @@
 import { gamesList } from "./games.js?v=20260901-12";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
-import { categoryForMode, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260901-3";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260902-2";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-6";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-17";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260902-1";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-4";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
@@ -96,6 +96,13 @@ function modeCountLabel(count) {
   const value = Number(count) || 0;
   if (value === 1) return "1 tryb";
   return value >= 2 && value <= 4 ? `${value} tryby` : `${value} trybów`;
+}
+
+function categoryProgressHtml(categoryId, releases) {
+  const progress = categoryModeProgress(categoryId, releases);
+  const unlocked = progress.filter(mode => mode.released).length;
+  const label = `${unlocked} z ${progress.length} trybów odblokowanych`;
+  return `<span class="category-vote-progress" role="img" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><span class="category-vote-progress-dots">${progress.map(mode => `<i class="category-vote-progress-dot ${mode.released ? "is-filled" : ""}" aria-hidden="true"></i>`).join("")}</span></span>`;
 }
 
 function categoryTag(mode) {
@@ -249,7 +256,7 @@ function categoryVotePanelHtml(view) {
     }
   }
   const voted = Boolean(view.pollState?.vote);
-  return `<section class="category-vote-panel ${voted ? "has-category-vote" : ""}" aria-labelledby="category-vote-title"><div class="category-vote-heading"><div class="category-vote-heading-icon">🗳️</div><div class="category-vote-copy"><p class="eyebrow">GŁOSOWANIE SPOŁECZNOŚCI · 3 DNI</p><h2 id="category-vote-title">Która kategoria odblokuje się jako następna?</h2><p>Wybierz kategorię. Po zakończeniu głosowania wylosujemy i odblokujemy jeden tryb z wybranej kategorii.</p></div></div><div class="category-vote-options">${view.poll.options.map(option => `<button type="button" class="category-vote-option ${view.pollState?.vote === option.id ? "is-selected" : ""}" data-category-vote="${escapeHtml(option.id)}" ${voted ? "disabled" : ""}><span class="category-vote-option-icon">${option.icon}</span><span class="category-vote-option-copy"><b>${escapeHtml(option.label)}</b><small>${escapeHtml(option.description)}</small><em>${modeCountLabel(option.remaining.length)} do odblokowania${voted && view.pollState?.totals?.[option.id] ? ` · ${view.pollState.totals[option.id]} gł.` : ""}</em></span><span class="category-vote-check">${view.pollState?.vote === option.id ? "✓" : ""}</span></button>`).join("")}</div><div class="category-vote-footer"><span>${voted ? "Twój głos jest zapisany" : "Każdy gracz może oddać jeden głos"}</span><strong>Głosowanie kończy się za <b data-category-vote-countdown="${escapeHtml(view.poll.endsAt)}">${countdownText(view.poll.endsAt)}</b></strong></div></section>`;
+  return `<section class="category-vote-panel ${voted ? "has-category-vote" : ""}" aria-labelledby="category-vote-title"><div class="category-vote-heading"><div class="category-vote-heading-icon">🗳️</div><div class="category-vote-copy"><p class="eyebrow">GŁOSOWANIE SPOŁECZNOŚCI · 3 DNI</p><h2 id="category-vote-title">Która kategoria odblokuje się jako następna?</h2><p>Wybierz kategorię. Po zakończeniu głosowania wylosujemy i odblokujemy jeden tryb z wybranej kategorii.</p></div></div><div class="category-vote-options">${view.poll.options.map(option => `<button type="button" class="category-vote-option ${view.pollState?.vote === option.id ? "is-selected" : ""}" data-category-vote="${escapeHtml(option.id)}" ${voted ? "disabled" : ""}><span class="category-vote-option-icon">${option.icon}</span><span class="category-vote-option-copy"><b>${escapeHtml(option.label)}</b><small>${escapeHtml(option.description)}</small><em>${modeCountLabel(option.remaining.length)} do odblokowania${voted && view.pollState?.totals?.[option.id] ? ` · ${view.pollState.totals[option.id]} gł.` : ""}</em>${categoryProgressHtml(option.id, view.releases)}</span><span class="category-vote-check">${view.pollState?.vote === option.id ? "✓" : ""}</span></button>`).join("")}</div><div class="category-vote-footer"><span>${voted ? "Twój głos jest zapisany" : "Każdy gracz może oddać jeden głos"}</span><strong>Głosowanie kończy się za <b data-category-vote-countdown="${escapeHtml(view.poll.endsAt)}">${countdownText(view.poll.endsAt)}</b></strong></div></section>`;
 }
 
 function sharePanelHtml() {

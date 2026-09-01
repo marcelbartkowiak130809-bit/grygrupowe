@@ -11,6 +11,7 @@ const LOCAL_HONOR_KEY = "udowodnij_honor_votes_v1";
 const HONOR_TYPE_IDS = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 const LOCAL_SITE_STATS_KEY = "udowodnij_site_stats_v1";
 const SITE_STAT_EVENT_TYPES = new Set(["gameFinished", "roomCreated", "userRegistered", "coinsEarned", "onlinePeak"]);
+const POPULARITY_SOLO_METRICS = ["views", "listeners", "artistListeners"];
 let remoteAuth;
 let firebaseAuthApi;
 let remoteDatabase;
@@ -548,6 +549,45 @@ export async function voteWouldYouRather({ questionId, choice, playerId, remoteP
 export async function loadPublicProfiles() {
   if (!remoteDatabase) return {};
   try { const profiles = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {}; return Object.fromEntries(Object.entries(profiles).map(([uid, profile]) => [uid, sanitizePublicProfile(profile || {})])); } catch { return {}; }
+}
+function sanitizePopularitySoloRecord(uid, entry = {}) {
+  const source = entry && typeof entry === "object" && !Array.isArray(entry) ? entry : {};
+  const sourceRecords = source.records && typeof source.records === "object" ? source.records : {};
+  return {
+    uid,
+    nick: String(source.nick || "Gracz").slice(0, 40),
+    avatarImage: String(source.avatarImage || "").slice(0, 200000),
+    selectedAvatarFrame: String(source.selectedAvatarFrame || "defaultFrame").slice(0, 80),
+    selectedAura: String(source.selectedAura || "noAura").slice(0, 80),
+    records: Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(0, Math.min(100000, Number(sourceRecords[metric]) || 0))])),
+    updatedAt: Number(source.updatedAt) || 0,
+  };
+}
+export async function loadPopularitySoloLeaderboard() {
+  if (!canUseRemote()) return {};
+  try {
+    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "popularitySoloRecords"));
+    return Object.fromEntries(Object.entries(snapshot.val() || {}).map(([uid, entry]) => [uid, sanitizePopularitySoloRecord(uid, entry)]));
+  } catch { return {}; }
+}
+export async function savePopularitySoloLeaderboard(uid, metricStats = {}, profile = {}) {
+  if (!canUseRemote() || !uid || remoteAuth.currentUser.uid !== uid || profile?.nickOnly) return null;
+  try {
+    const recordRef = firebaseDatabaseApi.ref(remoteDatabase, `popularitySoloRecords/${uid}`);
+    const existing = sanitizePopularitySoloRecord(uid, (await firebaseDatabaseApi.get(recordRef)).val() || {});
+    const incoming = metricStats && typeof metricStats === "object" ? metricStats : {};
+    const records = Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(existing.records[metric], Math.min(100000, Math.max(0, Number(incoming[metric]?.best) || 0)))]));
+    const payload = {
+      nick: String(profile?.nick || existing.nick || "Gracz").slice(0, 40),
+      avatarImage: String(profile?.avatarImage || existing.avatarImage || "").slice(0, 200000),
+      selectedAvatarFrame: String(profile?.selectedAvatarFrame || existing.selectedAvatarFrame || "defaultFrame").slice(0, 80),
+      selectedAura: String(profile?.selectedAura || existing.selectedAura || "noAura").slice(0, 80),
+      records,
+      updatedAt: Math.floor(serverNow()),
+    };
+    await firebaseDatabaseApi.update(recordRef, payload);
+    return sanitizePopularitySoloRecord(uid, payload);
+  } catch { return null; }
 }
 export async function updateRemoteProfileFields(uid, patch = {}) {
   if (!canUseRemote() || !uid || !Object.keys(patch).length) return false;
