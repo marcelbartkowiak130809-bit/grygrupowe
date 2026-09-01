@@ -18,10 +18,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
-      version: "v6.0.0",
+      version: "v4.3.0",
       date: "2026-09-01",
-      title: "Kto ma więcej?",
+      title: "Nowe tryby, muzyka i planszówki",
       changes: [
+        "Dodano tryb Pojedynek hitów dla 2–8 osób: każdy wybiera piosenkę, słuchacie podglądów i głosujecie na najlepszy numer.",
+        "Dodano tryb Bitwa hitów dla 4–100 osób: w każdej rundzie dwóch graczy wybiera utwory, a reszta lobby głosuje.",
+        "Dodano wyszukiwarkę utworów bez kopiowania linków oraz 30-sekundowe podglądy z ręcznym odtworzeniem jako fallbackiem.",
+        "Dodano 133 kategorie muzyczne: głównie pozytywne, ale też roczniki, nostalgiczne, smutne, dziwne i bardziej ryzykowne klimaty.",
+        "Dodano ustawienia kategorii, liczby rund, czasu wyboru i czasu głosowania oraz responsywny interfejs na telefonach.",
+        "Dodano rozdzielanie szans losowania graczy w Bitwie hitów — osoby niewylosowane dostają większą szansę w kolejnych rundach.",
         "Dodano nowy tryb multiplayer Kto ma więcej? dla 2–8 osób: w 10 sekund wybieracie, która piosenka ma większą popularność.",
         "Dodano wybór statystyki: wyświetlenia YouTube albo miesięczni słuchacze Spotify.",
         "Dodano bazę 328 utworów z równym dla wszystkich snapshotem danych, ukrytymi liczbami i efektownym ujawnieniem wyniku.",
@@ -30,19 +36,10 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano płynne ujawnianie liczb, skróty A/D i strzałki oraz widoczny stan gotowych graczy.",
         "Dodano wariant solo z rekordem streaka, bez limitu rund i możliwością przerwania serii w dowolnym momencie.",
         "Dodano ustawienia liczby rund i czasu wyboru oraz obsługę botów w trybie multiplayer.",
-      ],
-    },
-    {
-      version: "v5.0.0",
-      date: "2026-09-01",
-      title: "Muzyczne pojedynki",
-      changes: [
-        "Dodano tryb Pojedynek hitów dla 2–8 osób: każdy wybiera piosenkę, słuchacie podglądów i głosujecie na najlepszy numer.",
-        "Dodano tryb Bitwa hitów dla 4–100 osób: w każdej rundzie dwóch graczy wybiera utwory, a reszta lobby głosuje.",
-        "Dodano wyszukiwarkę utworów bez kopiowania linków oraz 30-sekundowe podglądy z ręcznym odtworzeniem jako fallbackiem.",
-        "Dodano 133 kategorie muzyczne: głównie pozytywne, ale też roczniki, nostalgiczne, smutne, dziwne i bardziej ryzykowne klimaty.",
-        "Dodano ustawienia kategorii, liczby rund, czasu wyboru i czasu głosowania oraz responsywny interfejs na telefonach.",
-        "Dodano rozdzielanie szans losowania graczy w Bitwie hitów — osoby niewylosowane dostają większą szansę w kolejnych rundach.",
+        "Dodano 8 trybów planszówkowych: Chińczyk, Słowotwór, Statki, Reversi, Warcaby, Cztery w rzędzie, Memory i Domino.",
+        "Dodano wspólny system lobby, timerów, botów, wyników, ponownego meczu i automatycznych ruchów awaryjnych dla planszówek.",
+        "Dodano kosmetyki Neonowy stół do Chińczyka oraz Holograficzne karty do Memory.",
+        "Dodano komunikaty o dzisiejszym odblokowaniu trybów, ujawnianie nazwy od północy i animowane fajerwerki po starcie.",
       ],
     },
     {

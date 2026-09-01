@@ -59,7 +59,7 @@ import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncement
 import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260831-3";
 
 const root = $("#app");
-const APP_VERSION = "v6.0.0";
+const APP_VERSION = "v4.3.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
