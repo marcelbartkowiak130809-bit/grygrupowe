@@ -25,7 +25,8 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-4";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-7";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260902-8";
+import { lyricsDefaults, renderLyricsGame } from "./lyrics.js?v=20260902-1";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260902-4";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
@@ -370,6 +371,9 @@ export const gamesRegistry = {
   },
   "popularnosc-solo": {
     id: "popularnosc-solo", name: "Kto ma więcej? · Solo", description: "Zgaduj popularność piosenek lub artystów i buduj rekordową serię.", help: ["Porównujesz dwie opcje bez presji czasu.", "Możesz przełączać wyświetlenia, słuchaczy piosenek albo słuchaczy artystów.", "Po każdym wyborze od razu dostajesz następną parę, a jedna pomyłka kończy serię."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🔥", art: "choice", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderPopularitySolo, defaultSettings: popularityDefaults,
+  },
+  "dokoncz-tekst": {
+    id: "dokoncz-tekst", name: "Dokończ tekst", description: "Posłuchaj krótkiego fragmentu i uzupełnij brakujące słowa szybciej od reszty.", help: ["W każdej rundzie słuchacie krótkiego preview piosenki.", "Po kilku sekundach fragment i tekst zatrzymują się w jednym miejscu.", "Wpisujesz brakującą część — liczy się każda poprawna litera, nie tylko odpowiedź 1:1.", "Po ujawnieniu wynik pokazuje procent zgodności i punkty za rundę."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "✍️", art: "music-lyrics", audience: "music", badges: ["new", "tiktok"], render: renderLyricsGame, defaultSettings: lyricsDefaults,
   },
 };
 

@@ -1,11 +1,11 @@
-import { gamesList } from "./games.js?v=20260901-12";
+import { gamesList } from "./games.js?v=20260902-15";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
 import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260902-2";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-6";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-7";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260902-1";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-4";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-5";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [
@@ -118,7 +118,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
   if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft" loading="lazy" decoding="async">`;
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
@@ -140,7 +140,7 @@ function minecraftHubCard() {
 }
 
 function musicHubCard() {
-  return `<article class="game-card music-hub-card" data-music-hub data-mode-category="music" data-mode-tags="music category new everyone crew" data-mode-search="muzyka muzyka hity piosenki spotify artyści wyświetlenia słuchacze pojedynek bitwa popularność kategoria"><div class="game-visual game-visual-music-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b class="music-hub-badge">MUZYKA</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-music">KATEGORIA</span></div><h2>MUZYKA</h2><p class="muted">Pojedynki hitów, bitwy ekip i zgadywanie popularności piosenek oraz artystów.</p><div class="game-card-activity"><span>3 tryby</span><span>HITY I POJEDYNKI</span></div><div class="game-card-footer"><span class="players-count">🎧 DLA EKIP I ZNAJOMYCH</span><button class="primary" data-open-music>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card music-hub-card" data-music-hub data-mode-category="music" data-mode-tags="music category new everyone crew" data-mode-search="muzyka muzyka hity piosenki spotify artyści wyświetlenia słuchacze pojedynek bitwa popularność tekst dokończ lyric kategoria"><div class="game-visual game-visual-music-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b class="music-hub-badge">MUZYKA</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-music">KATEGORIA</span></div><h2>MUZYKA</h2><p class="muted">Pojedynki hitów, bitwy ekip, popularność oraz dokańczanie tekstów piosenek.</p><div class="game-card-activity"><span>4 tryby</span><span>HITY I TEKSTY</span></div><div class="game-card-footer"><span class="players-count">🎧 DLA EKIP I ZNAJOMYCH</span><button class="primary" data-open-music>Wybierz tryb</button></div></div></article>`;
 }
 
 function gameCard(mode) {

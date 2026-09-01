@@ -27,7 +27,8 @@ import { ConnectEngine } from "./connect.js?v=20260831-4";
 import { LiarEngine } from "./liar.js?v=20260831-4";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
-import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-6";
+import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260902-8";
+import { LyricsEngine } from "./lyrics.js?v=20260902-1";
 import { PopularityEngine } from "./popularity.js?v=20260902-4";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
@@ -89,6 +90,7 @@ export function botActor(room) {
     if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
   }
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isMissing(game.choices, uid)) || "";
+  if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode?.startsWith("minecraft-")) {
     if (game.mode === "minecraft-truth" && game.phase === "question") return bots.find(uid => isMissing(game.answers, uid)) || "";
     if (game.phase === "turn" && isBotId(game.currentUid)) return game.currentUid;
@@ -318,6 +320,7 @@ function timeoutMutation(room, game, bot) {
     case "tajna-zasada": return g => SecretRuleEngine.timeout(g, settings);
     case "pojedynek-hitow": return g => MusicDuelEngine.timeout(g, settings);
     case "bitwa-hitow": return g => MusicArenaEngine.timeout(g, settings);
+    case "dokoncz-tekst": return g => LyricsEngine.timeout(g, settings);
     case "popularnosc-hitow": return g => PopularityEngine.timeout(g);
     case "minecraft-sprint":
     case "minecraft-crafting":
@@ -531,6 +534,9 @@ export function botMutation(room) {
         break;
       case "popularnosc-hitow":
         if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
+        break;
+      case "dokoncz-tekst":
+        if (game.phase === "answering" && isMissing(game.answers, bot)) return g => LyricsEngine.answer(g, bot, LyricsEngine.botAnswer(g, bot, correct(), botDifficulty(room, bot).id), players, settings);
         break;
       case "minecraft-sprint":
       case "minecraft-crafting":

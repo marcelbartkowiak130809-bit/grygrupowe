@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260901-12";
+import { gamesList } from "./games.js?v=20260902-15";
 import { escapeHtml } from "./utils.js?v=20260822-1";
 
 const ADSENSE_CLIENT = "ca-pub-4038439845706886";
@@ -130,7 +130,7 @@ const pages = {
     title:"Tryby gry",
     eyebrow:"BIBLIOTEKA",
     allowAds:true,
-    body:`<div class="public-mode-list">${gamesList.map(mode => `<article><h2>${escapeHtml(mode.name)}</h2><p>${escapeHtml(modeLongDescription[mode.id] || mode.description)}</p><small>${escapeHtml(mode.players || "")}</small></article>`).join("")}</div>`,
+    body:"",
   },
   "public:regulamin": {
     title:"Regulamin",
@@ -156,12 +156,13 @@ const pages = {
 };
 
 export function renderPublicPage(root, screen, actions) {
-  const page = pages[screen] || pages["public:o-grze"];
-  root.innerHTML = `<main class="page public-page enter">
+const page = pages[screen] || pages["public:o-grze"];
+const body = screen === "public:tryby-gry" ? `<div class="public-mode-list">${gamesList.map(mode => `<article><h2>${escapeHtml(mode.name)}</h2><p>${escapeHtml(modeLongDescription[mode.id] || mode.description)}</p><small>${escapeHtml(mode.players || "")}</small></article>`).join("")}</div>` : page.body;
+root.innerHTML = `<main class="page public-page enter">
     <section class="public-article">
       <p class="eyebrow">${page.eyebrow}</p>
       <h1>${page.title}</h1>
-      <div class="public-body">${page.body}</div>
+<div class="public-body">${body}</div>
       ${page.allowAds ? adSenseBlock() : ""}
     </section>
     ${publicFooterHtml()}

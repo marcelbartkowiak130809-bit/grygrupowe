@@ -185,10 +185,11 @@ const fallbackTrackAssets = [
   ["https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/49/3d/ab/493dab54-f920-9043-6181-80993b8116c9/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/af/81/44af8168-9609-1b85-5048-ada08dceacf/mzaf_1341699644335558812.plus.aac.p.m4a"],
 ];
 
-const fallbackTracks = fallbackTrackNames.map(([title, artist], index) => {
+export const musicPreviewCatalog = fallbackTrackNames.map(([title, artist], index) => {
   const [coverUrl = "", previewUrl = ""] = fallbackTrackAssets[index] || [];
   return { id:`fallback-${index}`, title, artist, coverUrl, previewUrl, externalUrl:`https://open.spotify.com/search/${encodeURIComponent(`${artist} ${title}`)}`, provider:"preview" };
 });
+const fallbackTracks = musicPreviewCatalog;
 
 function normalizeTrack(track) {
   if (!track || typeof track !== "object") return null;

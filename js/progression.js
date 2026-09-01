@@ -52,10 +52,10 @@ const modeLabels = {
   wavelength:"Wavelength", quiz:"Quiz", mathematics:"Matematyka", marker:"Marker", sequence:"Zgadnij sekwencję",
   family:"Familiada", "word-chain":"Łańcuch słów", "number-mystery":"Tajemnicza liczba", "unique-answer":"Bez powtórek",
   "polacz-nas":"Połącz nas", klamca:"Kłamca", "falszywa-wiadomosc":"Fałszywa wiadomość", "tajna-zasada":"Tajna zasada",
-  "pojedynek-hitow":"Pojedynek hitów", "bitwa-hitow":"Bitwa hitów", "popularnosc-hitow":"Kto ma więcej?", "popularnosc-solo":"Kto ma więcej? · Solo",
+  "pojedynek-hitow":"Pojedynek hitów", "bitwa-hitow":"Bitwa hitów", "popularnosc-hitow":"Kto ma więcej?", "popularnosc-solo":"Kto ma więcej? · Solo", "dokoncz-tekst":"Dokończ tekst",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
-const newModeIds = ["wavelength", "quiz", "mathematics", "marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow"];
+const newModeIds = ["wavelength", "quiz", "mathematics", "marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "dokoncz-tekst"];
 
 export function xpForLevel(level) {
   const step = Math.max(0, Number(level || 1) - 1);
@@ -147,7 +147,7 @@ const questModeIcons = {
   "pokemon-last-letter":"🔤", "pokemon-evolution":"🧬", "pokemon-auction":"💰",
   "pokemon-types":"🔥", "pokemon-match-type":"🔗", "number-mystery":"🔢", "unique-answer":"🧩",
   "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠",
-  "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "popularnosc-solo":"🔥",
+  "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "popularnosc-solo":"🔥", "dokoncz-tekst":"✍️",
 };
 
 function questReward(seed, period, difficulty) {
@@ -266,7 +266,7 @@ const questList = now => {
     q(`weekly-win-liar-${w}`,"weekly","Wygraj jako Klamca albo go wykryj",1,"winMode","LIAR","hard",{mode:"klamca"}),
     q(`weekly-play-false-message-${w}`,"weekly","Zagraj w Falszywa wiadomosc",1,"mode","CHAT","medium",{mode:"falszywa-wiadomosc"}),
     q(`weekly-play-secret-rule-${w}`,"weekly","Zagraj w Tajna zasade",1,"mode","RULE","medium",{mode:"tajna-zasada"}),
-    q(`weekly-play-music-${w}`,"weekly","Zagraj w muzyczny tryb",1,"anyModeGroup","MUSIC","medium",{modes:["pojedynek-hitow","bitwa-hitow","popularnosc-hitow"]}),
+    q(`weekly-play-music-${w}`,"weekly","Zagraj w muzyczny tryb",1,"anyModeGroup","MUSIC","medium",{modes:["pojedynek-hitow","bitwa-hitow","popularnosc-hitow","dokoncz-tekst"]}),
     q(`weekly-play-sequence-${w}`,"weekly","Zagraj 4 gry w Zgadnij sekwencje",4,"mode","CODE","medium",{mode:"sequence"}),
     q(`weekly-play-word-chain-${w}`,"weekly","Zagraj 4 gry w Lancuch slow",4,"mode","WORD","medium",{mode:"word-chain"}),
     q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
