@@ -8,6 +8,7 @@ export const CATEGORY_CYCLE_DURATION_MS = CATEGORY_VOTE_DURATION_MS + CATEGORY_R
 const CATEGORY_RELEASES_KEY = "udowodnij.modeCategoryVoting.v1";
 const CATEGORY_VOTES_KEY = "udowodnij.modeCategoryVotes.v1";
 const HIDDEN_SOLO_VARIANTS = new Set(["popularnosc-solo"]);
+const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow"]);
 const CATEGORY_MODE_IDS = {
   pokemon: ["pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type"],
   board: ["board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino"],
@@ -23,7 +24,7 @@ export const categoryVoteCategories = [
 ];
 
 const categoryMap = new Map(categoryVoteCategories.map(category => [category.id, category]));
-const publicCategoryModes = categoryId => (CATEGORY_MODE_IDS[categoryId] || []).filter(modeId => !HIDDEN_SOLO_VARIANTS.has(modeId)).map(id => ({ id }));
+const publicCategoryModes = categoryId => (CATEGORY_MODE_IDS[categoryId] || []).filter(modeId => !HIDDEN_SOLO_VARIANTS.has(modeId) && !PERMANENT_MODE_IDS.has(modeId)).map(id => ({ id }));
 const releaseModeId = modeId => modeId === "popularnosc-solo" ? "popularnosc-hitow" : modeId;
 
 let cachedReleases;
@@ -75,6 +76,7 @@ export function getCategoryReleases() {
 
 export function isCategoryModeReleased(modeId, releases = readLocalReleases()) {
   const normalizedModeId = releaseModeId(modeId);
+  if (PERMANENT_MODE_IDS.has(normalizedModeId)) return true;
   return Object.values(releases).some(release => releaseModeId(release?.modeId) === normalizedModeId);
 }
 

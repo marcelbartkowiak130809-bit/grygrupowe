@@ -1,7 +1,7 @@
-import { isCategoryModeReleased } from "./categoryVoting.js?v=20260901-2";
+import { isCategoryModeReleased } from "./categoryVoting.js?v=20260901-3";
 
 // Główne tryby mają własną, niezależną kolejkę. Kategorie Pokémon, planszówki,
-// Minecraft i muzyka otwierają się przez głosowanie na stronie głównej.
+// Minecraft i większość trybów muzycznych otwierają się przez głosowanie na stronie głównej.
 export const MODE_UNLOCKS_ENABLED = true;
 export const futureModeUnlocks = {
   quiz: "2026-09-04T20:00:00+02:00",
