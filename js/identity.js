@@ -1,9 +1,9 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260822-2";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, safeCosmeticClass } from "./utils.js?v=20260901-2";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, safeCosmeticClass } from "./utils.js?v=20260901-3";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { hasGamePass } from "./gamePasses.js?v=20260901-10";
+import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));
@@ -403,7 +403,7 @@ function voiceTurnHtml(me, active, accounts, gameFlow) {
 
 function identityHintHtml(game, accounts, currentUser, settings = {}) {
   const hint = game.letterHints?.[currentUser];
-  const owned = settings.gamePassesEnabled !== false && hasGamePass(accounts?.[currentUser], "identity-insight");
+  const owned = hasGamePass(accounts?.[currentUser], "identity-insight");
   const paidUsed = game.purchaseUses?.[currentUser]?.["identity-letter"] === Number(game.round || 1);
   const round = Number(game.round || 1);
   if (hint?.round === round) return `<div class="identity-private-hint"><b>🔍 Twoja podpowiedź</b><span>Litera #${Number(hint.index) + 1}: <strong>${escapeHtml(hint.letter)}</strong></span></div>`;

@@ -1,11 +1,12 @@
-import { gamesList } from "./games.js?v=20260901-7";
+import { gamesList } from "./games.js?v=20260901-11";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-4";
+import { categoryForMode, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260901-2";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-6";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-8";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-3";
-import { minecraftModeIcons } from "./minecraft.js?v=20260901-3";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-16";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-4";
+import { minecraftModeIcons } from "./minecraft.js?v=20260901-7";
 
 const filters = [
   ["all", "WSZYSTKIE"],
@@ -13,11 +14,14 @@ const filters = [
   ["popular", "POPULARNE"],
   ["tiktok", "HIT TIKTOKA"],
   ["category", "KATEGORIA"],
+  ["music", "MUZYKA"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
 ];
 let pollCountdownTimer;
+let categoryVoteCountdownTimer;
+let categoryVoteRefreshTimer;
 let modeUnlockAnnouncementTimer;
 const POLLS_ENABLED = false;
 
@@ -25,11 +29,13 @@ function modeCategory(mode) {
   if (mode.audience === "pokemon") return "pokemon";
   if (mode.audience === "board") return "board";
   if (mode.audience === "minecraft") return "minecraft";
+  if (mode.audience === "music") return "music";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
 }
 
-export function renderPokemonModes(root, actions, context = {}) {
+export async function renderPokemonModes(root, actions, context = {}) {
+  await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const pokemonModes = gamesList.filter(game => game.audience === "pokemon");
   const mewtwo = pokemonDex.find(item => item.id === 150);
@@ -40,7 +46,8 @@ export function renderPokemonModes(root, actions, context = {}) {
   activatePublicAds(root, "platform");
 }
 
-export function renderBoardModes(root, actions, context = {}) {
+export async function renderBoardModes(root, actions, context = {}) {
+  await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const boardModes = gamesList.filter(game => game.audience === "board");
   root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="games-section board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span></div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
@@ -50,10 +57,22 @@ export function renderBoardModes(root, actions, context = {}) {
   activatePublicAds(root, "platform");
 }
 
-export function renderMinecraftModes(root, actions, context = {}) {
+export async function renderMinecraftModes(root, actions, context = {}) {
+  await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
   root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  activatePublicAds(root, "platform");
+}
+
+export async function renderMusicModes(root, actions, context = {}) {
+  await loadCategoryVotingView(context.voterId || "anonymous");
+  const activityStats = context.activityStats || window.__activityStats || {};
+  const musicModes = gamesList.filter(game => game.audience === "music" && !game.hiddenFromLibrary);
+  root.innerHTML = `<main class="page platform-page music-selection-page enter"><section class="music-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="music-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MUZYKA</h1><p>Wybierajcie hity, słuchajcie krótkich previewów i sprawdzajcie, który numer wygrywa.</p></div><div class="music-selection-art" aria-hidden="true"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b>HITS</b></div></section><section class="games-section music-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MUZYCZNE</p><h2>W co gramy?</h2></div><span class="badge">${musicModes.length}</span></div><div class="games-grid">${musicModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
@@ -64,10 +83,16 @@ function modeFilterTags(mode) {
   return [modeCategory(mode), mode.supportsSolo ? "solo" : "", ...(mode.badges || [])].filter(Boolean).join(" ");
 }
 
+function modeCountLabel(count) {
+  const value = Number(count) || 0;
+  if (value === 1) return "1 tryb";
+  return value >= 2 && value <= 4 ? `${value} tryby` : `${value} trybów`;
+}
+
 function categoryTag(mode) {
   const category = modeCategory(mode);
   if (mode.audience === "pokemon") return "";
-  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY", board:"PLANSZÓWKI", minecraft:"MINECRAFT" };
+  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY", board:"PLANSZÓWKI", minecraft:"MINECRAFT", music:"MUZYKA" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
 
@@ -98,11 +123,16 @@ function minecraftHubCard() {
   return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Sześć dynamicznych trybów: pytania, crafting, moby, biomy, ciekawostki i redstone.</p><div class="game-card-activity"><span>6 trybów</span><span>OD EASY DO EKSPERTA</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
+function musicHubCard() {
+  return `<article class="game-card music-hub-card" data-music-hub data-mode-category="music" data-mode-tags="music category new everyone crew" data-mode-search="muzyka muzyka hity piosenki spotify artyści wyświetlenia słuchacze pojedynek bitwa popularność kategoria"><div class="game-visual game-visual-music-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b class="music-hub-badge">MUZYKA</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-music">KATEGORIA</span></div><h2>MUZYKA</h2><p class="muted">Pojedynki hitów, bitwy ekip i zgadywanie popularności piosenek oraz artystów.</p><div class="game-card-activity"><span>3 tryby</span><span>HITY I POJEDYNKI</span></div><div class="game-card-footer"><span class="players-count">🎧 DLA EKIP I ZNAJOMYCH</span><button class="primary" data-open-music>Wybierz tryb</button></div></div></article>`;
+}
+
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
+  const soloAvailable = !isModeLocked("popularnosc-solo");
   const playControls = mode.id === "popularnosc-hitow" && !locked
-    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button><button class="ghost" data-play-solo-mode="popularnosc-solo">🔥 Solo</button></div>`
+    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? '<button class="ghost" data-play-solo-mode="popularnosc-solo">🔥 Solo</button>' : ""}</div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
@@ -121,6 +151,8 @@ function gameCard(mode) {
 }
 
 function lockedModeTitle(mode, unlock) {
+  if (unlock.manuallyLocked) return `${mode.name} jest obecnie zablokowany`;
+  if (unlock.categoryLocked) return `${mode.name} czeka na głosowanie kategorii`;
   return isUnlockDay(unlock.unlockAt) ? `${mode.name} odblokuje się dzisiaj o ${formatUnlockTime(unlock.unlockAt)}` : `Nowy tryb odblokuje sie ${unlock.label}`;
 }
 
@@ -195,6 +227,22 @@ function pollPanelHtml(context = {}, stateOverride = null) {
   </section>`;
 }
 
+function categoryVotePanelHtml(view) {
+  if (!view || view.phase === "complete") {
+    return `<section class="category-vote-panel category-vote-complete" aria-live="polite"><div class="category-vote-copy"><p class="eyebrow">KOLEJKA KATEGORII</p><h2>Wszystkie kategorie są już odblokowane</h2><p>Cała biblioteka jest dostępna — wybierzcie tryb i grajcie.</p></div><span class="category-vote-complete-icon">✓</span></section>`;
+  }
+  if (view.phase === "result" && view.release) {
+    const mode = gamesList.find(item => item.id === view.release.modeId);
+    const category = categoryForMode(view.release.modeId) || categoryVoteCategories.find(item => item.id === view.release.categoryId);
+    if (mode) {
+      const href = `/${encodeURIComponent(mode.id)}`;
+      return `<section class="category-vote-panel category-vote-result" aria-live="polite"><div class="category-vote-result-mark">🎉</div><div class="category-vote-copy"><p class="eyebrow">WYNIK GŁOSOWANIA</p><h2>Odblokowano: ${escapeHtml(mode.name)}</h2><p>Kategoria <b>${escapeHtml(category?.label || view.release.categoryId)}</b> wygrała. Tryb został wylosowany z jej dostępnej puli.</p></div><div class="category-vote-result-actions"><a class="primary category-vote-link" href="${escapeHtml(href)}" data-open-category-mode="${escapeHtml(mode.id)}">${icon("play", 17)} Otwórz tryb</a><span class="category-vote-next">Następne głosowanie za <b data-category-vote-countdown="${escapeHtml(new Date(view.phaseEndsAt).toISOString())}">${countdownText(view.phaseEndsAt)}</b></span></div></section>`;
+    }
+  }
+  const voted = Boolean(view.pollState?.vote);
+  return `<section class="category-vote-panel ${voted ? "has-category-vote" : ""}" aria-labelledby="category-vote-title"><div class="category-vote-heading"><div class="category-vote-heading-icon">🗳️</div><div class="category-vote-copy"><p class="eyebrow">GŁOSOWANIE SPOŁECZNOŚCI · 3 DNI</p><h2 id="category-vote-title">Która kategoria odblokuje się jako następna?</h2><p>Wybierz kategorię. Po zakończeniu głosowania wylosujemy i odblokujemy jeden tryb z wybranej kategorii.</p></div></div><div class="category-vote-options">${view.poll.options.map(option => `<button type="button" class="category-vote-option ${view.pollState?.vote === option.id ? "is-selected" : ""}" data-category-vote="${escapeHtml(option.id)}" ${voted ? "disabled" : ""}><span class="category-vote-option-icon">${option.icon}</span><span class="category-vote-option-copy"><b>${escapeHtml(option.label)}</b><small>${escapeHtml(option.description)}</small><em>${modeCountLabel(option.remaining.length)} do odblokowania${voted && view.pollState?.totals?.[option.id] ? ` · ${view.pollState.totals[option.id]} gł.` : ""}</em></span><span class="category-vote-check">${view.pollState?.vote === option.id ? "✓" : ""}</span></button>`).join("")}</div><div class="category-vote-footer"><span>${voted ? "Twój głos jest zapisany" : "Każdy gracz może oddać jeden głos"}</span><strong>Głosowanie kończy się za <b data-category-vote-countdown="${escapeHtml(view.poll.endsAt)}">${countdownText(view.poll.endsAt)}</b></strong></div></section>`;
+}
+
 function sharePanelHtml() {
   return `<section class="platform-share-panel">
     <div class="share-copy">
@@ -250,10 +298,14 @@ function openRandomRoomModal(actions){
 
 export async function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
+  clearInterval(categoryVoteCountdownTimer);
+  clearTimeout(categoryVoteRefreshTimer);
   clearTimeout(modeUnlockAnnouncementTimer);
   const activityStats=context.activityStats||window.__activityStats||{};
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
+  const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page enter">
+    ${categoryVotePanelHtml(categoryVote)}
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY GRUPOWE</p>
@@ -275,7 +327,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && game.audience !== "minecraft" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}</div>
+       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && game.audience !== "minecraft" && game.audience !== "music" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}${musicHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -285,6 +337,16 @@ export async function renderPlatform(root, actions, context = {}) {
   const countdown = root.querySelector("[data-poll-countdown]");
   if (countdown && visiblePoll() && !currentPollState.ended) {
     pollCountdownTimer = setInterval(() => { if (!countdown.isConnected) return clearInterval(pollCountdownTimer); countdown.textContent = countdownText(countdown.dataset.pollCountdown); }, 1000);
+  }
+  const categoryCountdown = root.querySelector("[data-category-vote-countdown]");
+  if (categoryCountdown) {
+    categoryVoteCountdownTimer = setInterval(() => {
+      if (!categoryCountdown.isConnected) return clearInterval(categoryVoteCountdownTimer);
+      categoryCountdown.textContent = countdownText(categoryCountdown.dataset.categoryVoteCountdown);
+    }, 1000);
+  }
+  if (categoryVote?.phaseEndsAt && categoryVote.phase !== "complete") {
+    categoryVoteRefreshTimer = window.setTimeout(() => actions.refresh?.({ preserveDrafts: true }), Math.max(1000, Number(categoryVote.phaseEndsAt) - Date.now() + 500));
   }
   const applyGameFilters = () => {
     const filter = root.querySelector("[data-game-filter].active")?.dataset.gameFilter || "all";
@@ -301,6 +363,17 @@ export async function renderPlatform(root, actions, context = {}) {
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll("[data-category-vote]").forEach(button => button.addEventListener("click", async () => {
+    root.querySelectorAll("[data-category-vote]").forEach(option => { option.disabled = true; });
+    actions.playSound?.("poll");
+    const accepted = await voteCategory(categoryVote, context.voterId || "anonymous", button.dataset.categoryVote);
+    if (accepted) actions.playSound?.("success");
+    actions.refresh?.({ preserveDrafts: true });
+  }));
+  root.querySelector("[data-open-category-mode]")?.addEventListener("click", event => {
+    event.preventDefault();
+    actions.selectGame(event.currentTarget.dataset.openCategoryMode);
+  });
   root.querySelector("[data-unlock-mode]")?.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode));
   root.querySelectorAll("[data-play-solo-mode]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); actions.selectSoloGame(button.dataset.playSoloMode); }));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
@@ -309,6 +382,8 @@ export async function renderPlatform(root, actions, context = {}) {
   root.querySelector("[data-open-board]")?.addEventListener("click", actions.goBoardModes);
   root.querySelector("[data-minecraft-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goMinecraftModes(); });
   root.querySelector("[data-open-minecraft]")?.addEventListener("click", actions.goMinecraftModes);
+  root.querySelector("[data-music-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goMusicModes(); });
+  root.querySelector("[data-open-music]")?.addEventListener("click", actions.goMusicModes);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");
     if (button) actions.selectGame(button.dataset.playMode);

@@ -1,34 +1,34 @@
-import { renderGame } from "./game.js?v=20260822-4";
+import { renderGame } from "./game.js?v=20260901-2";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20260831-4";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260831-3";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260831-4";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260605-4";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260831-2";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260612-1";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260605-1";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260831-11";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260831-12";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20260621-1";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20260612-3";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260824-2";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260824-1";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260831-3";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260831-10";
-import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260831-4";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260831-11";
+import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260831-5";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260823-5";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260805-1";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260823-1";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260813-2";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260822-2";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260822-2";
-import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260831-3";
+import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260831-4";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260823-5";
-import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-3";
-import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-3";
-import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-3";
-import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-4";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-2";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-3";
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-6";
-import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-3";
+import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-4";
+import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
+import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
+import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-6";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-11";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
+import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-7";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -360,16 +360,16 @@ export const gamesRegistry = {
     id:"board-domino", name:"Domino", description:"Dokładaj kostki do łańcucha, dobieraj sprytnie i pozbądź się ręki jako pierwszy.", help:["Dokładaj kostkę do lewego albo prawego końca łańcucha.","Jeśli nie masz ruchu, dobierz kostkę z talii.","Gdy nikt nie może już zagrać, wygrywa najlżejsza ręka."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🁫", art:"board-domino", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-domino"],
   },
   "pojedynek-hitow": {
-    id: "pojedynek-hitow", name: "Pojedynek hitów", description: "Wybierzcie piosenki pod wspólny temat i przekonajcie ekipę, który numer wygrywa.", help: ["Wszyscy wybierają po jednym utworze z wyszukiwarki — bez kopiowania linków.", "Po wyborze słuchacie krótkich podglądów i głosujecie na najlepszy numer.", "Każdy głos trafia na jedną piosenkę, a remis daje punkt wszystkim zwycięzcom.", "Po kilku rundach wygrywa osoba z największą liczbą punktów."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎵", art: "music-duel", audience: "everyone", badges: ["new", "tiktok"], render: renderMusicDuelGame, defaultSettings: musicDuelDefaults,
+    id: "pojedynek-hitow", name: "Pojedynek hitów", description: "Wybierzcie piosenki pod wspólny temat i przekonajcie ekipę, który numer wygrywa.", help: ["Wszyscy wybierają po jednym utworze z wyszukiwarki — bez kopiowania linków.", "Po wyborze słuchacie krótkich podglądów i głosujecie na najlepszy numer.", "Każdy głos trafia na jedną piosenkę, a remis daje punkt wszystkim zwycięzcom.", "Po kilku rundach wygrywa osoba z największą liczbą punktów."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎵", art: "music-duel", audience: "music", badges: ["new", "tiktok"], render: renderMusicDuelGame, defaultSettings: musicDuelDefaults,
   },
   "bitwa-hitow": {
-    id: "bitwa-hitow", name: "Bitwa hitów", description: "Dwóch graczy wybiera numery, a reszta ekipy rozstrzyga, który hit jest lepszy.", help: ["W każdej rundzie losujemy dwóch muzycznych reprezentantów.", "Wybrani gracze wyszukują swoje piosenki, a pozostali słuchają obu propozycji.", "Publiczność głosuje na jeden numer; osoby wybierające piosenki nie głosują.", "Szanse niewylosowanych rosną z każdą rundą, więc każdy ma swoją kolej."], allowReports: true, players: "4-100 osób", minPlayers: 4, maxPlayers: 100, supportsLobby: true, supportsSolo: false, symbol: "🎶", art: "music-arena", audience: "crew", badges: ["new", "tiktok"], render: renderMusicArenaGame, defaultSettings: musicArenaDefaults,
+    id: "bitwa-hitow", name: "Bitwa hitów", description: "Dwóch graczy wybiera numery, a reszta ekipy rozstrzyga, który hit jest lepszy.", help: ["W każdej rundzie losujemy dwóch muzycznych reprezentantów.", "Wybrani gracze wyszukują swoje piosenki, a pozostali słuchają obu propozycji.", "Publiczność głosuje na jeden numer; osoby wybierające piosenki nie głosują.", "Szanse niewylosowanych rosną z każdą rundą, więc każdy ma swoją kolej."], allowReports: true, players: "4-100 osób", minPlayers: 4, maxPlayers: 100, supportsLobby: true, supportsSolo: false, symbol: "🎶", art: "music-arena", audience: "music", badges: ["new", "tiktok"], render: renderMusicArenaGame, defaultSettings: musicArenaDefaults,
   },
   "popularnosc-hitow": {
-    id: "popularnosc-hitow", name: "Kto ma więcej?", description: "Dwie piosenki, jedna szybka decyzja. Zgadnijcie, która ma większą popularność.", help: ["W każdej rundzie widzicie dwie piosenki z dużej bazy.", "Wybieracie, która ma więcej wyświetleń albo miesięcznych słuchaczy.", "Liczby są ukryte do momentu ujawnienia, a każdy trafny wybór daje punkt.", "Możecie grać w pokoju albo odpalić wariant solo z rekordem streaka."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "📈", art: "music-duel", audience: "everyone", badges: ["new", "tiktok"], render: renderPopularityGame, defaultSettings: popularityDefaults,
+    id: "popularnosc-hitow", name: "Kto ma więcej?", description: "Porównujcie piosenki albo artystów i zgadnijcie, kto ma większą popularność.", help: ["W każdej rundzie widzicie dwie piosenki albo dwóch artystów z dużej bazy.", "Wybieracie, która opcja ma więcej wyświetleń lub miesięcznych słuchaczy.", "Liczby są ukryte do momentu ujawnienia, a każdy trafny wybór daje punkt.", "W trybie Reversed punkt zdobywa wybór z mniejszą liczbą. Możecie też zagrać solo ze streakiem."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "📈", art: "music-duel", audience: "music", badges: ["new", "tiktok"], render: renderPopularityGame, defaultSettings: popularityDefaults,
   },
   "popularnosc-solo": {
-    id: "popularnosc-solo", name: "Kto ma więcej? · Solo", description: "Zgaduj większą liczbę i buduj rekordową serię bez limitu rund.", help: ["Porównujesz dwie piosenki bez presji czasu.", "Po każdym wyborze od razu dostajesz następną parę.", "Jedna pomyłka kończy serię, ale rekord zostaje zapisany na Twoim urządzeniu."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🔥", art: "choice", audience: "everyone", badges: ["new"], hiddenFromLibrary: true, render: renderPopularitySolo, defaultSettings: popularityDefaults,
+    id: "popularnosc-solo", name: "Kto ma więcej? · Solo", description: "Zgaduj popularność piosenek lub artystów i buduj rekordową serię.", help: ["Porównujesz dwie opcje bez presji czasu.", "Możesz przełączać wyświetlenia, słuchaczy piosenek albo słuchaczy artystów.", "Po każdym wyborze od razu dostajesz następną parę, a jedna pomyłka kończy serię."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🔥", art: "choice", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderPopularitySolo, defaultSettings: popularityDefaults,
   },
 };
 

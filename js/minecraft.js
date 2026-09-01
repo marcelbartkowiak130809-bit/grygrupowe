@@ -1,4 +1,5 @@
 import { avatarHtml, escapeHtml, normalizeAnswer } from "./utils.js?v=20260822-1";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 // The Explorer page itself returns HTML for a file URL. The assets subdomain
 // is the raw 16x16/32x32 PNG host, so game cards do not accidentally display
@@ -29,7 +30,7 @@ export const minecraftAssets = { item, block, entity };
 export const minecraftModeIcons = {
   "minecraft-sprint": item("iron_pickaxe"),
   "minecraft-crafting": block("crafting_table_front"),
-  "minecraft-mob": entity("creeper"),
+  "minecraft-mob": block("spawner"),
   "minecraft-biome": block("grass_block_side"),
   "minecraft-truth": item("enchanted_book"),
   "minecraft-redstone": item("redstone"),
@@ -387,17 +388,27 @@ export const MinecraftEngine = {
   },
 };
 
-export function minecraftBotAnswer(game, room, bot, shouldBeCorrect = true) {
+export function minecraftBotAnswer(game, room, bot, shouldBeCorrect = true, difficulty = "normal") {
   const question = game?.question || {};
+  const seed = [...`${bot || "bot"}:${game?.round || 1}`].reduce((sum, character) => (sum * 31 + character.charCodeAt(0)) >>> 0, 7);
   if (game?.mode === "minecraft-truth") {
     const correct = Boolean(question.answer);
     return { option: shouldBeCorrect ? (correct ? 0 : 1) : (correct ? 1 : 0) };
   }
   if (game?.mode === "minecraft-redstone") {
     const answer = Number(question.answer) || 0;
-    return { option: shouldBeCorrect ? answer : (answer + 1) % Math.max(2, list(question.options).length) };
+    const options = Math.max(2, list(question.options).length);
+    return { option: shouldBeCorrect ? answer : (answer + 1 + (seed % Math.max(1, options - 1))) % options };
   }
-  return { text: shouldBeCorrect ? list(question.accepted)[0] || question.answer || "gotowe" : "nie wiem" };
+  if (shouldBeCorrect) {
+    const accepted = list(question.accepted);
+    const index = difficulty === "expert" ? 0 : seed % Math.max(1, accepted.length);
+    return { text: accepted[index] || question.answer || "gotowe" };
+  }
+  const misses = difficulty === "easy"
+    ? ["nie pamiętam", "chyba coś innego", "nie mam pojęcia"]
+    : ["musiałbym sprawdzić", "nie jestem pewien", "chyba pomyliłem recepturę"];
+  return { text: misses[seed % misses.length] };
 }
 
 function imageHtml(src, alt, className = "minecraft-question-icon") {
@@ -435,6 +446,18 @@ function turnStatus(game, currentUser, accounts) {
   const isCurrent = game.currentUid === currentUser;
   const nick = accounts?.[game.currentUid]?.nick || "Gracz";
   return `<span class="minecraft-turn-badge ${isCurrent ? "is-mine" : ""}">${isCurrent ? "⚡ TWÓJ RUCH" : `⏳ RUCH: ${escapeHtml(nick)}`}</span>`;
+}
+
+function minecraftCommerceHtml(game, room, accounts, currentUser) {
+  if (game.mode === "minecraft-truth" || game.phase !== "turn" || game.currentUid !== currentUser || !game.phaseEndsAt) return "";
+  const user = accounts?.[currentUser] || {};
+  const pass = gamePassById("minecraft-redstone-clock");
+  const purchase = inGamePurchaseById("minecraft-time-charge");
+  const passReady = hasGamePass(user, pass.id) && !game.passUses?.[currentUser]?.[pass.id];
+  const balance = Number(user.money ?? user.sessionMoney ?? 0);
+  const purchaseReady = room.settings?.gamePurchases !== false && !user.nickOnly && balance >= purchase.price && !game.purchaseUses?.[currentUser]?.[purchase.id];
+  if (!passReady && !purchaseReady) return "";
+  return `<div class="minecraft-commerce-actions"><span class="minecraft-commerce-label">⏱ Brakuje czasu?</span>${passReady ? `<button class="ghost minecraft-commerce-button" data-minecraft-boost="${pass.id}">${pass.icon} +8 s z gamepassa</button>` : ""}${purchaseReady ? `<button class="primary minecraft-commerce-button" data-minecraft-boost="${purchase.id}">${purchase.icon} +5 s · ${purchase.price.toLocaleString("pl-PL")}$</button>` : ""}</div>`;
 }
 
 function questionCard(game, currentUser, accounts) {
@@ -487,9 +510,10 @@ export function renderMinecraftGame(root, { room, accounts, currentUser }, actio
   const expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt };
   const isReveal = game.phase === "reveal";
   const difficulty = difficultyLabel[room.settings?.difficulty || game.difficulty] || difficultyLabel.medium;
-  root.innerHTML = `<main class="page minecraft-game-page enter"><section class="panel minecraft-shell"><header class="minecraft-game-head"><div><p class="eyebrow"><img src="${minecraftModeIcons[game.mode] || item("grass_block")}" alt="" class="minecraft-inline-icon"> ${escapeHtml(meta.name)} · RUNDA ${game.round}/${game.totalRounds}</p><h1>${escapeHtml(meta.kind)}</h1><div class="minecraft-head-meta"><span class="minecraft-difficulty-chip">${escapeHtml(difficulty)}</span><span class="minecraft-head-caption">${game.mode === "minecraft-truth" ? "Odpowiada cała ekipa" : "Jedna odpowiedź · jedna szansa"}</span></div></div>${timerMarkup(game)}</header>${scoreStrip(game, accounts)}${isReveal ? revealCard(game, accounts) : questionCard(game, currentUser, accounts)}${isReveal ? `<div class="minecraft-next-wrap"><button class="primary" id="minecraft-next" ${room.hostUid === currentUser ? "" : "disabled"}>${Number(game.round) >= Number(game.totalRounds) ? "Pokaż wyniki" : "Następne pytanie"}</button><small>${room.hostUid === currentUser ? "Host może przejść dalej wcześniej." : "Czekamy, aż host przejdzie dalej."}</small></div>` : ""}</section></main>`;
+  root.innerHTML = `<main class="page minecraft-game-page enter"><section class="panel minecraft-shell"><header class="minecraft-game-head"><div><p class="eyebrow"><img src="${minecraftModeIcons[game.mode] || item("grass_block")}" alt="" class="minecraft-inline-icon"> ${escapeHtml(meta.name)} · RUNDA ${game.round}/${game.totalRounds}</p><h1>${escapeHtml(meta.kind)}</h1><div class="minecraft-head-meta"><span class="minecraft-difficulty-chip">${escapeHtml(difficulty)}</span><span class="minecraft-head-caption">${game.mode === "minecraft-truth" ? "Odpowiada cała ekipa" : "Jedna odpowiedź · jedna szansa"}</span></div></div>${timerMarkup(game)}</header>${scoreStrip(game, accounts)}${isReveal ? revealCard(game, accounts) : questionCard(game, currentUser, accounts)}${minecraftCommerceHtml(game, room, accounts, currentUser)}${isReveal ? `<div class="minecraft-next-wrap"><button class="primary" id="minecraft-next" ${room.hostUid === currentUser ? "" : "disabled"}>${Number(game.round) >= Number(game.totalRounds) ? "Pokaż wyniki" : "Następne pytanie"}</button><small>${room.hostUid === currentUser ? "Host może przejść dalej wcześniej." : "Czekamy, aż host przejdzie dalej."}</small></div>` : ""}</section></main>`;
   root.querySelectorAll("[data-minecraft-answer-option]").forEach(button => button.addEventListener("click", () => { root.querySelectorAll("[data-minecraft-answer-option]").forEach(control => { control.disabled = true; }); actions.minecraftAnswer({ option: Number(button.dataset.minecraftAnswerOption) }, expected); }));
   root.querySelector("[data-minecraft-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.elements.answer; const submit = event.currentTarget.querySelector("button[type=submit]"); if (!input.value.trim() || submit?.disabled) return; input.disabled = true; if (submit) submit.disabled = true; actions.minecraftAnswer({ text: input.value }, expected); });
+  root.querySelectorAll("[data-minecraft-boost]").forEach(button => button.addEventListener("click", () => { if (button.disabled || button.dataset.minecraftPending) return; button.dataset.minecraftPending = "1"; button.disabled = true; button.classList.add("is-pending"); actions.minecraftUseTimeBoost(button.dataset.minecraftBoost); }));
   root.querySelector("#minecraft-next")?.addEventListener("click", () => actions.minecraftNext());
   if (game.phaseEndsAt) {
     const tick = () => { const remaining = Math.max(0, Number(game.phaseEndsAt) - now()); const node = root.querySelector("[data-minecraft-timer]"); const bar = root.querySelector("[data-minecraft-timer-bar]"); const wrap = root.querySelector("[data-minecraft-timer-wrap]"); const duration = Math.max(1000, Number(game.phaseDurationMs) || 10000); if (node) node.textContent = `${Math.ceil(remaining / 1000)}s`; if (bar) bar.style.width = `${Math.max(0, Math.min(100, remaining / duration * 100))}%`; if (wrap) wrap.classList.toggle("is-urgent", remaining <= 3000); };

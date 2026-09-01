@@ -1,7 +1,7 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-10";
+import { boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 export const boardModeDefinitions = [
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },
@@ -112,7 +112,7 @@ function createConnectFour(players, settings) {
 const memoryIcons = ["🍕","🚀","🐸","🎸","🍩","🦊","🌈","⚽","🎮","🌵","🛸","🍉"];
 function createMemory(players, settings) {
   const safePlayers=playersFor(players,8), pairs=clamp(settings.pairs,4,12,8), cards=shuffle(Array.from({length:pairs},(_,pair)=>[0,1].map(side=>({id:`${pair}-${side}`,pair,value:memoryIcons[pair%memoryIcons.length],matched:false})) ).flat());
-  return { boardMode:"board-memory", phase:"playing", players:safePlayers, currentUid:safePlayers[0] || "", turnIndex:0, cards, flipped:[], scores:scoreObject(safePlayers), pairs, phaseEndsAt:phaseEnd(settings.turnTime), flipLockUntil:0, finished:false };
+  return { boardMode:"board-memory", phase:"playing", players:safePlayers, currentUid:safePlayers[0] || "", turnIndex:0, cards, flipped:[], memorySeen:{}, scores:scoreObject(safePlayers), pairs, phaseEndsAt:phaseEnd(settings.turnTime), flipLockUntil:0, finished:false };
 }
 
 function dominoSet() { return Array.from({length:7},(_,a)=>Array.from({length:7-a},(_,offset)=>{const b=a+offset;return {id:`${a}-${b}`,a,b};})).flat(); }
@@ -247,8 +247,12 @@ function connectAction(game, uid, action, payload, settings) {
 function memoryAction(game, uid, action, payload, settings) {
   const flipped=Array.isArray(game.flipped)?game.flipped:(game.flipped=[]);
   if(action === "memory-resolve") {
+    if (game.currentUid !== uid) return "Tylko gracz wykonujący ruch może rozliczyć odkryte karty.";
     if(!game.flipLockUntil||Date.now()<Number(game.flipLockUntil)||flipped.length<2)return;
     const [first,second]=flipped.map(id=>game.cards.find(card=>card.id===id));
+    const seen=objectOrEmpty(game.memorySeen);
+    [first,second].forEach(card=>{if(card?.id)seen[card.id]=card.value;});
+    game.memorySeen=seen;
     if(first?.pair===second?.pair){game.cards.forEach(card=>{if(flipped.includes(card.id))card.matched=true;});game.scores[uid]=(Number(game.scores[uid])||0)+1;game.flipped=[];game.flipLockUntil=0;if(game.cards.every(card=>card.matched))return finishGame(game,game.players.filter(player=>game.scores[player]===Math.max(...game.players.map(item=>Number(game.scores[item])||0)))) ;game.phaseEndsAt=phaseEnd(settings.turnTime);return;}
     game.flipped=[];game.flipLockUntil=0;startTurn(game,(Number(game.turnIndex)||0)+1,settings);return;
   }
@@ -295,23 +299,161 @@ const boardBotPick = (list, difficulty = "normal") => {
 };
 
 function boardBotFleet(uid) {
-  const seed = [...String(uid || "bot")].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 94;
-  return Array.from({ length: 7 }, (_, index) => seed + index);
+  // Statki currently uses seven occupied cells rather than ship shapes. Keep
+  // the layout stable between retries, but spread it over the board so a bot
+  // does not always hide an obvious horizontal row.
+  let seed = [...String(uid || "bot")].reduce((sum, character) => (sum * 31 + character.charCodeAt(0)) >>> 0, 17);
+  const cells = Array.from({ length: 100 }, (_, index) => index);
+  for (let index = cells.length - 1; index > 0; index -= 1) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const swap = seed % (index + 1);
+    [cells[index], cells[swap]] = [cells[swap], cells[index]];
+  }
+  return cells.slice(0, 7);
+}
+
+const botWords = [
+  "dom", "kot", "pies", "las", "most", "park", "sok", "ser", "mleko", "kawa", "lody", "pizza",
+  "rower", "motor", "pociag", "samolot", "telefon", "komputer", "muzyka", "film", "gra", "plansza",
+  "szkola", "lekcja", "wakacje", "morze", "gory", "rzeka", "chmura", "slonce", "deszcz", "zima",
+  "wiosna", "jesien", "lato", "przyjaciel", "rodzina", "zabawa", "przygoda", "historia", "ksiazka",
+  "prezent", "impreza", "taniec", "sport", "pilka", "mecz", "druzyna", "smiech", "spokoj", "marzenie",
+].map(word => word.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+function wordFitsRack(word, rack) {
+  const need = wordCount(word), have = wordCount(rack.join(""));
+  return Object.entries(need).every(([letter, count]) => (have[letter] || 0) >= count);
+}
+
+function boardBotWord(game, uid, difficulty) {
+  const rack = arrayOrEmpty(game.rack?.[uid]);
+  const candidates = botWords
+    .filter(word => word.length >= 2 && word.length <= 15 && wordFitsRack(word, rack))
+    .map(word => ({ word, score: wordScore(word) + (word.length >= 6 ? 4 : 0) }))
+    .sort((first, second) => second.score - first.score);
+  if (!candidates.length) return "";
+  const choices = difficulty === "easy" ? candidates.map(item => item.word) : candidates.slice(0, difficulty === "normal" ? 4 : 2).map(item => item.word);
+  return boardBotPick(choices, difficulty) || choices[0];
 }
 
 function boardBotMemoryCard(game, difficulty) {
   const available = arrayOrEmpty(game.cards).filter(card => card && !card.matched && !arrayOrEmpty(game.flipped).includes(card.id));
   if (!available.length) return null;
+  const seen = objectOrEmpty(game.memorySeen);
+  const seenValue = card => seen[card?.id] || "";
+  const knownPair = available.find(card => {
+    const value = seenValue(card);
+    return value && available.some(other => other !== card && seenValue(other) === value);
+  });
+  if (knownPair && difficulty !== "easy") return knownPair;
   if (game.flipped?.length === 1) {
     const open = game.cards.find(card => card.id === game.flipped[0]);
-    const partner = available.find(card => card.pair === open?.pair);
+    const knownValue = seenValue(open);
+    const partner = knownValue ? available.find(card => seenValue(card) === knownValue) : null;
     if (partner && difficulty !== "easy") return partner;
+    if (difficulty === "hard" || difficulty === "expert") {
+      const peekedPartner = available.find(card => card.pair === open?.pair);
+      if (peekedPartner) return peekedPartner;
+    }
   }
   if (difficulty === "hard" || difficulty === "expert") {
     const knownPair = available.find(card => available.some(other => other !== card && other.pair === card.pair));
     if (knownPair) return knownPair;
   }
   return available[Math.floor(Math.random() * available.length)];
+}
+
+function ludoBotMove(game, uid, difficulty) {
+  const moves = ludoLegalMoves(game, uid);
+  if (!moves.length) return null;
+  const pieces = game.pieces?.[uid] || [];
+  const scored = moves.map(index => {
+    const position = Number(pieces[index]);
+    const nextPosition = position < 0 ? 0 : position + Number(game.roll || 0);
+    const absolute = ludoAbsolute(game, uid, nextPosition);
+    const capture = absolute !== null && nextPosition < 40 && Object.entries(game.pieces || {}).some(([otherUid, otherPieces]) => otherUid !== uid && arrayOrEmpty(otherPieces).some(otherPosition => Number(otherPosition) < 40 && ludoAbsolute(game, otherUid, Number(otherPosition)) === absolute));
+    return { index, score: (nextPosition >= 40 ? 1000 : nextPosition) + (position < 0 ? 55 : 0) + (capture ? 180 : 0) };
+  }).sort((first, second) => second.score - first.score);
+  return boardBotPick(scored.map(item => item.index), difficulty);
+}
+
+function boardBotShipShot(game, uid, difficulty) {
+  const shots = objectOrEmpty(game.shots?.[uid]);
+  const available = Array.from({ length: 100 }, (_, cell) => cell).filter(cell => !(String(cell) in shots));
+  if (!available.length) return null;
+  const adjacentToHit = Object.entries(shots).filter(([, result]) => result === "hit").flatMap(([cell]) => {
+    const row = Math.floor(Number(cell) / 10), col = Number(cell) % 10;
+    return [[row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1]]
+      .filter(([nextRow, nextCol]) => nextRow >= 0 && nextRow < 10 && nextCol >= 0 && nextCol < 10)
+      .map(([nextRow, nextCol]) => nextRow * 10 + nextCol);
+  }).filter(cell => available.includes(cell));
+  const hunt = available.filter(cell => (Math.floor(cell / 10) + cell % 10) % 2 === 0);
+  const pool = adjacentToHit.length && difficulty !== "easy" ? [...new Set(adjacentToHit)] : (difficulty === "easy" || !hunt.length ? available : hunt);
+  return boardBotPick(pool, difficulty);
+}
+
+function boardBotReversiMove(game, uid, difficulty) {
+  const moves = Object.entries(reversiMoves(game, uid));
+  if (!moves.length) return null;
+  const scored = moves.map(([cell, flips]) => {
+    const index = Number(cell), row = Math.floor(index / 8), col = index % 8;
+    const corner = (row === 0 || row === 7) && (col === 0 || col === 7);
+    const edge = row === 0 || row === 7 || col === 0 || col === 7;
+    return { cell, score: (corner ? 1000 : edge ? 35 : 0) + flips.length * (difficulty === "easy" ? 1 : 3) };
+  }).sort((first, second) => second.score - first.score);
+  return boardBotPick(scored.map(item => item.cell), difficulty);
+}
+
+function boardBotCheckersMove(game, uid, difficulty) {
+  const moves = checkersMoves(game, uid);
+  if (!moves.length) return null;
+  const targetRow = game.players?.[0] === uid ? 7 : 0;
+  const scored = moves.map(move => {
+    const piece = game.pieces.find(item => item.id === move.id);
+    const row = Math.floor(Number(move.to) / 8), col = Number(move.to) % 8;
+    return { move, score: (move.capture ? 100 : 0) + (row === targetRow && !piece?.king ? 35 : 0) + (3 - Math.abs(3.5 - col)) + (difficulty === "easy" ? Math.random() * 8 : 0) };
+  }).sort((first, second) => second.score - first.score);
+  return boardBotPick(scored.map(item => item.move), difficulty);
+}
+
+function connectHasFour(cells, uid, row, col) {
+  const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  return directions.some(([dr, dc]) => {
+    let total = 1;
+    for (const sign of [-1, 1]) {
+      let nextRow = row + dr * sign, nextCol = col + dc * sign;
+      while (nextRow >= 0 && nextRow < 6 && nextCol >= 0 && nextCol < 7 && cells[nextRow * 7 + nextCol] === uid) { total += 1; nextRow += dr * sign; nextCol += dc * sign; }
+    }
+    return total >= 4;
+  });
+}
+
+function connectWinningColumn(game, uid, column) {
+  const cells = [...arrayOrEmpty(game.cells)];
+  for (let row = 5; row >= 0; row -= 1) if (!cells[row * 7 + column]) { cells[row * 7 + column] = uid; return connectHasFour(cells, uid, row, column); }
+  return false;
+}
+
+function boardBotConnectColumn(game, uid, difficulty) {
+  const columns = [0, 1, 2, 3, 4, 5, 6].filter(column => !game.cells?.[column]);
+  if (!columns.length) return null;
+  if (difficulty !== "easy") {
+    const winning = columns.find(column => connectWinningColumn(game, uid, column));
+    if (winning !== undefined) return winning;
+    const opponent = game.players.find(player => player !== uid);
+    const block = opponent && columns.find(column => connectWinningColumn(game, opponent, column));
+    if (block !== undefined && (difficulty === "hard" || difficulty === "expert" || Math.random() < .75)) return block;
+  }
+  const preferred = [3, 2, 4, 1, 5, 0, 6].filter(column => columns.includes(column));
+  return boardBotPick(preferred, difficulty);
+}
+
+function boardBotDominoMove(game, uid, difficulty) {
+  const hand = arrayOrEmpty(game.hands?.[uid]);
+  const moves = hand.flatMap(tile => ["left", "right"].map(side => dominoFits(tile, game.chain, side) ? { tile, side } : null).filter(Boolean));
+  if (!moves.length) return null;
+  const scored = moves.map(move => ({ move, score: (move.tile.a === move.tile.b ? 12 : 0) + Number(move.tile.a || 0) + Number(move.tile.b || 0) + (game.chain.length ? 2 : 0) })).sort((first, second) => second.score - first.score);
+  return boardBotPick(scored.slice(0, difficulty === "easy" ? scored.length : difficulty === "normal" ? 3 : 1).map(item => item.move), difficulty);
 }
 
 /**
@@ -328,42 +470,38 @@ export function boardBotAction(game, uid, difficulty = "normal") {
   if (game.currentUid !== uid) return null;
   if (game.boardMode === "board-chinczyk") {
     if (game.roll == null) return { action: "ludo-roll", payload: "" };
-    const move = boardBotPick(ludoLegalMoves(game, uid), difficulty);
+    const move = ludoBotMove(game, uid, difficulty);
     return move === null ? null : { action: "ludo-move", payload: String(move) };
   }
   if (game.boardMode === "board-slowotwor") {
     const rack = arrayOrEmpty(game.rack?.[uid]);
-    return rack.length >= 2 ? { action: "word-submit", payload: rack.join("").slice(0, 15) } : { action: "word-pass", payload: "" };
+    const word = boardBotWord(game, uid, difficulty);
+    return rack.length >= 2 && word ? { action: "word-submit", payload: word } : { action: "word-pass", payload: "" };
   }
   if (game.boardMode === "board-statki") {
-    const shots = objectOrEmpty(game.shots?.[uid]);
-    const available = Array.from({ length: 100 }, (_, cell) => cell).filter(cell => !(String(cell) in shots));
-    const target = boardBotPick(available, difficulty);
+    const target = boardBotShipShot(game, uid, difficulty);
     return target === null ? null : { action: "ships-fire", payload: String(target) };
   }
   if (game.boardMode === "board-reversi") {
-    const moves = Object.entries(reversiMoves(game, uid)).sort(([, first], [, second]) => second.length - first.length).map(([cell]) => cell);
-    const target = boardBotPick(moves, difficulty);
+    const target = boardBotReversiMove(game, uid, difficulty);
     return target === null ? { action: "reversi-pass", payload: "" } : { action: "reversi-move", payload: String(target) };
   }
   if (game.boardMode === "board-warcaby") {
-    const move = boardBotPick(checkersMoves(game, uid), difficulty);
+    const move = boardBotCheckersMove(game, uid, difficulty);
     return move ? { action: "checkers-move", payload: `${move.id}|${move.to}` } : null;
   }
   if (game.boardMode === "board-cztery") {
-    const columns = [3, 2, 4, 1, 5, 0, 6].filter(column => !game.cells?.[column]);
-    const target = boardBotPick(columns, difficulty);
+    const target = boardBotConnectColumn(game, uid, difficulty);
     return target === null ? null : { action: "connect-drop", payload: String(target) };
   }
   if (game.boardMode === "board-memory") {
+    if (game.flipLockUntil && game.flipped?.length >= 2) return { action: "memory-resolve", payload: "" };
     if (game.flipLockUntil || game.flipped?.length >= 2) return null;
     const card = boardBotMemoryCard(game, difficulty);
     return card ? { action: "memory-flip", payload: card.id } : null;
   }
   if (game.boardMode === "board-domino") {
-    const hand = arrayOrEmpty(game.hands?.[uid]);
-    const moves = hand.flatMap(tile => ["left", "right"].map(side => dominoFits(tile, game.chain, side) ? { tile, side } : null).filter(Boolean));
-    const move = boardBotPick(moves, difficulty);
+    const move = boardBotDominoMove(game, uid, difficulty);
     if (move) return { action: "domino-play", payload: `${move.tile.id}|${move.side}` };
     return game.boneyard?.length ? { action: "domino-draw", payload: "" } : null;
   }
@@ -432,7 +570,7 @@ function boardCommerceHtml(game,room,accounts,currentUser){
   const user=accounts?.[currentUser]||{}, pass=gamePassById("board-pace-control"), purchase=inGamePurchaseById("board-timeout-token");
   const ownTurn=(game.phase==="playing"&&game.currentUid===currentUser)||(game.boardMode==="board-statki"&&game.phase==="placement"&&!game.placementSubmitted?.[currentUser]);
   if(!ownTurn||!game.phaseEndsAt)return "";
-  const passReady=room.settings?.gamePassesEnabled!==false&&hasGamePass(user,pass.id)&&!game.passUses?.[currentUser]?.[pass.id];
+  const passReady=hasGamePass(user,pass.id)&&!game.passUses?.[currentUser]?.[pass.id];
   const balance=Number(user.money??user.sessionMoney??0),purchaseReady=room.settings?.gamePurchases!==false&&!user.nickOnly&&balance>=purchase.price&&!game.purchaseUses?.[currentUser]?.[purchase.id];
   if(!passReady&&!purchaseReady)return "";
   return `<div class="board-commerce-actions"><span class="board-commerce-label">⏳ Brakuje czasu?</span>${passReady?`<button class="ghost board-commerce-button" data-board-boost="${pass.id}">${pass.icon} +15 s z gamepassa</button>`:""}${purchaseReady?`<button class="primary board-commerce-button" data-board-boost="${purchase.id}">${purchase.icon} +15 s · ${purchase.price.toLocaleString("pl-PL")}$</button>`:""}</div>`;

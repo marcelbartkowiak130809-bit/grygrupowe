@@ -1,7 +1,7 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260901-7";
+import { getGameMode } from "./games.js?v=20260901-11";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260901-10";
+import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260901-13";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
 
@@ -225,7 +225,9 @@ function estimatePreset(mode, preset, playerCount, extra = {}) {
       break;
     case "pojedynek-hitow":
     case "bitwa-hitow":
-      seconds = rounds * (averagePhase(settings.selectionTime, .5, 8) + averagePhase(settings.votingTime, .5, 8) + 7);
+      // Dwa podglądy mają po 30 sekund. Odsłuch rundy jest więc stały i nie
+      // może być skracany presetem ani średnim czasem odpowiedzi.
+      seconds = rounds * (averagePhase(settings.selectionTime, .5, 8) + 60 + averagePhase(settings.votingTime, .5, 8) + 7);
       break;
     case "popularnosc-hitow":
       seconds = rounds * (averagePhase(settings.choiceTime, .7, 4) + 7);
@@ -233,7 +235,7 @@ function estimatePreset(mode, preset, playerCount, extra = {}) {
     default:
       seconds = rounds ? rounds * 45 : 120;
   }
-  return `${durationLabel(seconds)} · ${roundsText}`;
+  return `łącznie ${durationLabel(seconds)} · ${roundsText}`;
 }
 
 function roomCard(room, mode) {
@@ -250,7 +252,7 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
   const mode = getGameMode(selectedGameMode);
   const wavelengthHint = mode.id === "wavelength" && localStorage.getItem("wavelengthTutorialSeen") !== "1" ? '<span class="wavelength-info-hint">↗ Kliknij „i”, aby poznać zasady</span>' : "";
   const modeRooms = rooms.filter(room => room.gameMode === mode.id && room.status === "lobby" && (room.players || []).some(uid => !isBotId(uid)));
-  const commerceHint = commerceSummaryHtml(mode.id, {}, { compact:true }) ? '<p class="commerce-mode-hint">✦ Ten tryb ma opcjonalne zakupy i gamepassy. Host wybiera je przy tworzeniu pokoju.</p>' : "";
+  const commerceHint = commerceSummaryHtml(mode.id, {}, { compact:true }) ? '<p class="commerce-mode-hint">✦ Ten tryb ma opcjonalne zakupy używane podczas rozgrywki. Host może je włączyć przy tworzeniu pokoju.</p>' : "";
   const backendNote = onlineBackend === null
     ? '<section class="online-note">Łączenie z trybem online...</section>'
     : onlineBackend
@@ -288,6 +290,7 @@ export function createRoomModal(mode, actions) {
   const savedPreset = localStorage.getItem("grygrupowe-room-preset");
   let roomPreset = ["quick", "standard", "long"].includes(savedPreset) ? savedPreset : "standard";
   let commerceSettings = normalizeCommerceSettings(mode.id, {}, defaultCommercePreferences());
+  const commercePanel = commerceCreationHtml(mode.id, commerceSettings);
   const savedCapacity = Number(localStorage.getItem(`grygrupowe-capacity-${mode.id}`));
   if (savedCapacity >= mode.minPlayers && savedCapacity <= mode.maxPlayers) maxPlayers = savedCapacity;
   let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
@@ -306,7 +309,7 @@ export function createRoomModal(mode, actions) {
   };
   backdrop.innerHTML = `<section class="modal room-create-modal enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2><p class="room-create-subtitle">Ustaw podstawy i zaproś ekipę.</p></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
-    <div class="room-create-layout">
+    <div class="room-create-layout ${commercePanel ? "has-aside" : "is-single"}">
       <div class="room-create-main">
         <div class="room-create-field-grid"><div><label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy"></div><div id="room-max-slot"></div></div>
         <fieldset class="room-preset-choice"><legend>SZYBKI PRESET ROZGRYWKI</legend><div class="room-preset-grid">
@@ -317,7 +320,7 @@ export function createRoomModal(mode, actions) {
         <label class="check room-private-row"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
         <fieldset class="room-type-choice"><legend>RODZAJ POKOJU</legend><div class="room-type-grid"><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked><span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"><span><b>◈ Zakłady</b><small>Wpisowe trafia do wspólnej puli.</small></span></label></div><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
       </div>
-      <div class="room-create-aside">${commerceCreationHtml(mode.id, commerceSettings)}</div>
+      ${commercePanel ? `<div class="room-create-aside">${commercePanel}</div>` : ""}
     </div>
     <div class="modal-actions"><button class="ghost" data-close>Anuluj</button><button class="primary" id="confirm-create">Stwórz pokój</button></div>
   </section>`;

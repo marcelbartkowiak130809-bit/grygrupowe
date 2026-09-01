@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260901-7";
+import { getGameMode } from "./games.js?v=20260901-11";
 
 export const emptyGlobalStats = { gamesPlayed:0, roomsCreated:0, registeredUsers:0, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{} };
 

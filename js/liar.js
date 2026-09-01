@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { hasGamePass } from "./gamePasses.js?v=20260901-10";
+import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const liarDefaults = { rounds: 5, answerTime: 30, discussionTime: 20, voteTime: 25 };
 
@@ -145,7 +145,7 @@ export function renderLiarGame(root, { room, accounts, currentUser }, actions) {
   if (game.phase === "answering") {
     const isLiar = currentUser === game.liarUid, instruction = isLiar ? "<strong class=\"liar-role liar-secret\">JESTEŚ KŁAMCĄ 🎭</strong><p>Odpowiedz na pytanie, ale skłam tak, żeby inni ci uwierzyli.</p>" : "<strong class=\"liar-role\">ODPOWIEDZ SZCZERZE</strong><p>Podaj swoją prawdziwą odpowiedź — jedna osoba próbuje was oszukać.</p>";
     content += "<div class=\"liar-instruction\">" + instruction + "</div>";
-    content += currentUser in object(game.answers) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && room.settings?.gamePassesEnabled !== false && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="liar-edit-form" class="creative-edit-form"><textarea id="liar-edit" maxlength="280" placeholder="Możesz poprawić własną odpowiedź"></textarea><button class="ghost">Popraw odpowiedź za darmo</button></form>` : ""}</div>` : "<form id=\"liar-answer-form\" class=\"liar-answer-form\"><textarea id=\"liar-answer\" maxlength=\"280\" required placeholder=\"Wpisz swoją odpowiedź...\"></textarea><button class=\"primary\">Wyślij odpowiedź</button></form>";
+    content += currentUser in object(game.answers) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="liar-edit-form" class="creative-edit-form"><textarea id="liar-edit" maxlength="280" placeholder="Możesz poprawić własną odpowiedź"></textarea><button class="ghost">Popraw odpowiedź za darmo</button></form>` : ""}</div>` : "<form id=\"liar-answer-form\" class=\"liar-answer-form\"><textarea id=\"liar-answer\" maxlength=\"280\" required placeholder=\"Wpisz swoją odpowiedź...\"></textarea><button class=\"primary\">Wyślij odpowiedź</button></form>";
     content += "<p class=\"liar-timer\">Czas: <b>" + timer + "s</b></p>";
   } else if (game.phase === "discussion") {
     content += "<h2>Przeczytajcie odpowiedzi</h2><p class=\"muted\">Odpowiedzi są już podpisane nickami. Zastanówcie się, kto mógł nie mówić prawdy.</p><div class=\"liar-answers\">" + answersHtml(game, accounts, currentUser) + "</div>" + (currentUser === room.hostUid ? "<button id=\"liar-start-voting\" class=\"primary\">Przejdź do głosowania</button>" : "<p class=\"waiting-state\">Czekamy na hosta — głosowanie rozpocznie się automatycznie za <b>" + timer + "s</b>.</p>") + "<p class=\"liar-timer\">Dyskusja: <b>" + timer + "s</b></p>";

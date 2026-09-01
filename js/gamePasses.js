@@ -16,6 +16,7 @@ export const GAMEPASS_DEFINITIONS = [
   { id:"proof-last-chance", icon:"⏳", name:"Ostatnia szansa", price:6500, scope:"Udowodnij", description:"Raz na grę po skończeniu czasu odpowiedzi dodaje 8 sekund na ostatnią próbę." },
   { id:"clock-second-chance-pass", icon:"⏱️", name:"Drugi pomiar", price:7000, scope:"Zegar", description:"Raz na grę pozwala wykonać drugi pomiar i zachowuje bliższy wynik." },
   { id:"board-pace-control", icon:"⏳", name:"Mistrz tempa", price:6500, scope:"Planszówki", description:"Raz w meczu dodaje ci 15 sekund do własnego ruchu. Użycie jest widoczne dla wszystkich." },
+  { id:"minecraft-redstone-clock", icon:"⏱️", name:"Zegar redstone", price:8500, scope:"Minecraft", description:"Raz w meczu dodaje ci 8 sekund do aktualnego pytania w trybach z kolejką." },
 ];
 
 export const IN_GAME_PURCHASES = [
@@ -33,17 +34,21 @@ export const IN_GAME_PURCHASES = [
   { id:"liar-alibi", mode:"klamca", icon:"🃏", name:"Fałszywy trop", price:1800, visibility:"private", description:"Raz pozwala wysłać dodatkową odpowiedź lub zmienić własną przed głosowaniem." },
   { id:"false-message-redraft", mode:"falszywa-wiadomosc", icon:"📱", name:"Druga wersja", price:1400, visibility:"private", description:"Pozwala poprawić wiadomość przed wyborem bohatera." },
   { id:"secret-rule-example", mode:"tajna-zasada", icon:"🧠", name:"Przykład testowy", price:1400, visibility:"private", description:"Dodaje jeden bezpieczny przykład do sprawdzania zasady przeciwnika." },
+  { id:"popularity-insight", mode:"popularnosc-hitow", icon:"🔎", name:"Wskazówka popularności", price:1500, visibility:"private", description:"Raz w meczu ujawnia ci dokładną liczbę wyświetleń lub słuchaczy jednej z dwóch opcji." },
   { id:"board-timeout-token", mode:"board", icon:"⏱️", name:"Dodatkowe 15 sekund", price:900, visibility:"public", description:"Raz w meczu dodaje ci 15 sekund do aktualnego ruchu." },
+  { id:"minecraft-time-charge", mode:"minecraft", icon:"⚡", name:"Ładunek redstone", price:700, visibility:"private", description:"Jednorazowo dodaje ci 5 sekund do aktualnego pytania." },
 ];
 
 export function passesForMode(modeId) {
   const isBoard = String(modeId || "").startsWith("board-");
-  return GAMEPASS_DEFINITIONS.filter(item => item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["polacz-nas","klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license") || (isBoard && item.id === "board-pace-control"));
+  const isMinecraftTimed = ["minecraft-sprint","minecraft-crafting","minecraft-mob","minecraft-biome","minecraft-redstone"].includes(modeId);
+  return GAMEPASS_DEFINITIONS.filter(item => item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["polacz-nas","klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license") || (isBoard && item.id === "board-pace-control") || (isMinecraftTimed && item.id === "minecraft-redstone-clock"));
 }
 
 export function purchasesForMode(modeId) {
   const isBoard = String(modeId || "").startsWith("board-");
-  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (isBoard && item.mode === "board") || (modeId === "pokemon-auction" && item.mode === "pokemon-auction"));
+  const isMinecraftTimed = ["minecraft-sprint","minecraft-crafting","minecraft-mob","minecraft-biome","minecraft-redstone"].includes(modeId);
+  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (isBoard && item.mode === "board") || (modeId === "pokemon-auction" && item.mode === "pokemon-auction") || (isMinecraftTimed && item.mode === "minecraft"));
 }
 
 export function commerceAvailable(modeId) {
@@ -67,13 +72,14 @@ export function gamePassState(profile, item) {
 export function defaultCommercePreferences() {
   return {
     gamePurchases:localStorage.getItem("grygrupowe-game-purchases") !== "off",
-    gamePassesEnabled:localStorage.getItem("grygrupowe-gamepasses") !== "off",
+    // Gamepassy są ulepszeniami konta i nie są ustawieniem pokoju.
+    // Zostawiamy pole dla zgodności ze starymi danymi, ale zawsze są aktywne.
+    gamePassesEnabled:true,
   };
 }
 
 export function saveCommercePreferences(next = {}) {
   if (typeof next.gamePurchases === "boolean") localStorage.setItem("grygrupowe-game-purchases", next.gamePurchases ? "on" : "off");
-  if (typeof next.gamePassesEnabled === "boolean") localStorage.setItem("grygrupowe-gamepasses", next.gamePassesEnabled ? "on" : "off");
 }
 
 export function normalizeCommerceSettings(modeId, settings = {}, preferences = defaultCommercePreferences()) {
@@ -81,7 +87,8 @@ export function normalizeCommerceSettings(modeId, settings = {}, preferences = d
   return {
     ...settings,
     gamePurchases:available.purchases.length ? settings.gamePurchases !== false && preferences.gamePurchases !== false : false,
-    gamePassesEnabled:available.passes.length ? settings.gamePassesEnabled !== false && preferences.gamePassesEnabled !== false : false,
+    // Nie pozwalamy wyłączyć globalnych gamepassów z poziomu pokoju.
+    gamePassesEnabled:true,
   };
 }
 
@@ -90,7 +97,7 @@ export function roomCommerceSettings(modeId, settings = {}) {
   return {
     ...settings,
     gamePurchases:available.purchases.length ? settings.gamePurchases !== false : false,
-    gamePassesEnabled:available.passes.length ? settings.gamePassesEnabled !== false : false,
+    gamePassesEnabled:true,
   };
 }
 
@@ -99,15 +106,14 @@ function commerceList(items) {
 }
 
 export function commerceCreationHtml(modeId, settings = {}, options = {}) {
-  const available = commerceAvailable(modeId), prefs = options.preferences || defaultCommercePreferences(), normalized = normalizeCommerceSettings(modeId, settings, prefs), disabled = options.disabled ? "disabled" : "";
-  if (!available.passes.length && !available.purchases.length) return "";
-  return `<details class="commerce-setup" data-commerce-setup><summary class="commerce-setup-summary"><span class="commerce-setup-mark">$</span><span class="commerce-setup-title"><p class="eyebrow">DODATKI DO GRY</p><b>Zakupy i gamepassy</b><small>Opcjonalne — możesz ustawić je później.</small></span><span class="commerce-setup-chevron">⌄</span></summary><div class="commerce-setup-content"><p class="tiny">Host decyduje przed utworzeniem pokoju. Po starcie ustawienia są zablokowane.</p>${available.purchases.length ? `<label class="commerce-toggle"><span><b>🛒 Zakupy w grze</b><small>Jednorazowe dodatki kupowane podczas rozgrywki.</small></span><input data-commerce-setting="gamePurchases" type="checkbox" ${normalized.gamePurchases ? "checked" : ""} ${disabled}></label>${commerceList(available.purchases)}` : ""}${available.passes.length ? `<label class="commerce-toggle"><span><b>✦ Gamepassy</b><small>Stałe ulepszenia konta działające w tym trybie.</small></span><input data-commerce-setting="gamePassesEnabled" type="checkbox" ${normalized.gamePassesEnabled ? "checked" : ""} ${disabled}></label>${commerceList(available.passes)}` : ""}</div></details>`;
+  const available = { purchases:purchasesForMode(modeId) }, prefs = options.preferences || defaultCommercePreferences(), normalized = normalizeCommerceSettings(modeId, settings, prefs), disabled = options.disabled ? "disabled" : "";
+  if (!available.purchases.length) return "";
+  return `<details class="commerce-setup" data-commerce-setup><summary class="commerce-setup-summary"><span class="commerce-setup-mark">$</span><span class="commerce-setup-title"><p class="eyebrow">DODATKI DO GRY</p><b>Zakupy w trakcie gry</b><small>Opcjonalne dodatki używane tylko w tym trybie.</small></span><span class="commerce-setup-chevron">⌄</span></summary><div class="commerce-setup-content"><p class="tiny">Host decyduje przed utworzeniem pokoju. Po starcie ustawienia są zablokowane.</p><label class="commerce-toggle"><span><b>🛒 Zakupy w grze</b><small>Jednorazowe dodatki kupowane podczas rozgrywki.</small></span><input data-commerce-setting="gamePurchases" type="checkbox" ${normalized.gamePurchases ? "checked" : ""} ${disabled}></label>${commerceList(available.purchases)}</div></details>`;
 }
 
 export function commerceSummaryHtml(modeId, settings = {}, options = {}) {
-  const available = commerceAvailable(modeId), normalized = roomCommerceSettings(modeId, settings), details = [];
+  const available = { purchases:purchasesForMode(modeId) }, normalized = roomCommerceSettings(modeId, settings), details = [];
   if (available.purchases.length) details.push(`Zakupy w grze: ${normalized.gamePurchases ? "włączone" : "wyłączone"}`);
-  if (available.passes.length) details.push(`Gamepassy: ${normalized.gamePassesEnabled ? "włączone" : "wyłączone"}`);
   if (!details.length) return "";
   return `<div class="commerce-summary ${options.compact ? "is-compact" : ""}"><span>✦ Dodatki pokoju</span><b>${details.join(" · ")}</b>${options.readOnly ? "<small>Zmiana wymaga utworzenia nowego pokoju.</small>" : ""}</div>`;
 }

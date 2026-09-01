@@ -42,7 +42,11 @@ export const cosmetics = [
   item("stripeSequence","sequence","Paski",220,"rare","Pola z paskowanym wykończeniem."),
   item("gradientSequence","sequence","Gradientowe pola",320,"rare","Pola z kolorowym gradientem."),
   item("neonLudoBoard","board-ludo","Neonowy stół",2800,"rare","Neonowa oprawa planszy do Chińczyka.",{mode:"board-chinczyk"}),
+  item("royalLudoBoard","board-ludo","Królewski stół",4200,"epic","Złoto-fioletowa oprawa planszy dla graczy, którzy chcą grać jak o koronę.",{mode:"board-chinczyk"}),
+  item("galaxyLudoBoard","board-ludo","Galaktyczny stół",5600,"legendary","Kosmiczna plansza z gwiezdnym torem i pionkami świecącymi jak orbity.",{mode:"board-chinczyk"}),
   item("holoMemoryBoard","board-memory","Holograficzne karty",3000,"rare","Holograficzne rewersy i poświata kart w Memory.",{mode:"board-memory"}),
+  item("prismMemoryBoard","board-memory","Pryzmatyczne karty",4300,"epic","Kolorowe karty z pryzmatycznym połyskiem i wyraźnym trafieniem pary.",{mode:"board-memory"}),
+  item("voidMemoryBoard","board-memory","Karty pustki",5600,"legendary","Ciemne karty z fioletowym rdzeniem i neonowym odkryciem pary.",{mode:"board-memory"}),
   item("defaultCandy","candy","Mietowka",0,"common","Domyslny bialo-czerwony cukierek. Dziala tylko w trybie Zatruty cukierek."),
   item("chocoCandy","candy","Czekoladka",700,"common","Czekoladowy skin cukierkow tylko do trybu Zatruty cukierek."),
   item("fizzyCandy","candy","Kwasna rolka",1200,"rare","Kolorowy kwasny cukierek bez zadnego logo. Tylko do trybu Zatruty cukierek."),
@@ -339,8 +343,9 @@ export function cosmeticPreview(item, profile = {}, options = {}) {
     const stateClass = item.type === "idle" ? "preview-idle-state" : item.type === "win" ? "preview-win-state" : "preview-lose-state";
     const avatar = profile.avatarImage ? `<img src="${escapeAttr(profile.avatarImage)}" alt="">` : "G";
     return `<div class="cosmetic-preview ${options.compact ? "compact-preview" : ""} preview-${item.type} ${stateClass}">
-      <span class="preview-glow"></span>${animationEffectHtml(item.id)}
+      <span class="preview-glow"></span>
       <div class="mini-player cosmetic-animation-preview ${item.id}">
+        ${item.type === "idle" ? "" : `<span class="cosmetic-fx-group cosmetic-fx-${item.type} ${item.id}" aria-hidden="true">${animationEffectHtml(item.id)}</span>`}
         <div class="preview-avatar avatar defaultFrame noAura ${item.type === "idle" ? item.id : ""}">${avatar}</div>
         <span class="nick defaultNick">${escapeAttr(options.nick || profile.nick || "Gracz")}</span>
       </div>

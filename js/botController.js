@@ -3,34 +3,34 @@ import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20260831-4";
-import { IdentityEngine } from "./identity.js?v=20260831-3";
+import { IdentityEngine } from "./identity.js?v=20260831-4";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
 import { MostLikelyEngine } from "./mostLikely.js?v=20260612-1";
 import { FriendshipTestEngine } from "./friendshipTest.js?v=20260605-1";
-import { PoisonCandyEngine } from "./poisonCandy.js?v=20260831-11";
+import { PoisonCandyEngine } from "./poisonCandy.js?v=20260831-12";
 import { BombEngine, bombCategories } from "./bomb.js?v=20260621-1";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine } from "./pokemon.js?v=20260831-10";
-import { WavelengthEngine } from "./wavelength.js?v=20260831-4";
+import { PokemonEngine } from "./pokemon.js?v=20260831-11";
+import { WavelengthEngine } from "./wavelength.js?v=20260831-5";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260823-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
-import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260831-3";
+import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260831-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
-import { ConnectEngine } from "./connect.js?v=20260831-3";
-import { LiarEngine } from "./liar.js?v=20260831-3";
-import { FalseMessageEngine } from "./falseMessage.js?v=20260831-3";
-import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
-import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-2";
-import { PopularityEngine } from "./popularity.js?v=20260901-3";
-import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-6";
-import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-3";
+import { ConnectEngine } from "./connect.js?v=20260831-4";
+import { LiarEngine } from "./liar.js?v=20260831-4";
+import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
+import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
+import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-6";
+import { PopularityEngine } from "./popularity.js?v=20260901-11";
+import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
+import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-7";
 import { serverNow } from "./firebase.js?v=20260901-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -516,31 +516,31 @@ export function botMutation(room) {
         if (game.phase === "reviewGuess" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewGuess(g, bot, Boolean(g.autoGuessCorrect), settings);
         break;
       case "pojedynek-hitow":
-        if (game.phase === "selecting" && isMissing(game.submissions, bot)) return g => MusicDuelEngine.select(g, bot, MusicDuelEngine.botTrack(g), settings);
+        if (game.phase === "selecting" && isMissing(game.submissions, bot)) return g => MusicDuelEngine.select(g, bot, MusicDuelEngine.botTrack(g, bot, botDifficulty(room, bot).id), settings);
         if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
-          const targets = Object.keys(g.submissions || {}).filter(uid => g.submissions?.[uid]);
-          return targets.length ? MusicDuelEngine.vote(g, bot, targets[Math.floor(Math.random() * targets.length)]) : null;
+          const target = MusicDuelEngine.botVote(g, bot, botDifficulty(room, bot).id);
+          return target ? MusicDuelEngine.vote(g, bot, target) : null;
         };
         break;
       case "bitwa-hitow":
-        if (game.phase === "selecting" && game.duelists?.includes(bot) && isMissing(game.submissions, bot)) return g => MusicArenaEngine.select(g, bot, MusicArenaEngine.botTrack(g), settings);
+        if (game.phase === "selecting" && game.duelists?.includes(bot) && isMissing(game.submissions, bot)) return g => MusicArenaEngine.select(g, bot, MusicArenaEngine.botTrack(g, bot, botDifficulty(room, bot).id), settings);
         if (game.phase === "voting" && !game.duelists?.includes(bot) && isMissing(game.votes, bot)) return g => {
-          const targets = (g.duelists || []).filter(uid => g.submissions?.[uid]);
-          return targets.length ? MusicArenaEngine.vote(g, bot, targets[Math.floor(Math.random() * targets.length)]) : null;
+          const target = MusicArenaEngine.botVote(g, bot, botDifficulty(room, bot).id);
+          return target ? MusicArenaEngine.vote(g, bot, target) : null;
         };
         break;
       case "popularnosc-hitow":
-        if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g));
+        if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
         break;
       case "minecraft-sprint":
       case "minecraft-crafting":
       case "minecraft-mob":
       case "minecraft-biome":
       case "minecraft-redstone":
-        if (game.phase === "turn" && game.currentUid === bot) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct()), players, settings);
+        if (game.phase === "turn" && game.currentUid === bot) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct(), botDifficulty(room, bot).id), players, settings);
         break;
       case "minecraft-truth":
-        if (game.phase === "question" && isMissing(game.answers, bot)) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct()), players, settings);
+        if (game.phase === "question" && isMissing(game.answers, bot)) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct(), botDifficulty(room, bot).id), players, settings);
         break;
       case "board-chinczyk":
       case "board-slowotwor":

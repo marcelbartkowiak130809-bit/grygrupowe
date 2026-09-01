@@ -1,6 +1,6 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
-import { GAMEPASS_DEFINITIONS } from "./gamePasses.js?v=20260901-10";
-import { cosmetics } from "./cosmetics.js?v=20260901-3";
+import { escapeHtml } from "./utils.js?v=20260901-3";
+import { GAMEPASS_DEFINITIONS } from "./gamePasses.js?v=20260901-13";
+import { cosmetics } from "./cosmetics.js?v=20260901-5";
 
 export const REWARD_ORDER = [
   { id:"coins-small", tier:"weak", emoji:"🪙", label:"100 monet", short:"100", probability:21 },

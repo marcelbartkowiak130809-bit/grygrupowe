@@ -1,5 +1,5 @@
 const STORAGE_KEY = "udowodnij_audio_v1";
-const defaults = { muted: false, musicVolume: 0.16, sfxVolume: 0.34 };
+const defaults = { muted: false, musicVolume: 0.16, sfxVolume: 0.34, trackVolume: 0.7 };
 const playlist = [
   { name: "Neon Rush", bass:[98.00,98.00,130.81,146.83], arp:[392.00,493.88,587.33,783.99,659.25,493.88] },
   { name: "Table Voltage", bass:[110.00,146.83,123.47,164.81], arp:[440.00,554.37,659.25,880.00,739.99,554.37] },
@@ -69,7 +69,14 @@ const sfx = {
 
 function loadSettings() {
   try {
-    return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const next = { ...defaults, ...(stored && typeof stored === "object" ? stored : {}) };
+    ["musicVolume", "sfxVolume", "trackVolume"].forEach(key => {
+      const value = Number(next[key]);
+      next[key] = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : defaults[key];
+    });
+    next.muted = Boolean(next.muted);
+    return next;
   } catch {
     return { ...defaults };
   }
@@ -83,6 +90,11 @@ let musicCompressor;
 let ambientTimer;
 let trackIndex = 0;
 let started = false;
+let musicSuppressed = false;
+const trackAudios = new Set();
+const trackVolumeControls = new Set();
+const trackPlayback = new Map();
+let activeTrackKey = "";
 
 function getContext() {
   if (!context) {
@@ -107,13 +119,99 @@ function getContext() {
 }
 
 function updateGains() {
-  if (musicGain) musicGain.gain.value = settings.muted ? 0 : settings.musicVolume;
+  if (musicGain) musicGain.gain.value = settings.muted || musicSuppressed ? 0 : settings.musicVolume;
+  updateTrackAudioVolumes();
 }
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   updateGains();
+  updateTrackVolumeControls();
   window.dispatchEvent(new CustomEvent("audio:change"));
+}
+
+function rememberTrackAudio(audio, playingOverride) {
+  const key = String(audio?.dataset?.trackKey || "");
+  if (!audio || !key) return;
+  const time = Number(audio.currentTime);
+  if (!Number.isFinite(time)) return;
+  const playing = typeof playingOverride === "boolean" ? playingOverride : !audio.paused && !audio.ended;
+  trackPlayback.set(key, { time: Math.max(0, time), playing });
+  if (playing || key === activeTrackKey) activeTrackKey = key;
+}
+
+function updateTrackAudioVolumes() {
+  const volume = settings.muted ? 0 : settings.trackVolume;
+  [...trackAudios].forEach(audio => {
+    if (!audio?.isConnected) {
+      trackAudios.delete(audio);
+      return;
+    }
+    audio.dataset.syncingVolume = "1";
+    audio.volume = volume;
+    delete audio.dataset.syncingVolume;
+  });
+}
+
+function updateTrackVolumeControls() {
+  const volume = Math.round(settings.trackVolume * 100);
+  [...trackVolumeControls].forEach(control => {
+    if (!control?.isConnected) {
+      trackVolumeControls.delete(control);
+      return;
+    }
+    const input = control.querySelector("[data-track-volume]");
+    const output = control.querySelector("[data-track-volume-value]");
+    if (input) input.value = String(settings.trackVolume);
+    if (output) output.textContent = `${volume}%`;
+  });
+}
+
+function bindTrackAudioEvents(audio) {
+  if (audio.dataset.trackAudioBound === "1") return;
+  audio.dataset.trackAudioBound = "1";
+  audio.addEventListener("timeupdate", () => rememberTrackAudio(audio));
+  audio.addEventListener("play", () => { activeTrackKey = String(audio.dataset.trackKey || ""); rememberTrackAudio(audio, true); });
+  audio.addEventListener("pause", () => {
+    if (audio.dataset.rerenderPause === "1") return;
+    rememberTrackAudio(audio, false);
+  });
+  audio.addEventListener("ended", () => rememberTrackAudio(audio, false));
+  audio.addEventListener("volumechange", () => {
+    if (audio.dataset.syncingVolume === "1" || settings.muted) return;
+    const volume = Number(audio.volume);
+    if (Number.isFinite(volume) && Math.abs(volume - settings.trackVolume) > 0.005) {
+      settings.trackVolume = Math.max(0, Math.min(1, volume));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      updateTrackAudioVolumes();
+      updateTrackVolumeControls();
+      window.dispatchEvent(new CustomEvent("audio:change"));
+    }
+  });
+}
+
+function playTrackAudio(audio) {
+  if (!audio) return null;
+  const result = audio.play();
+  if (result?.catch) result.catch(() => {});
+  return result;
+}
+
+function restoreTrackAudio(audio, autoplay) {
+  const key = String(audio?.dataset?.trackKey || "");
+  if (!audio || !key || audio.__trackRestoreKey === key) return;
+  audio.__trackRestoreKey = key;
+  const saved = trackPlayback.get(key);
+  const restore = () => {
+    if (audio.__trackRestored === key) return;
+    audio.__trackRestored = key;
+    if (saved && Number.isFinite(saved.time) && Number.isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = Math.min(saved.time, Math.max(0, audio.duration - 0.05));
+    }
+    if (autoplay && (saved ? saved.playing : true)) playTrackAudio(audio);
+  };
+  audio.addEventListener("loadedmetadata", restore, { once: true });
+  if (audio.readyState >= 1) queueMicrotask(restore);
 }
 
 function tone(frequency, duration, type = "sine", gain = 0.4, destination) {
@@ -268,12 +366,70 @@ export const Audio = {
   get settings() {
     return { ...settings };
   },
+  trackVolumeControlHtml({ compact = false } = {}) {
+    const value = Math.max(0, Math.min(1, Number(settings.trackVolume) || 0));
+    return `<div class="music-track-volume${compact ? " compact" : ""}" data-track-volume-control><span class="music-track-volume-label">🎧 <b>Głośność piosenek</b></span><input data-track-volume type="range" min="0" max="1" step="0.01" value="${value}"><output data-track-volume-value>${Math.round(value * 100)}%</output></div>`;
+  },
+  bindTrackVolumeControls(root) {
+    root?.querySelectorAll("[data-track-volume-control]").forEach(control => {
+      if (control.dataset.trackVolumeBound === "1") return;
+      control.dataset.trackVolumeBound = "1";
+      trackVolumeControls.add(control);
+      const input = control.querySelector("[data-track-volume]");
+      input?.addEventListener("input", event => this.setTrackVolume(event.target.value));
+    });
+    updateTrackVolumeControls();
+  },
+  bindTrackAudio(audio, key, { autoplay = false } = {}) {
+    if (!audio) return;
+    const normalizedKey = String(key || audio.dataset.trackKey || audio.currentSrc || audio.src || "");
+    if (!normalizedKey) return;
+    audio.dataset.trackKey = normalizedKey;
+    trackAudios.add(audio);
+    bindTrackAudioEvents(audio);
+    updateTrackAudioVolumes();
+    restoreTrackAudio(audio, autoplay);
+  },
+  setTrackAudioSource(audio, key, source, { autoplay = true } = {}) {
+    if (!audio || !source) return;
+    rememberTrackAudio(audio, false);
+    audio.pause();
+    audio.__trackRestoreKey = "";
+    audio.__trackRestored = "";
+    audio.dataset.trackKey = String(key || source);
+    audio.src = source;
+    audio.load();
+    this.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay });
+  },
+  prepareTrackRerender() {
+    [...trackAudios].forEach(audio => {
+      if (!audio) return;
+      rememberTrackAudio(audio);
+      audio.dataset.rerenderPause = "1";
+      audio.pause();
+      delete audio.dataset.rerenderPause;
+    });
+  },
+  get activeTrackKey() {
+    return activeTrackKey;
+  },
+  getTrackPlayback(key) {
+    return trackPlayback.get(String(key || "")) || null;
+  },
   setMusicVolume(value) {
-    settings.musicVolume = Number(value);
+    settings.musicVolume = Math.max(0, Math.min(1, Number(value) || 0));
     persist();
   },
+  setMusicSuppressed(value) {
+    musicSuppressed = Boolean(value);
+    updateGains();
+  },
   setSfxVolume(value) {
-    settings.sfxVolume = Number(value);
+    settings.sfxVolume = Math.max(0, Math.min(1, Number(value) || 0));
+    persist();
+  },
+  setTrackVolume(value) {
+    settings.trackVolume = Math.max(0, Math.min(1, Number(value) || 0));
     persist();
   },
   setMuted(value) {

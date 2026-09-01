@@ -20,40 +20,48 @@ export function avatarHtml(profile = {}, className = "", options = {}) {
   return `<div class="${classes}">${content}</div>`;
 }
 
+function playerFxMarkup(id) {
+  if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span><span class="fx-laser laser-e"></span>';
+  if (id === "winMeteor") return '<span class="fx-loss-meteor fx-win-dodge-meteor"></span><span class="fx-impact fx-win-dodge-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
+  if (id === "loseMeteorHit") return '<span class="fx-loss-meteor"></span><span class="fx-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
+  if (id === "loseBlackHole") return '<span class="fx-black-hole"></span>';
+  if (id === "levelVoidLose") return '<span class="fx-void-rift"></span><span class="fx-void-ring"></span>';
+  if (id === "winDemonKing") return '<span class="fx-demon-throne"></span><span class="fx-demon-crown"></span><span class="fx-demon-horns"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span><span class="fx-ha ha-e">HA</span>';
+  if (id === "loseDemonLaugh") return '<span class="fx-demon-shadow"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
+  if (id === "winMoney") return '<span class="fx-cash-toss cash-a"></span><span class="fx-cash-toss cash-b"></span><span class="fx-cash-toss cash-c"></span>';
+  if (id === "winRoyalRain") return '<span class="fx-money money-a"></span><span class="fx-money money-b"></span><span class="fx-money money-c"></span><span class="fx-money money-d"></span>';
+  if (id === "levelChampionWin") return '<span class="fx-royal-mantle"></span><span class="fx-crown"></span>';
+  if (id === "winCrown") return '<span class="fx-crown fx-worn-crown"></span>';
+  if (id === "loseCrownDrop") return '<span class="fx-falling-crown"></span><span class="fx-crown-dust dust-left"></span><span class="fx-crown-dust dust-right"></span>';
+  if (id === "winSpotlight") return '<span class="fx-spotlight"></span>';
+  if (id === "winConfetti") return '<span class="fx-confetti confetti-a"></span><span class="fx-confetti confetti-b"></span><span class="fx-confetti confetti-c"></span><span class="fx-confetti confetti-d"></span><span class="fx-confetti confetti-e"></span><span class="fx-confetti confetti-f"></span>';
+  if (id === "winFireworks") return '<span class="fx-firework fw-a"></span><span class="fx-firework fw-b"></span><span class="fx-firework fw-c"></span>';
+  if (id === "loseThunder") return '<span class="fx-loss-thunder"></span>';
+  if (id === "winTrophy") return '<span class="fx-trophy"></span><span class="fx-trophy-shine"></span>';
+  if (id === "winAscend" || id === "levelAscendWin") return '<span class="fx-ascend-column"></span><span class="fx-ascend-sparks"></span>';
+  if (id === "winPortal") return '<span class="fx-rick-portal"></span><span class="fx-gem gem-a"></span><span class="fx-gem gem-b"></span><span class="fx-gem gem-c"></span><span class="fx-portal-money portal-money-a"></span><span class="fx-portal-money portal-money-b"></span>';
+  if (id === "losePortal") return '<span class="fx-exit-portal fx-rick-exit"></span><span class="fx-portal-gun"></span><span class="fx-portal-core"></span>';
+  if (id === "winHalo") return '<span class="fx-halo-ring"></span><span class="fx-halo-rays"></span>';
+  if (id === "winStageBow") return '<span class="fx-stage-floor"></span>';
+  if (id === "loseFreeze") return '<span class="fx-freeze-pane"></span><span class="fx-ice-crack crack-a"></span><span class="fx-ice-crack crack-b"></span>';
+  if (id === "loseBurn") return '<span class="fx-ash ash-a"></span><span class="fx-ash ash-b"></span><span class="fx-ash ash-c"></span>';
+  if (id === "loseCrack") return '<span class="fx-glass-crack"></span><span class="fx-crack-shard shard-a"></span><span class="fx-crack-shard shard-b"></span>';
+  if (id === "levelShatterLose") return '<span class="fx-shatter-pane"></span><span class="fx-shatter-piece shatter-a"></span><span class="fx-shatter-piece shatter-b"></span><span class="fx-shatter-piece shatter-c"></span><span class="fx-shatter-piece shatter-d"></span>';
+  if (id === "losePixelBreak") return '<span class="fx-pixels pixel-a"></span><span class="fx-pixels pixel-b"></span><span class="fx-pixels pixel-c"></span><span class="fx-pixels pixel-d"></span>';
+  if (id === "loseLetters") return '<span class="fx-letter l-a">N</span><span class="fx-letter l-b">I</span><span class="fx-letter l-c">C</span><span class="fx-letter l-d">K</span>';
+  if (id === "loseDust") return '<span class="fx-dust-cloud"></span><span class="fx-dust dust-a"></span><span class="fx-dust dust-b"></span><span class="fx-dust dust-c"></span>';
+  if (id === "loseBonk") return '<span class="fx-bonk-hammer"></span><span class="fx-bonk-star star-a"></span><span class="fx-bonk-star star-b"></span>';
+  if (id === "loseSquash") return '<span class="fx-anvil"></span><span class="fx-squash-line line-a"></span><span class="fx-squash-line line-b"></span>';
+  return "";
+}
+
 function playerFxHtml(profile = {}) {
-  return [profile.selectedWinAnimation, profile.selectedLoseAnimation].filter(Boolean).map(id => {
-    if (id === "winLaser") return '<span class="fx-laser laser-a"></span><span class="fx-laser laser-b"></span><span class="fx-laser laser-c"></span><span class="fx-laser laser-d"></span><span class="fx-laser laser-e"></span>';
-    if (id === "winMeteor") return '<span class="fx-loss-meteor fx-win-dodge-meteor"></span><span class="fx-impact fx-win-dodge-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
-    if (id === "loseMeteorHit") return '<span class="fx-loss-meteor"></span><span class="fx-impact"></span><span class="fx-rubble rubble-a"></span><span class="fx-rubble rubble-b"></span><span class="fx-rubble rubble-c"></span>';
-    if (id === "loseBlackHole") return '<span class="fx-black-hole"></span>';
-    if (id === "levelVoidLose") return '<span class="fx-void-rift"></span><span class="fx-void-ring"></span>';
-    if (id === "winDemonKing") return '<span class="fx-demon-throne"></span><span class="fx-demon-crown"></span><span class="fx-demon-horns"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span><span class="fx-ha ha-e">HA</span>';
-    if (id === "loseDemonLaugh") return '<span class="fx-demon-shadow"></span><span class="fx-ha ha-a">HA</span><span class="fx-ha ha-b">HA</span><span class="fx-ha ha-c">HA</span><span class="fx-ha ha-d">HA</span>';
-    if (id === "winMoney") return '<span class="fx-cash-toss cash-a"></span><span class="fx-cash-toss cash-b"></span><span class="fx-cash-toss cash-c"></span>';
-    if (id === "winRoyalRain") return '<span class="fx-money money-a"></span><span class="fx-money money-b"></span><span class="fx-money money-c"></span><span class="fx-money money-d"></span>';
-    if (id === "levelChampionWin") return '<span class="fx-royal-mantle"></span><span class="fx-crown"></span>';
-    if (id === "winCrown") return '<span class="fx-crown fx-worn-crown"></span>';
-    if (id === "loseCrownDrop") return '<span class="fx-falling-crown"></span><span class="fx-crown-dust dust-left"></span><span class="fx-crown-dust dust-right"></span>';
-    if (id === "winSpotlight") return '<span class="fx-spotlight"></span>';
-    if (id === "winConfetti") return '<span class="fx-confetti confetti-a"></span><span class="fx-confetti confetti-b"></span><span class="fx-confetti confetti-c"></span><span class="fx-confetti confetti-d"></span><span class="fx-confetti confetti-e"></span><span class="fx-confetti confetti-f"></span>';
-    if (id === "winFireworks") return '<span class="fx-firework fw-a"></span><span class="fx-firework fw-b"></span><span class="fx-firework fw-c"></span>';
-    if (id === "loseThunder") return '<span class="fx-loss-thunder"></span>';
-    if (id === "winTrophy") return '<span class="fx-trophy"></span><span class="fx-trophy-shine"></span>';
-    if (id === "winAscend" || id === "levelAscendWin") return '<span class="fx-ascend-column"></span><span class="fx-ascend-sparks"></span>';
-    if (id === "winPortal") return '<span class="fx-rick-portal"></span><span class="fx-gem gem-a"></span><span class="fx-gem gem-b"></span><span class="fx-gem gem-c"></span><span class="fx-portal-money portal-money-a"></span><span class="fx-portal-money portal-money-b"></span>';
-    if (id === "losePortal") return '<span class="fx-exit-portal fx-rick-exit"></span><span class="fx-portal-gun"></span><span class="fx-portal-core"></span>';
-    if (id === "winHalo") return '<span class="fx-halo-ring"></span><span class="fx-halo-rays"></span>';
-    if (id === "winStageBow") return '<span class="fx-stage-floor"></span>';
-    if (id === "loseFreeze") return '<span class="fx-freeze-pane"></span><span class="fx-ice-crack crack-a"></span><span class="fx-ice-crack crack-b"></span>';
-    if (id === "loseBurn") return '<span class="fx-ash ash-a"></span><span class="fx-ash ash-b"></span><span class="fx-ash ash-c"></span>';
-    if (id === "loseCrack") return '<span class="fx-glass-crack"></span><span class="fx-crack-shard shard-a"></span><span class="fx-crack-shard shard-b"></span>';
-    if (id === "levelShatterLose") return '<span class="fx-shatter-pane"></span><span class="fx-shatter-piece shatter-a"></span><span class="fx-shatter-piece shatter-b"></span><span class="fx-shatter-piece shatter-c"></span><span class="fx-shatter-piece shatter-d"></span>';
-    if (id === "losePixelBreak") return '<span class="fx-pixels pixel-a"></span><span class="fx-pixels pixel-b"></span><span class="fx-pixels pixel-c"></span><span class="fx-pixels pixel-d"></span>';
-    if (id === "loseLetters") return '<span class="fx-letter l-a">N</span><span class="fx-letter l-b">I</span><span class="fx-letter l-c">C</span><span class="fx-letter l-d">K</span>';
-    if (id === "loseDust") return '<span class="fx-dust-cloud"></span><span class="fx-dust dust-a"></span><span class="fx-dust dust-b"></span><span class="fx-dust dust-c"></span>';
-    if (id === "loseBonk") return '<span class="fx-bonk-hammer"></span><span class="fx-bonk-star star-a"></span><span class="fx-bonk-star star-b"></span>';
-    if (id === "loseSquash") return '<span class="fx-anvil"></span><span class="fx-squash-line line-a"></span><span class="fx-squash-line line-b"></span>';
-    return "";
+  return [
+    ["win", profile.selectedWinAnimation],
+    ["lose", profile.selectedLoseAnimation],
+  ].filter(([, id]) => Boolean(id)).map(([type, id]) => {
+    const markup = playerFxMarkup(id);
+    return markup ? `<span class="cosmetic-fx-group cosmetic-fx-${type} ${safeCosmeticClass(id)}" aria-hidden="true">${markup}</span>` : "";
   }).join("");
 }
 

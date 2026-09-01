@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { hasGamePass } from "./gamePasses.js?v=20260901-10";
+import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [
@@ -121,8 +121,8 @@ export function renderWavelengthGame(root, { room, accounts, currentUser }, acti
   const ownClue = game.clues?.[currentUser];
   const clueForm = !guesser && game.phase === "clue" && !ownClue ? `<form class="wavelength-clue-form"><input id="wavelength-clue" maxlength="120" placeholder="Jedno słowo lub krótkie zdanie"><button class="primary">Podaj podpowiedź</button></form>` : game.phase === "clue" ? `<p class="muted">${guesser ? "Czekamy na podpowiedzi pozostałych graczy." : "Twoja podpowiedź została wysłana."}</p>` : "";
   const canMove = guesser && game.phase === "guess", canConfirm = canMove && positionOwner;
-  const proOwned = hasGamePass(accounts?.[currentUser], "wavelength-pro") && room.settings?.gamePassesEnabled !== false;
-  const secondChanceOwned = hasGamePass(accounts?.[currentUser], "wavelength-second-chance") && room.settings?.gamePassesEnabled !== false;
+  const proOwned = hasGamePass(accounts?.[currentUser], "wavelength-pro");
+  const secondChanceOwned = hasGamePass(accounts?.[currentUser], "wavelength-second-chance");
   const proUsed = game.passUses?.[currentUser]?.["wavelength-pro"] === Number(game.round) || game.passUses?.[currentUser]?.["wavelength-pro"] === true, secondUsed = Boolean(game.passUses?.[currentUser]?.["wavelength-second-chance"]);
   const proPanel = canMove ? `${proOwned && !proUsed ? `<button class="ghost" data-wavelength-pro>Podejrzyj szeroki zakres celu</button>` : ""}${game.feedback?.uid === currentUser ? `<p class="wavelength-feedback">Gra podpowiada kierunek: <strong>${game.feedback.direction}</strong></p>` : ""}${secondChanceOwned && !secondUsed ? `<small>Drugi pomiar zadziała po pierwszym nietrafionym zatwierdzeniu.</small>` : ""}` : "";
   root.innerHTML = `<main class="page wavelength-page enter"><section class="panel wavelength-panel"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}/${settings.rounds || 8}</p><h1>${game.phase === "clue" ? (guesser ? "Czekaj na podpowiedzi" : "Daj podpowiedź zgadującemu") : "Ustaw swój wskaźnik"}</h1>${guesser && game.phase === "clue" ? `<p class="wavelength-secret">Ukryty cel jest tajny dla zgadującego.</p>` : ""}${pair}${clue}<p class="muted">${game.phase === "clue" ? "Nie używaj liczb ani nazw skrajności." : "Im bliżej ukrytego celu, tym więcej punktów."}</p>${clueForm}${game.phase === "guess" ? scaleMarkup(game, canMove, canConfirm, false) : `<div class="wavelength-wait">${guesser ? "Skala pojawi się, gdy wszyscy podadzą podpowiedź." : "Czekamy na pozostałych graczy."}</div>`}${proPanel}<div class="wavelength-timer" data-wavelength-countdown>${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s</div></section></main>`;

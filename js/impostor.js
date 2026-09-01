@@ -1,9 +1,9 @@
 import { impostorCategories, impostorWords } from "../content/impostor/words.js?v=20260605-2";
-import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260822-1";
+import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260901-3";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { botTooltip } from "./bots.js?v=20260823-2";
-import { inGamePurchaseById } from "./gamePasses.js?v=20260901-10";
+import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 let timerId;
 let lastCountdown;

@@ -749,7 +749,7 @@ export function subscribeFriendRequests(uid, onChange) {
 
 const pollVoterKey = voterId => hashRoomPassword(`poll:${voterId || "anonymous"}`);
 const pollOptionIds = ["cosmetics", "new-mode", "questions"];
-export async function getRemotePollVotes(pollId, voterId = "anonymous") {
+export async function getRemotePollVotes(pollId, voterId = "anonymous", optionIds = pollOptionIds) {
   if (!remoteDatabase) return null;
   try {
     const [votesSnapshot, resultsSnapshot, voteSnapshot] = await Promise.all([
@@ -760,16 +760,16 @@ export async function getRemotePollVotes(pollId, voterId = "anonymous") {
     const votes = votesSnapshot?.val?.() || {}, savedTotals = resultsSnapshot.val() || {};
     const totals = {};
     Object.values(votes).forEach(optionId => {
-      if (pollOptionIds.includes(optionId)) totals[optionId] = (totals[optionId] || 0) + 1;
+      if (optionIds.includes(optionId)) totals[optionId] = (totals[optionId] || 0) + 1;
     });
-    pollOptionIds.forEach(optionId => totals[optionId] = Math.max(Number(totals[optionId] || 0), Number(savedTotals[optionId] || 0)));
+    optionIds.forEach(optionId => totals[optionId] = Math.max(Number(totals[optionId] || 0), Number(savedTotals[optionId] || 0)));
     return { totals, vote:voteSnapshot?.val?.() || null, source:"firebase" };
   } catch {
     return null;
   }
 }
-export async function voteRemotePoll({ pollId, voterId, optionId }) {
-  if (!remoteDatabase || !pollOptionIds.includes(optionId)) return false;
+export async function voteRemotePoll({ pollId, voterId, optionId, optionIds = pollOptionIds }) {
+  if (!remoteDatabase || !optionIds.includes(optionId)) return false;
   try {
     const voteRef = firebaseDatabaseApi.ref(remoteDatabase, `pollVotes/${pollId}/${pollVoterKey(voterId)}`);
     const previous = await firebaseDatabaseApi.get(voteRef).catch(() => null);
@@ -780,6 +780,22 @@ export async function voteRemotePoll({ pollId, voterId, optionId }) {
   } catch {
     return false;
   }
+}
+
+export async function loadModeCategoryReleases() {
+  if (!canUseRemote()) return null;
+  try {
+    return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "modeCategoryVoting/releases"))).val() || {};
+  } catch { return null; }
+}
+
+export async function claimModeCategoryRelease(cycleId, release) {
+  if (!canUseRemote() || !release?.categoryId || !release?.modeId) return false;
+  try {
+    const releaseRef = firebaseDatabaseApi.ref(remoteDatabase, `modeCategoryVoting/releases/${cycleId}`);
+    const result = await firebaseDatabaseApi.runTransaction(releaseRef, current => current || release);
+    return Boolean(result?.committed);
+  } catch { return false; }
 }
 
 function moderationLocal() {
