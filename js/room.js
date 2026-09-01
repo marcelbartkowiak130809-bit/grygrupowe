@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260901-3";
+import { getGameMode } from "./games.js?v=20260901-7";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-3";
@@ -26,16 +26,17 @@ import { renderConnectLobbySettings } from "./connect.js?v=20260831-3";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-3";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-3";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-4";
-import { adSenseBlock } from "./publicPages.js?v=20260901-2";
+import { adSenseBlock } from "./publicPages.js?v=20260901-4";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-10";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20260901-2";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260901-3";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-6";
+import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-3";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈" };
-function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); return pokemon ? `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">` : (modeEmojis[mode.id] || mode.symbol); }
+function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); if (pokemon) return `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`; if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft">`; return modeEmojis[mode.id] || mode.symbol; }
 
 export function playerMini(profile = {}, options = {}) {
   return `${profile?.isBot ? `<span class="bot-player-mark" ${botTooltip} aria-label="Bot eksperymentalny">🤖</span>` : ""}${playerMiniHtml(profile, "", options)}`;
@@ -82,6 +83,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "bitwa-hitow") return renderMusicArenaLobbySettings(room, isHost);
   if (mode.id === "popularnosc-hitow") return renderPopularityLobbySettings(room, isHost);
   if (mode.audience === "board") return renderBoardLobbySettings(room, isHost);
+  if (mode.audience === "minecraft") return renderMinecraftLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
   return `<p class="muted">Tryb uzyje ustawien domyslnych.</p>`;
 }
@@ -131,6 +133,7 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-music-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.musicSetting, input.value)));
   root.querySelectorAll("[data-popularity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.popularitySetting, input.value)));
   root.querySelectorAll("[data-board-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.boardSetting, input.value)));
+  root.querySelectorAll("[data-minecraft-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.minecraftSetting, input.value)));
 }
 
 export function refreshRoomSettings(root, { room, currentUser }, actions) {

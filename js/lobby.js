@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260901-3";
+import { getGameMode } from "./games.js?v=20260901-7";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260901-10";
 
@@ -76,6 +76,9 @@ function presetSettingsFor(mode, preset, { mathematicsVariant = "single" } = {})
   } else if (id === "popularnosc-hitow") {
     set("choiceTime", 5, 20, 10);
     set("rounds", 3, 15, 10);
+  } else if (id.startsWith("minecraft-")) {
+    set("questionTime", 8, 20, defaults.questionTime);
+    set("rounds", 5, 15, defaults.rounds);
   } else if (id === "5-sekund") {
     set("answerTime", 5, 10, 5);
     set("rounds", 3, 10, 8);

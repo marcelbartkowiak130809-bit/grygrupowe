@@ -30,6 +30,7 @@ import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-2";
 import { PopularityEngine } from "./popularity.js?v=20260901-3";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-6";
+import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-3";
 import { serverNow } from "./firebase.js?v=20260901-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
@@ -88,6 +89,10 @@ export function botActor(room) {
     if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
   }
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isMissing(game.choices, uid)) || "";
+  if (room.gameMode?.startsWith("minecraft-")) {
+    if (game.mode === "minecraft-truth" && game.phase === "question") return bots.find(uid => isMissing(game.answers, uid)) || "";
+    if (game.phase === "turn" && isBotId(game.currentUid)) return game.currentUid;
+  }
   if (game.phase === "responses") {
     const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
     if (responder) return responder;
@@ -314,6 +319,12 @@ function timeoutMutation(room, game, bot) {
     case "pojedynek-hitow": return g => MusicDuelEngine.timeout(g, settings);
     case "bitwa-hitow": return g => MusicArenaEngine.timeout(g, settings);
     case "popularnosc-hitow": return g => PopularityEngine.timeout(g);
+    case "minecraft-sprint":
+    case "minecraft-crafting":
+    case "minecraft-mob":
+    case "minecraft-biome":
+    case "minecraft-truth":
+    case "minecraft-redstone": return g => MinecraftEngine.timeout(g, players, settings);
     default:
       if (room.gameMode?.startsWith("board-")) return g => BoardEngine.action(g, bot, "timeout", "", players, settings);
       return null;
@@ -520,6 +531,16 @@ export function botMutation(room) {
         break;
       case "popularnosc-hitow":
         if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g));
+        break;
+      case "minecraft-sprint":
+      case "minecraft-crafting":
+      case "minecraft-mob":
+      case "minecraft-biome":
+      case "minecraft-redstone":
+        if (game.phase === "turn" && game.currentUid === bot) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct()), players, settings);
+        break;
+      case "minecraft-truth":
+        if (game.phase === "question" && isMissing(game.answers, bot)) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct()), players, settings);
         break;
       case "board-chinczyk":
       case "board-slowotwor":

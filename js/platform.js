@@ -1,10 +1,11 @@
-import { gamesList } from "./games.js?v=20260901-3";
+import { gamesList } from "./games.js?v=20260901-7";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-2";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-4";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-7";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-1";
+import { formatUnlockTime, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-8";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-3";
+import { minecraftModeIcons } from "./minecraft.js?v=20260901-3";
 
 const filters = [
   ["all", "WSZYSTKIE"],
@@ -23,6 +24,7 @@ const POLLS_ENABLED = false;
 function modeCategory(mode) {
   if (mode.audience === "pokemon") return "pokemon";
   if (mode.audience === "board") return "board";
+  if (mode.audience === "minecraft") return "minecraft";
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
   return mode.audience === "crew" ? "crew" : "everyone";
 }
@@ -48,6 +50,16 @@ export function renderBoardModes(root, actions, context = {}) {
   activatePublicAds(root, "platform");
 }
 
+export function renderMinecraftModes(root, actions, context = {}) {
+  const activityStats = context.activityStats || window.__activityStats || {};
+  const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
+  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  activatePublicAds(root, "platform");
+}
+
 function modeFilterTags(mode) {
   return [modeCategory(mode), mode.supportsSolo ? "solo" : "", ...(mode.badges || [])].filter(Boolean).join(" ");
 }
@@ -55,7 +67,7 @@ function modeFilterTags(mode) {
 function categoryTag(mode) {
   const category = modeCategory(mode);
   if (mode.audience === "pokemon") return "";
-  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY", board:"PLANSZÓWKI" };
+  const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAZDEGO", pokemon:"POKEMONY", board:"PLANSZÓWKI", minecraft:"MINECRAFT" };
   return `<span class="tag tag-category-${category}">${labels[category]}</span>`;
 }
 
@@ -67,6 +79,7 @@ function badgeTag(type) {
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
+  if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft" loading="lazy" decoding="async">`;
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
   return item ? `<img src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">` : mode.symbol;
@@ -79,6 +92,10 @@ function pokemonHubCard() {
 
 function boardHubCard() {
   return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe chińczyk statki słowotwór warcaby memory domino reversi"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Słowotwór, Warcaby, Reversi i więcej gier przy jednej planszy.</p><div class="game-card-activity"><span>8 trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
+}
+
+function minecraftHubCard() {
+  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Sześć dynamicznych trybów: pytania, crafting, moby, biomy, ciekawostki i redstone.</p><div class="game-card-activity"><span>6 trybów</span><span>OD EASY DO EKSPERTA</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
 function gameCard(mode) {
@@ -258,7 +275,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}</div>
+       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && game.audience !== "minecraft" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -290,6 +307,8 @@ export async function renderPlatform(root, actions, context = {}) {
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
   root.querySelector("[data-board-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goBoardModes(); });
   root.querySelector("[data-open-board]")?.addEventListener("click", actions.goBoardModes);
+  root.querySelector("[data-minecraft-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goMinecraftModes(); });
+  root.querySelector("[data-open-minecraft]")?.addEventListener("click", actions.goMinecraftModes);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
     const button = card.querySelector("[data-play-mode]");
     if (button) actions.selectGame(button.dataset.playMode);

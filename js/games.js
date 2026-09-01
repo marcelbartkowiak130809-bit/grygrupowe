@@ -28,6 +28,7 @@ import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=2026
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-2";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-3";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-6";
+import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-3";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -315,6 +316,24 @@ export const gamesRegistry = {
   },
   "tajna-zasada": {
     id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
+  },
+  "minecraft-sprint": {
+    id: "minecraft-sprint", name: "Minecraft Sprint", description: "Szybkie pytania o Minecrafta. Odpowiadaj pierwszy, zanim czas zniknie.", help: ["W każdej rundzie jeden gracz dostaje pytanie o Minecrafta.", "Pytania rosną od prostych mechanik do zaawansowanych szczegółów.", "Poprawna odpowiedź daje punkt, a po krótkim ujawnieniu kolej przechodzi dalej."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "⚔️", art: "minecraft-sprint", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-sprint"],
+  },
+  "minecraft-crafting": {
+    id: "minecraft-crafting", name: "Crafting Rush", description: "Rozpoznaj recepturę albo składniki szybciej niż reszta ekipy.", help: ["Gra pokazuje przedmiot i pytanie o jego recepturę albo składniki.", "Wpisujesz krótką odpowiedź, a system akceptuje również popularne polskie i angielskie nazwy.", "Każdy poprawny crafting daje punkt."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🛠️", art: "minecraft-crafting", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-crafting"],
+  },
+  "minecraft-mob": {
+    id: "minecraft-mob", name: "Zgadnij Moba", description: "Poznaj moba po zachowaniu, ataku i miejscu występowania.", help: ["Dostajesz prawdziwą teksturę moba oraz opis jego zachowania.", "Wpisz nazwę po polsku albo angielsku — działają najczęstsze warianty.", "Trudniejsze poziomy sięgają Netheru, Endu i najnowszych mobów."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "👾", art: "minecraft-mob", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-mob"],
+  },
+  "minecraft-biome": {
+    id: "minecraft-biome", name: "Jaki to biom?", description: "Odczytaj klimat, roślinność i bloki — zgadnij biom Minecrafta.", help: ["Opis i ikona bloku prowadzą cię od Overworldu do Netheru i Endu.", "Akceptowane są polskie nazwy oraz angielskie nazwy biomów.", "Ekspert dorzuca rzadsze biomy, takie jak Deep Dark i Dripstone Caves."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🌍", art: "minecraft-biome", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-biome"],
+  },
+  "minecraft-truth": {
+    id: "minecraft-truth", name: "Minecraft czy kłamstwo?", description: "Oceń minecraftowe ciekawostki i sprawdź, kto zna prawdziwe mechaniki.", help: ["Wszyscy odpowiadają jednocześnie: Prawda albo Fałsz.", "Po zebraniu odpowiedzi pokazujemy właściwą odpowiedź i krótkie wyjaśnienie.", "To dobry tryb solo z wynikiem, ale działa też jako szybka rywalizacja."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "📖", art: "minecraft-truth", audience: "minecraft", badges: ["new", "tiktok"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-truth"],
+  },
+  "minecraft-redstone": {
+    id: "minecraft-redstone", name: "Awaria Redstone", description: "Napraw obwód, rozgryź mechanikę i zostań inżynierem ekipy.", help: ["W każdej rundzie dostajesz jedno pytanie logiczne o redstone.", "Wybierasz rozwiązanie spośród odpowiedzi, od podstawowych po eksperckie.", "Po odpowiedzi pokazujemy wyjaśnienie, żeby gra uczyła, a nie tylko punktowała."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🔴", art: "minecraft-redstone", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-redstone"],
   },
   "board-chinczyk": {
     id:"board-chinczyk", name:"Chińczyk", description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", help:["Rzuć kostką i wyprowadź pionek po wyrzuceniu szóstki.","Zbijaj pionki rywali, wracając je do bazy.","Wszystkie cztery pionki w domu oznaczają zwycięstwo."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🎲", art:"board-ludo", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-chinczyk"],

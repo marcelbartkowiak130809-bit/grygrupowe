@@ -6,9 +6,9 @@ export const publicRoutes = {
   "/polityka-prywatnosci":"public:polityka-prywatnosci",
   "/kontakt":"public:kontakt",
 };
-const appRoutes = { "/pokemony":"pokemon-select", "/planszowki":"board-select" };
+const appRoutes = { "/pokemony":"pokemon-select", "/planszowki":"board-select", "/minecraft":"minecraft-select" };
 const publicScreens = new Set(Object.values(publicRoutes));
-const validScreens = new Set(["platform", "pokemon-select", "board-select", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
+const validScreens = new Set(["platform", "pokemon-select", "board-select", "minecraft-select", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
 let current = appRoutes[globalThis.window?.location?.pathname || "/"] || publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";
 let listener = () => {};
 

@@ -196,6 +196,10 @@ export const Audio = {
   },
   play(name) {
     if (!started || settings.muted || settings.sfxVolume === 0) return;
+    if (name === "minecraftCorrect") return sequence([[392,.06,"square",.28],[523,.07,"triangle",.38],[784,.16,"sine",.32]],52);
+    if (name === "minecraftWrong") return sequence([[220,.08,"square",.28],[174,.12,"sawtooth",.24],[130,.18,"triangle",.22]],58);
+    if (name === "minecraftReveal") { percussion("snap"); return sequence([[262,.05,"square",.22],[392,.07,"triangle",.28],[523,.12,"sine",.3]],56); }
+    if (name === "minecraftRedstone") return sequence([[110,.045,"square",.24],[165,.05,"square",.28],[220,.08,"triangle",.26],[330,.12,"sine",.22]],48);
     if (name === "shopOpen") return sequence([[420,.07,"triangle",.38],[560,.08,"triangle",.44],[760,.13,"sine",.36]],55);
     if (name === "wardrobeOpen") return sequence([[220,.08,"sine",.24],[360,.08,"triangle",.3],[520,.1,"triangle",.34],[760,.16,"sine",.28]],68);
     if (name === "catalogOpen") return sequence([[520,.05,"sine",.25],[660,.05,"sine",.28],[820,.08,"triangle",.34],[1040,.12,"sine",.26]],42);

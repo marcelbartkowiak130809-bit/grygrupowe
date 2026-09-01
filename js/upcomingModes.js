@@ -40,6 +40,8 @@ export const TEMPORARILY_UNLOCKED_MODE_IDS = new Set([
   "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "popularnosc-solo",
   "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi",
   "board-warcaby", "board-cztery", "board-memory", "board-domino",
+  "minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome",
+  "minecraft-truth", "minecraft-redstone",
 ]);
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED
   ? Object.fromEntries(Object.entries(futureModeUnlocks).filter(([modeId]) => !TEMPORARILY_UNLOCKED_MODE_IDS.has(modeId)))
