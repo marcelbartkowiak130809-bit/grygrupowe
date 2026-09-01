@@ -28,7 +28,7 @@ import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=2026
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-6";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-11";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
-import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-7";
+import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -318,7 +318,7 @@ export const gamesRegistry = {
     id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
   },
   "minecraft-sprint": {
-    id: "minecraft-sprint", name: "Minecraft Sprint", description: "Szybkie pytania o Minecrafta. Odpowiadaj pierwszy, zanim czas zniknie.", help: ["W każdej rundzie jeden gracz dostaje pytanie o Minecrafta.", "Pytania rosną od prostych mechanik do zaawansowanych szczegółów.", "Poprawna odpowiedź daje punkt, a po krótkim ujawnieniu kolej przechodzi dalej."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "⚔️", art: "minecraft-sprint", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-sprint"],
+    id: "minecraft-sprint", name: "Minecraft Sprint", description: "Szybkie pytania o Minecrafta. Odpowiadaj pierwszy, zanim czas zniknie.", help: ["W każdej rundzie jeden gracz dostaje pytanie o Minecrafta.", "Pytania rosną od prostych mechanik do zaawansowanych szczegółów.", "Poprawna odpowiedź daje punkt, a po krótkim ujawnieniu kolej przechodzi dalej."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "⛏️", art: "minecraft-sprint", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-sprint"],
   },
   "minecraft-crafting": {
     id: "minecraft-crafting", name: "Crafting Rush", description: "Rozpoznaj recepturę albo składniki szybciej niż reszta ekipy.", help: ["Gra pokazuje przedmiot i pytanie o jego recepturę albo składniki.", "Wpisujesz krótką odpowiedź, a system akceptuje również popularne polskie i angielskie nazwy.", "Każdy poprawny crafting daje punkt."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🛠️", art: "minecraft-crafting", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-crafting"],

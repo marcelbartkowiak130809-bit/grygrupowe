@@ -37,7 +37,7 @@ export const minecraftModeIcons = {
 };
 
 export const minecraftModeMeta = {
-  "minecraft-sprint": { name: "Minecraft Sprint", icon: "⚔️", kind: "Pytania na czas" },
+  "minecraft-sprint": { name: "Minecraft Sprint", icon: "⛏️", kind: "Pytania na czas" },
   "minecraft-crafting": { name: "Crafting Rush", icon: "🛠️", kind: "Crafting" },
   "minecraft-mob": { name: "Zgadnij Moba", icon: "👾", kind: "Moby" },
   "minecraft-biome": { name: "Jaki to biom?", icon: "🌍", kind: "Biomy" },
@@ -172,6 +172,36 @@ const truthQuestions = [
   { id: "truth-22", difficulty: "hard", icon: item("snowball"), statement: "Śnieżka zadaje zwykłe obrażenia wszystkim mobom.", answer: false, explanation: "Fałsz — śnieżki mają specjalne zachowanie, ale nie są uniwersalną bronią obrażeniową." },
   { id: "truth-23", difficulty: "expert", icon: item("netherite_scrap"), statement: "Netherytowe przedmioty płoną w lawie tak samo jak drewniane.", answer: false, explanation: "Fałsz — netherytowe przedmioty nie spadają jako zniszczone w lawie." },
   { id: "truth-24", difficulty: "expert", icon: item("jukebox"), statement: "Płyta muzyczna może uruchomić wibrację wykrywalną przez sculk sensor.", answer: true, explanation: "To prawda — odtwarzanie płyty generuje zdarzenia dźwiękowe i wibracje." },
+  { id: "truth-25", difficulty: "medium", icon: item("campfire"), statement: "Ognisko może upiec jedzenie bez używania paliwa.", answer: true, explanation: "To prawda — ognisko gotuje położone na nim jedzenie bez paliwa." },
+  { id: "truth-26", difficulty: "medium", icon: item("ender_chest"), statement: "Skrzynie kresu danego gracza mają wspólną zawartość, niezależnie od ich miejsca na mapie.", answer: true, explanation: "To prawda — wszystkie skrzynie kresu tego samego gracza prowadzą do jego wspólnego magazynu." },
+  { id: "truth-27", difficulty: "medium", icon: item("spawner"), statement: "Jedwabny dotyk pozwala normalnie zebrać spawner jako blok.", answer: false, explanation: "Fałsz — spawnera nie da się zdobyć jako bloku w zwykłym survivalu, również z Jedwabnym dotykiem." },
+  { id: "truth-28", difficulty: "medium", icon: item("armor_stand"), statement: "Stojak na zbroję może przechowywać elementy zbroi oraz trzymany przedmiot.", answer: true, explanation: "To prawda — stojak ma miejsca na zbroję i może trzymać przedmiot w ręce." },
+  { id: "truth-29", difficulty: "medium", icon: item("composter"), statement: "Kompostownik może zamienić odpowiednie przedmioty roślinne w mączkę kostną.", answer: true, explanation: "To prawda — kompostowalne przedmioty zapełniają kompostownik, a pełny daje mączkę kostną." },
+  { id: "truth-30", difficulty: "medium", icon: item("iron_ingot"), statement: "Żelaznego golema można uleczyć, używając na nim sztabki żelaza.", answer: true, explanation: "To prawda — użycie sztabki żelaza na golemie przywraca mu część zdrowia." },
+  { id: "truth-31", difficulty: "medium", icon: item("chorus_fruit"), statement: "Zjedzenie owocu refrenu może teleportować gracza na krótką, losową odległość.", answer: true, explanation: "To prawda — owoc refrenu teleportuje jedzącego, podobnie jak bezpieczna, mała perła Endu." },
+  { id: "truth-32", difficulty: "medium", icon: item("ender_pearl"), statement: "Rzucona perła Endu może teleportować gracza w miejsce trafienia.", answer: true, explanation: "To prawda — po trafieniu perła teleportuje gracza i zadaje mu niewielkie obrażenia." },
+  { id: "truth-33", difficulty: "medium", icon: item("tnt"), statement: "TNT można podpalić krzesiwem.", answer: true, explanation: "To prawda — krzesiwo aktywuje TNT, rozpoczynając jego odliczanie do wybuchu." },
+  { id: "truth-34", difficulty: "medium", icon: item("oak_boat"), statement: "Łódź może przewozić małego moba jako pasażera.", answer: true, explanation: "To prawda — łodzie mogą przewozić pasażera, w tym wiele małych mobów." },
+  { id: "truth-35", difficulty: "medium", icon: item("anvil"), statement: "Kowadło pozwala zmienić nazwę przedmiotu.", answer: true, explanation: "To prawda — nazwę przedmiotu zmienia się w pierwszym polu interfejsu kowadła." },
+  { id: "truth-36", difficulty: "medium", icon: item("name_tag"), statement: "Znacznik nazw można użyć na mobie bez wcześniejszego nazwania go w kowadle.", answer: false, explanation: "Fałsz — znacznik nazw trzeba najpierw nazwać w kowadle, dopiero potem można użyć go na mobie." },
+  { id: "truth-37", difficulty: "medium", icon: item("beacon"), statement: "Latarnia morska daje swoje efekty, nawet jeśli nie stoi na żadnej piramidzie.", answer: false, explanation: "Fałsz — do aktywacji latarni potrzebna jest poprawna piramida z odpowiednich bloków." },
+  { id: "truth-38", difficulty: "medium", icon: item("hopper"), statement: "Lej może pobierać przedmioty z pojemnika znajdującego się bezpośrednio nad nim.", answer: true, explanation: "To prawda — lej pobiera przedmioty z góry i przekazuje je do swojego wyjścia." },
+  { id: "truth-39", difficulty: "medium", icon: item("sugar_cane"), statement: "Trzcina cukrowa urośnie na piasku bez sąsiadującej wody.", answer: false, explanation: "Fałsz — do posadzenia trzciny potrzebna jest woda przy jednym z sąsiadujących bloków." },
+  { id: "truth-40", difficulty: "medium", icon: item("cactus"), statement: "Kaktus można posadzić na piasku.", answer: true, explanation: "To prawda — piasek jest jednym z podstawowych bloków, na których rośnie kaktus." },
+  { id: "truth-41", difficulty: "medium", icon: item("firework_rocket"), statement: "Rakieta fajerwerkowa może przyspieszyć lot gracza używającego elytry.", answer: true, explanation: "To prawda — zwykła rakieta bez gwiazdki może napędzać lot na elytrze." },
+  { id: "truth-42", difficulty: "medium", icon: item("saddle"), statement: "Siodło można stworzyć w zwykłym stole rzemieślniczym.", answer: false, explanation: "Fałsz — w vanilla siodła nie da się wytworzyć; zdobywa się je między innymi w skrzyniach i handlu." },
+  { id: "truth-43", difficulty: "medium", icon: item("water_bucket"), statement: "W Netherze można bezpiecznie postawić wodę z wiadra.", answer: false, explanation: "Fałsz — woda z wiadra od razu znika w Netherze, poza wyjątkami takimi jak kocioł." },
+  { id: "truth-44", difficulty: "medium", icon: item("bed"), statement: "Łóżko może ustawić punkt odrodzenia gracza w Overworldzie.", answer: true, explanation: "To prawda — użycie łóżka w Overworldzie ustawia je jako punkt odrodzenia." },
+  { id: "truth-45", difficulty: "medium", icon: item("lodestone_compass"), statement: "Kompas związany z magnetytem wskazuje ten magnetyt tylko w tej samej dimensji.", answer: true, explanation: "To prawda — w innej dimensji taki kompas przestaje prawidłowo wskazywać cel." },
+  { id: "truth-46", difficulty: "medium", icon: item("clock"), statement: "Zwykły zegar działa normalnie w Netherze i pokazuje tam aktualną porę dnia.", answer: false, explanation: "Fałsz — w Netherze i Endzie wskazówka zegara obraca się nieregularnie." },
+  { id: "truth-47", difficulty: "medium", icon: item("compass"), statement: "Zwykły kompas w Overworldzie domyślnie wskazuje światowy punkt odrodzenia.", answer: true, explanation: "To prawda — bez związania z magnetytem kompas prowadzi do światowego spawnu." },
+  { id: "truth-48", difficulty: "medium", icon: item("crying_obsidian"), statement: "Do zbudowania działającego portalu do Netheru można użyć obsydianu płaczu zamiast zwykłego obsydianu.", answer: false, explanation: "Fałsz — obsydian płaczu nie zastępuje obsydianu w ramie portalu." },
+  { id: "truth-49", difficulty: "medium", icon: item("obsidian"), statement: "Narożniki ramy portalu do Netheru są obowiązkowe.", answer: false, explanation: "Fałsz — działający portal może mieć pominięte cztery narożne bloki ramy." },
+  { id: "truth-50", difficulty: "medium", icon: item("name_tag"), statement: "Nazwanie moba znacznikiem nazw chroni go przed naturalnym zniknięciem.", answer: true, explanation: "To prawda — nazwane moby nie despawnują się naturalnie, z wyjątkami wynikającymi z konkretnych mechanik." },
+  { id: "truth-51", difficulty: "medium", icon: item("villager_spawn_egg"), statement: "Wieśniak, z którym wykonano już handel, może później dowolnie zmienić profesję.", answer: false, explanation: "Fałsz — pierwszy handel blokuje profesję wieśniaka." },
+  { id: "truth-52", difficulty: "medium", icon: item("golden_apple"), statement: "Zainfekowanego wieśniaka można wyleczyć złotym jabłkiem podczas efektu Słabości.", answer: true, explanation: "To prawda — trzeba zastosować złote jabłko na zainfekowanym wieśniaku z efektem Słabości." },
+  { id: "truth-53", difficulty: "medium", icon: item("iron_block"), statement: "Żelaznego golema można zbudować z czterech bloków żelaza i wyrzeźbionej dyni.", answer: true, explanation: "To prawda — cztery bloki żelaza układa się w kształt litery T i dodaje wyrzeźbioną dynię." },
+  { id: "truth-54", difficulty: "medium", icon: item("redstone"), statement: "Maksymalna siła sygnału pyłu redstone wynosi 15.", answer: true, explanation: "To prawda — sygnał zaczyna od 15 i słabnie o jeden za każdy blok od źródła." },
 ];
 
 const redstoneQuestions = [
@@ -239,8 +269,10 @@ function reconcilePlayers(game, players) {
   if (!game) return [];
   const roomPlayers = safePlayers(players);
   const previousPlayers = safePlayers(game.players);
-  const continuing = roomPlayers.length ? previousPlayers.filter(uid => roomPlayers.includes(uid)) : previousPlayers;
-  const activePlayers = continuing.length ? continuing : roomPlayers;
+  // The room roster is authoritative while a game is running. Keeping only
+  // the intersection with the previous snapshot could silently remove the
+  // current player during a Firebase/local state refresh.
+  const activePlayers = roomPlayers.length ? roomPlayers : previousPlayers;
   game.players = activePlayers;
   game.scores = scoresFor(activePlayers, game.scores);
   if (game.mode === "minecraft-truth") {
@@ -303,6 +335,7 @@ function revealTurn(game, uid, raw, correct) {
 export function createMinecraftGame(modeId, players, settings = {}) {
   const listPlayers = safePlayers(players);
   const safeSettings = sanitizeMinecraftSettings(settings, modeId);
+  const recentQuestionIds = unique(safeSettings.minecraftRecentQuestionIds).slice(-40);
   const game = {
     mode: modeId,
     phase: "question",
@@ -312,7 +345,7 @@ export function createMinecraftGame(modeId, players, settings = {}) {
     difficulty: safeSettings.difficulty,
     scores: scoresFor(listPlayers),
     answers: {},
-    usedQuestionIds: [],
+    usedQuestionIds: recentQuestionIds,
     currentUid: "",
     turnIndex: 0,
     question: null,

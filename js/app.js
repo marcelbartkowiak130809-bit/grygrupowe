@@ -5,7 +5,7 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260901-6";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260901-2";
-import { gamesList, getGameMode } from "./games.js?v=20260901-11";
+import { gamesList, getGameMode } from "./games.js?v=20260901-12";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-4";
@@ -37,9 +37,9 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260901-6";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260901-11";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
-import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-7";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260901-11";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260901-16";
+import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260901-12";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260901-18";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-6";
 import { Router } from "./router.js?v=20260901-3";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260901-10";
@@ -446,7 +446,7 @@ async function resolveRoomForJoin(code) {
 async function mutateRoomGame(mutator,{sound,after}={}) {
   const room=activeRoom();if(!room?.game)return false;
   await roomSyncChains.get(room.roomId);
-  const remote=await mutateRemoteRoomGame(room.roomId,(game,rawRoom)=>mutator(game,{...room,settings:rawRoom.settings||room.settings,players:Object.keys(rawRoom.players||{})}));
+  const remote=await mutateRemoteRoomGame(room.roomId,(game,rawRoom)=>mutator(game,{...room,settings:rawRoom.settings||room.settings,players:Array.isArray(rawRoom.players)?rawRoom.players:Object.keys(rawRoom.players||{})}));
   if(remote?.ok){
     const synced=installRemoteRoom(remote.room);if(after){after(synced);touchRoom(synced);}
     if(sound)typeof sound === "function" ? sound(synced) : Audio.play(sound);render();return true;
@@ -763,6 +763,12 @@ function additionalModeReward(room, uid, config, scores, winners) {
 function settleAdditionalModeResult(room) {
   const config = additionalModeRewardConfig[room?.gameMode];
   if (!room?.game || !config || !["result", "gameSummary"].includes(room.game.phase) || !room.game.finished || room.game.rewarded) return;
+  if (room.gameMode?.startsWith("minecraft-") && Array.isArray(room.game.usedQuestionIds)) {
+    room.settings = {
+      ...(room.settings || {}),
+      minecraftRecentQuestionIds: [...new Set(room.game.usedQuestionIds.filter(Boolean))].slice(-40),
+    };
+  }
   const scores = additionalModeScoreMap(room);
   const winners = additionalModeWinners(room, scores);
   const payouts = Object.fromEntries(room.players.map(uid => [uid, additionalModeReward(room, uid, config, scores, winners)]));

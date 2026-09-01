@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20260901-11";
+import { gamesList } from "./games.js?v=20260901-12";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
 import { categoryForMode, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260901-2";
@@ -6,7 +6,7 @@ import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260901-16";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-4";
-import { minecraftModeIcons } from "./minecraft.js?v=20260901-7";
+import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [
   ["all", "WSZYSTKIE"],
@@ -61,7 +61,7 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
-  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
@@ -120,7 +120,7 @@ function boardHubCard() {
 }
 
 function minecraftHubCard() {
-  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Diamentowy miecz Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Sześć dynamicznych trybów: pytania, crafting, moby, biomy, ciekawostki i redstone.</p><div class="game-card-activity"><span>6 trybów</span><span>OD EASY DO EKSPERTA</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Sześć dynamicznych trybów: pytania, crafting, moby, biomy, ciekawostki i redstone.</p><div class="game-card-activity"><span>6 trybów</span><span>OD EASY DO EKSPERTA</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
 function musicHubCard() {
@@ -305,7 +305,6 @@ export async function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page enter">
-    ${categoryVotePanelHtml(categoryVote)}
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY GRUPOWE</p>
@@ -321,6 +320,7 @@ export async function renderPlatform(root, actions, context = {}) {
       </div>
       <div class="hero-side-actions"><div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div><button class="ghost global-stats-trigger" id="open-global-stats" type="button">📊 Statystyki strony</button></div>
     </section>
+    ${categoryVotePanelHtml(categoryVote)}
     ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
