@@ -34,6 +34,15 @@ function modeCategory(mode) {
   return mode.audience === "crew" ? "crew" : "everyone";
 }
 
+function bindModePlayActions(root, actions) {
+  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll("[data-play-solo-mode]").forEach(button => button.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    actions.selectSoloGame(button.dataset.playSoloMode);
+  }));
+}
+
 export async function renderPokemonModes(root, actions, context = {}) {
   await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
@@ -41,7 +50,7 @@ export async function renderPokemonModes(root, actions, context = {}) {
   const mewtwo = pokemonDex.find(item => item.id === 150);
   root.innerHTML = `<main class="page platform-page pokemon-selection-page enter"><section class="pokemon-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="pokemon-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>POKEMONY</h1><p>Wybierzcie sposób rywalizacji z Pokémonami.</p></div><div class="pokemon-selection-art">${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</div></section><section class="games-section pokemon-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY POKÉMON</p><h2>W co gramy?</h2></div><span class="badge">${pokemonModes.length}</span></div><div class="games-grid">${pokemonModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
 }
@@ -52,7 +61,7 @@ export async function renderBoardModes(root, actions, context = {}) {
   const boardModes = gamesList.filter(game => game.audience === "board");
   root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="games-section board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span></div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
 }
@@ -63,7 +72,7 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
   root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
 }
@@ -74,7 +83,7 @@ export async function renderMusicModes(root, actions, context = {}) {
   const musicModes = gamesList.filter(game => game.audience === "music" && !game.hiddenFromLibrary);
   root.innerHTML = `<main class="page platform-page music-selection-page enter"><section class="music-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="music-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MUZYKA</h1><p>Wybierajcie hity, słuchajcie krótkich previewów i sprawdzajcie, który numer wygrywa.</p></div><div class="music-selection-art" aria-hidden="true"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b>HITS</b></div></section><section class="games-section music-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MUZYCZNE</p><h2>W co gramy?</h2></div><span class="badge">${musicModes.length}</span></div><div class="games-grid">${musicModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
 }
@@ -362,7 +371,7 @@ export async function renderPlatform(root, actions, context = {}) {
     applyGameFilters();
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
-  root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  bindModePlayActions(root, actions);
   root.querySelectorAll("[data-category-vote]").forEach(button => button.addEventListener("click", async () => {
     root.querySelectorAll("[data-category-vote]").forEach(option => { option.disabled = true; });
     actions.playSound?.("poll");
@@ -375,7 +384,6 @@ export async function renderPlatform(root, actions, context = {}) {
     actions.selectGame(event.currentTarget.dataset.openCategoryMode);
   });
   root.querySelector("[data-unlock-mode]")?.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode));
-  root.querySelectorAll("[data-play-solo-mode]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); actions.selectSoloGame(button.dataset.playSoloMode); }));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
   root.querySelector("[data-board-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goBoardModes(); });

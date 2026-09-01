@@ -25,8 +25,8 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-4";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-6";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-11";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-7";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-12";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
 

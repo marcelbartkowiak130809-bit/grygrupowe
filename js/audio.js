@@ -95,6 +95,7 @@ const trackAudios = new Set();
 const trackVolumeControls = new Set();
 const trackPlayback = new Map();
 let activeTrackKey = "";
+const TRACK_PREVIEW_LIMIT_SECONDS = 30;
 
 function getContext() {
   if (!context) {
@@ -167,11 +168,32 @@ function updateTrackVolumeControls() {
   });
 }
 
+function trackPreviewLimit(audio) {
+  const value = Number(audio?.dataset?.trackPreviewLimit);
+  return Number.isFinite(value) && value > 0 ? value : TRACK_PREVIEW_LIMIT_SECONDS;
+}
+
+function stopTrackAtPreviewLimit(audio) {
+  if (!audio || audio.ended || Number(audio.currentTime) < trackPreviewLimit(audio)) return false;
+  audio.dataset.previewLimitStop = "1";
+  audio.pause();
+  delete audio.dataset.previewLimitStop;
+  rememberTrackAudio(audio, false);
+  return true;
+}
+
 function bindTrackAudioEvents(audio) {
   if (audio.dataset.trackAudioBound === "1") return;
   audio.dataset.trackAudioBound = "1";
-  audio.addEventListener("timeupdate", () => rememberTrackAudio(audio));
-  audio.addEventListener("play", () => { activeTrackKey = String(audio.dataset.trackKey || ""); rememberTrackAudio(audio, true); });
+  audio.dataset.trackPreviewLimit ||= String(TRACK_PREVIEW_LIMIT_SECONDS);
+  audio.addEventListener("timeupdate", () => { stopTrackAtPreviewLimit(audio); rememberTrackAudio(audio); });
+  audio.addEventListener("loadedmetadata", () => { updateTrackAudioVolumes(); stopTrackAtPreviewLimit(audio); });
+  audio.addEventListener("play", () => {
+    updateTrackAudioVolumes();
+    if (stopTrackAtPreviewLimit(audio)) return;
+    activeTrackKey = String(audio.dataset.trackKey || "");
+    rememberTrackAudio(audio, true);
+  });
   audio.addEventListener("pause", () => {
     if (audio.dataset.rerenderPause === "1") return;
     rememberTrackAudio(audio, false);
@@ -205,10 +227,11 @@ function restoreTrackAudio(audio, autoplay) {
   const restore = () => {
     if (audio.__trackRestored === key) return;
     audio.__trackRestored = key;
+    const limit = trackPreviewLimit(audio);
     if (saved && Number.isFinite(saved.time) && Number.isFinite(audio.duration) && audio.duration > 0) {
-      audio.currentTime = Math.min(saved.time, Math.max(0, audio.duration - 0.05));
+      audio.currentTime = Math.min(saved.time, Math.max(0, Math.min(audio.duration - 0.05, limit)));
     }
-    if (autoplay && (saved ? saved.playing : true)) playTrackAudio(audio);
+    if (autoplay && (saved ? saved.playing : true) && Number(audio.currentTime) < limit) playTrackAudio(audio);
   };
   audio.addEventListener("loadedmetadata", restore, { once: true });
   if (audio.readyState >= 1) queueMicrotask(restore);
@@ -385,6 +408,7 @@ export const Audio = {
     const normalizedKey = String(key || audio.dataset.trackKey || audio.currentSrc || audio.src || "");
     if (!normalizedKey) return;
     audio.dataset.trackKey = normalizedKey;
+    audio.dataset.trackPreviewLimit ||= String(TRACK_PREVIEW_LIMIT_SECONDS);
     trackAudios.add(audio);
     bindTrackAudioEvents(audio);
     updateTrackAudioVolumes();
@@ -400,6 +424,22 @@ export const Audio = {
     audio.src = source;
     audio.load();
     this.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay });
+  },
+  stopAllTrackAudio({ clearPlayback = false } = {}) {
+    [...trackAudios].forEach(audio => {
+      if (!audio) return;
+      audio.dataset.rerenderPause = "1";
+      try {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      } catch {}
+      delete audio.dataset.rerenderPause;
+      trackAudios.delete(audio);
+    });
+    trackVolumeControls.clear();
+    if (clearPlayback) trackPlayback.clear();
+    activeTrackKey = "";
   },
   prepareTrackRerender() {
     [...trackAudios].forEach(audio => {

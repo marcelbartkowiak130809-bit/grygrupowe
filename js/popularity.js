@@ -1,6 +1,6 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
-import { Audio } from "./audio.js?v=20260901-3";
+import { Audio } from "./audio.js?v=20260902-1";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -561,7 +561,9 @@ let popularityInterval = 0;
 let popularityAnimationFrame = 0;
 let popularityKeyHandler = null;
 let popularityPreviewAudio = null;
+let popularityPreviewGeneration = 0;
 function stopPopularityPreview() {
+  popularityPreviewGeneration += 1;
   if (!popularityPreviewAudio) return;
   popularityPreviewAudio.dataset.rerenderPause = "1";
   popularityPreviewAudio.pause();
@@ -615,10 +617,11 @@ async function findTrackMedia(query) {
 function hydratePopularityArtwork(root, tracks) {
   const dataset = root.dataset || (root.dataset = {});
   const token = dataset.popularityArtToken = String((Number(dataset.popularityArtToken) || 0) + 1);
+  const previewGeneration = popularityPreviewGeneration;
   array(tracks).filter(Boolean).forEach(track => {
     const query = trackQuery(track?.topTrack || track);
     findTrackMedia(query).then(media => {
-      if (("isConnected" in root && !root.isConnected) || dataset.popularityArtToken !== token) return;
+      if (("isConnected" in root && !root.isConnected) || dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
       [...root.querySelectorAll("[data-artwork-query]")].filter(element => element.dataset.artworkQuery === query).forEach(element => {
         element.classList.remove("is-loading");
         if (media.artworkUrl) {
