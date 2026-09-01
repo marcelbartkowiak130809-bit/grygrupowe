@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { hasGamePass } from "./gamePasses.js?v=20260831-6";
+import { hasGamePass } from "./gamePasses.js?v=20260901-9";
 
 export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [
@@ -135,7 +135,7 @@ export function renderWavelengthGame(root, { room, accounts, currentUser }, acti
   const slider=root.querySelector("[data-wavelength-slider]"), output=root.querySelector("[data-wavelength-position]"); slider?.addEventListener("input", () => { output.textContent=`${slider.value}%`; root.querySelector(".wavelength-position").style.left=`${slider.value}%`; }); slider?.addEventListener("change", () => actions.wavelengthMove(Number(slider.value), { phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
   root.querySelector("[data-wavelength-confirm]")?.addEventListener("click", () => actions.wavelengthConfirm({ phase:game.phase, phaseEndsAt:game.phaseEndsAt }));
   root.querySelector("[data-wavelength-pro]")?.addEventListener("click", () => actions.wavelengthRevealPro());
-  renderWavelengthGame.countdown=window.setInterval(()=>{const node=root.querySelector("[data-wavelength-countdown]");if(node)node.textContent=`${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s`;},250); renderWavelengthGame.timer=window.setTimeout(()=>actions.wavelengthTimeout({phase:game.phase,phaseEndsAt:game.phaseEndsAt}),Math.max(100,game.phaseEndsAt-Date.now()+50));
+  renderWavelengthGame.countdown=window.setInterval(()=>{const node=root.querySelector("[data-wavelength-countdown]");if(node)node.textContent=`${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s`;},1000); renderWavelengthGame.timer=window.setTimeout(()=>actions.wavelengthTimeout({phase:game.phase,phaseEndsAt:game.phaseEndsAt}),Math.max(100,game.phaseEndsAt-Date.now()+50));
 }
 
 export function renderWavelengthLobbySettings(room, isHost) { const settings=room.settings || wavelengthDefaults; return `<div class="wavelength-settings"><label>Liczba rund <input data-wavelength-setting="rounds" type="number" min="5" max="20" value="${settings.rounds || 8}" ${isHost ? "" : "disabled"}></label><label>Czas rundy <input data-wavelength-setting="roundTime" type="number" min="30" max="120" value="${settings.roundTime || 60}" ${isHost ? "" : "disabled"}> s</label><p class="tiny">Każda runda losuje nową parę przeciwieństw i ukryty cel.</p></div>`; }

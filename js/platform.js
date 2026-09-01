@@ -1,10 +1,10 @@
-import { gamesList } from "./games.js?v=20260831-3";
+import { gamesList } from "./games.js?v=20260901-2";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260822-4";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260822-1";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-2";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260830-4";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260804-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260901-5";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-1";
 
 const filters = [
   ["all", "WSZYSTKIE"],
@@ -53,7 +53,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈" };
 function visualSymbol(mode) {
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
@@ -68,6 +68,9 @@ function pokemonHubCard() {
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked;
   const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
+  const playControls = mode.id === "popularnosc-hitow" && !locked
+    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button><button class="ghost" data-play-solo-mode="popularnosc-solo">🔥 Solo</button></div>`
+    : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
@@ -79,7 +82,7 @@ function gameCard(mode) {
       <h2>${locked ? "Nadchodzący tryb" : mode.name}</h2>
       <p class="muted">${locked ? "Nowa rozgrywka pojawi się wkrótce." : mode.description}</p>
       ${locked ? `<div class="unlock-date"><span>Odblokowanie</span><b>${escapeHtml(unlock.label)}</b></div>` : ""}
-      <div class="game-card-activity"><span>${mode.activity?.players||0} graczy</span><span>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span><button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button></div>
+      <div class="game-card-activity"><span>${mode.activity?.players||0} graczy</span><span>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span>${playControls}</div>
     </div>
   </article>`;
 }
@@ -201,7 +204,7 @@ export async function renderPlatform(root, actions, context = {}) {
     <section class="games-section">
       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
-      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon").sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
+      <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
@@ -227,6 +230,7 @@ export async function renderPlatform(root, actions, context = {}) {
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
   root.querySelectorAll("[data-play-mode]").forEach(button => button.addEventListener("click", () => actions.selectGame(button.dataset.playMode)));
+  root.querySelectorAll("[data-play-solo-mode]").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); actions.selectSoloGame(button.dataset.playSoloMode); }));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {

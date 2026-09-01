@@ -28,6 +28,10 @@ export const futureModeUnlocks = {
   klamca: "2026-10-10T20:00:00+02:00",
   "falszywa-wiadomosc": "2026-10-13T20:00:00+02:00",
   "tajna-zasada": "2026-10-16T20:00:00+02:00",
+  "pojedynek-hitow": "2026-10-19T20:00:00+02:00",
+  "bitwa-hitow": "2026-10-22T20:00:00+02:00",
+  "popularnosc-hitow": "2026-10-25T20:00:00+02:00",
+  "popularnosc-solo": "2026-10-25T20:00:00+02:00",
 };
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? futureModeUnlocks : {};
 

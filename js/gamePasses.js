@@ -4,6 +4,7 @@ const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
 
 export const GAMEPASS_DEFINITIONS = [
   { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:10000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
+  { id:"double-lucky-spin", icon:"🎡", name:"Podwójny spin", price:5000, scope:"ogólny", description:"Daje dwa darmowe spiny w każdym 24-godzinnym oknie Lucky Spin." },
   { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:10000, scope:"Impostor", maxLevel:5, upgradePrices:[4000,5000,6000,7000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
   { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:9000, scope:"Kim jestem?", description:"Raz na rundę pokazuje jedną literę własnego hasła za darmo." },
   { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwie szerokie, nieprecyzyjne podpowiedzi o twoim numerze w jednej grze." },

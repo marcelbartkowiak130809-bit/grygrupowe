@@ -27,7 +27,9 @@ import { ConnectEngine } from "./connect.js?v=20260831-3";
 import { LiarEngine } from "./liar.js?v=20260831-3";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-3";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-4";
-import { serverNow } from "./firebase.js?v=20260831-25";
+import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260901-2";
+import { PopularityEngine } from "./popularity.js?v=20260901-3";
+import { serverNow } from "./firebase.js?v=20260901-1";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
@@ -72,6 +74,15 @@ export function botActor(room) {
     if (["reviewExample", "reviewGuess"].includes(game.phase) && isBotId(game.reviewerUid)) return game.reviewerUid;
     if (game.phase === "guessing" && isBotId(game.guessUid)) return game.guessUid;
   }
+  if (room.gameMode === "pojedynek-hitow") {
+    if (game.phase === "selecting") return bots.find(uid => isMissing(game.submissions, uid)) || "";
+    if (game.phase === "voting") return bots.find(uid => isMissing(game.votes, uid)) || "";
+  }
+  if (room.gameMode === "bitwa-hitow") {
+    if (game.phase === "selecting") return bots.find(uid => game.duelists?.includes(uid) && isMissing(game.submissions, uid)) || "";
+    if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
+  }
+  if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isMissing(game.choices, uid)) || "";
   if (game.phase === "responses") {
     const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
     if (responder) return responder;
@@ -295,6 +306,9 @@ function timeoutMutation(room, game, bot) {
     case "klamca": return g => LiarEngine.timeout(g, settings);
     case "falszywa-wiadomosc": return g => FalseMessageEngine.timeout(g, settings);
     case "tajna-zasada": return g => SecretRuleEngine.timeout(g, settings);
+    case "pojedynek-hitow": return g => MusicDuelEngine.timeout(g, settings);
+    case "bitwa-hitow": return g => MusicArenaEngine.timeout(g, settings);
+    case "popularnosc-hitow": return g => PopularityEngine.timeout(g);
     default: return null;
   }
 }
@@ -482,6 +496,23 @@ export function botMutation(room) {
         if (game.phase === "reviewExample" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewExample(g, bot, Boolean(g.autoVerdict), settings);
         if (game.phase === "guessing" && game.guessUid === bot) return g => SecretRuleEngine.guess(g, bot, SecretRuleEngine.botGuess(g), settings);
         if (game.phase === "reviewGuess" && game.reviewerUid === bot) return g => SecretRuleEngine.reviewGuess(g, bot, Boolean(g.autoGuessCorrect), settings);
+        break;
+      case "pojedynek-hitow":
+        if (game.phase === "selecting" && isMissing(game.submissions, bot)) return g => MusicDuelEngine.select(g, bot, MusicDuelEngine.botTrack(g), settings);
+        if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
+          const targets = Object.keys(g.submissions || {}).filter(uid => g.submissions?.[uid]);
+          return targets.length ? MusicDuelEngine.vote(g, bot, targets[Math.floor(Math.random() * targets.length)]) : null;
+        };
+        break;
+      case "bitwa-hitow":
+        if (game.phase === "selecting" && game.duelists?.includes(bot) && isMissing(game.submissions, bot)) return g => MusicArenaEngine.select(g, bot, MusicArenaEngine.botTrack(g), settings);
+        if (game.phase === "voting" && !game.duelists?.includes(bot) && isMissing(game.votes, bot)) return g => {
+          const targets = (g.duelists || []).filter(uid => g.submissions?.[uid]);
+          return targets.length ? MusicArenaEngine.vote(g, bot, targets[Math.floor(Math.random() * targets.length)]) : null;
+        };
+        break;
+      case "popularnosc-hitow":
+        if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g));
         break;
       default: break;
     }

@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260831-1";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260901-3";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260831-2";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260831-26";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260825-1";
-import { gamesList, getGameMode } from "./games.js?v=20260831-3";
-import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260831-6";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260901-3";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260901-1";
+import { gamesList, getGameMode } from "./games.js?v=20260901-2";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-3";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260822-5";
@@ -34,20 +34,22 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-3";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-3";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-4";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260831-5";
-import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260831-6";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260822-1";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260901-2";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260901-3";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260901-3";
+import { renderPlatform, renderPokemonModes } from "./platform.js?v=20260901-2";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-2";
 import { Router } from "./router.js";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260831-4";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260831-4";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260901-3";
+import { renderShop, stopShopTimer } from "./shop.js?v=20260901-5";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260822-1";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260822-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260830-4";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260901-6";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260901-5";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20260831-26";
+import { loadPresenceUsers } from "./firebase.js?v=20260901-3";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260831-6";
-import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260805-2";
+import { scheduleBot } from "./botController.js?v=20260901-2";
+import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-9";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
@@ -56,7 +58,7 @@ import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncement
 import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260831-3";
 
 const root = $("#app");
-const APP_VERSION = "v4.2.0";
+const APP_VERSION = "v6.0.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -65,6 +67,7 @@ if (previousAppVersion !== APP_VERSION) {
   window.setTimeout(() => window.location.reload(), 0);
 }
 const THEME_STORAGE_KEY = "grygrupowe-theme";
+const POTION_INVENTORY_RESET_KEY = "grygrupowe-potion-inventory-reset-v2";
 function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
   document.documentElement.classList.toggle("light-theme", theme === "light");
   document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
@@ -78,8 +81,12 @@ function normalizePotionInventory(inventory) {
 }
 applyTheme();
 const accounts = loadAccounts();
-Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory=normalizePotionInventory(account.potionInventory);account.privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
+Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultNick:true,defaultFrame:true,noAura:true,defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedNickEffect ||= "defaultNick";account.selectedAvatarFrame ||= "defaultFrame";account.selectedAura ||= "noAura";account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory=normalizePotionInventory(account.potionInventory);account.privacy={historyPublic:true,statsPublic:true, friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
 Object.values(accounts).forEach(account => { account.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(account.honorCounts||{})}; });
+if (localStorage.getItem(POTION_INVENTORY_RESET_KEY) !== "1") {
+  Object.values(accounts).forEach(account => { account.potionInventory = {}; });
+  localStorage.setItem(POTION_INVENTORY_RESET_KEY, "1");
+}
 saveAccounts(accounts);
 const session=loadSession();
 const validModeIds = new Set(gamesList.map(mode => mode.id));
@@ -93,7 +100,7 @@ function readUrlRoute() {
   } catch { return { mode:"", room:"", invalidMode:false }; }
 }
 const initialUrlRoute = readUrlRoute();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats() };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"" };
 window.__globalStats = state.globalStats;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
@@ -160,71 +167,12 @@ const stableStringify = value => JSON.stringify(value, (key, item) => {
     return sorted;
   }, {});
 });
-function signatureGame(game, gameMode, players) {
-  if (!game) return null;
-  const copy = JSON.parse(JSON.stringify(game));
-  if (!copy.quickReactions || typeof copy.quickReactions !== "object" || Array.isArray(copy.quickReactions)) copy.quickReactions = {};
-  const objectField = key => { if (!copy[key] || typeof copy[key] !== "object" || Array.isArray(copy[key])) copy[key] = {}; };
-  const arrayField = key => { if (!Array.isArray(copy[key])) copy[key] = []; };
-  if (gameMode === "impostor") {
-    objectField("roles"); objectField("roleRequests"); objectField("rolePurchaseResults"); objectField("rolePurchaseRefunds"); objectField("rolePurchaseRefundsClaimed"); objectField("acknowledged"); objectField("reactions"); objectField("reactionCooldowns"); objectField("continueVotes"); objectField("votes");
-    arrayField("clues"); arrayField("chat");
-    copy.turnOrder = Array.isArray(copy.turnOrder) ? copy.turnOrder : [];
-    if (!copy.turnOrder.length) copy.turnOrder = players;
-  } else if (gameMode === "kim-jestem") {
-    arrayField("history"); objectField("responses"); objectField("scores"); objectField("words"); objectField("wordHistory"); objectField("extendVotes");
-    copy.order = Array.isArray(copy.order) ? copy.order : players;
-  } else if (gameMode === "inne-pytanie") {
-    objectField("answers"); objectField("votes"); objectField("scores"); arrayField("chat");
-  } else if (gameMode === "kto-najpredzej") {
-    objectField("submissions"); objectField("votes"); objectField("totals"); arrayField("questions"); arrayField("results");
-  } else if (gameMode === "test-znajomosci") {
-    objectField("answers"); objectField("guesses"); objectField("scores"); objectField("roundScores"); arrayField("answerOrder");
-  } else if (gameMode === "zatruty-cukierek") {
-    objectField("alive"); objectField("poisonChoices"); arrayField("candies"); arrayField("eliminated");
-    copy.order = Array.isArray(copy.order) ? copy.order : players;
-  } else if (gameMode === "bomba") {
-    objectField("scores"); arrayField("order"); arrayField("usedAnswers"); arrayField("answers"); arrayField("bombSkinPool");
-    if (!copy.order.length) copy.order = players;
-  } else if (gameMode === "najblizej-prawdy") {
-    objectField("answers"); objectField("scores"); objectField("roundScores"); arrayField("ranking"); arrayField("usedQuestions");
-  } else if (gameMode === "ranking") {
-    objectField("submissions"); objectField("scores"); objectField("roundScores"); arrayField("groupRanking"); arrayField("similarity"); arrayField("usedSets"); arrayField("baseOrder");
-  } else if (gameMode === "5-sekund") {
-    objectField("scores"); objectField("current"); arrayField("order"); arrayField("history");
-  } else if (gameMode === "zegar") {
-    objectField("stops"); objectField("scores"); arrayField("ranking");
-  } else if (gameMode === "word-chain") {
-    objectField("hearts"); arrayField("chain"); arrayField("used"); arrayField("eliminated"); arrayField("missedPlayers");
-  } else if (gameMode === "number-mystery") {
-    objectField("numbers"); objectField("guesses"); objectField("wrongGuesses"); objectField("privateHints"); objectField("purchaseUses"); arrayField("history");
-    copy.players = Array.isArray(copy.players) ? copy.players : players.slice(0, 2);
-  } else if (gameMode === "polacz-nas") {
-    objectField("answers"); objectField("votes"); objectField("scores"); objectField("roundResult"); arrayField("players"); arrayField("pair"); arrayField("usedPairs");
-    copy.players = Array.isArray(copy.players) ? copy.players : players;
-  }
-  if (gameMode === "klamca") {
-    objectField("answers"); objectField("votes"); objectField("scores"); objectField("roundResult"); objectField("liarCounts"); arrayField("players"); arrayField("usedQuestions"); arrayField("liarHistory");
-    copy.players = Array.isArray(copy.players) ? copy.players : players;
-  } else if (gameMode === "falszywa-wiadomosc") {
-    objectField("answers"); objectField("scores"); objectField("heroCounts"); objectField("roundResult"); arrayField("players"); arrayField("usedSituations"); arrayField("heroHistory");
-    copy.players = Array.isArray(copy.players) ? copy.players : players;
-  } else if (gameMode === "tajna-zasada") {
-    objectField("secretRules"); objectField("history"); objectField("guessBlocked"); objectField("guessCheckpoint"); objectField("scores");
-    copy.players = Array.isArray(copy.players) ? copy.players : players.slice(0, 2);
-  }
-  return copy;
-}
 function activeRoomSignature(room = activeRoom()) {
   if (!room) return "";
   const players = normalizedRoomPlayers(room);
-  const playerProfiles = Object.fromEntries(players.map(uid => {
-    const source = room.playerProfiles?.[uid] || state.accounts[uid] || {};
-    const normalized = publicProfile(source);
-    if (source.botDifficulty) normalized.botDifficulty = source.botDifficulty;
-    return [uid, normalized];
-  }));
-  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, hostUid:room.hostUid, players, playerProfiles, status:room.status, settings:room.settings, customWords:room.customWords, hostAnnouncement:room.hostAnnouncement, activity:room.activity, game:signatureGame(room.game, room.gameMode, players), pendingRewards:room.pendingRewards?.[state.currentUser] || 0, pendingXp:room.pendingXp?.[state.currentUser] || 0 });
+  const revision = Number(room.updatedAt || room.createdAt || 0);
+  if (revision) return [room.roomId, revision, room.status, room.gameMode, room.hostUid || "", players.join(","), room.pendingRewards?.[state.currentUser] || 0, room.pendingXp?.[state.currentUser] || 0].join("|");
+  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, hostUid:room.hostUid, players, status:room.status, settings:room.settings, game:room.game });
 }
 function roomSettingsOnlyChanged(previous, next) {
   if (!previous || !next || previous.roomId !== next.roomId || previous.status !== "lobby" || next.status !== "lobby") return false;
@@ -232,8 +180,8 @@ function roomSettingsOnlyChanged(previous, next) {
   return withoutSettings(previous) === withoutSettings(next) && stableStringify(previous.settings) !== stableStringify(next.settings);
 }
 function lobbySignature() {
-  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => ({ roomId:room.roomId, name:room.name, maxPlayers:room.maxPlayers, isPrivate:room.isPrivate, roomType:room.roomType, entryFee:room.entryFee, players:normalizedRoomPlayers(room), hostUid:room.hostUid, status:room.status, settings:room.settings }));
-  return stableStringify({ selectedGameMode:state.selectedGameMode, onlineBackend:state.onlineBackend, rooms });
+  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => [room.roomId, room.updatedAt || room.createdAt || 0, room.name, room.maxPlayers, room.isPrivate, room.roomType, room.entryFee, normalizedRoomPlayers(room).join(","), room.hostUid || ""].join("|"));
+  return `${state.selectedGameMode}|${state.onlineBackend}|${rooms.join(";")}`;
 }
 function currentScreenSignature() {
   if (["room","game"].includes(Router.current)) return activeRoomSignature();
@@ -242,7 +190,7 @@ function currentScreenSignature() {
   return "";
 }
 const accountByNick = nick => Object.entries(state.accounts).find(([, account]) => normalizeNick(account.nick) === normalizeNick(nick) && !account.nickOnly);
-const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), isBot:Boolean(player?.isBot), adultStatus:adultStatusFor(player), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(player?.honorCounts||{})}, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedBombSkin:player?.selectedBombSkin || "defaultBomb", selectedClockSkin:player?.selectedClockSkin || "defaultClock", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
+const publicProfile = player => ({ nick:player?.nick || "Gracz", avatarImage:player?.avatarImage || "", nickOnly:Boolean(player?.nickOnly), isBot:Boolean(player?.isBot), adultStatus:adultStatusFor(player), money:Number(player?.money)||0, sessionMoney:Number(player?.sessionMoney)||0, xp:Number(player?.xp)||0, sessionXp:Number(player?.sessionXp)||0, honorCounts:{nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(player?.honorCounts||{})}, selectedNickEffect:player?.selectedNickEffect || "defaultNick", selectedAvatarFrame:player?.selectedAvatarFrame || "defaultFrame", selectedAura:player?.selectedAura || "noAura", selectedCandySkin:player?.selectedCandySkin || "defaultCandy", selectedBombSkin:player?.selectedBombSkin || "defaultBomb", selectedClockSkin:player?.selectedClockSkin || "defaultClock", selectedMarkerSkin:player?.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:player?.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:player?.selectedIdleAnimation || "", selectedWinAnimation:player?.selectedWinAnimation || "", selectedLoseAnimation:player?.selectedLoseAnimation || "" });
 const directoryProfile = player => { const privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(player?.privacy||{})}, result={...publicProfile(player),privacy}; if(privacy.historyPublic)result.gameHistory=Array.isArray(player?.gameHistory)?player.gameHistory.slice(-50):[]; if(privacy.statsPublic){result.gameStats=player?.gameStats||{};result.stats=player?.stats||{};} if(privacy.friendsPublic)result.friends=Array.isArray(player?.friends)?player.friends:[]; return result; };
 const publicHonorTypes = [{id:"nicePlayer",emoji:"👍",label:"Miły gracz"},{id:"goodOpponent",emoji:"🧠",label:"Dobry przeciwnik"},{id:"greatHost",emoji:"🎉",label:"Świetny host"},{id:"notVerySmart",emoji:"🤦",label:"Niezbyt inteligentny",negative:true},{id:"poorSport",emoji:"🙄",label:"Uciążliwy gracz",negative:true}];
 function publicProfileContent(player = {}) {
@@ -261,7 +209,32 @@ function publicProfileModal(player, closeAction) {
   const close=()=>closeAction?.(backdrop); backdrop.querySelector("[data-close]").addEventListener("click",close); backdrop.addEventListener("click",event=>{if(event.target===backdrop)close();});
   return backdrop;
 }
-const normalizeRoomProfile = item => ({ ...item, nickOnly:Boolean(item?.nickOnly || (Number(item?.sessionXp || 0) > 0 && !Number(item?.xp || 0))), adultStatus:item?.adultStatus || "unknown", selectedBombSkin:item?.selectedBombSkin || "defaultBomb", selectedClockSkin:item?.selectedClockSkin || "defaultClock" });
+const normalizeRoomProfile = item => ({ ...item, nickOnly:Boolean(item?.nickOnly || (Number(item?.sessionXp || 0) > 0 && !Number(item?.xp || 0))), adultStatus:item?.adultStatus || "unknown", selectedNickEffect:item?.selectedNickEffect || "defaultNick", selectedAvatarFrame:item?.selectedAvatarFrame || "defaultFrame", selectedAura:item?.selectedAura || "noAura", selectedCandySkin:item?.selectedCandySkin || "defaultCandy", selectedBombSkin:item?.selectedBombSkin || "defaultBomb", selectedClockSkin:item?.selectedClockSkin || "defaultClock", selectedMarkerSkin:item?.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:item?.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:item?.selectedIdleAnimation || "", selectedWinAnimation:item?.selectedWinAnimation || "", selectedLoseAnimation:item?.selectedLoseAnimation || "" });
+const remoteRoomProfileSignatures = new Map();
+function roomProfileSignature(player = {}) {
+  return JSON.stringify([
+    player.nick || "", player.avatarImage || "", Boolean(player.nickOnly), player.adultStatus || "unknown",
+    Number(player.money) || 0, Number(player.sessionMoney) || 0, Number(player.xp) || 0, Number(player.sessionXp) || 0,
+    player.selectedNickEffect || "", player.selectedAvatarFrame || "", player.selectedAura || "",
+    player.selectedCandySkin || "defaultCandy", player.selectedBombSkin || "defaultBomb", player.selectedClockSkin || "defaultClock", player.selectedMarkerSkin || "defaultMarker", player.selectedSequenceSkin || "defaultSequence",
+    player.selectedIdleAnimation || "", player.selectedWinAnimation || "", player.selectedLoseAnimation || "",
+    player.isBot ? true : false, player.botDifficulty || "",
+  ]);
+}
+function mergeRemoteRoomProfiles(room) {
+  let changed = false;
+  if (!room || !room.playerProfiles || typeof room.playerProfiles !== "object") room.playerProfiles = {};
+  Object.entries(room?.playerProfiles || {}).forEach(([id, item]) => {
+    const clean = normalizeRoomProfile(item), signature = roomProfileSignature(clean);
+    room.playerProfiles[id] = clean;
+    if (remoteRoomProfileSignatures.get(id) === signature && state.accounts[id]) return;
+    const previous = state.accounts[id] || {};
+    state.accounts[id] = id === state.currentUser ? { ...clean, ...previous } : { ...previous, ...clean };
+    remoteRoomProfileSignatures.set(id, signature);
+    changed = true;
+  });
+  return changed;
+}
 const persistSession=()=>saveSession({currentUser:state.currentUser,activeRoomId:state.activeRoomId,selectedGameMode:state.selectedGameMode,quizVariant:state.quizVariant});
 let restoredRoom=false;
 const pendingRoomSyncs=new Map();
@@ -336,13 +309,14 @@ function connectOnlineCount() {
   stopOnlineSubscription();
   stopOnlineSubscription=subscribeOnlineCount(count=>{state.onlineCount=Math.max(1,Number(count)||1);updateOnlineCountPill();trackSiteEvent({type:"onlinePeak",eventId:`online:${Math.floor(Date.now()/30000)}:${state.currentUser||"guest"}`,value:state.onlineCount});});
   stopGlobalStatsSubscription();
-  stopGlobalStatsSubscription=subscribeSiteStats(stats=>{state.globalStats={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}};window.__globalStats=state.globalStats;if(Router.current==="platform")render({preserveDrafts:true});});
+  stopGlobalStatsSubscription=subscribeSiteStats(stats=>{const next={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}},signature=stableStringify(next);if(signature===state.globalStatsSignature)return;state.globalStats=next;state.globalStatsSignature=signature;window.__globalStats=state.globalStats;if(Router.current==="platform")render({preserveDrafts:true});});
 }
 function updateConnectionStatus() {
   const node = document.querySelector("[data-connection-status]");
   if (!node) return;
   const key = !state.networkOnline ? "offline" : state.onlineBackend === null ? "connecting" : state.onlineBackend ? (state.syncStatus === "error" ? "error" : state.syncStatus === "syncing" ? "syncing" : "online") : "local";
   const labels = { online:"Online", syncing:"Synchronizacja…", error:"Problem z zapisem", connecting:"Łączenie…", local:"Tryb lokalny", offline:"Brak internetu" };
+  if (node.dataset.connectionStatus === key) return;
   node.className = `connection-status-pill connection-status-${key}`;
   node.dataset.connectionStatus = key;
   node.innerHTML = `<i></i><span>${labels[key]}</span>`;
@@ -359,6 +333,7 @@ function updateOnlineCountPill() {
   const pill=document.querySelector(".online-count-pill");
   if(!pill)return;
   const label=onlineCountLabel();
+  if (pill.dataset.count === String(state.onlineCount) && pill.dataset.tooltip === label) return;
   pill.dataset.count=String(state.onlineCount);
   pill.dataset.tooltip=label;
   pill.innerHTML=`<i></i><b>${state.onlineCount}</b> online`;
@@ -379,6 +354,13 @@ function restoreFirebaseSession() {
   if(!state.currentUser)return true;
   if(moveCurrentProfile(getFirebaseSession()))return true;
   state.currentUser=null;state.activeRoomId=null;clearSession();return false;
+}
+async function recoverMissingRemoteProfile(remoteState = null) {
+  const user = profile();
+  if (!user || user.nickOnly || !hasOnlineBackend()) return false;
+  const result = remoteState || await loadRemoteProfileState(state.currentUser);
+  if (!result.ok || !result.missing || result.profile) return false;
+  return syncPlayerProfile(state.currentUser, user);
 }
 function ensureRoomSession() {
   if(!hasOnlineBackend()){message("Brak połączenia z serwerem online. Odśwież stronę.");return false;}
@@ -442,8 +424,8 @@ function touchRoom(room) { room.updatedAt = Math.max(serverNow(),Number(room.upd
 function installRemoteRoom(room) {
   const index=state.rooms.findIndex(item=>item.roomId===room.roomId);
   if(index>=0)state.rooms[index]=room;else state.rooms.unshift(room);
-  Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{const clean=normalizeRoomProfile(item);room.playerProfiles[id]=clean;state.accounts[id]=id===state.currentUser?{...clean,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...clean};});
-  saveAccounts(state.accounts);return room;
+  if (mergeRemoteRoomProfiles(room)) saveAccounts(state.accounts);
+  return room;
 }
 async function resolveRoomForJoin(code) {
   const room = state.rooms.find(item => item.roomId === code);
@@ -685,13 +667,13 @@ function settleQuizResult(room) {
   room.players.forEach(uid=>addPlayerMoney(uid,25+Number(scores[uid]||0)*5+(winners.includes(uid)?40:0))); if(room.game.variant==="competitive"){const leaderboard=JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}");winners.forEach(uid=>{const nick=state.accounts[uid]?.nick||uid;leaderboard[nick]=(Number(leaderboard[nick])||0)+1;});localStorage.setItem("quizCompetitiveLeaderboard",JSON.stringify(leaderboard));} rewardRoomXp(room,30,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
 }
 function settleAdditionalModeResult(room) {
-  const supported = new Set(["marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada"]);
+  const supported = new Set(["marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow"]);
   if (!room?.game || !supported.has(room.gameMode) || !["result", "gameSummary"].includes(room.game.phase) || !room.game.finished || room.game.rewarded) return;
   const scores = room.game.scores && typeof room.game.scores === "object" ? room.game.scores : {};
   const max = Math.max(0, ...room.players.map(uid => Number(scores[uid] || 0)));
   const winners = room.game.winner ? [room.game.winner] : room.players.filter(uid => max > 0 && Number(scores[uid] || 0) === max);
-  const coinBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45, "tajna-zasada":45 }[room.gameMode] || 35;
-  const xpBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45, "tajna-zasada":45 }[room.gameMode] || 35;
+  const coinBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45, "tajna-zasada":45, "pojedynek-hitow":45, "bitwa-hitow":55, "popularnosc-hitow":50 }[room.gameMode] || 35;
+  const xpBase = { marker:35, sequence:40, family:45, "word-chain":40, "number-mystery":45, "unique-answer":45, "polacz-nas":45, klamca:45, "falszywa-wiadomosc":45, "tajna-zasada":45, "pojedynek-hitow":45, "bitwa-hitow":55, "popularnosc-hitow":50 }[room.gameMode] || 35;
   room.players.forEach(uid => addPlayerMoney(uid, coinBase + Number(scores[uid] || 0) * 5 + (winners.includes(uid) ? 45 : 0)));
   rewardRoomXp(room, xpBase, winners); playCurrentUserResultSound(winners);
   room.game.rewarded = true; room.status = "results"; saveAccounts(state.accounts); touchRoom(room); Audio.play("roundEnd");
@@ -1354,6 +1336,99 @@ function repairGameStateForPlayers(room) {
     if (game.phase === "rules" && game.players.every(uid => String(game.secretRules[uid] || "").trim())) { game.phase = "turn"; game.turnUid = game.players[0] || ""; game.phaseEndsAt = 0; changed = true; }
     if (!Number.isFinite(Number(game.phaseEndsAt)) && game.phase !== "turn" && game.phase !== "result") { game.phaseEndsAt = Date.now() + sanitizeSecretRuleSettings(room.settings).reviewTime * 1000; changed = true; }
   }
+  if (room.gameMode === "pojedynek-hitow") {
+    const order = keepPlayers(game.players).slice(0, 8);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    ["submissions", "votes"].forEach(key => {
+      if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; }
+      Object.keys(game[key]).forEach(uid => { if (!players.includes(uid)) { delete game[key][uid]; changed = true; } });
+    });
+    const beforeScores = JSON.stringify(game.scores);
+    game.scores = ensureScoreObject(game.scores, order, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!Array.isArray(game.usedTracks)) { game.usedTracks = []; changed = true; }
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = Math.max(1, Math.min(20, Number(room.settings?.rounds) || 5)); changed = true; }
+    const selectionTime = Math.max(10, Number(room.settings?.selectionTime ?? room.settings?.answerTime) || 30);
+    const votingTime = Math.max(10, Number(room.settings?.votingTime) || 25);
+    if (game.phase === "selecting" && order.length && order.every(uid => uid in game.submissions)) { game.phase = "voting"; game.votes = {}; game.phaseEndsAt = Date.now() + votingTime * 1000; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + (game.phase === "voting" ? votingTime : selectionTime) * 1000; changed = true; }
+  }
+  if (room.gameMode === "bitwa-hitow") {
+    const order = keepPlayers(game.players).slice(0, 100);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    ["submissions", "votes", "selectionWeights"].forEach(key => {
+      if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; }
+      Object.keys(game[key]).forEach(uid => { if (!players.includes(uid)) { delete game[key][uid]; changed = true; } });
+    });
+    const beforeScores = JSON.stringify(game.scores), beforeWins = JSON.stringify(game.wins);
+    game.scores = ensureScoreObject(game.scores, order, 0); game.wins = ensureScoreObject(game.wins, order, 0);
+    if (JSON.stringify(game.scores) !== beforeScores || JSON.stringify(game.wins) !== beforeWins) changed = true;
+    order.forEach(uid => { if (!Number.isFinite(Number(game.selectionWeights[uid]))) { game.selectionWeights[uid] = 1; changed = true; } });
+    if (!Array.isArray(game.duelists)) { game.duelists = []; changed = true; }
+    const duelists = game.duelists.filter(uid => order.includes(uid)).slice(0, 2);
+    if (duelists.length !== game.duelists.length) { game.duelists = duelists; changed = true; }
+    if (game.duelists.length < 2 && order.length >= 2 && ["selecting", "voting", "roundResult"].includes(game.phase)) {
+      const replacement = [...game.duelists];
+      order.forEach(uid => { if (replacement.length < 2 && !replacement.includes(uid)) replacement.push(uid); });
+      if (JSON.stringify(replacement) !== JSON.stringify(game.duelists)) { game.duelists = replacement; changed = true; }
+    }
+    if (!Array.isArray(game.usedTracks)) { game.usedTracks = []; changed = true; }
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = Math.max(1, Math.min(100, Number(room.settings?.rounds) || 10)); changed = true; }
+    const selectionTime = Math.max(10, Number(room.settings?.selectionTime ?? room.settings?.answerTime) || 30);
+    const votingTime = Math.max(10, Number(room.settings?.votingTime) || 25);
+    if (game.phase === "selecting" && game.duelists.length === 2 && game.duelists.every(uid => uid in game.submissions)) { game.phase = "voting"; game.votes = {}; game.phaseEndsAt = Date.now() + votingTime * 1000; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + (game.phase === "voting" ? votingTime : selectionTime) * 1000; changed = true; }
+  }
+  if (room.gameMode === "popularnosc-hitow") {
+    let order = keepPlayers(game.players).slice(0, 8);
+    if (!order.length) order = players.slice(0, 8);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    const knownTrackIds = new Set(popularityTracks.map(track => track.id));
+    const pair = Array.isArray(game.pair) ? game.pair.slice(0, 2) : [];
+    const pairIds = pair.map(track => track?.id);
+    const pairIsValid = pair.length === 2
+      && new Set(pairIds).size === 2
+      && pair.every(track => knownTrackIds.has(track?.id) && String(track?.title || "").trim() && String(track?.artist || "").trim());
+    if (!pairIsValid) {
+      game.pair = popularityTracks.slice(0, 2).map(track => ({ id:track.id, title:track.title, artist:track.artist, views:track.views, listeners:track.listeners }));
+      changed = true;
+    }
+    const validChoices = new Set(["left", "right"]);
+    ["choices", "scores"].forEach(key => {
+      if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; }
+      Object.keys(game[key]).forEach(uid => {
+        if (!order.includes(uid) || (key === "choices" && game[key][uid] != null && !validChoices.has(game[key][uid]))) {
+          delete game[key][uid];
+          changed = true;
+        }
+      });
+    });
+    const beforeScores = JSON.stringify(game.scores);
+    game.scores = ensureScoreObject(game.scores, order, 0);
+    order.forEach(uid => {
+      const score = Math.max(0, Math.floor(Number(game.scores[uid]) || 0));
+      if (game.scores[uid] !== score) { game.scores[uid] = score; changed = true; }
+    });
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    const currentPairIds = game.pair.map(track => track.id);
+    const usedIds = Array.isArray(game.usedIds) ? game.usedIds.filter(id => knownTrackIds.has(id)) : [];
+    const normalizedUsedIds = [...new Set([...usedIds, ...currentPairIds])].slice(-popularityTracks.length);
+    if (JSON.stringify(normalizedUsedIds) !== JSON.stringify(game.usedIds)) { game.usedIds = normalizedUsedIds; changed = true; }
+    game.metric = game.metric === "listeners" ? "listeners" : "views";
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = sanitizePopularitySettings(room.settings).rounds; changed = true; }
+    const validPhases = new Set(["choosing", "roundResult", "gameSummary"]);
+    if (!validPhases.has(game.phase)) { game.phase = "choosing"; game.roundResult = null; game.phaseEndsAt = Date.now() + sanitizePopularitySettings(room.settings).choiceTime * 1000; changed = true; }
+    if (game.roundResult && typeof game.roundResult === "object") {
+      const resultChoices = game.roundResult.choices && typeof game.roundResult.choices === "object" ? game.roundResult.choices : {};
+      Object.keys(resultChoices).forEach(uid => { if (!order.includes(uid) || !validChoices.has(resultChoices[uid])) delete resultChoices[uid]; });
+      game.roundResult.choices = resultChoices;
+    }
+    if (game.phase === "choosing" && order.length && order.every(uid => uid in game.choices)) { PopularityEngine.timeout(game); changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + sanitizePopularitySettings({ ...room.settings, metric:game.metric }).choiceTime * 1000; changed = true; }
+  }
   if (room.gameMode === "family") {
     const order = keepPlayers(game.players);
     if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
@@ -1638,6 +1713,11 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(await guardBan(gameMode))return;
     Router.go("lobby");
   },
+  selectSoloGame(gameMode = "popularnosc-solo") {
+    const mode = getGameMode(gameMode);
+    if (isModeLocked(mode.id)) return message(lockedModeMessage(mode), "info");
+    state.selectedGameMode = mode.id; persistSession(); setModeUrl(mode.id); Router.go("solo");
+  },
   chooseQuizVariant(variant){state.quizVariant=variant==="competitive"?"competitive":"casual";state.selectedGameMode="quiz";session.quizVariant=state.quizVariant;persistSession();if(state.quizVariant==="competitive")return actions.findQuizMatch();Router.go("lobby");},
   async findQuizMatch(){if(!profile())return actions.openAuth({title:"Zaloguj się, aby zagrać w Quiz"});state.selectedGameMode="quiz";const room=state.rooms.find(item=>item.gameMode==="quiz"&&item.status==="lobby"&&item.settings?.quizVariant==="competitive"&&(item.players?.length||0)<4);if(room)return actions.joinRoom(room.roomId);return actions.createRoom({name:"Quiz · Rywalizacja",isPrivate:false,password:"",settings:{...getGameMode("quiz").defaultSettings,quizVariant:"competitive"}});},
   confirmAdultSolo(onConfirm) { return withAdultWarning(getGameMode("co-wolisz"), onConfirm, true); },
@@ -1693,7 +1773,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (!backendUnavailable) return remote;
     const local = drawLocalLuckySpin(profile(), serverNow());
     if (!local.ok) return local;
-    const claim = await claimLuckySpinDatabase(state.currentUser, { claimId:uid("spin"), lastSpinAt:local.profile.luckySpin.lastSpinAt, nextSpinAt:local.nextSpinAt, reward:local.reward });
+    const claim = await claimLuckySpinDatabase(state.currentUser, { claimId:uid("spin"), lastSpinAt:local.profile.luckySpin.lastSpinAt, windowStartedAt:local.profile.luckySpin.windowStartedAt, nextSpinAt:local.nextSpinAt, spinsUsed:local.spinsUsed, spinLimit:local.spinLimit, reward:local.reward });
     if (claim?.ok === false) return claim;
     // Keep the server profile in sync before the freshly won potion can be
     // consumed from the equipment modal.
@@ -1704,8 +1784,18 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   openEquipment() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
-    const modal = equipmentModal(profile(), actions.closeModal, itemId => actions.usePotion(itemId));
+    const renderEquipment = account => equipmentModal(account, actions.closeModal, itemId => actions.usePotion(itemId));
+    const modal = renderEquipment(profile());
     document.body.append(modal); Audio.play("wardrobeOpen");
+    if (hasOnlineBackend() && !profile()?.nickOnly) {
+      loadRemoteProfile(state.currentUser).then(remote => {
+        if (!remote || !modal.isConnected) return;
+        const freshProfile = { ...state.accounts[state.currentUser], ...remote, potionInventory:normalizePotionInventory(remote.potionInventory) };
+        state.accounts[state.currentUser] = freshProfile;
+        saveAccounts(state.accounts);
+        modal.replaceWith(renderEquipment(freshProfile));
+      }).catch(() => {});
+    }
   },
   openHonor(room = activeRoom()) {
     if (!room || !state.currentUser || !(room.players || []).includes(state.currentUser)) return false;
@@ -1787,7 +1877,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       }
     }
     if (result?.ok && result.profile) {
-      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, updatedAt:Date.now() };
+      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, potionInventory:normalizePotionInventory(result.profile.potionInventory), updatedAt:Date.now() };
       saveAccounts(state.accounts); render({ preserveDrafts:true });
       message(result.message || "Potka została użyta.", "info");
     } else if (!result?.ok) message(result?.error || "Nie udało się użyć potki. Spróbuj ponownie.");
@@ -1830,7 +1920,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId), isNewAccount=!remote&&!existing;
       if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }
-       state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultCandy:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].gamePasses={...(state.accounts[accountId].gamePasses||{})}; state.accounts[accountId].potionInventory=remote ? normalizePotionInventory(remote.potionInventory) : normalizePotionInventory(state.accounts[accountId].potionInventory); state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
+       state.accounts[accountId] = { ...defaultAccount(clean,password,auth,birthDate), ...(existing||{}), ...(remote||{}), birthDate:remote?.birthDate || existing?.birthDate || birthDate, inbox:Array.isArray(remote?.inbox)?remote.inbox:(Array.isArray(existing?.inbox)?existing.inbox:[]), passwordHash:hashRoomPassword(`account:${password}`) }; state.accounts[accountId].ownedCosmetics={defaultNick:true,defaultFrame:true,noAura:true,defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(state.accounts[accountId].ownedCosmetics||{})}; state.accounts[accountId].gamePasses={...(state.accounts[accountId].gamePasses||{})}; state.accounts[accountId].potionInventory=remote ? normalizePotionInventory(remote.potionInventory) : normalizePotionInventory(state.accounts[accountId].potionInventory); state.accounts[accountId].privacy={historyPublic:true,statsPublic:true,friendsPublic:true,...(state.accounts[accountId].privacy||{})}; state.accounts[accountId].gameHistory=Array.isArray(state.accounts[accountId].gameHistory)?state.accounts[accountId].gameHistory:[]; state.accounts[accountId].selectedNickEffect ||= "defaultNick"; state.accounts[accountId].selectedAvatarFrame ||= "defaultFrame"; state.accounts[accountId].selectedAura ||= "noAura"; state.accounts[accountId].selectedCandySkin ||= "defaultCandy"; state.accounts[accountId].selectedBombSkin ||= "defaultBomb"; state.accounts[accountId].selectedClockSkin ||= "defaultClock"; state.accounts[accountId].selectedMarkerSkin ||= "defaultMarker"; state.accounts[accountId].selectedSequenceSkin ||= "defaultSequence"; state.accounts[accountId].selectedIdleAnimation ||= ""; state.accounts[accountId].selectedWinAnimation ||= ""; state.accounts[accountId].selectedLoseAnimation ||= ""; state.accounts[accountId].adultStatus=adultStatusFor(state.accounts[accountId]); delete state.accounts[accountId].password;
       if(isNewAccount) trackSiteEvent({ type:"userRegistered", eventId:`user:${accountId}` });
       const ban = await activeBanFor(state.accounts[accountId]);
       if(ban){message(`Konto jest zbanowane. Powód: ${ban.reason || "brak"}`);return false;}
@@ -2012,7 +2102,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); animateHostSettingChange(value);
   },
-  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);if(room.gameMode==="falszywa-wiadomosc")room.settings=sanitizeFalseMessageSettings(room.settings);touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},
+  setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds","selectionTime","votingTime","choiceTime"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);if(room.gameMode==="falszywa-wiadomosc")room.settings=sanitizeFalseMessageSettings(room.settings);if(room.gameMode==="popularnosc-hitow")room.settings={...room.settings,...sanitizePopularitySettings(room.settings)};touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},
   setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);if(addingAdult&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wlaczyc kategorii 18+.", "info");const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:next.some(item=>String(item).startsWith("18+"))};touchRoom(room);animateHostSettingChange(true);};if(addingAdult)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   setBombCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="bomba")return;room.settings=sanitizeBombSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
   setClosestTruthCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="najblizej-prawdy")return;room.settings=sanitizeClosestTruthSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
@@ -2031,7 +2121,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.players = players;
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
     room.status = "playing"; room.everStarted = true; addRoomActivity(room, "Host rozpoczął grę."); room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):room.settings;
-    room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : {};
+    room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
@@ -2252,6 +2342,22 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   falseMessageAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";return FalseMessageEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
   falseMessageEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";if(room.settings?.gamePassesEnabled===false||!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return FalseMessageEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   falseMessageChoose(answerUid, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas wyboru już minął.";return FalseMessageEngine.choose(game,state.currentUser,answerUid);},{sound:"choice"});},
+  musicSearchTracks(query){return searchMusicTracks(query);},
+  musicDuelSelect(track, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór utworu już minął.";return MusicDuelEngine.select(game,state.currentUser,track,room.settings);},{sound:"submit"});},
+  musicDuelVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return MusicDuelEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
+  musicDuelTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="pojedynek-hitow")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";MusicDuelEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
+  musicDuelNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=MusicDuelEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
+  musicArenaSelect(track, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór utworu już minął.";return MusicArenaEngine.select(game,state.currentUser,track,room.settings);},{sound:"submit"});},
+  musicArenaVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return MusicArenaEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
+  musicArenaTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bitwa-hitow")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";MusicArenaEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
+  musicArenaNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=MusicArenaEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
+  popularityChoose(side, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór już minął.";return PopularityEngine.choose(game,state.currentUser,side);},{sound:"choice"});},
+  popularityTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="popularnosc-hitow")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";PopularityEngine.timeout(game);},{sound:"roundEnd"});},
+  popularityNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=PopularityEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
+  popularitySoloStart(metric="views"){PopularitySoloEngine.start(state.currentUser||"guest",metric);render({forceEnter:true});},
+  popularitySoloStop(){PopularitySoloEngine.stop(state.currentUser||"guest");render({forceEnter:true});},
+  popularitySoloMetric(metric){PopularitySoloEngine.setMetric(state.currentUser||"guest",metric);render({preserveDrafts:true});},
+  popularitySoloChoose(side){PopularitySoloEngine.choose(state.currentUser||"guest",side);Effects.play("choice");render({forceEnter:true});},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
   randomSecretRuleCategory(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="tajna-zasada")return;room.settings={...room.settings,category:secretRuleCategories[Math.floor(Math.random()*secretRuleCategories.length)]};touchRoom(room);animateHostSettingChange(room.settings.category);render({preserveDrafts:true});},
@@ -2310,7 +2416,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
-const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext"];
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext", "musicDuelNext", "musicArenaNext", "popularityNext"];
 hostOnlyRoundActions.forEach(actionName => {
   const original = actions[actionName];
   if (!original) return;
@@ -2498,6 +2604,9 @@ const roundAdvanceControls = {
   "test-znajomosci": { selector: "#friend-round-next", action: "friendshipRoundNext" },
   "zatruty-cukierek": { selector: "#candy-next-round", action: "poisonCandyNextRound", delay: 15000 },
   "unique-answer": { selector: "#unique-answer-next", action: "uniqueAnswerNext", delay: 8000 },
+  "pojedynek-hitow": { selector: "#music-duel-next", action: "musicDuelNext", delay: 7000 },
+  "bitwa-hitow": { selector: "#music-arena-next", action: "musicArenaNext", delay: 7000 },
+  "popularnosc-hitow": { selector: "#popularity-next", action: "popularityNext", delay: 7000 },
 };
 
 function roundAdvanceControl(room) {
@@ -2536,7 +2645,7 @@ function setupRoundAdvance(view, room, actions) {
     return left;
   };
   update();
-  roundAdvanceInterval = window.setInterval(update, 250);
+  roundAdvanceInterval = window.setInterval(update, 1000);
   roundAdvanceTimer = window.setTimeout(() => {
     window.clearInterval(roundAdvanceInterval);
     if (isHost && activeRoom()?.roomId === room.roomId && activeRoom()?.game?.phase === game.phase) actions[config.action]();
@@ -2556,7 +2665,7 @@ function renderNow(options = {}) {
   window.__activityStats=activityStats();
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
-  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopFamilyTimer(); stopWordChainTimer(); stopSequenceTimer(); stopMarkerTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer();
+  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopPopularityTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
@@ -2574,7 +2683,7 @@ function renderNow(options = {}) {
   if(screen!=="game") identityVoiceChat.stop();
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(renderWouldYouRather(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") return finish(state.selectedGameMode === "popularnosc-solo" ? renderPopularitySolo(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser},actions) : renderWouldYouRather(view,{profile:profile(),playerId:getFirebaseSession()?.uid||state.currentUser},actions)); if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {
@@ -2665,12 +2774,16 @@ function connectRooms(){
     const requestedRoomId=state.activeRoomId;
     const keepLocal=source!=="remote"?state.rooms:state.rooms.filter(room=>pendingRoomSyncs.has(room.roomId));
     const rooms=new Map(keepLocal.map(room=>[room.roomId,room]));
+    const currentRooms=new Map(state.rooms.map(room=>[room.roomId,room]));
+    let profilesChanged=false;
     remoteRooms.forEach(remote=>{
-      const local=state.rooms.find(room=>room.roomId===remote.roomId),pending=pendingRoomSyncs.has(remote.roomId),keepPendingLocal=local&&pending&&Number(local.updatedAt||0)>Number(remote.updatedAt||0),room=keepPendingLocal?local:remote;
+      const local=currentRooms.get(remote.roomId),pending=pendingRoomSyncs.has(remote.roomId),keepPendingLocal=local&&pending&&Number(local.updatedAt||0)>Number(remote.updatedAt||0),room=keepPendingLocal?local:remote;
       rooms.set(room.roomId,room);
-      Object.entries(room.playerProfiles||{}).forEach(([id,item])=>{const clean=normalizeRoomProfile(item);room.playerProfiles[id]=clean;state.accounts[id]=id===state.currentUser?{...clean,...(state.accounts[id]||{})}:{...(state.accounts[id]||{}),...clean};});
+      if (!keepPendingLocal) profilesChanged = mergeRemoteRoomProfiles(room) || profilesChanged;
     });
-    state.rooms=[...rooms.values()];saveAccounts(state.accounts); ensureRoomPresence(state.rooms.find(item=>item.roomId===state.activeRoomId));
+    state.rooms=[...rooms.values()];
+    if (profilesChanged) saveAccounts(state.accounts);
+    ensureRoomPresence(state.rooms.find(item=>item.roomId===state.activeRoomId));
     state.rooms.filter(room=>room.players.includes(state.currentUser)&&duoRoomHasGonePlayer(room)).forEach(room=>removeRemoteRoom(room.roomId));
     const room=activeRoom();
     if(room&&source==="remote"&&leaveKickedRoom(room))return;
@@ -2695,7 +2808,15 @@ function connectRooms(){
     if(profile())message("Serwer odrzucil dostep do pokoi. Zaloguj sie ponownie.");
     if(["lobby","room","game"].includes(Router.current))render();
   });
-  activeRoomPollTimer=setInterval(async()=>{const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;const playersChanged=JSON.stringify(remote.room.players)!==JSON.stringify(local.players);if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature){if(Router.current === "room" && roomSettingsOnlyChanged(local,remote.room) && refreshRoomSettings(root,{room:remote.room,currentUser:state.currentUser},actions)){lastRenderedScreenSignature=currentScreenSignature();return;}render({preserveDrafts:true});}}},2000);
+  activeRoomPollTimer=setInterval(async()=>{
+    // Przy działającym onValue Firebase polling dubluje każde zapytanie i cały
+    // odczyt pokoju. Zostaw je tylko jako awaryjną synchronizację trybu lokalnego.
+    if (state.onlineBackend === true) return;
+    const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;
+    const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;
+    const playersChanged=remote.room.players.length!==local.players.length||remote.room.players.some((uid,index)=>uid!==local.players[index]);
+    if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature){if(Router.current === "room" && roomSettingsOnlyChanged(local,remote.room) && refreshRoomSettings(root,{room:remote.room,currentUser:state.currentUser},actions)){lastRenderedScreenSignature=currentScreenSignature();return;}render({preserveDrafts:true});}}
+  },5000);
 }
 async function checkFriendNotifications(bucket = null) {
   const user=profile(); if(!user)return;
@@ -2703,7 +2824,7 @@ async function checkFriendNotifications(bucket = null) {
   checkFriendNotifications.running = true;
   try {
   const local=loadAccounts(); if(local[state.currentUser])state.accounts[state.currentUser]={...state.accounts[state.currentUser],...local[state.currentUser]};
-  const remote=await loadRemoteProfile(state.currentUser); if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,potionInventory:normalizePotionInventory(remote.potionInventory),friendRequests:currentFriendRequests||remote.friendRequests};}
+  const remoteState=await loadRemoteProfileState(state.currentUser), remote=remoteState.profile; if(remote){const currentFriendRequests=state.accounts[state.currentUser]?.friendRequests;state.accounts[state.currentUser]={...state.accounts[state.currentUser],...remote,potionInventory:normalizePotionInventory(remote.potionInventory),friendRequests:currentFriendRequests||remote.friendRequests};}else await recoverMissingRemoteProfile(remoteState);
   const syncedHonor=await loadHonorCounts(state.currentUser); if(syncedHonor){const account=state.accounts[state.currentUser];const current=account?.honorCounts||{};account.honorCounts=Object.fromEntries(Object.keys(syncedHonor).map(type=>[type,Math.max(Number(current[type])||0,Number(syncedHonor[type])||0)]));saveAccounts(state.accounts);}
   const remoteRequests=bucket || await loadFriendRequestBucket(state.currentUser), account=profile(), requests=friendRequests(account);
   const previousIncomingSignature=JSON.stringify(Object.keys(requests.incoming).sort());
@@ -2770,4 +2891,4 @@ Audio.init(); Audio.bindGlobalUI(); Router.init(render);
 window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const appScreen=Router.appScreenFromPath(window.location.pathname);if(appScreen)return Router.go(appScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
 window.addEventListener("online", () => { state.networkOnline = true; state.syncStatus = "idle"; updateConnectionStatus(); if (state.currentUser) connectRooms(); });
 window.addEventListener("offline", () => { state.networkOnline = false; updateConnectionStatus(); });
-initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else restoreFirebaseSession();refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();updateConnectionStatus();const routed=routeFromUrlIfNeeded();if((!routed&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))||Router.current==="solo")render();}); render();
+initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else { restoreFirebaseSession(); recoverMissingRemoteProfile().catch(()=>{}); }refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();updateConnectionStatus();const routed=routeFromUrlIfNeeded();if((!routed&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))||Router.current==="solo")render();}); render();

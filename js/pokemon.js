@@ -1,6 +1,6 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { hasGamePass } from "./gamePasses.js?v=20260831-6";
+import { hasGamePass } from "./gamePasses.js?v=20260901-9";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -328,7 +328,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   root.querySelector(".pokemon-bid-form")?.addEventListener("submit", event => { event.preventDefault(); actions.pokemonBid(root.querySelector("#pokemon-bid").value, expected); });
   root.querySelector("#pokemon-pass")?.addEventListener("click", () => actions.pokemonPass(expected));
   root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound);
-  window.clearTimeout(renderPokemonGame.timer); window.clearInterval(renderPokemonGame.countdown); renderPokemonGame.countdown = window.setInterval(() => { const timer = root.querySelector("[data-pokemon-countdown]"); if (timer) timer.textContent = `${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s`; }, 250); renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - Date.now() + 50));
+  window.clearTimeout(renderPokemonGame.timer); window.clearInterval(renderPokemonGame.countdown); renderPokemonGame.countdown = window.setInterval(() => { const timer = root.querySelector("[data-pokemon-countdown]"); if (timer) timer.textContent = `${Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000))}s`; }, 1000); renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - Date.now() + 50));
 }
 
 export function renderPokemonLobbySettings(room, isHost) {

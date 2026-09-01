@@ -3,7 +3,7 @@ import { escapeHtml } from "./utils.js?v=20260822-1";
 export const sequenceDefaults={sequenceLength:5,hardMode:false,sequenceSkin:"defaultSequence"};
 const baseColors=["yellow","red","orange","green","blue","purple"],hardColors=["black","white","gold","silver"];
 const colorMeta={yellow:["ŻÓŁTY","YLW","#facc15"],red:["CZERWONY","RED","#ef476f"],orange:["POMARAŃCZOWY","ORG","#fb923c"],green:["ZIELONY","GRN","#22c55e"],blue:["NIEBIESKI","BLU","#3b82f6"],purple:["FIOLETOWY","PUR","#a855f7"],black:["CZARNY","BLK","#111827"],white:["BIAŁY","WHT","#f8fafc"],gold:["ZŁOTY","GLD","#fbbf24"],silver:["SREBRNY","SLV","#cbd5e1"]};
-const skinClass={defaultSequence:"sequence-skin-default",neonSequence:"sequence-skin-neon",matteSequence:"sequence-skin-matte",stripeSequence:"sequence-skin-stripe",gradientSequence:"sequence-skin-gradient"};
+const skinClass={defaultSequence:"sequence-skin-default",neonSequence:"sequence-skin-neon",matteSequence:"sequence-skin-matte",stripeSequence:"sequence-skin-stripe",gradientSequence:"sequence-skin-gradient",premiumQuantumSequence:"sequence-skin-premiumQuantum"};
 const colorsFor=hard=>hard?[...baseColors,...hardColors]:baseColors;
 const GUESS_TIME_LIMIT=20;
 const colorButton=(color,skin="defaultSequence")=>`<button class="sequence-color ${skinClass[skin]||skinClass.defaultSequence}" data-sequence-color="${color}" style="--sequence-color:${colorMeta[color][2]}"><span>${colorMeta[color][1]}</span><small>${colorMeta[color][0]}</small></button>`;

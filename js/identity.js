@@ -1,9 +1,9 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260822-2";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260822-1";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, safeCosmeticClass } from "./utils.js?v=20260822-1";
 import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { hasGamePass } from "./gamePasses.js?v=20260831-6";
+import { hasGamePass } from "./gamePasses.js?v=20260901-9";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));
@@ -361,7 +361,7 @@ function identityBoard(game, accounts, currentUser, active, settings) {
     return `<article class="identity-player-card ${uid === active ? "active-identity-card" : ""} ${uid === currentUser ? "own-identity-card" : ""} ${done ? "identity-card-done" : ""}">
       <span class="identity-card-pin"></span>
       ${avatarHtml(accounts[uid], "identity-avatar")}
-      <span class="identity-card-name"><span class="nick ${accounts[uid]?.selectedNickEffect || "defaultNick"}">${escapeHtml(accounts[uid]?.nick || "Gracz")}</span>${levelBadgeHtml(accounts[uid])}</span>
+      <span class="identity-card-name"><span class="nick ${safeCosmeticClass(accounts[uid]?.selectedNickEffect) || "defaultNick"}">${escapeHtml(accounts[uid]?.nick || "Gracz")}</span>${levelBadgeHtml(accounts[uid])}</span>
       <div class="identity-card-word">${uid === currentUser ? "???" : escapeHtml(game.words[uid] || "ukonczone")}</div>
       <small>${done ? "ukonczone" : uid === currentUser ? `${game.scores[uid] || 0}/${settings.targetScore} pkt` : `${game.scores[uid] || 0} pkt`}</small>
     </article>`;

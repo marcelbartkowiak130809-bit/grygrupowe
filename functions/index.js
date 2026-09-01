@@ -9,24 +9,42 @@ setGlobalOptions({ maxInstances: 10 });
 const db = admin.database();
 const SPIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const BOOSTER_DURATION_MS = 6 * 60 * 60 * 1000;
+const DOUBLE_LUCKY_SPIN_GAMEPASS_ID = "double-lucky-spin";
 
-const REWARDS = [
-  { id: "coins-small", tier: "weak", wheelIndex: 0, type: "coins", amount: 100 },
-  { id: "xp-small", tier: "weak", wheelIndex: 1, type: "xp", amount: 50 },
-  { id: "coins-i", tier: "weak", wheelIndex: 2, type: "potion", itemId: "coins-i" },
-  { id: "xp-i", tier: "weak", wheelIndex: 3, type: "potion", itemId: "xp-i" },
-  { id: "coins-medium", tier: "medium", wheelIndex: 4, type: "coins", amount: 300 },
-  { id: "xp-medium", tier: "medium", wheelIndex: 5, type: "xp", amount: 150 },
-  { id: "coin-booster", tier: "medium", wheelIndex: 6, type: "coinBooster", multiplier: 2, durationMs: BOOSTER_DURATION_MS },
-  { id: "coins-ii", tier: "medium", wheelIndex: 7, type: "potion", itemId: "coins-ii" },
-  { id: "xp-ii", tier: "medium", wheelIndex: 8, type: "potion", itemId: "xp-ii" },
-  { id: "coins-large", tier: "strong", wheelIndex: 9, type: "coins", amount: 750 },
-  { id: "coins-iii", tier: "strong", wheelIndex: 10, type: "potion", itemId: "coins-iii" },
-  { id: "xp-iii", tier: "strong", wheelIndex: 11, type: "potion", itemId: "xp-iii" },
-  { id: "xp-booster", tier: "strong", wheelIndex: 12, type: "xpBooster", multiplier: 3, durationMs: 12 * 60 * 60 * 1000 },
+const GAMEPASS_IDS = [
+  "premium-rotation", "double-lucky-spin", "impostor-compensation", "identity-insight", "number-oracle", "wavelength-pro", "pokemon-scout",
+  "survivor-charm", "creative-license", "wavelength-second-chance", "proof-last-chance", "clock-second-chance-pass",
 ];
-const TIER_WEIGHTS = { weak: 70, medium: 25, strong: 5 };
-const TIER_REWARDS = Object.fromEntries(Object.keys(TIER_WEIGHTS).map(tier => [tier, REWARDS.filter(reward => reward.tier === tier)]));
+const EPIC_COSMETIC_IDS = [
+  "neonBomb", "lavaBomb", "diamondBomb", "emeraldBomb", "rubyBomb", "cyberClock", "prismClock", "auroraClock", "flameClock", "voidClock",
+  "rainbowMarker", "cosmicCandy", "neonCandy", "lavaCandy", "diamondCandy", "emeraldCandy", "rubyCandy", "crystalCandy",
+  "sunsetNick", "matrixNick", "fireNick", "electricNick", "glitchNick", "frostNick", "toxicNick", "rainbowNick", "voidNick", "galaxyNick", "hologramNick", "auroraNick", "cosmicNick", "demonicNick", "divineNick", "plasmaNick",
+  "fireFrame", "iceFrame", "electricFrame", "toxicFrame", "sunsetFrame", "rainbowFrame", "voidFrame", "galaxyFrame", "auroraFrame", "hologramFrame", "cosmicFrame", "crownFrame", "cursedFrame", "divineFrame", "plasmaFrame",
+  "flameAura", "iceAura", "electricAura", "smokeAura", "toxicAura", "sunsetAura", "starsAura", "voidAura", "galaxyAura", "auroraAura", "hologramAura", "cosmicAura", "demonicAura", "divineAura", "plasmaAura",
+  "hornedFrame", "impTailFrame", "thunderFrame", "stageFrame", "moneyFrame", "glassFrame", "moonFrame", "roseFrame", "stormFrame", "royalSealFrame", "dragonFrame", "angelFrame",
+  "batAura", "coinAura", "crownAura", "spotlightAura", "meteorAura", "heartAura", "pixelAura", "runeAura", "shadowAura", "lavaAura", "haloAura", "cashStormAura",
+  "spinIdle", "glitchIdle", "heartbeatIdle", "royalIdle", "voidIdle", "winConfetti", "winFireworks", "winStageBow", "winTrophy", "winHalo", "winPortal", "winLaser", "winRoyalRain", "winMeteor", "winAscend", "winDemonKing",
+  "loseThunder", "loseLetters", "loseSquash", "loseBurn", "loseFreeze", "losePortal", "loseMeteorHit", "losePixelBreak", "loseDemonLaugh", "loseBlackHole", "loseCrownDrop",
+  "premiumPrismBomb", "premiumChronoClock", "premiumSpectrumMarker", "premiumQuantumSequence", "premiumGalaxyCandy", "premiumAuroraAura",
+];
+const REWARDS = [
+  { id: "coins-small", tier: "weak", wheelIndex: 0, probability: 21, type: "coins", amount: 100 },
+  { id: "xp-small", tier: "weak", wheelIndex: 1, probability: 19, type: "xp", amount: 50 },
+  { id: "coins-i", tier: "weak", wheelIndex: 2, probability: 16, type: "potion", itemId: "coins-i" },
+  { id: "xp-i", tier: "weak", wheelIndex: 3, probability: 14, type: "potion", itemId: "xp-i" },
+  { id: "coins-medium", tier: "medium", wheelIndex: 4, probability: 8, type: "coins", amount: 300 },
+  { id: "xp-medium", tier: "medium", wheelIndex: 5, probability: 6, type: "xp", amount: 150 },
+  { id: "coin-booster", tier: "medium", wheelIndex: 6, probability: 4, type: "coinBooster", multiplier: 2, durationMs: BOOSTER_DURATION_MS },
+  { id: "coins-ii", tier: "medium", wheelIndex: 7, probability: 3.5, type: "potion", itemId: "coins-ii" },
+  { id: "xp-ii", tier: "medium", wheelIndex: 8, probability: 3.5, type: "potion", itemId: "xp-ii" },
+  { id: "coins-large", tier: "strong", wheelIndex: 9, probability: 1.1, type: "coins", amount: 750 },
+  { id: "coins-iii", tier: "strong", wheelIndex: 10, probability: 1, type: "potion", itemId: "coins-iii" },
+  { id: "xp-iii", tier: "strong", wheelIndex: 11, probability: 0.95, type: "potion", itemId: "xp-iii" },
+  { id: "xp-booster", tier: "strong", wheelIndex: 12, probability: 0.85, type: "xpBooster", multiplier: 3, durationMs: 12 * 60 * 60 * 1000 },
+  { id: "random-epic-cosmetic", tier: "jackpot", wheelIndex: 13, probability: 1, type: "cosmetic", itemId: "" },
+  { id: "random-gamepass", tier: "jackpot", wheelIndex: 14, probability: 0.1, type: "gamePass", itemId: "" },
+];
+const SPIN_ROLL_TOTAL = 100000;
 const POTION_EFFECTS = {
   "coins-i": { effect:"coins", multiplier:1.10, durationMs:5*60*1000 }, "coins-ii": { effect:"coins", multiplier:1.25, durationMs:10*60*1000 }, "coins-iii": { effect:"coins", multiplier:1.50, durationMs:20*60*1000 },
   "xp-i": { effect:"xp", multiplier:1.10, durationMs:5*60*1000 }, "xp-ii": { effect:"xp", multiplier:1.25, durationMs:10*60*1000 }, "xp-iii": { effect:"xp", multiplier:1.50, durationMs:20*60*1000 },
@@ -42,23 +60,56 @@ const POTION_TIER_POOLS = {
 };
 const HONOR_TYPES = new Set(["nicePlayer", "goodOpponent", "greatHost", "notVerySmart", "poorSport"]);
 
+function luckySpinLimit(profile = {}) {
+  const value = profile?.gamePasses?.[DOUBLE_LUCKY_SPIN_GAMEPASS_ID];
+  if (typeof value === "object") return Number(value.level) > 0 ? 2 : 1;
+  return value ? 2 : 1;
+}
+
+function luckySpinStatus(state = {}, profile = {}, now = Date.now()) {
+  const nextSpinAt = Number(state.nextSpinAt) || 0;
+  const windowActive = nextSpinAt > now;
+  const spinLimit = luckySpinLimit(profile);
+  const rawUsed = Number(state.spinsUsed);
+  const spinsUsed = windowActive
+    ? (Number.isFinite(rawUsed) ? Math.max(0, rawUsed) : (state.lastSpinAt ? 1 : 0))
+    : 0;
+  const spinsRemaining = Math.max(0, spinLimit - spinsUsed);
+  return { nextSpinAt, windowActive, spinLimit, spinsUsed, spinsRemaining, available:!windowActive || spinsUsed < spinLimit };
+}
+
 function spinId() {
   return `${Date.now()}_${crypto.randomUUID()}`;
 }
 
-function drawReward() {
-  let tierCursor = crypto.randomInt(0, Object.values(TIER_WEIGHTS).reduce((sum, weight) => sum + weight, 0));
-  let tier = "strong";
-  for (const [candidate, weight] of Object.entries(TIER_WEIGHTS)) {
-    tierCursor -= weight;
-    if (tierCursor < 0) { tier = candidate; break; }
+function drawReward(profile = {}) {
+  let cursor = crypto.randomInt(0, SPIN_ROLL_TOTAL);
+  const selected = REWARDS.find(reward => {
+    cursor -= Math.round(reward.probability * 1000);
+    return cursor < 0;
+  }) || REWARDS[0];
+  const reward = { ...selected };
+  if (reward.id === "random-gamepass") {
+    const owned = profile.gamePasses && typeof profile.gamePasses === "object" ? profile.gamePasses : {};
+    const available = GAMEPASS_IDS.filter(id => {
+      const value = owned[id];
+      const level = typeof value === "object" ? Number(value.level) || 0 : value ? Number(value) || 1 : 0;
+      const definitionMax = id === "impostor-compensation" ? 5 : 1;
+      return level < definitionMax;
+    });
+    reward.itemId = (available.length ? available : GAMEPASS_IDS)[crypto.randomInt(0, (available.length ? available : GAMEPASS_IDS).length)];
   }
-  const pool = TIER_REWARDS[tier];
-  return { ...pool[crypto.randomInt(0, pool.length)] };
+  if (reward.id === "random-epic-cosmetic") {
+    const owned = profile.ownedCosmetics && typeof profile.ownedCosmetics === "object" ? profile.ownedCosmetics : {};
+    const available = EPIC_COSMETIC_IDS.filter(id => !owned[id]);
+    const pool = available.length ? available : EPIC_COSMETIC_IDS;
+    reward.itemId = pool[crypto.randomInt(0, pool.length)];
+  }
+  return reward;
 }
 
-function cooldownError(nextSpinAt) {
-  return new HttpsError("resource-exhausted", "Spin będzie dostępny ponownie później.", { nextSpinAt });
+function cooldownError(nextSpinAt, spinsRemaining = 0) {
+  return new HttpsError("resource-exhausted", "Spin będzie dostępny ponownie później.", { nextSpinAt, spinsRemaining });
 }
 
 function publicReward(reward) {
@@ -84,6 +135,8 @@ function safeProfilePatch(profile = {}) {
     coinBooster: profile.coinBooster || null,
     xpBooster: profile.xpBooster || null,
     potionInventory: profile.potionInventory || {},
+    ownedCosmetics: profile.ownedCosmetics || {},
+    gamePasses: profile.gamePasses || {},
   };
 }
 
@@ -103,6 +156,15 @@ async function applyReward(uid, state, guestProfileOverride = false) {
     if (reward.type === "potion" && reward.itemId) {
       profile.potionInventory = { ...(profile.potionInventory || {}), [reward.itemId]: (Number(profile.potionInventory?.[reward.itemId]) || 0) + 1 };
     }
+    if (reward.type === "gamePass" && GAMEPASS_IDS.includes(reward.itemId)) {
+      const current = profile.gamePasses && typeof profile.gamePasses === "object" ? profile.gamePasses : {};
+      const value = current[reward.itemId];
+      const level = typeof value === "object" ? Math.max(1, Number(value.level) || 0) : value ? Math.max(1, Number(value) || 1) : 1;
+      profile.gamePasses = { ...current, [reward.itemId]: { ...(typeof value === "object" ? value : {}), level, purchasedAt: value?.purchasedAt || Date.now(), source: value?.source || "lucky-spin" } };
+    }
+    if (reward.type === "cosmetic" && EPIC_COSMETIC_IDS.includes(reward.itemId)) {
+      profile.ownedCosmetics = { ...(profile.ownedCosmetics || {}), [reward.itemId]: true };
+    }
 
     if (reward.type === "coinBooster") {
       const current = profile.coinBooster && typeof profile.coinBooster === "object" ? profile.coinBooster : {};
@@ -120,8 +182,11 @@ async function applyReward(uid, state, guestProfileOverride = false) {
     }
 
     profile.luckySpin = {
+      windowStartedAt: Number(state.windowStartedAt) || Number(state.lastSpinAt) || Date.now(),
       lastSpinAt: state.lastSpinAt,
       nextSpinAt: state.nextSpinAt,
+      spinsUsed: Number(state.spinsUsed) || 1,
+      spinLimit: Number(state.spinLimit) || 1,
       lastReward: publicReward(reward),
       lastAppliedSpinId: state.spinId,
     };
@@ -149,21 +214,27 @@ async function claimOrRecoverSpin(uid, guestProfileOverride = false) {
     await markApplied(stateRef, state);
     return { state, profile };
   }
-  if (Number(state.nextSpinAt) > now) throw cooldownError(Number(state.nextSpinAt));
-
+  const profile = (await db.ref(`profiles/${uid}`).get()).val() || {};
+  const availability = luckySpinStatus(state, profile, now);
+  if (!availability.available) throw cooldownError(availability.nextSpinAt, availability.spinsRemaining);
   const requestSpinId = spinId();
   const claimedAt = Date.now();
+  const spinsUsed = availability.windowActive ? availability.spinsUsed + 1 : 1;
+  const nextSpinAt = availability.windowActive ? availability.nextSpinAt : claimedAt + SPIN_COOLDOWN_MS;
   const proposedState = {
     lastSpinAt: claimedAt,
-    nextSpinAt: claimedAt + SPIN_COOLDOWN_MS,
+    windowStartedAt: availability.windowActive ? Number(state.windowStartedAt) || Number(state.lastSpinAt) || claimedAt : claimedAt,
+    nextSpinAt,
+    spinsUsed,
+    spinLimit: availability.spinLimit,
     spinId: requestSpinId,
-    reward: publicReward(drawReward()),
+    reward: publicReward(drawReward(profile)),
     appliedSpinId: "",
   };
   await stateRef.transaction((current) => {
     const value = current && typeof current === "object" ? current : {};
     if (value.spinId && value.appliedSpinId !== value.spinId) return value;
-    if (Number(value.nextSpinAt) > claimedAt) return value;
+    if (!luckySpinStatus(value, profile, claimedAt).available) return value;
     return proposedState;
   });
 
@@ -174,7 +245,8 @@ async function claimOrRecoverSpin(uid, guestProfileOverride = false) {
     await markApplied(stateRef, state);
     return { state, profile };
   }
-  throw cooldownError(Number(state.nextSpinAt));
+  const finalStatus = luckySpinStatus(state, profile, Date.now());
+  throw cooldownError(finalStatus.nextSpinAt, finalStatus.spinsRemaining);
 }
 
 exports.luckySpin = onCall(async (request) => {
@@ -187,6 +259,9 @@ exports.luckySpin = onCall(async (request) => {
     accepted: true,
     serverNow: Date.now(),
     nextSpinAt: Number(state.nextSpinAt),
+    spinsUsed: Number(state.spinsUsed) || 1,
+    spinLimit: Number(state.spinLimit) || luckySpinLimit(profile),
+    spinsRemaining: Math.max(0, (Number(state.spinLimit) || luckySpinLimit(profile)) - (Number(state.spinsUsed) || 1)),
     reward: publicReward(state.reward),
     profile: safeProfilePatch(profile),
   };

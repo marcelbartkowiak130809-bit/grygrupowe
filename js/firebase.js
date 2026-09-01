@@ -102,8 +102,13 @@ export function loadAccounts() {
   }
 }
 
+let lastAccountsSnapshot = null;
 export function saveAccounts(accounts) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  const snapshot = JSON.stringify(accounts);
+  if (snapshot === lastAccountsSnapshot) return false;
+  localStorage.setItem(ACCOUNTS_KEY, snapshot);
+  lastAccountsSnapshot = snapshot;
+  return true;
 }
 export function loadSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "{}"); } catch { return {}; }
@@ -158,18 +163,29 @@ export function subscribeSiteStats(callback) {
   if (canUseRemote()) {
     const eventsRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStatEvents");
     const globalRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStats/global");
-    let events = null;
+    let eventStats = {};
     let globalStats = {};
+    let registeredUsers = 0;
+    let profilesLoadedAt = 0;
+    let profilesRequest = null;
+    let emitSequence = 0;
+    const refreshRegisteredUsers = async () => {
+      if (profilesLoadedAt && Date.now() - profilesLoadedAt < 60000) return;
+      if (!profilesRequest) profilesRequest = firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))
+        .then(snapshot => { registeredUsers = Object.keys(snapshot.val() || {}).length; profilesLoadedAt = Date.now(); })
+        .catch(() => { profilesLoadedAt = Date.now(); })
+        .finally(() => { profilesRequest = null; });
+      await profilesRequest;
+    };
     const emit = async () => {
-      const eventStats = events && Object.keys(events).length ? aggregateSiteStatEvents(events) : {};
+      const sequence = ++emitSequence;
       const stats = mergeSiteStats(globalStats, eventStats);
-      try {
-        const profiles = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))).val() || {};
-        stats.registeredUsers = Math.max(Number(stats.registeredUsers) || 0, Object.keys(profiles).length);
-      } catch {}
+      await refreshRegisteredUsers();
+      if (sequence !== emitSequence) return;
+      stats.registeredUsers = Math.max(Number(stats.registeredUsers) || 0, registeredUsers);
       callback(stats);
     };
-    const stopEvents = firebaseDatabaseApi.onValue(eventsRef, snapshot => { events = snapshot.val() || {}; emit(); }, () => emit());
+    const stopEvents = firebaseDatabaseApi.onValue(eventsRef, snapshot => { const events = snapshot.val() || {}; eventStats = Object.keys(events).length ? aggregateSiteStatEvents(events) : {}; emit(); }, () => emit());
     const stopGlobal = firebaseDatabaseApi.onValue(globalRef, snapshot => { globalStats = snapshot.val() || {}; emit(); }, () => emit());
     return () => { stopEvents(); stopGlobal(); };
   }
@@ -384,24 +400,29 @@ const privacyDefaults = { historyPublic:true, statsPublic:true, friendsPublic:tr
 const honorDefaults = { nicePlayer:0, goodOpponent:0, greatHost:0, notVerySmart:0, poorSport:0 };
 const profilePrivacy = profile => ({ ...privacyDefaults, ...(profile?.privacy || {}) });
 const publicProfile = profile => {
-  const privacy = profilePrivacy(profile), result = { nick:profile.nick, avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:adultStatusForProfile(profile), xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", privacy, updatedAt:Date.now() };
+  const privacy = profilePrivacy(profile), result = { nick:profile.nick, avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:adultStatusForProfile(profile), xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, selectedNickEffect:profile.selectedNickEffect || "defaultNick", selectedAvatarFrame:profile.selectedAvatarFrame || "defaultFrame", selectedAura:profile.selectedAura || "noAura", selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", privacy, updatedAt:Date.now() };
   if (privacy.historyPublic) result.gameHistory = Array.isArray(profile.gameHistory) ? profile.gameHistory.slice(-50) : [];
   if (privacy.statsPublic) { result.gameStats = profile.gameStats || {}; result.stats = profile.stats || {}; }
   if (privacy.friendsPublic) result.friends = Array.isArray(profile.friends) ? profile.friends : [];
   return result;
 };
 const sanitizePublicProfile = profile => {
-  const privacy = profilePrivacy(profile), result = { nick:profile.nick || "Gracz", avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:profile.adultStatus || "unknown", xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, selectedNickEffect:profile.selectedNickEffect || "", selectedAvatarFrame:profile.selectedAvatarFrame || "", selectedAura:profile.selectedAura || "", selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", privacy, updatedAt:Number(profile.updatedAt)||0 };
+  const privacy = profilePrivacy(profile), result = { nick:profile.nick || "Gracz", avatarImage:profile.avatarImage || "", nickOnly:Boolean(profile.nickOnly), adultStatus:profile.adultStatus || "unknown", xp:Number(profile.xp)||0, sessionXp:Number(profile.sessionXp)||0, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, selectedNickEffect:profile.selectedNickEffect || "defaultNick", selectedAvatarFrame:profile.selectedAvatarFrame || "defaultFrame", selectedAura:profile.selectedAura || "noAura", selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", privacy, updatedAt:Number(profile.updatedAt)||0 };
   if (privacy.historyPublic) result.gameHistory = Array.isArray(profile.gameHistory) ? profile.gameHistory.slice(-50) : [];
   if (privacy.statsPublic) { result.gameStats = profile.gameStats || {}; result.stats = profile.stats || {}; }
   if (privacy.friendsPublic) result.friends = Array.isArray(profile.friends) ? profile.friends : [];
   return result;
 };
-const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, sessionMoney:Number(profile.sessionMoney)||0, sessionXp:Number(profile.sessionXp)||0, luckySpin:profile.luckySpin || null, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true, ...(profile.ownedCosmetics || {}) }, gamePasses:profile.gamePasses || {}, selectedNickEffect:profile.selectedNickEffect, selectedAvatarFrame:profile.selectedAvatarFrame, selectedAura:profile.selectedAura, selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", potionInventory:profile.potionInventory || {}, coinBooster:profile.coinBooster || null, xpBooster:profile.xpBooster || null, privacy:profilePrivacy(profile), gameHistory:Array.isArray(profile.gameHistory) ? profile.gameHistory : [], answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
+const savedProfile = profile => ({ nick:profile.nick, birthDate:profile.birthDate || "", inbox:profile.inbox || [], friends:Array.isArray(profile.friends) ? profile.friends : [], friendRequests:profile.friendRequests || { incoming:{}, outgoing:{} }, avatarImage:profile.avatarImage || "", money:profile.money || 0, xp:Number(profile.xp)||0, sessionMoney:Number(profile.sessionMoney)||0, sessionXp:Number(profile.sessionXp)||0, luckySpin:profile.luckySpin || null, honorCounts:{...honorDefaults,...(profile.honorCounts||{})}, claimedLevelRewards:profile.claimedLevelRewards || {}, ownedCosmetics:{ defaultNick:true, defaultFrame:true, noAura:true, defaultCandy:true, defaultBomb:true, defaultClock:true, defaultMarker:true, defaultSequence:true, ...(profile.ownedCosmetics || {}) }, gamePasses:profile.gamePasses || {}, selectedNickEffect:profile.selectedNickEffect || "defaultNick", selectedAvatarFrame:profile.selectedAvatarFrame || "defaultFrame", selectedAura:profile.selectedAura || "noAura", selectedCandySkin:profile.selectedCandySkin || "defaultCandy", selectedBombSkin:profile.selectedBombSkin || "defaultBomb", selectedClockSkin:profile.selectedClockSkin || "defaultClock", selectedMarkerSkin:profile.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:profile.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:profile.selectedIdleAnimation || "", selectedWinAnimation:profile.selectedWinAnimation || "", selectedLoseAnimation:profile.selectedLoseAnimation || "", potionInventory:profile.potionInventory || {}, coinBooster:profile.coinBooster || null, xpBooster:profile.xpBooster || null, privacy:profilePrivacy(profile), gameHistory:Array.isArray(profile.gameHistory) ? profile.gameHistory : [], answeredWouldYouRather:profile.answeredWouldYouRather || {}, stats:profile.stats || {}, createdAt:profile.createdAt || Date.now(), updatedAt:Date.now() });
 export async function loadRemoteProfile(uid) {
-  if (!canUseRemote() || !uid) return null;
-  try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`))).val() || null; }
-  catch { return null; }
+  return (await loadRemoteProfileState(uid)).profile;
+}
+export async function loadRemoteProfileState(uid) {
+  if (!canUseRemote() || !uid) return { ok:false, missing:false, profile:null };
+  try {
+    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`));
+    return { ok:true, missing:!snapshot.exists(), profile:snapshot.val() || null };
+  } catch { return { ok:false, missing:false, profile:null }; }
 }
 export async function syncPlayerProfile(uid, profile) {
   if (!canUseRemote() || !uid || !profile || profile.nickOnly) return false;
@@ -537,11 +558,15 @@ export async function claimLuckySpinDatabase(uid, proposal) {
   try {
     const spinRef = firebaseDatabaseApi.ref(remoteDatabase, `luckySpins/${uid}`);
     const result = await firebaseDatabaseApi.runTransaction(spinRef, current => {
-      if (current && Number(current.nextSpinAt) > serverNow()) return;
+      const now = serverNow();
+      const windowActive = current && Number(current.nextSpinAt) > now;
+      const currentUsed = windowActive ? (Number(current.spinsUsed) || (current.lastSpinAt ? 1 : 0)) : 0;
+      const proposalLimit = Math.max(1, Math.min(2, Number(proposal.spinLimit) || 1));
+      if (windowActive && currentUsed >= proposalLimit) return;
       return proposal;
     }, { applyLocally:false });
     const state = result.snapshot.val() || {};
-    if (state.claimId !== proposal.claimId) return { ok:false, code:"functions/resource-exhausted", error:"Spin będzie dostępny ponownie później.", nextSpinAt:Number(state.nextSpinAt) || 0 };
+    if (state.claimId !== proposal.claimId) return { ok:false, code:"functions/resource-exhausted", error:"Spin będzie dostępny ponownie później.", nextSpinAt:Number(state.nextSpinAt) || 0, spinsRemaining:Number(state.spinLimit) > Number(state.spinsUsed) ? Number(state.spinLimit) - Number(state.spinsUsed) : 0 };
     return { ok:true, state };
   } catch (error) {
     return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się zarezerwować spinu." };
@@ -828,7 +853,7 @@ export async function syncRoomState(room) {
     const payload = {
       roomId:room.roomId, gameMode:room.gameMode, name:room.name || "Pokój dla ekipy", isPrivate:Boolean(room.isPrivate), passwordHash:room.passwordHash || "", hostUid:room.hostUid || null,
       roomType:room.roomType === "betting" ? "betting" : "standard", entryFee:room.roomType === "betting" ? Math.max(0, Number(room.entryFee) || 0) : 0,
-      players:Object.fromEntries(players.map(uid=>[uid,{ nick:room.playerProfiles?.[uid]?.nick || "Gracz", avatarImage:room.playerProfiles?.[uid]?.avatarImage || "", nickOnly:Boolean(room.playerProfiles?.[uid]?.nickOnly), adultStatus:room.playerProfiles?.[uid]?.adultStatus || "unknown", money:Number(room.playerProfiles?.[uid]?.money)||0, sessionMoney:Number(room.playerProfiles?.[uid]?.sessionMoney)||0, xp:Number(room.playerProfiles?.[uid]?.xp)||0, sessionXp:Number(room.playerProfiles?.[uid]?.sessionXp)||0, joinedAt:room.joinedAt?.[uid] || room.createdAt, connected:true, selectedNickEffect:room.playerProfiles?.[uid]?.selectedNickEffect || "defaultNick", selectedAvatarFrame:room.playerProfiles?.[uid]?.selectedAvatarFrame || "defaultFrame", selectedAura:room.playerProfiles?.[uid]?.selectedAura || "noAura", selectedCandySkin:room.playerProfiles?.[uid]?.selectedCandySkin || "defaultCandy", selectedBombSkin:room.playerProfiles?.[uid]?.selectedBombSkin || "defaultBomb", selectedClockSkin:room.playerProfiles?.[uid]?.selectedClockSkin || "defaultClock", selectedIdleAnimation:room.playerProfiles?.[uid]?.selectedIdleAnimation || "", selectedWinAnimation:room.playerProfiles?.[uid]?.selectedWinAnimation || "", selectedLoseAnimation:room.playerProfiles?.[uid]?.selectedLoseAnimation || "" }])),
+      players:Object.fromEntries(players.map(uid=>[uid,{ nick:room.playerProfiles?.[uid]?.nick || "Gracz", avatarImage:room.playerProfiles?.[uid]?.avatarImage || "", nickOnly:Boolean(room.playerProfiles?.[uid]?.nickOnly), adultStatus:room.playerProfiles?.[uid]?.adultStatus || "unknown", money:Number(room.playerProfiles?.[uid]?.money)||0, sessionMoney:Number(room.playerProfiles?.[uid]?.sessionMoney)||0, xp:Number(room.playerProfiles?.[uid]?.xp)||0, sessionXp:Number(room.playerProfiles?.[uid]?.sessionXp)||0, joinedAt:room.joinedAt?.[uid] || room.createdAt, connected:true, selectedNickEffect:room.playerProfiles?.[uid]?.selectedNickEffect || "defaultNick", selectedAvatarFrame:room.playerProfiles?.[uid]?.selectedAvatarFrame || "defaultFrame", selectedAura:room.playerProfiles?.[uid]?.selectedAura || "noAura", selectedCandySkin:room.playerProfiles?.[uid]?.selectedCandySkin || "defaultCandy", selectedBombSkin:room.playerProfiles?.[uid]?.selectedBombSkin || "defaultBomb", selectedClockSkin:room.playerProfiles?.[uid]?.selectedClockSkin || "defaultClock", selectedMarkerSkin:room.playerProfiles?.[uid]?.selectedMarkerSkin || "defaultMarker", selectedSequenceSkin:room.playerProfiles?.[uid]?.selectedSequenceSkin || "defaultSequence", selectedIdleAnimation:room.playerProfiles?.[uid]?.selectedIdleAnimation || "", selectedWinAnimation:room.playerProfiles?.[uid]?.selectedWinAnimation || "", selectedLoseAnimation:room.playerProfiles?.[uid]?.selectedLoseAnimation || "" }])),
       status:room.status, settings:room.settings || {}, hostAnnouncement:room.hostAnnouncement || null, pendingRewards:room.pendingRewards || {}, pendingXp:room.pendingXp || {}, pendingEntryFees:room.pendingEntryFees || {}, createdAt:room.createdAt, updatedAt:room.updatedAt,
       gameState:room.game || null, chat:room.game?.chat || [], presence:room.presence || {},
     };
@@ -981,7 +1006,7 @@ export function subscribeRemoteRooms(callback, onError = () => {}) {
     // Heartbeat pokoju zmienia się tylko co kilka sekund, ale sam upływ TTL
     // nie generuje zdarzenia RTDB. Odświeżenie listy pozwala więc wygasić
     // osierocone pokoje także wtedy, gdy nikt już w nich nie siedzi.
-    const cleanupTimer=setInterval(()=>firebaseDatabaseApi.get(roomsRef).then(emit).catch(()=>{}),15000);
+    const cleanupTimer=setInterval(()=>firebaseDatabaseApi.get(roomsRef).then(emit).catch(()=>{}),30000);
     return()=>{clearInterval(cleanupTimer);stopRemote();};
   }
   if(remoteDatabase){callback([],"waiting");return()=>{};}

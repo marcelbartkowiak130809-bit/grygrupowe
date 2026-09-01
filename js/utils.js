@@ -1,4 +1,4 @@
-import { levelBadgeHtml } from "./progression.js?v=20260822-1";
+import { levelBadgeHtml } from "./progression.js?v=20260901-6";
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -9,11 +9,13 @@ export function escapeHtml(value) {
   })[char]);
 }
 
+export const safeCosmeticClass = value => String(value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 48);
+
 export function avatarHtml(profile = {}, className = "", options = {}) {
-  const idleClass = options.disableIdle ? "" : profile.selectedIdleAnimation || "";
-  const classes = `avatar ${profile.selectedAvatarFrame || "defaultFrame"} ${profile.selectedAura || "noAura"} ${idleClass} ${className}`.trim();
+  const idleClass = options.disableIdle ? "" : safeCosmeticClass(profile.selectedIdleAnimation);
+  const classes = `avatar ${safeCosmeticClass(profile.selectedAvatarFrame) || "defaultFrame"} ${safeCosmeticClass(profile.selectedAura) || "noAura"} ${idleClass} ${safeCosmeticClass(className)}`.trim();
   const content = profile.avatarImage
-    ? `<img src="${escapeHtml(profile.avatarImage)}" alt="">`
+    ? `<img src="${escapeHtml(profile.avatarImage)}" alt="" loading="lazy" decoding="async">`
     : escapeHtml((profile.nick || "?")[0].toUpperCase());
   return `<div class="${classes}">${content}</div>`;
 }
@@ -56,8 +58,7 @@ function playerFxHtml(profile = {}) {
 }
 
 export function playerMiniHtml(profile = {}, className = "", options = {}) {
-  const animationClasses = `${profile.selectedWinAnimation || ""} ${profile.selectedLoseAnimation || ""}`.trim();
-  return `<div class="mini-player ${animationClasses} ${className}">${playerFxHtml(profile)}${avatarHtml(profile, "", options)}<span class="nick ${profile.selectedNickEffect || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+  return `<div class="mini-player ${safeCosmeticClass(profile.selectedWinAnimation)} ${safeCosmeticClass(profile.selectedLoseAnimation)} ${safeCosmeticClass(className)}">${playerFxHtml(profile)}${avatarHtml(profile, "", options)}<span class="nick ${safeCosmeticClass(profile.selectedNickEffect) || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
 }
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {

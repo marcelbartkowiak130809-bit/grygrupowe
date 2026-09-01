@@ -1,10 +1,10 @@
 import { categories } from "./categories.js?v=20260824-2";
 import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js?v=20260822-1";
-import { playerMini } from "./room.js?v=20260822-1";
+import { playerMini } from "./room.js?v=20260901-2";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { canonicalAnswerKey } from "../content/udowodnij/expandedPools.js?v=20260604-8";
-import { serverNow } from "./firebase.js?v=20260831-25";
+import { serverNow } from "./firebase.js?v=20260901-1";
 
 let timerId;
 let lastCountdown;

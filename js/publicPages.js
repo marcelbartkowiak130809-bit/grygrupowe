@@ -1,8 +1,10 @@
-import { gamesList } from "./games.js?v=20260823-10";
+import { gamesList } from "./games.js?v=20260901-2";
 import { escapeHtml } from "./utils.js?v=20260822-1";
 
 const ADSENSE_CLIENT = "ca-pub-4038439845706886";
 const adPages = new Set(["public:o-grze", "public:jak-grac", "public:tryby-gry"]);
+let adsenseLoadTimer = 0;
+let adsenseLoadTimerType = "";
 const publicLinks = [
   ["/o-grze", "O grze"],
   ["/jak-grac", "Jak grac"],
@@ -28,10 +30,28 @@ function loadAdSenseScript() {
 
 export function activatePublicAds(root, screen = "platform") {
   if (!root.querySelector("[data-adsense-public]")) return;
-  loadAdSenseScript();
+  if (document.querySelector("script[data-adsense-public-script]") || adsenseLoadTimer) return;
+  const load = () => {
+    adsenseLoadTimer = 0;
+    adsenseLoadTimerType = "";
+    if (root.isConnected && root.querySelector("[data-adsense-public]")) loadAdSenseScript();
+  };
+  if (typeof window.requestIdleCallback === "function") {
+    adsenseLoadTimerType = "idle";
+    adsenseLoadTimer = window.requestIdleCallback(load, { timeout:2500 });
+  } else {
+    adsenseLoadTimerType = "timeout";
+    adsenseLoadTimer = window.setTimeout(load, 1200);
+  }
 }
 
 export function deactivatePublicAds() {
+  if (adsenseLoadTimer) {
+    if (adsenseLoadTimerType === "idle" && typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(adsenseLoadTimer);
+    else window.clearTimeout(adsenseLoadTimer);
+    adsenseLoadTimer = 0;
+    adsenseLoadTimerType = "";
+  }
   document.querySelector("script[data-adsense-public-script]")?.remove();
 }
 

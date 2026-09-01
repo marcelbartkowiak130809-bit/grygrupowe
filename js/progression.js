@@ -1,5 +1,6 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260804-1";
 import { botTooltip } from "./bots.js?v=20260823-2";
+import { isModeLocked } from "./upcomingModes.js?v=20260901-5";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -18,18 +19,43 @@ export const trophyRoad = [
   reward(80, "cosmetic", "levelVoidLose", "Void porazki"), reward(85, "cosmetic", "neonBomb", "Neon core"), reward(90, "money", 4200, "4200 coinow"),
   reward(100, "cosmetic", "auroraClock", "Zegar zorzy"), reward(110, "cosmetic", "lavaBomb", "Lava shell"), reward(120, "cosmetic", "levelHaloAura", "Aureola Legendy"),
   reward(135, "money", 9000, "9000 coinow"), reward(150, "cosmetic", "divineAura", "Boska aura"),
-];
+  // Więcej nagród ogólnych: większość drogi nie wymaga grania w konkretny tryb.
+  reward(7, "cosmetic", "redFrame", "Czerwona ramka"), reward(9, "cosmetic", "greenNick", "Zielony nick"), reward(11, "cosmetic", "silverFrame", "Srebrna ramka"),
+  reward(13, "cosmetic", "blueGlowAura", "Niebieska poświata"), reward(16, "cosmetic", "neonFrame", "Neonowa ramka"), reward(19, "cosmetic", "winCrown", "Wygrana: korona"),
+  reward(21, "cosmetic", "purpleFrame", "Fioletowa ramka"), reward(23, "cosmetic", "heartbeatIdle", "Idle: heartbeat"), reward(25, "cosmetic", "fireFrame", "Ognista ramka"),
+  reward(27, "cosmetic", "iceAura", "Lodowa aura"), reward(29, "cosmetic", "winConfetti", "Wygrana: konfetti"), reward(31, "cosmetic", "goldNick", "Złoty nick"),
+  reward(33, "cosmetic", "rainbowFrame", "Tęczowa ramka"), reward(36, "cosmetic", "loseBonk", "Przegrana: bonk"), reward(37, "cosmetic", "galaxyFrame", "Galaktyczna ramka"),
+  reward(39, "cosmetic", "voidAura", "Void aura"), reward(41, "cosmetic", "winTrophy", "Wygrana: puchar"), reward(43, "cosmetic", "stormFrame", "Burzowa ramka"),
+  reward(44, "money", 1800, "1800 coinów"), reward(46, "cosmetic", "winFireworks", "Wygrana: fajerwerki"), reward(47, "cosmetic", "auroraFrame", "Aurora ramka"),
+  reward(49, "cosmetic", "cosmicNick", "Cosmic nick"), reward(51, "cosmetic", "angelFrame", "Anielska ramka"), reward(53, "cosmetic", "loseBlackHole", "Przegrana: czarna dziura"),
+  reward(54, "cosmetic", "plasmaAura", "Plasma aura"), reward(56, "cosmetic", "royalSealFrame", "Królewska pieczęć"), reward(57, "cosmetic", "winLaser", "Wygrana: laser show"),
+  reward(59, "cosmetic", "divineFrame", "Boska ramka"), reward(61, "cosmetic", "crownAura", "Aury koron"), reward(62, "cosmetic", "plasmaFrame", "Plasma ramka"),
+  reward(63, "cosmetic", "winRoyalRain", "Wygrana: deszcz pieniędzy"), reward(64, "cosmetic", "hologramFrame", "Hologram ramka"), reward(66, "cosmetic", "demonicAura", "Demoniczna aura"),
+  reward(67, "cosmetic", "winMeteor", "Wygrana: kometa triumfu"), reward(68, "cosmetic", "cosmicFrame", "Cosmic ramka"), reward(69, "cosmetic", "loseDemonLaugh", "Przegrana: demoniczny śmiech"),
+  reward(71, "cosmetic", "plasmaNick", "Plasma nick"), reward(72, "money", 2600, "2600 coinów"), reward(73, "cosmetic", "winStageBow", "Wygrana: ukłon"),
+  reward(74, "cosmetic", "loseMeteorHit", "Przegrana: meteor hit"), reward(76, "cosmetic", "cursedFrame", "Przeklęta ramka"), reward(77, "cosmetic", "premiumSpectrumMarker", "Spectrum marker"),
+  reward(78, "cosmetic", "voidFrame", "Void ramka"), reward(79, "cosmetic", "smokeAura", "Dymna aura"), reward(81, "cosmetic", "winDemonKing", "Wygrana: demon king"),
+  reward(82, "cosmetic", "glassFrame", "Szklana ramka"), reward(83, "cosmetic", "premiumQuantumSequence", "Quantum grid"), reward(84, "cosmetic", "loseCrownDrop", "Przegrana: spadająca korona"),
+  reward(86, "cosmetic", "dragonFrame", "Smocza ramka"), reward(87, "cosmetic", "auroraAura", "Aurora aura"), reward(88, "cosmetic", "hologramAura", "Hologram aura"),
+  reward(89, "cosmetic", "losePixelBreak", "Przegrana: pixel break"), reward(95, "cosmetic", "premiumAuroraAura", "Aurora premium"), reward(105, "cosmetic", "winSpotlight", "Wygrana: reflektor"),
+  reward(115, "cosmetic", "loseLetters", "Przegrana: nick rozsypany"), reward(125, "cosmetic", "flameAura", "Aura ognia"), reward(130, "cosmetic", "galaxyAura", "Galaktyczna aura"),
+  reward(140, "cosmetic", "demonicNick", "Demoniczny nick"), reward(145, "cosmetic", "cashStormAura", "Burza kasy"),
+].sort((a, b) => a.level - b.level);
 
 const modeLabels = {
   all:"Wszystkie tryby", udowodnij:"Udowodnij", impostor:"Impostor", "kim-jestem":"Kim jestem", "inne-pytanie":"Inne pytanie",
+  "co-wolisz":"Co wolisz?",
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
   bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
   "pokemon-dex":"Najbliższy numer Pokédex", "pokemon-last-letter":"Ostatnia litera", "pokemon-evolution":"Evolution Race",
   "pokemon-auction":"Licytacja teamu", "pokemon-types":"Typy na start", "pokemon-match-type":"Dopasuj typ",
   wavelength:"Wavelength", quiz:"Quiz", mathematics:"Matematyka", marker:"Marker", sequence:"Zgadnij sekwencję",
-  family:"Familiada", "word-chain":"Łańcuch słów",
+  family:"Familiada", "word-chain":"Łańcuch słów", "number-mystery":"Tajemnicza liczba", "unique-answer":"Bez powtórek",
+  "polacz-nas":"Połącz nas", klamca:"Kłamca", "falszywa-wiadomosc":"Fałszywa wiadomość", "tajna-zasada":"Tajna zasada",
+  "pojedynek-hitow":"Pojedynek hitów", "bitwa-hitow":"Bitwa hitów", "popularnosc-hitow":"Kto ma więcej?", "popularnosc-solo":"Kto ma więcej? · Solo",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
+const newModeIds = ["wavelength", "quiz", "mathematics", "marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow"];
 
 export function xpForLevel(level) {
   const step = Math.max(0, Number(level || 1) - 1);
@@ -115,11 +141,13 @@ function cosmeticReward(seed, rarities) {
 
 const questModeIcons = {
   udowodnij:"⚡", impostor:"🕵️", "kim-jestem":"🤔", "inne-pytanie":"❓", "kto-najpredzej":"🏃",
-  "test-znajomosci":"🧠", "zatruty-cukierek":"🍬", bomba:"💣", "najblizej-prawdy":"🎯",
+  "co-wolisz":"⚖️", "test-znajomosci":"🧠", "zatruty-cukierek":"🍬", bomba:"💣", "najblizej-prawdy":"🎯",
   ranking:"🏆", "5-sekund":"⏱️", zegar:"⏰", wavelength:"🌈", quiz:"🎲", mathematics:"🧮",
   marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "pokemon-dex":"🔴",
   "pokemon-last-letter":"🔤", "pokemon-evolution":"🧬", "pokemon-auction":"💰",
-  "pokemon-types":"🔥", "pokemon-match-type":"🔗",
+  "pokemon-types":"🔥", "pokemon-match-type":"🔗", "number-mystery":"🔢", "unique-answer":"🧩",
+  "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠",
+  "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "popularnosc-solo":"🔥",
 };
 
 function questReward(seed, period, difficulty) {
@@ -178,6 +206,12 @@ const q = (id, period, title, target, metric, image, difficulty, extra = {}) => 
   id, period, title, target, metric, image:extra.mode ? (questModeIcons[extra.mode] || image) : image, ...extra, reward:questReward(id, period, difficulty),
 });
 
+function questIsAvailable(quest, now) {
+  if (quest.mode) return !isModeLocked(quest.mode, now);
+  if (Array.isArray(quest.modes)) return quest.modes.some(mode => !isModeLocked(mode, now));
+  return true;
+}
+
 const questList = now => {
   const d = dayKey(now), w = weekKey(now);
   return [
@@ -191,6 +225,18 @@ const questList = now => {
     q(`daily-play-sequence-${d}`,"daily","Zagraj w Zgadnij sekwencje",1,"mode","CODE","medium",{mode:"sequence"}),
     q(`daily-play-family-${d}`,"daily","Zagraj w Familiade",1,"mode","FAM","easy",{mode:"family"}),
     q(`daily-play-word-chain-${d}`,"daily","Zagraj w Lancuch slow",1,"mode","WORD","medium",{mode:"word-chain"}),
+    q(`daily-play-number-mystery-${d}`,"daily","Zagraj w Tajemnicza liczbe",1,"mode","NUM","medium",{mode:"number-mystery"}),
+    q(`daily-win-number-mystery-${d}`,"daily","Wygraj Tajemnicza liczbe",1,"winMode","NUM+","hard",{mode:"number-mystery"}),
+    q(`daily-play-unique-answer-${d}`,"daily","Zagraj w Bez powtorek",1,"mode","UNIQ","medium",{mode:"unique-answer"}),
+    q(`daily-play-identity-${d}`,"daily","Zagraj w Kim jestem?",1,"mode","WHO","easy",{mode:"kim-jestem"}),
+    q(`daily-play-would-you-rather-${d}`,"daily","Zagraj w Co wolisz?",1,"mode","WYR","easy",{mode:"co-wolisz"}),
+    q(`daily-play-five-seconds-${d}`,"daily","Zagraj w 5 sekund",1,"mode","5S","medium",{mode:"5-sekund"}),
+    q(`daily-win-clock-${d}`,"daily","Wygraj gre w Zegarze",1,"winMode","CLOCK+","medium",{mode:"zegar"}),
+    q(`daily-play-impostor-${d}`,"daily","Zagraj w Impostora",1,"mode","IMP","medium",{mode:"impostor"}),
+    q(`daily-play-pokemon-${d}`,"daily","Zagraj 2 gry pokemonowe",2,"anyModeGroup","PKM+","medium",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
+    q(`daily-streak-3-${d}`,"daily","Wygraj 3 gry pod rzad",3,"bestStreak","STK+","hard"),
+    q(`daily-win-3-any-${d}`,"daily","Wygraj 3 gry lacznie",3,"anyWin","3W","hard"),
+    q(`daily-spend-${d}`,"daily","Wydaj 1000 coinow",1000,"spent","$$","medium"),
     q(`daily-win-2-any-${d}`,"daily","Wygraj 2 gry",2,"anyWin","2W","medium"),
     q(`daily-play-5-any-${d}`,"daily","Zagraj 5 gier lacznie",5,"anyMode","PLAY","hard"),
     q(`daily-win-bomb-${d}`,"daily","Wygraj gre w Bombie",1,"winMode","BOOM","medium",{mode:"bomba"}),
@@ -208,11 +254,24 @@ const questList = now => {
     q(`weekly-win-wavelength-${w}`,"weekly","Wygraj 3 gry w Wavelength",3,"winMode","W3","hard",{mode:"wavelength"}),
     q(`weekly-win-quiz-${w}`,"weekly","Wygraj 3 gry w Quizie",3,"winMode","Q3","hard",{mode:"quiz"}),
     q(`weekly-win-family-${w}`,"weekly","Wygraj 3 gry w Familiadzie",3,"winMode","F3","hard",{mode:"family"}),
+    q(`weekly-win-number-mystery-${w}`,"weekly","Wygraj 3 gry w Tajemniczej liczbie",3,"winMode","NUM3","hard",{mode:"number-mystery"}),
+    q(`weekly-play-unique-answer-${w}`,"weekly","Zagraj 4 gry w Bez powtorek",4,"mode","UNIQ4","medium",{mode:"unique-answer"}),
+    q(`weekly-play-identity-${w}`,"weekly","Zagraj 4 gry w Kim jestem?",4,"mode","WHO4","medium",{mode:"kim-jestem"}),
+    q(`weekly-win-five-seconds-${w}`,"weekly","Wygraj 3 gry w 5 sekund",3,"winMode","5W3","hard",{mode:"5-sekund"}),
+    q(`weekly-win-clock-${w}`,"weekly","Wygraj 4 gry w Zegarze",4,"winMode","C4","hard",{mode:"zegar"}),
+    q(`weekly-play-impostor-${w}`,"weekly","Zagraj 3 gry w Impostora",3,"mode","IMP3","medium",{mode:"impostor"}),
+    q(`weekly-play-would-you-rather-${w}`,"weekly","Zagraj 4 gry w Co wolisz?",4,"mode","WYR4","medium",{mode:"co-wolisz"}),
+    q(`weekly-play-new-10-${w}`,"weekly","Zagraj 10 gier w nowych trybach",10,"anyModeGroup","NEW10","hard",{modes:newModeIds}),
+    q(`weekly-win-connect-${w}`,"weekly","Wygraj Połącz nas",1,"winMode","LINK","hard",{mode:"polacz-nas"}),
+    q(`weekly-win-liar-${w}`,"weekly","Wygraj jako Klamca albo go wykryj",1,"winMode","LIAR","hard",{mode:"klamca"}),
+    q(`weekly-play-false-message-${w}`,"weekly","Zagraj w Falszywa wiadomosc",1,"mode","CHAT","medium",{mode:"falszywa-wiadomosc"}),
+    q(`weekly-play-secret-rule-${w}`,"weekly","Zagraj w Tajna zasade",1,"mode","RULE","medium",{mode:"tajna-zasada"}),
+    q(`weekly-play-music-${w}`,"weekly","Zagraj w muzyczny tryb",1,"anyModeGroup","MUSIC","medium",{modes:["pojedynek-hitow","bitwa-hitow","popularnosc-hitow"]}),
     q(`weekly-play-sequence-${w}`,"weekly","Zagraj 4 gry w Zgadnij sekwencje",4,"mode","CODE","medium",{mode:"sequence"}),
     q(`weekly-play-word-chain-${w}`,"weekly","Zagraj 4 gry w Lancuch slow",4,"mode","WORD","medium",{mode:"word-chain"}),
     q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
     q(`weekly-spend-${w}`,"weekly","Wydaj 2500 coinow",2500,"spent","$$","medium"),
-  ];
+  ].filter(quest => questIsAvailable(quest, now));
 };
 
 const pickQuestSet = (items, key, count = 3) => [...items]
@@ -222,8 +281,8 @@ const pickQuestSet = (items, key, count = 3) => [...items]
 const activeQuestList = now => {
   const quests = questList(now), d = dayKey(now), w = weekKey(now);
   return [
-    ...pickQuestSet(quests.filter(quest => quest.period === "daily"), d, 3),
-    ...pickQuestSet(quests.filter(quest => quest.period === "weekly"), w, 3),
+    ...pickQuestSet(quests.filter(quest => quest.period === "daily"), d, 4),
+    ...pickQuestSet(quests.filter(quest => quest.period === "weekly"), w, 4),
   ];
 };
 
@@ -233,8 +292,8 @@ function questValue(stats, quest) {
   if (quest.metric === "anyMode") return Object.values(box.modes || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
   if (quest.metric === "winMode") return Number(box.wins?.[quest.mode]) || 0;
   if (quest.metric === "anyWin") return Object.values(box.wins || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
-  if (quest.metric === "anyModeGroup") return (quest.modes || []).reduce((sum, mode) => sum + (Number(box.modes?.[mode]) || 0), 0);
-  if (quest.metric === "newModeWin") return ["wavelength","quiz","mathematics","marker","sequence","family","word-chain","pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"].reduce((sum, mode) => sum + (Number(box.wins?.[mode]) || 0), 0);
+  if (quest.metric === "anyModeGroup") return (quest.modes || []).filter(mode => !isModeLocked(mode)).reduce((sum, mode) => sum + (Number(box.modes?.[mode]) || 0), 0);
+  if (quest.metric === "newModeWin") return newModeIds.filter(mode => !isModeLocked(mode)).reduce((sum, mode) => sum + (Number(box.wins?.[mode]) || 0), 0);
   if (quest.metric === "bestStreak") return Number(box.bestStreak) || 0;
   if (quest.metric === "modeStreak") return Number(box.modeStreaks?.[quest.mode]) || 0;
   if (quest.metric === "clockUnder10") return Number(box.clockUnder10) || 0;

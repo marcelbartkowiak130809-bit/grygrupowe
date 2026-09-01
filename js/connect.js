@@ -1,5 +1,5 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
-import { hasGamePass } from "./gamePasses.js?v=20260831-6";
+import { hasGamePass } from "./gamePasses.js?v=20260901-9";
 
 export const connectDefaults = { rounds: 5, answerTime: 30, category: "random" };
 

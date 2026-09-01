@@ -25,6 +25,8 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-3";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-3";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-3";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-4";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260901-2";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260901-3";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -312,6 +314,18 @@ export const gamesRegistry = {
   },
   "tajna-zasada": {
     id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
+  },
+  "pojedynek-hitow": {
+    id: "pojedynek-hitow", name: "Pojedynek hitów", description: "Wybierzcie piosenki pod wspólny temat i przekonajcie ekipę, który numer wygrywa.", help: ["Wszyscy wybierają po jednym utworze z wyszukiwarki — bez kopiowania linków.", "Po wyborze słuchacie krótkich podglądów i głosujecie na najlepszy numer.", "Każdy głos trafia na jedną piosenkę, a remis daje punkt wszystkim zwycięzcom.", "Po kilku rundach wygrywa osoba z największą liczbą punktów."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎵", art: "music-duel", audience: "everyone", badges: ["new", "tiktok"], render: renderMusicDuelGame, defaultSettings: musicDuelDefaults,
+  },
+  "bitwa-hitow": {
+    id: "bitwa-hitow", name: "Bitwa hitów", description: "Dwóch graczy wybiera numery, a reszta ekipy rozstrzyga, który hit jest lepszy.", help: ["W każdej rundzie losujemy dwóch muzycznych reprezentantów.", "Wybrani gracze wyszukują swoje piosenki, a pozostali słuchają obu propozycji.", "Publiczność głosuje na jeden numer; osoby wybierające piosenki nie głosują.", "Szanse niewylosowanych rosną z każdą rundą, więc każdy ma swoją kolej."], allowReports: true, players: "4-100 osób", minPlayers: 4, maxPlayers: 100, supportsLobby: true, supportsSolo: false, symbol: "🎶", art: "music-arena", audience: "crew", badges: ["new", "tiktok"], render: renderMusicArenaGame, defaultSettings: musicArenaDefaults,
+  },
+  "popularnosc-hitow": {
+    id: "popularnosc-hitow", name: "Kto ma więcej?", description: "Dwie piosenki, jedna szybka decyzja. Zgadnijcie, która ma większą popularność.", help: ["W każdej rundzie widzicie dwie piosenki z dużej bazy.", "Wybieracie, która ma więcej wyświetleń albo miesięcznych słuchaczy.", "Liczby są ukryte do momentu ujawnienia, a każdy trafny wybór daje punkt.", "Możecie grać w pokoju albo odpalić wariant solo z rekordem streaka."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "📈", art: "music-duel", audience: "everyone", badges: ["new", "tiktok"], render: renderPopularityGame, defaultSettings: popularityDefaults,
+  },
+  "popularnosc-solo": {
+    id: "popularnosc-solo", name: "Kto ma więcej? · Solo", description: "Zgaduj większą liczbę i buduj rekordową serię bez limitu rund.", help: ["Porównujesz dwie piosenki bez presji czasu.", "Po każdym wyborze od razu dostajesz następną parę.", "Jedna pomyłka kończy serię, ale rekord zostaje zapisany na Twoim urządzeniu."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🔥", art: "choice", audience: "everyone", badges: ["new"], hiddenFromLibrary: true, render: renderPopularitySolo, defaultSettings: popularityDefaults,
   },
 };
 
