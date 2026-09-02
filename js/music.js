@@ -1,8 +1,17 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
 import { Audio } from "./audio.js?v=20260902-1";
+import { polishTrackData } from "./polishMusic.js?v=20260902-3";
+import { extendedGlobalMusicTracks } from "./extendedMusic.js?v=20260902-1";
+import { extendedGlobalMusicTracks2 } from "./extendedGlobalMusic2.js?v=20260902-2";
 
-export const musicDuelDefaults = { rounds: 5, selectionTime: 30, votingTime: 25, category: "all" };
-export const musicArenaDefaults = { rounds: 10, selectionTime: 30, votingTime: 25, category: "all" };
+export const musicDuelDefaults = { rounds: 5, selectionTime: 30, votingTime: 25, category: "all", region: "global" };
+export const musicArenaDefaults = { rounds: 10, selectionTime: 30, votingTime: 25, category: "all", region: "global" };
+export const musicRegionOptions = [
+  ["global", "🌍", "Globalne", "Zagraniczne utwory i wykonawcy"],
+  ["polish", "🇵🇱", "Polskie", "Polskie hity — stare, nowe i viralowe"],
+];
+export const musicRegionLabel = region => musicRegionOptions.find(([id]) => id === region)?.[2] || "Globalne";
+const safeMusicRegion = value => value === "polish" ? "polish" : "global";
 const MUSIC_LISTENING_SECONDS = 60;
 const MUSIC_SKIP_AFTER_SECONDS = 10;
 
@@ -169,6 +178,25 @@ const fallbackTrackNames = [
   ["Closer (feat. Halsey)", "The Chainsmokers"], ["Something Just Like This", "The Chainsmokers & Coldplay"],
   ["My Universe", "Coldplay X BTS"], ["Yellow", "Coldplay"], ["Summertime Sadness", "Lana Del Rey"],
   ["Video Games (Remastered)", "Lana Del Rey"], ["One Dance (feat. Wizkid & Kyla)", "Drake"], ["Circles", "Post Malone"],
+  ["Espresso", "Sabrina Carpenter"], ["Die With A Smile", "Lady Gaga & Bruno Mars"], ["APT.", "ROSÉ & Bruno Mars"],
+  ["BIRDS OF A FEATHER", "Billie Eilish"], ["Beautiful Things", "Benson Boone"], ["drivers license", "Olivia Rodrigo"],
+  ["Watermelon Sugar", "Harry Styles"], ["Heat Waves", "Glass Animals"], ["Sweater Weather", "The Neighbourhood"],
+  ["Somebody That I Used to Know (feat. Kimbra)", "Gotye"], ["Take On Me", "a-ha"], ["Billie Jean", "Michael Jackson"],
+  ["Smells Like Teen Spirit", "Nirvana"], ["Don't Stop Me Now", "Queen"], ["The Nights", "Avicii"],
+  ["Titanium (feat. Sia)", "David Guetta"], ["Havana (feat. Young Thug)", "Camila Cabello"], ["Anti-Hero", "Taylor Swift"],
+  ["Bad Habit", "Steve Lacy"],
+  ["BbY WOW", "KAROL G, Judeline & rusowsky"], ["Dai Dai", "Shakira & Burna Boy"], ["Ordinary", "Alex Warren"],
+  ["Taste", "Sabrina Carpenter"], ["Good Luck, Babe!", "Chappell Roan"], ["I Had Some Help (feat. Morgan Wallen)", "Post Malone"],
+  ["SWIM", "BTS"],
+  ["petal", "Ariana Grande"], ["hate that i made you love me", "Ariana Grande"], ["like i do", "Ariana Grande"],
+  ["kiss me", "Ariana Grande"], ["7 rings", "Ariana Grande"], ["One Last Time", "Ariana Grande"],
+  ["thank u, next", "Ariana Grande"], ["positions", "Ariana Grande"], ["no tears left to cry", "Ariana Grande"],
+  ["Woman", "Doja Cat"], ["Kiss Me More (feat. SZA)", "Doja Cat & SZA"], ["Streets", "Doja Cat"],
+  ["Paint The Town Red", "Doja Cat"], ["Agora Hills", "Doja Cat"], ["Say So", "Doja Cat"],
+  ["Need To Know", "Doja Cat"], ["You Right", "Doja Cat & The Weeknd"],
+  ["Poker Face", "Lady Gaga"], ["Just Dance (feat. Colby O'Donis)", "Lady Gaga"], ["Bad Romance", "Lady Gaga"],
+  ["Paparazzi", "Lady Gaga"], ["Shallow", "Lady Gaga & Bradley Cooper"], ["Abracadabra", "Lady Gaga"],
+  ["Always Remember Us This Way", "Lady Gaga"], ["Telephone (feat. Beyoncé)", "Lady Gaga"],
 ];
 
 // Boty korzystają z lokalnego katalogu, więc musimy przechowywać w nim te
@@ -210,13 +238,76 @@ const fallbackTrackAssets = [
   ["https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/c5/df/dd/c5dfdd9c-24f2-de01-246c-fcc5e028f705/12UMGIM53864.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/c5/6d/75/c56d75df-9fc2-85dd-92ba-ead2e5526bf0/mzaf_6111395556782441571.plus.aac.p.m4a"],
   ["https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/c4/3a/78/c43a7814-b089-9447-8688-a2fb9bf12c1e/00602547899972.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/25/eb/68/25eb6888-2f1d-7e10-8ea4-ba8213ff1c54/mzaf_12543213267298631850.plus.aac.p.m4a"],
   ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/6c/13/27/6c13279a-399b-2631-3cb2-6233a91d7a53/19UMGIM78325.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e5/ed/85/e5ed85cc-3cc0-4b6a-84b9-a11340e28989/mzaf_9565620202920523797.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a1/1c/ca/a11ccab6-7d4c-e041-d028-998bcebeb709/24UMGIM61704.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/99/da/ff/99daffce-cdde-59c6-5ae0-7f922ce411a8/mzaf_5621292401829922816.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/11/ae/f2/11aef294-f57c-bab9-c9fc-529162984e62/24UMGIM85348.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/07/6a/99/076a99ed-b946-431b-6f1f-54fa187ca5bd/mzaf_8102882277995122875.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2d/1a/7d/2d1a7d91-587e-0ceb-d434-327bd66d9e86/075679628312.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7a/15/38/7a1538f3-f41a-a2eb-0f24-8eb6712ee043/mzaf_7740628412097685267.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/92/9f/69/929f69f1-9977-3a44-d674-11f70c852d1b/24UMGIM36186.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/34/31/d3/3431d34e-847f-5d66-df83-0bce688d997e/mzaf_18106743962423782018.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/54/f4/92/54f49210-e260-b519-ebbd-f4f40ee710cd/054391342751.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/4d/d5/00/4dd5006f-ee02-c3f1-94db-0ed4b8dd68f1/mzaf_14250561294796027079.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/02/ed/8c/02ed8cab-c089-2fdd-7ce6-ab334a9a4e19/21UMGIM26093.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/36/62/61/366261be-0996-d73d-de6f-03417867c800/mzaf_8201528327761821135.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2b/c4/c9/2bc4c9d4-3bc6-ab13-3f71-df0b89b173de/886448022213.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/16/86/f5/1686f50d-8b77-7e32-85f7-5f0e804d68fe/mzaf_14195633304344507287.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/da/8b/77/da8b7731-6f4f-eacf-5e74-8b23389eefa1/20UMGIM03371.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a3/4c/b9/a34cb911-40fc-5f0c-e862-14bd171a77aa/mzaf_384792072030970151.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/28/71/00/287100fb-5c31-0195-5343-e6b3625886d0/886443969834.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8c/37/20/8c372047-2727-8054-9411-0e4867643dd8/mzaf_10169659262182214119.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b3/8a/98/b38a9867-2a9c-de2f-2d80-c624fb2200ec/11UMGIM19347.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/4a/63/85/4a6385ef-b80a-5e40-0bf2-245fa5b3dc52/mzaf_1146936378720252898.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music/c6/e1/c8/mzi.ixgzfcmc.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f2/03/4f/f2034f41-707f-7111-bc63-e5d3cf7f2240/mzaf_17215043934336702540.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/4f/fd/324ffda2-9e51-8f6a-0c2d-c6fd2b41ac55/074643811224.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/dc/bc/8a/dcbc8a3e-4ce1-c00d-cc02-eda2212053c7/mzaf_8347559338388601510.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/95/fd/b9/95fdb9b2-6d2b-92a6-97f2-51c1a6d77f1a/00602527874609.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/a6/53/1e/a6531efa-397c-eb73-ecab-9b2790c1471e/mzaf_16440344883389407474.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4d/08/2a/4d082a9e-7898-1aa1-a02f-339810058d9e/14DMGIM05632.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/6a/ec/92/6aec920f-5a05-d93b-ceaa-7de19cdbae88/mzaf_6658285650704260274.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/35/4d/a0/354da058-972b-dcf9-feec-609895ba8cb2/14UMGIM56567.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/20/32/b6/2032b6a6-11e6-b49d-d24d-f5ac0e436f93/mzaf_3388554548944023785.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/99/b4/7b/99b47bd8-2b22-e1ef-2e60-c5147f27a861/dj.thrvmjqj.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/45/dd/8f/45dd8ffc-0164-1f70-c53d-bf91a1d80b1a/mzaf_3092057092144618662.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/85/28/70/85287029-19b9-cbe3-d1ab-300781875bf4/886446870298.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7d/42/fe/7d42fe40-78b9-c546-861e-bda5788bba4e/mzaf_7434858341023410545.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/3d/01/f2/3d01f2e5-5a08-835f-3d30-d031720b2b80/22UM1IM07364.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1d/56/2a/1d562a07-dc5f-a9c0-1f36-2051a8c14eb7/mzaf_7214829135431340590.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/41/cf/77/41cf7744-535f-3679-0ca6-c1b8d3f98c8f/196874557266.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/fd/df/23/fddf23b3-bc0c-2a6c-b811-e9784e2e8fc2/mzaf_16866686323648484948.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2b/66/b2/2b66b26c-ab23-faa1-c4ee-06fa2cce8f76/26UM1IM00558.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f3/08/da/f308da3d-00cc-7682-7be9-87cb882f4ea5/mzaf_129115212197250565.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/61/49/8d/61498ded-f0dc-227d-cd1d-2051b5d9f195/196874328590.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/56/7a/bc/567abc01-853d-946a-a47d-e75cb69b5b13/mzaf_345300859410957179.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/46/78/fb/4678fb84-d19e-f11b-93ff-4dc17660bff8/075679619075.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f4/2f/82/f42f82e5-e164-dd14-4f9a-2767d0215bae/mzaf_2512873933120069750.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/c9/a3/e9/c9a3e987-3952-a6ac-7975-680f2033e660/25UMGIM10586.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f2/68/e5/f268e559-c2d6-2ab7-75e9-9d82deeacc74/mzaf_12284163589578842254.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/29/a7/c4/29a7c478-351d-25eb-a116-3e68118cdab8/24UMGIM31246.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c3/6d/4f/c36d4f23-b87f-046d-7a0e-e3e05d180b2a/mzaf_17235999651335214399.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/84/df/b9/84dfb96b-27c8-4d40-4780-b65ff22790e4/24UMGIM50612.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/1f/70/04/1f7004b7-414e-a89c-0148-abdd38981be8/mzaf_10246855408392712577.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e0/a2/b4/e0a2b443-7969-b57a-a591-cb6172c10aa7/198704943959_Cover.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e7/ce/b3/e7ceb389-cb23-f708-cbdb-ff874be51365/mzaf_3407006493764005509.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/56/f4/96/56f49612-02dd-83f4-44fe-d2118cc70707/26UMGIM51129.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f8/e7/49/f8e7493f-646b-032d-70b2-c3097a0d18c6/mzaf_1782513975775586053.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/7e/e6/82/7ee682bd-1b17-6adc-be63-b5af1bdff369/26UMGIM51126.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/02/41/f3/0241f307-2ec2-f817-3953-78df5f80f63d/mzaf_525670659940588152.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/56/f4/96/56f49612-02dd-83f4-44fe-d2118cc70707/26UMGIM51129.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/12/20/bb/1220bb18-7590-9e7c-a6ed-beca1dc47620/mzaf_667380891852406034.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/56/f4/96/56f49612-02dd-83f4-44fe-d2118cc70707/26UMGIM51129.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b5/18/13/b518132d-1ac2-da97-8d5f-063bdb0c8c2a/mzaf_1158145135257468256.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/69/07/bb6907de-8ad4-970b-3311-121320e1bf9c/19UMGIM03691.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d5/c8/f3/d5c8f31b-1c8f-93ed-e78b-8c0bce3e8b66/mzaf_14456154925680073521.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/85/00/a1/8500a13b-05a6-9e40-dbe0-8a3e48206c24/14UMGIM28138.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/73/13/1c/73131c50-6571-06e5-3404-e1bfa20c7101/mzaf_13252324295984021768.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/69/07/bb6907de-8ad4-970b-3311-121320e1bf9c/19UMGIM03691.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/89/96/16/8996169e-2309-a298-f6f0-e7c52fe8e176/mzaf_590631660224715451.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a8/8e/f9/a88ef97a-74c3-bedf-0574-ea0b83b40a38/20UMGIM94965.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2e/42/3a/2e423aa9-ca58-fabd-0c6f-dd7ae46f70d3/mzaf_15267168538994108138.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/9e/71/a4/9e71a47f-c290-a542-07fd-a3aed41eefa7/18UMGIM36924.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/14/99/60/14996009-1ae2-54c5-6685-0640c43f7fc2/mzaf_2609526654109745064.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/14/f3/28/14f32832-b9d9-1ba1-e20a-18c2ff8b6a80/886449410873.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/05/49/e8/0549e844-101c-56c7-b6ec-c04892c40b23/mzaf_1389493261873050246.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/14/f3/28/14f32832-b9d9-1ba1-e20a-18c2ff8b6a80/886449410873.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c3/db/9e/c3db9eb5-fed3-eae6-4bcd-baa949cb623d/mzaf_17138382012543023880.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/f3/03/40/f30340af-55d6-11bb-f59c-b03705360715/886447991831.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/19/2e/9f/192e9f88-8cac-e010-714e-5c1d43b9c957/mzaf_17943970501948063061.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2a/7b/8b/2a7b8b05-e5b0-bbef-c0a5-ebd27254e501/196871437684.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/28/23/bb/2823bb59-5a20-ed07-6772-2fe8477b373a/mzaf_2330059410084787188.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/db/c2/09/dbc20973-da5c-f959-5d28-e650b17a43c2/196871922708.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/dc/cd/7b/dccd7b93-99eb-d88b-ef80-5bb0cf74a60c/mzaf_1126158269804730666.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/f3/03/40/f30340af-55d6-11bb-f59c-b03705360715/886447991831.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/ff/47/3c/ff473c7d-528e-0086-de52-6028bcb62973/mzaf_9830857886973437464.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/4f/4b/ee/4f4bee71-d197-67ab-2a42-913dc416df0d/886449138869.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/42/bc/87/42bc8780-8443-9824-2764-b0020c04a58d/mzaf_12347834451315285447.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/14/f3/28/14f32832-b9d9-1ba1-e20a-18c2ff8b6a80/886449410873.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/39/36/ac/3936acc3-cd4e-50ca-c264-5c8017fd781d/mzaf_16419456039928920907.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/60/b1/ea/60b1ea38-2d5a-190f-984a-281de09f3d73/10UMGIM12308.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f4/4b/0e/f44b0e00-dd5a-059a-258c-8cae357094ba/mzaf_10294149513285744913.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/a6/68/28/a66828c0-3fe3-5419-374d-ad98739f3166/08UMGIM13954.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/39/7b/1b/397b1b6b-c433-133e-bb54-e41525e2111c/mzaf_4044793939430554541.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1f/25/c4/1f25c4bf-7f7a-ff26-8769-20ab6052dadf/09UMGIM40719.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/1b/54/f0/1b54f0b7-db6a-1a40-6af8-4ae4650d8d6d/mzaf_2782647211171496826.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/05/0d/08/050d086a-120b-0fd4-cdcd-9dae383eda49/23UMGIM64895.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/28/d7/0d/28d70d48-3b51-6db7-2fbf-3be964e17004/mzaf_16258227160172363729.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b1/9f/ef/b19fef51-79de-a940-e8ab-9e4e07b04d96/18UMGIM53752.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0c/cc/ed/0ccced59-6e6f-f0a0-0c9a-d20bfd475052/mzaf_26600833784075363.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/54/64/2c/54642c8f-4c6c-5e55-45ea-475f98cf74b4/25UMGIM06790.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/66/ae/23/66ae23ad-76f2-cc89-bcef-8592f03f4a74/mzaf_3200208882053923784.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b1/9f/ef/b19fef51-79de-a940-e8ab-9e4e07b04d96/18UMGIM53752.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e4/b8/f3/e4b8f37d-91b4-ca6f-d903-604bb3ada165/mzaf_17531851350070402784.plus.aac.p.m4a"],
+  ["https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/1b/98/88/1b9888da-6a1f-bff0-ec03-518f445019f6/19UMGIM73435.rgb.jpg/100x100bb.jpg", "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/07/ff/cd/07ffcd39-04b6-56a6-69ca-f0fbe35beaaa/mzaf_12419306420041349034.plus.aac.p.m4a"],
 ];
 
-export const musicPreviewCatalog = fallbackTrackNames.map(([title, artist], index) => {
+const globalMusicPreviewCatalog = fallbackTrackNames.map(([title, artist], index) => {
   const [coverUrl = "", previewUrl = ""] = fallbackTrackAssets[index] || [];
-  return { id:`fallback-${index}`, title, artist, coverUrl, previewUrl, externalUrl:`https://open.spotify.com/search/${encodeURIComponent(`${artist} ${title}`)}`, provider:"preview" };
+  return { id:`fallback-${index}`, title, artist, region:"global", coverUrl, previewUrl, externalUrl:`https://open.spotify.com/search/${encodeURIComponent(`${artist} ${title}`)}`, provider:"preview" };
 });
+export const musicPreviewCatalog = [...globalMusicPreviewCatalog, ...extendedGlobalMusicTracks, ...extendedGlobalMusicTracks2, ...polishTrackData];
 const fallbackTracks = musicPreviewCatalog;
+
+const polishArtistNames = new Set(polishTrackData.map(track => clean(track.artist, 100).toLocaleLowerCase("pl-PL")));
+const trackRegion = track => {
+  const title = clean(track?.title || track?.trackName, 100).toLocaleLowerCase("pl-PL");
+  const artist = clean(track?.artist || track?.artistName, 100).toLocaleLowerCase("pl-PL");
+  const exact = polishTrackData.find(item => item.title.toLocaleLowerCase("pl-PL") === title && item.artist.toLocaleLowerCase("pl-PL") === artist);
+  if (exact || polishArtistNames.has(artist)) return "polish";
+  return safeMusicRegion(track?.region);
+};
+export const musicCatalogForRegion = region => musicPreviewCatalog.filter(track => trackRegion(track) === safeMusicRegion(region));
+export const isMusicTrackInRegion = (track, region) => trackRegion(track) === safeMusicRegion(region);
 
 function normalizeTrack(track) {
   if (!track || typeof track !== "object") return null;
@@ -229,6 +320,7 @@ function normalizeTrack(track) {
     id,
     title,
     artist,
+    region: trackRegion({ ...track, title, artist, region:track.region || fallback.region }),
     album: clean(track.album || track.collectionName || fallback.album, 100),
     coverUrl: clean(track.coverUrl || track.artworkUrl100 || fallback.coverUrl, 500),
     previewUrl: clean(track.previewUrl || fallback.previewUrl, 500),
@@ -238,26 +330,29 @@ function normalizeTrack(track) {
   };
 }
 
-export async function searchMusicTracks(query) {
+export async function searchMusicTracks(query, region = "global") {
   const value = clean(query, 100);
   if (value.length < 2) return [];
+  const selectedRegion = safeMusicRegion(region);
+  const localMatches = musicCatalogForRegion(selectedRegion).filter(track => `${track.title} ${track.artist}`.toLocaleLowerCase("pl-PL").includes(value.toLocaleLowerCase("pl-PL"))).slice(0, 8);
+  if (selectedRegion === "polish" && localMatches.length) return localMatches;
   try {
     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(value)}&entity=song&limit=8&country=PL`;
     const response = await fetch(url, { headers: { Accept: "application/json" } });
     if (!response.ok) throw new Error("search failed");
     const data = await response.json();
-    const tracks = array(data?.results).map(item => normalizeTrack({ ...item, provider:"preview" })).filter(Boolean);
+    const tracks = array(data?.results).map(item => normalizeTrack({ ...item, provider:"preview", region:selectedRegion })).filter(track => track && isMusicTrackInRegion(track, selectedRegion));
     if (tracks.length) return tracks;
   } catch {}
-  return fallbackTracks.filter(track => `${track.title} ${track.artist}`.toLocaleLowerCase("pl-PL").includes(value.toLocaleLowerCase("pl-PL"))).slice(0, 8);
+  return localMatches;
 }
 
 export function sanitizeMusicDuelSettings(settings = {}) {
-  return { rounds:clamp(settings.rounds, 1, 20, 5), selectionTime:clamp(settings.selectionTime ?? settings.answerTime, 10, 90, 30), votingTime:clamp(settings.votingTime, 10, 90, 25), category:categoryIds.has(settings.category) ? settings.category : "all" };
+  return { rounds:clamp(settings.rounds, 1, 20, 5), selectionTime:clamp(settings.selectionTime ?? settings.answerTime, 10, 90, 30), votingTime:clamp(settings.votingTime, 10, 90, 25), category:categoryIds.has(settings.category) ? settings.category : "all", region:safeMusicRegion(settings.region) };
 }
 
 export function sanitizeMusicArenaSettings(settings = {}) {
-  return { rounds:clamp(settings.rounds, 1, 100, 10), selectionTime:clamp(settings.selectionTime ?? settings.answerTime, 10, 90, 30), votingTime:clamp(settings.votingTime, 10, 90, 25), category:categoryIds.has(settings.category) ? settings.category : "all" };
+  return { rounds:clamp(settings.rounds, 1, 100, 10), selectionTime:clamp(settings.selectionTime ?? settings.answerTime, 10, 90, 30), votingTime:clamp(settings.votingTime, 10, 90, 25), category:categoryIds.has(settings.category) ? settings.category : "all", region:safeMusicRegion(settings.region) };
 }
 
 function validPlayers(players, min) {
@@ -270,8 +365,9 @@ function trackForRound(track, fallbackIndex = 0) {
 
 function trackPool(game) {
   const used = new Set(array(game.usedTracks));
-  const choices = fallbackTracks.filter(track => !used.has(track.id));
-  return choices.length ? choices : fallbackTracks;
+  const pool = musicCatalogForRegion(game?.region);
+  const choices = pool.filter(track => !used.has(track.id));
+  return choices.length ? choices : pool;
 }
 
 function botTrackScore(track) {
@@ -330,7 +426,7 @@ function resolveDuelVoting(game) {
 
 export function createMusicDuelGame(players, settings = {}) {
   const s = sanitizeMusicDuelSettings(settings), list = array(players).slice(0, 8);
-  const game = { mode:"muzyczny-pojedynek", phase:"selecting", round:1, totalRounds:s.rounds, players:list, category:s.category, submissions:{}, votes:{}, scores:Object.fromEntries(list.map(uid => [uid, 0])), usedTracks:[], roundResult:null, finished:false, phaseEndsAt:deadline(s.selectionTime) };
+  const game = { mode:"muzyczny-pojedynek", phase:"selecting", round:1, totalRounds:s.rounds, players:list, category:s.category, region:s.region, submissions:{}, votes:{}, scores:Object.fromEntries(list.map(uid => [uid, 0])), usedTracks:[], roundResult:null, finished:false, phaseEndsAt:deadline(s.selectionTime) };
   return game;
 }
 
@@ -342,6 +438,7 @@ export const MusicDuelEngine = {
     if (uid in game.submissions) return "Twój utwór jest już zapisany.";
     const cleanTrack = normalizeTrack(track);
     if (!cleanTrack) return "Wybierz utwór z wyników wyszukiwania.";
+    if (!isMusicTrackInRegion(cleanTrack, game.region)) return `Wybierz utwór z katalogu: ${musicRegionLabel(game.region)}.`;
     game.submissions[uid] = cleanTrack;
     game.usedTracks = [...new Set([...array(game.usedTracks), cleanTrack.id])].slice(-100);
     if (game.players.every(player => player in game.submissions)) startDuelListening(game);
@@ -424,7 +521,7 @@ function resolveArenaVoting(game) {
 
 export function createMusicArenaGame(players, settings = {}) {
   const s = sanitizeMusicArenaSettings(settings), list = array(players).slice(0, 100), selectionWeights = Object.fromEntries(list.map(uid => [uid, 1]));
-  const game = { mode:"muzyczna-arena", phase:"selecting", round:1, totalRounds:s.rounds, players:list, category:s.category, duelists:[], submissions:{}, votes:{}, scores:Object.fromEntries(list.map(uid => [uid, 0])), wins:Object.fromEntries(list.map(uid => [uid, 0])), selectionWeights, usedTracks:[], roundResult:null, finished:false, phaseEndsAt:deadline(s.selectionTime) };
+  const game = { mode:"muzyczna-arena", phase:"selecting", round:1, totalRounds:s.rounds, players:list, category:s.category, region:s.region, duelists:[], submissions:{}, votes:{}, scores:Object.fromEntries(list.map(uid => [uid, 0])), wins:Object.fromEntries(list.map(uid => [uid, 0])), selectionWeights, usedTracks:[], roundResult:null, finished:false, phaseEndsAt:deadline(s.selectionTime) };
   chooseArenaDuelists(game);
   return game;
 }
@@ -437,6 +534,7 @@ export const MusicArenaEngine = {
     if (uid in game.submissions) return "Twój utwór jest już zapisany.";
     const cleanTrack = normalizeTrack(track);
     if (!cleanTrack) return "Wybierz utwór z wyników wyszukiwania.";
+    if (!isMusicTrackInRegion(cleanTrack, game.region)) return `Wybierz utwór z katalogu: ${musicRegionLabel(game.region)}.`;
     game.submissions[uid] = cleanTrack;
     game.usedTracks = [...new Set([...array(game.usedTracks), cleanTrack.id])].slice(-100);
     if (game.duelists.every(player => player in game.submissions)) startArenaListening(game);
@@ -501,14 +599,19 @@ function categorySelect(selected, setting, isHost) {
   return `<select data-music-setting="${setting}" ${isHost ? "" : "disabled"}>${groups.map(group => `<optgroup label="${escapeHtml(group.label)}">${group.options.join("")}</optgroup>`).join("")}</select>`;
 }
 
+export function musicRegionPicker(selected, setting, isHost, prefix = "music") {
+  const region = safeMusicRegion(selected);
+  return `<fieldset class="music-region-picker"><legend>Katalog utworów</legend><div class="music-region-options" role="radiogroup" aria-label="Katalog utworów">${musicRegionOptions.map(([id, icon, label, description]) => `<label class="music-region-option ${region === id ? "is-selected" : ""}"><input type="radio" name="${escapeHtml(setting)}" value="${id}" data-${escapeHtml(prefix)}-setting="${escapeHtml(setting)}" ${region === id ? "checked" : ""} ${isHost ? "" : "disabled"}><span class="music-region-option-icon">${icon}</span><span><b>${escapeHtml(label)}</b><small>${escapeHtml(description)}</small></span></label>`).join("")}</div></fieldset>`;
+}
+
 export function renderMusicDuelLobbySettings(room, isHost) {
   const s = sanitizeMusicDuelSettings(room.settings);
-  return `<div class="music-settings"><label class="setting-row"><span>Liczba rund</span><select data-music-setting="rounds" ${isHost ? "" : "disabled"}>${[3, 5, 7, 10, 15, 20].map(value => `<option value="${value}" ${s.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór utworu</span><select data-music-setting="selectionTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${s.selectionTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><div class="music-fixed-listening"><b>Odsłuch rundy · 60 s</b><small>Stałe 30 sekund na każdy z dwóch podglądów. Tego czasu nie zmienia preset.</small></div><label class="setting-row"><span>Czas głosowania</span><select data-music-setting="votingTime" ${isHost ? "" : "disabled"}>${[15, 25, 30, 45, 60].map(value => `<option value="${value}" ${s.votingTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span>${categorySelect(s.category, "category", isHost)}</label><p class="tiny">Każdy wyszukuje i wybiera jeden utwór. Potem słuchacie propozycji i głosujecie na najlepszą.</p></div>`;
+  return `<div class="music-settings">${musicRegionPicker(s.region, "region", isHost)}<label class="setting-row"><span>Liczba rund</span><select data-music-setting="rounds" ${isHost ? "" : "disabled"}>${[3, 5, 7, 10, 15, 20].map(value => `<option value="${value}" ${s.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór utworu</span><select data-music-setting="selectionTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${s.selectionTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><div class="music-fixed-listening"><b>Odsłuch rundy · 60 s</b><small>Stałe 30 sekund na każdy z dwóch podglądów. Tego czasu nie zmienia preset.</small></div><label class="setting-row"><span>Czas głosowania</span><select data-music-setting="votingTime" ${isHost ? "" : "disabled"}>${[15, 25, 30, 45, 60].map(value => `<option value="${value}" ${s.votingTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span>${categorySelect(s.category, "category", isHost)}</label><p class="tiny">Każdy wyszukuje i wybiera jeden utwór. Potem słuchacie propozycji i głosujecie na najlepszą.</p></div>`;
 }
 
 export function renderMusicArenaLobbySettings(room, isHost) {
   const s = sanitizeMusicArenaSettings(room.settings);
-  return `<div class="music-settings"><label class="setting-row"><span>Liczba rund</span><select data-music-setting="rounds" ${isHost ? "" : "disabled"}>${[10, 20, 30, 50, 100].map(value => `<option value="${value}" ${s.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór utworu</span><select data-music-setting="selectionTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${s.selectionTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><div class="music-fixed-listening"><b>Odsłuch rundy · 60 s</b><small>Oba wybrane podglądy mają po 30 sekund. Pominięcie wymaga zgody obu autorów po 10 sekundach.</small></div><label class="setting-row"><span>Czas głosowania</span><select data-music-setting="votingTime" ${isHost ? "" : "disabled"}>${[15, 25, 30, 45, 60].map(value => `<option value="${value}" ${s.votingTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span>${categorySelect(s.category, "category", isHost)}</label><p class="tiny">W każdej rundzie losujemy dwóch graczy. Szanse osób niewylosowanych rosną, ale nikt nie jest całkiem wykluczony.</p></div>`;
+  return `<div class="music-settings">${musicRegionPicker(s.region, "region", isHost)}<label class="setting-row"><span>Liczba rund</span><select data-music-setting="rounds" ${isHost ? "" : "disabled"}>${[10, 20, 30, 50, 100].map(value => `<option value="${value}" ${s.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór utworu</span><select data-music-setting="selectionTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${s.selectionTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><div class="music-fixed-listening"><b>Odsłuch rundy · 60 s</b><small>Oba wybrane podglądy mają po 30 sekund. Pominięcie wymaga zgody obu autorów po 10 sekundach.</small></div><label class="setting-row"><span>Czas głosowania</span><select data-music-setting="votingTime" ${isHost ? "" : "disabled"}>${[15, 25, 30, 45, 60].map(value => `<option value="${value}" ${s.votingTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span>${categorySelect(s.category, "category", isHost)}</label><p class="tiny">W każdej rundzie losujemy dwóch graczy. Szanse osób niewylosowanych rosną, ale nikt nie jest całkiem wykluczony.</p></div>`;
 }
 
 function playerRows(game, accounts, field = "scores") {
@@ -536,7 +639,7 @@ function trackSearchResultsHtml(results) {
 
 const musicSearchStates = new Map();
 function musicSearchStateKey(room, game, currentUser) {
-  return `${room?.roomId || "local"}:${room?.gameMode || game?.mode || "music"}:${Number(game?.round || 1)}:${currentUser || "guest"}`;
+  return `${room?.roomId || "local"}:${room?.gameMode || game?.mode || "music"}:${game?.region || "global"}:${Number(game?.round || 1)}:${currentUser || "guest"}`;
 }
 function musicSearchStateFor(key) {
   if (!key) return { query:"", results:[], searched:false, pending:false, requestId:0 };
@@ -568,7 +671,7 @@ function playlistHtml(submissions, accounts, { allowVote = false, currentUser = 
   return `<div class="music-playlist" data-music-playlist><div class="music-now-playing"><div><p class="eyebrow">TERAZ GRA</p><strong data-music-now-playing>${escapeHtml(first ? trackIdentity(first) : "Brak utworów")}</strong></div><span data-music-playlist-count>${first ? `${firstIndex + 1}/${entries.length}` : "0/0"}</span></div><div class="music-player" data-music-player>${player}</div><div class="music-song-list">${entries.map(([uid, track], index) => { const key = `music:${namespace}:${uid}:${track.id || index}`; return `<article class="music-song-card ${index === firstIndex ? "is-active" : ""}" data-music-track-card data-track-key="${escapeHtml(key)}" data-track-index="${index}" data-preview-url="${escapeHtml(track.previewUrl || "")}" data-external-url="${escapeHtml(track.spotifyUrl || track.externalUrl || "")}"><div class="music-song-card-head"><span class="music-song-number">${arena ? (index === 0 ? "A" : "B") : `#${index + 1}`}</span>${trackInfoHtml(track, `<small class="music-track-owner">${allowVote ? "" : escapeHtml(nick(accounts, uid))}</small>`)}</div><div class="music-song-card-actions"><button class="ghost" type="button" data-music-play-track>▶ Odtwórz</button>${allowVote ? `<button class="primary" type="button" data-music-vote="${escapeHtml(uid)}">Wybieram ten utwór</button>` : ""}</div></article>`; }).join("")}</div></div>`;
 }
 
-function bindTrackSearch(root, actions, onSelect, stateKey = "") {
+function bindTrackSearch(root, actions, onSelect, stateKey = "", region = "global") {
   const form = root.querySelector("[data-music-search-form]"), results = root.querySelector("[data-music-search-results]");
   if (!form || !results) return;
   const state = musicSearchStateFor(stateKey);
@@ -595,7 +698,7 @@ function bindTrackSearch(root, actions, onSelect, stateKey = "") {
     const requestId = ++state.requestId;
     button.disabled = true; button.textContent = "Szukam…"; results.innerHTML = `<p class="muted">Wyszukiwanie utworów…</p>`;
     try {
-      const nextFound = await actions.musicSearchTracks(query);
+      const nextFound = await actions.musicSearchTracks(query, region);
       if (state.requestId !== requestId) return;
       found = Array.isArray(nextFound) ? nextFound : [];
       state.results = found;
@@ -685,7 +788,8 @@ let musicSkipUnlockKey = "";
 export function stopMusicTimer() { window.clearTimeout(musicTimer); window.clearTimeout(musicClockTimer); musicTimer = 0; musicClockTimer = 0; musicTimerKey = ""; }
 
 function musicHeader(game, title, accounts, arena = false) {
-  return `<p class="eyebrow">${escapeHtml(title)} · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><h1>${arena ? "Który utwór wygrywa?" : "Który numer bierze rundę?"}</h1><div class="music-category-banner"><span>🎵</span><div><small>KATEGORIA</small><strong>${escapeHtml(categoryLabel(game.category))}</strong></div></div>`;
+  const region = musicRegionOptions.find(([id]) => id === game.region) || musicRegionOptions[0];
+  return `<p class="eyebrow">${escapeHtml(title)} · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><h1>${arena ? "Który utwór wygrywa?" : "Który numer bierze rundę?"}</h1><div class="music-category-banner"><span>🎵</span><div><small>KATEGORIA · ${region[1]} ${escapeHtml(region[2])}</small><strong>${escapeHtml(categoryLabel(game.category))}</strong></div></div>`;
 }
 
 function musicSkipPanel(game, currentUser, eligible) {
@@ -738,7 +842,7 @@ export function renderMusicDuelGame(root, { room, accounts, currentUser }, actio
     content += `<div class="music-final"><span>🏆</span><h2>Koniec pojedynku</h2><p>${winners.length ? `Wygrywa ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ")}!` : "Tym razem nie było zwycięzcy."}</p><div class="music-ranking">${playerRows(game, accounts)}</div></div><button id="music-duel-lobby" class="primary">Zagraj ponownie</button>`;
   }
   root.innerHTML = `<main class="page music-page music-duel-page enter"><section class="panel music-panel">${content}</section><button id="music-duel-leave" class="ghost">Wyjdź z pokoju</button></main>`;
-  bindTrackSearch(root, actions, track => track && actions.musicDuelSelect(track, expected), musicSearchStateKey(room, game, currentUser));
+  bindTrackSearch(root, actions, track => track && actions.musicDuelSelect(track, expected), musicSearchStateKey(room, game, currentUser), game.region);
   root.querySelectorAll("[data-music-vote]").forEach(button => button.addEventListener("click", () => actions.musicDuelVote(button.dataset.musicVote, expected)));
   root.querySelector("[data-music-skip]")?.addEventListener("click", () => actions.musicDuelSkip(expected));
   if (game.phase === "listening") bindMusicSkipAvailability(root, game);
@@ -772,7 +876,7 @@ export function renderMusicArenaGame(root, { room, accounts, currentUser }, acti
     content += `<div class="music-final"><span>🏆</span><h2>Koniec bitwy</h2><p>${winners.length ? `Najwięcej zwycięstw ma ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ")}!` : "Nie wyłoniono zwycięzcy."}</p><div class="music-ranking">${playerRows(game, accounts, "wins")}</div></div><button id="music-arena-lobby" class="primary">Zagraj ponownie</button>`;
   }
   root.innerHTML = `<main class="page music-page music-arena-page enter"><section class="panel music-panel">${content}</section><button id="music-arena-leave" class="ghost">Wyjdź z pokoju</button></main>`;
-  bindTrackSearch(root, actions, track => track && actions.musicArenaSelect(track, expected), musicSearchStateKey(room, game, currentUser));
+  bindTrackSearch(root, actions, track => track && actions.musicArenaSelect(track, expected), musicSearchStateKey(room, game, currentUser), game.region);
   root.querySelectorAll("[data-music-vote]").forEach(button => button.addEventListener("click", () => actions.musicArenaVote(button.dataset.musicVote, expected)));
   root.querySelector("[data-music-skip]")?.addEventListener("click", () => actions.musicArenaSkip(expected));
   if (game.phase === "listening") bindMusicSkipAvailability(root, game);

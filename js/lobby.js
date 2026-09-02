@@ -1,8 +1,9 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20260902-15";
+import { getGameMode } from "./games.js?v=20260902-16";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260901-13";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
+import { musicRegionPicker } from "./music.js?v=20260902-17";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");
 
@@ -77,6 +78,9 @@ function presetSettingsFor(mode, preset, { mathematicsVariant = "single" } = {})
   } else if (id === "popularnosc-hitow") {
     set("choiceTime", 5, 20, 10);
     set("rounds", 3, 15, 10);
+  } else if (id === "songspot") {
+    set("rounds", 3, 10, 5);
+    set("answerTime", 10, 30, 20);
   } else if (id.startsWith("minecraft-")) {
     set("questionTime", 8, 20, defaults.questionTime);
     set("rounds", 5, 15, defaults.rounds);
@@ -233,6 +237,9 @@ function estimatePreset(mode, preset, playerCount, extra = {}) {
     case "popularnosc-hitow":
       seconds = rounds * (averagePhase(settings.choiceTime, .7, 4) + 7);
       break;
+    case "songspot":
+      seconds = rounds * (Math.max(...(Array.isArray(settings.enabledTimes) ? settings.enabledTimes : [15]), 15) + Number(settings.answerTime || 20) + 6);
+      break;
     default:
       seconds = rounds ? rounds * 45 : 120;
   }
@@ -295,6 +302,9 @@ export function createRoomModal(mode, actions) {
   let roomPreset = ["quick", "standard", "long"].includes(savedPreset) ? savedPreset : "standard";
   let commerceSettings = normalizeCommerceSettings(mode.id, {}, defaultCommercePreferences());
   const commercePanel = commerceCreationHtml(mode.id, commerceSettings);
+  const isMusicCatalogMode = ["popularnosc-hitow", "dokoncz-tekst", "songspot"].includes(mode.id);
+  let musicRegion = mode.defaultSettings?.region === "polish" ? "polish" : "global";
+  const betaNote = mode.id === "dokoncz-tekst" ? '<p class="lyrics-beta-note room-create-beta-note">⚠️ Tryb beta: synchronizacja piosenki z tekstem może być niedokładna.</p>' : "";
   const savedCapacity = Number(localStorage.getItem(`grygrupowe-capacity-${mode.id}`));
   if (savedCapacity >= mode.minPlayers && savedCapacity <= mode.maxPlayers) maxPlayers = savedCapacity;
   let mathematicsVariant = mode.id === "mathematics" ? (mode.defaultSettings?.mathematicsVariant || "single") : "single";
@@ -315,12 +325,13 @@ export function createRoomModal(mode, actions) {
     <div class="modal-title"><div><p class="eyebrow">${mode.name}</p><h2 id="modal-title">Nowy pokój</h2><p class="room-create-subtitle">Ustaw podstawy i zaproś ekipę.</p></div><button class="icon-btn" data-close>${icon("x", 18)}</button></div>
     <div class="room-create-layout ${commercePanel ? "has-aside" : "is-single"}">
       <div class="room-create-main">
-        <div class="room-create-field-grid"><div><label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy"></div><div id="room-max-slot"></div></div>
+        <div class="room-create-field-grid"><div><label for="room-name">Nazwa pokoju</label><input id="room-name" placeholder="Pokój dla ekipy"></div><div id="room-max-slot"></div></div>${betaNote}
         <fieldset class="room-preset-choice"><legend>SZYBKI PRESET ROZGRYWKI</legend><div class="room-preset-grid">
           <label class="room-preset-option ${roomPreset === "quick" ? "is-selected" : ""}" data-preset="quick"><input type="radio" name="room-preset" value="quick" ${roomPreset === "quick" ? "checked" : ""}><span class="room-preset-icon">⚡</span><span><b>Szybka</b><small data-preset-time>${currentPresetDetails.quick}</small></span></label>
           <label class="room-preset-option ${roomPreset === "standard" ? "is-selected" : ""}" data-preset="standard"><input type="radio" name="room-preset" value="standard" ${roomPreset === "standard" ? "checked" : ""}><span class="room-preset-icon">✦</span><span><b>Standardowa</b><small data-preset-time>${currentPresetDetails.standard}</small></span></label>
           <label class="room-preset-option ${roomPreset === "long" ? "is-selected" : ""}" data-preset="long"><input type="radio" name="room-preset" value="long" ${roomPreset === "long" ? "checked" : ""}><span class="room-preset-icon">🌙</span><span><b>Długa</b><small data-preset-time>${currentPresetDetails.long}</small></span></label>
         </div><p class="tiny room-preset-help">Czas jest orientacyjny i zakłada, że gracze często kończą rundę przed limitem. Dokładne ustawienia zmienisz później w lobby.</p></fieldset>
+        ${isMusicCatalogMode ? `<div class="room-create-music-region">${musicRegionPicker(musicRegion, "region", true, "room-create")}</div>` : ""}
         <label class="check room-private-row"><input id="room-private" type="checkbox"> Pokój prywatny z hasłem</label><input id="room-password" class="hidden" placeholder="hasło pokoju">
         <fieldset class="room-type-choice"><legend>RODZAJ POKOJU</legend><div class="room-type-grid"><label class="room-type-option is-selected"><input type="radio" name="room-type" value="standard" checked><span><b>● Standard</b><small>Bez wpisowego, nagrody z banku gry.</small></span></label><label class="room-type-option"><input type="radio" name="room-type" value="betting"><span><b>◈ Zakłady</b><small>Wpisowe trafia do wspólnej puli.</small></span></label></div><label id="entry-fee-field" class="hidden">Wpisowe<select id="entry-fee">${ENTRY_FEE_OPTIONS.map(fee => `<option value="${fee}">${fee.toLocaleString("pl-PL")}$</option>`).join("")}</select></label></fieldset>
       </div>
@@ -361,12 +372,20 @@ export function createRoomModal(mode, actions) {
   $("#room-private", backdrop).addEventListener("change", event => $("#room-password", backdrop).classList.toggle("hidden", !event.target.checked));
   backdrop.querySelectorAll("[name='room-type']").forEach(input => input.addEventListener("change", () => { roomType=input.value; backdrop.querySelectorAll(".room-type-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); backdrop.querySelector("#entry-fee-field").classList.toggle("hidden",roomType!=="betting"); }));
   backdrop.querySelector("#entry-fee").addEventListener("change", event => { entryFee=Number(event.target.value)||ENTRY_FEE_OPTIONS[0]; });
-  backdrop.querySelector("#room-max-players")?.addEventListener("change", event => { maxPlayers=Number(event.target.value)||mode.maxPlayers; localStorage.setItem(`grygrupowe-capacity-${mode.id}`, String(maxPlayers)); updatePresetTimes(); });
+  const updateMaxPlayers = event => { const next = Number(event.target.value); if (!Number.isFinite(next)) return; maxPlayers=Math.max(mode.minPlayers, Math.min(mode.maxPlayers, next)); localStorage.setItem(`grygrupowe-capacity-${mode.id}`, String(maxPlayers)); updatePresetTimes(); };
+  backdrop.querySelector("#room-max-players")?.addEventListener("input", updateMaxPlayers);
+  backdrop.querySelector("#room-max-players")?.addEventListener("change", updateMaxPlayers);
   backdrop.querySelectorAll("[name='room-preset']").forEach(input => input.addEventListener("change", () => { roomPreset=input.value; backdrop.querySelectorAll(".room-preset-option").forEach(item=>item.classList.toggle("is-selected",item.querySelector("input")?.checked)); localStorage.setItem("grygrupowe-room-preset", roomPreset); }));
+  const updateMusicRegion = event => { musicRegion=event.target.value === "polish" ? "polish" : "global"; backdrop.querySelectorAll(".music-region-option").forEach(item => item.classList.toggle("is-selected", item.querySelector("input")?.checked)); };
+  backdrop.querySelectorAll("[data-room-create-setting='region']").forEach(input => input.addEventListener("change", updateMusicRegion));
+  backdrop.querySelectorAll(".music-region-option").forEach(label => label.addEventListener("click", () => { const input=label.querySelector("input"); if (!input || input.disabled) return; input.checked=true; input.dispatchEvent(new Event("change", { bubbles:true })); }));
   backdrop.querySelectorAll("[data-commerce-setting]").forEach(input => input.addEventListener("change", event => { const key=event.target.dataset.commerceSetting; commerceSettings={...commerceSettings,[key]:event.target.checked}; saveCommercePreferences(commerceSettings); }));
   $("#confirm-create", backdrop).addEventListener("click", async () => {
     const presetSettings = presetSettingsFor(mode, roomPreset, { mathematicsVariant });
-    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...presetSettings, ...commerceSettings } }) !== false) close();
+    const selectedCapacity = Number($("#room-max-players", backdrop)?.value);
+    const selectedRegion = backdrop.querySelector("[data-room-create-setting='region']:checked")?.value;
+    const roomCapacity = Number.isFinite(selectedCapacity) ? Math.max(mode.minPlayers, Math.min(mode.maxPlayers, selectedCapacity)) : maxPlayers;
+    if (await actions.createRoom({ name: $("#room-name", backdrop).value, maxPlayers:roomCapacity, isPrivate: $("#room-private", backdrop).checked, password: $("#room-password", backdrop).value, roomType, entryFee, settings: { ...mode.defaultSettings, ...presetSettings, ...commerceSettings, ...(isMusicCatalogMode ? { region:selectedRegion === "polish" ? "polish" : musicRegion } : {}) } }) !== false) close();
   });
   return backdrop;
 }

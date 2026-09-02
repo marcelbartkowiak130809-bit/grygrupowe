@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260902-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260902-2";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -31,6 +31,8 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano nowy tryb multiplayer Kto ma więcej? dla 2–8 osób: w 10 sekund wybieracie, która piosenka ma większą popularność.",
         "Dodano wybór statystyki: wyświetlenia YouTube albo miesięczni słuchacze Spotify.",
         "Dodano bazę 328 utworów z równym dla wszystkich snapshotem danych, ukrytymi liczbami i efektownym ujawnieniem wyniku.",
+        "Dodano 157 nowych globalnych utworów z działającymi okładkami i previewami, dzięki czemu globalna pula ma 243 grywalne utwory.",
+        "Globalna i polska pula są rozdzielone; łącznie katalog zawiera 358 utworów.",
         "Dodano automatyczne pobieranie okładek z publicznego katalogu muzycznego oraz bezpieczny fallback, gdy obrazek nie jest dostępny.",
         "Dodano animowane karty A/B, awatary wyborów, informację o trafieniach i ranking po każdej rundzie.",
         "Dodano płynne ujawnianie liczb, skróty A/D i strzałki oraz widoczny stan gotowych graczy.",

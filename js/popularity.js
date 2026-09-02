@@ -1,6 +1,7 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-17";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -11,6 +12,7 @@ const clamp = (value, min, max, fallback) => {
 const deadline = seconds => Date.now() + Math.max(1, Number(seconds) || 10) * 1000;
 const cleanMetric = value => ["listeners", "artistListeners"].includes(value) ? value : "views";
 const normalizedText = value => String(value || "").trim().toLocaleLowerCase("pl-PL");
+const POPULARITY_SNAPSHOT_DATE = "02.09.2026";
 
 // Dane są celowo zapisane jako snapshot. Dzięki temu każdy gracz dostaje
 // identyczne porównanie, nawet gdy publiczne API jest chwilowo niedostępne.
@@ -149,7 +151,7 @@ const snapshotRows = [
   ["deja-vu", "deja vu", "Olivia Rodrigo", 600000000, 65000000],
   ["espresso", "Espresso", "Sabrina Carpenter", 500000000, 73000000],
   ["please-please-please", "Please Please Please", "Sabrina Carpenter", 350000000, 73000000],
-  ["taste", "Taste", "Sabrina Carpenter", 300000000, 73000000],
+  ["taste", "Taste", "Sabrina Carpenter", 1500000000, 68000000],
   ["feather", "Feather", "Sabrina Carpenter", 300000000, 73000000],
   ["strawberry-blond", "Strawberry Blond", "Mitski", 200000000, 18000000],
   ["running-up-that-hill", "Running Up That Hill", "Kate Bush", 800000000, 11000000],
@@ -209,10 +211,10 @@ const snapshotRows = [
   ["24k-magic", "24K Magic", "Bruno Mars", 1600000000, 60000000],
   ["thats-what-i-like", "That's What I Like", "Bruno Mars", 1800000000, 60000000],
   ["treasure", "Treasure", "Bruno Mars", 900000000, 60000000],
-  ["kiss-me-more", "Kiss Me More", "Doja Cat ft. SZA", 900000000, 44000000],
-  ["say-so", "Say So", "Doja Cat", 1400000000, 44000000],
-  ["woman", "Woman", "Doja Cat", 800000000, 44000000],
-  ["paint-the-town-red", "Paint The Town Red", "Doja Cat", 600000000, 44000000],
+  ["kiss-me-more", "Kiss Me More", "Doja Cat & SZA", 2100000000, 75000000],
+  ["say-so", "Say So", "Doja Cat", 2200000000, 75000000],
+  ["woman", "Woman", "Doja Cat", 1400000000, 75000000],
+  ["paint-the-town-red", "Paint The Town Red", "Doja Cat", 1500000000, 75000000],
   ["snooze", "Snooze", "SZA", 500000000, 57000000],
   ["kill-bill", "Kill Bill", "SZA", 600000000, 57000000],
   ["all-the-stars", "All The Stars", "Kendrick Lamar & SZA", 700000000, 57000000],
@@ -244,11 +246,11 @@ const snapshotRows = [
   ["sweater-weather", "Sweater Weather", "The Neighbourhood", 1300000000, 42000000],
   ["daddy-issues", "Daddy Issues", "The Neighbourhood", 700000000, 42000000],
   ["everybody-talks", "Everybody Talks", "Neon Trees", 700000000, 10000000],
-  ["poker-face", "Poker Face", "Lady Gaga", 1600000000, 55000000],
-  ["bad-romance", "Bad Romance", "Lady Gaga", 1900000000, 55000000],
-  ["shallow", "Shallow", "Lady Gaga & Bradley Cooper", 1800000000, 55000000],
+  ["poker-face", "Poker Face", "Lady Gaga", 2100000000, 80000000],
+  ["bad-romance", "Bad Romance", "Lady Gaga", 2300000000, 80000000],
+  ["shallow", "Shallow", "Lady Gaga & Bradley Cooper", 1800000000, 80000000],
   ["applause", "Applause", "Lady Gaga", 600000000, 55000000],
-  ["just-dance", "Just Dance", "Lady Gaga", 700000000, 55000000],
+  ["just-dance", "Just Dance", "Lady Gaga & Colby O'Donis", 1900000000, 80000000],
   ["if-i-aint-got-you", "If I Ain't Got You", "Alicia Keys", 800000000, 26000000],
   ["no-one", "No One", "Alicia Keys", 700000000, 26000000],
   ["fallin", "Fallin'", "Alicia Keys", 500000000, 26000000],
@@ -281,10 +283,10 @@ const snapshotRows = [
   ["kings-and-queens", "Kings & Queens", "Ava Max", 700000000, 25000000],
   ["my-head-my-heart", "My Head & My Heart", "Ava Max", 500000000, 25000000],
   ["happier-than-ever", "Happier Than Ever", "Billie Eilish", 800000000, 82000000],
-  ["positions", "positions", "Ariana Grande", 800000000, 86000000],
-  ["7-rings", "7 rings", "Ariana Grande", 1500000000, 86000000],
-  ["thank-u-next", "thank u, next", "Ariana Grande", 1600000000, 86000000],
-  ["no-tears-left-to-cry", "No Tears Left to Cry", "Ariana Grande", 1400000000, 86000000],
+  ["positions", "positions", "Ariana Grande", 1500000000, 95200000],
+  ["7-rings", "7 rings", "Ariana Grande", 1900000000, 95200000],
+  ["thank-u-next", "thank u, next", "Ariana Grande", 2300000000, 95200000],
+  ["no-tears-left-to-cry", "No Tears Left to Cry", "Ariana Grande", 1800000000, 95200000],
   ["into-you", "Into You", "Ariana Grande", 1000000000, 86000000],
   ["we-cant-stop", "We Can't Stop", "Miley Cyrus", 1200000000, 36000000],
   ["aint-it-fun", "Ain't It Fun", "Paramore", 700000000, 15000000],
@@ -348,11 +350,11 @@ const snapshotRows = [
   ["exes-tate", "exes", "Tate McRae", 350000000, 78000000],
   ["beautiful-things", "Beautiful Things", "Benson Boone", 800000000, 70000000],
   ["a-bar-song", "A Bar Song (Tipsy)", "Shaboozey", 700000000, 55000000],
-  ["i-had-some-help", "I Had Some Help", "Post Malone ft. Morgan Wallen", 650000000, 61000000],
+  ["i-had-some-help", "I Had Some Help", "Post Malone & Morgan Wallen", 1000000000, 65000000],
   ["last-night", "Last Night", "Morgan Wallen", 700000000, 65000000],
   ["you-proof", "You Proof", "Morgan Wallen", 650000000, 65000000],
   ["whiskey-glasses", "Whiskey Glasses", "Morgan Wallen", 800000000, 65000000],
-  ["good-luck-babe", "Good Luck, Babe!", "Chappell Roan", 600000000, 50000000],
+  ["good-luck-babe", "Good Luck, Babe!", "Chappell Roan", 1200000000, 48000000],
   ["pink-pony-club", "Pink Pony Club", "Chappell Roan", 450000000, 50000000],
   ["hot-to-go", "HOT TO GO!", "Chappell Roan", 700000000, 50000000],
   ["red-wine-supernova", "Red Wine Supernova", "Chappell Roan", 300000000, 50000000],
@@ -480,26 +482,84 @@ const snapshotRows = [
   ["nie-pytaj-o-polske", "Nie pytaj o Polskę", "Obywatel G.C.", 40000000, 500000],
   ["dlugosc-dzwieku-samotnosci", "Długość dźwięku samotności", "Myslovitz", 100000000, 900000],
   ["zanim-pojde", "Zanim pójdę", "Happysad", 100000000, 800000],
+  ["bby-wow", "BbY WOW", "KAROL G, Judeline & rusowsky", 80000000, 52000000],
+  ["dai-dai", "Dai Dai", "Shakira & Burna Boy", 90000000, 52000000],
+  ["ordinary", "Ordinary", "Alex Warren", 1400000000, 57000000],
+  ["swim", "SWIM", "BTS", 90000000, 41000000],
+  ["petal", "petal", "Ariana Grande", 102000000, 95200000],
+  ["hate-that-i-made-you-love-me", "hate that i made you love me", "Ariana Grande", 440000000, 95200000],
+  ["like-i-do", "like i do", "Ariana Grande", 410000000, 95200000],
+  ["kiss-me-ariana", "kiss me", "Ariana Grande", 350000000, 95200000],
+  ["one-last-time", "One Last Time", "Ariana Grande", 1700000000, 95200000],
+  ["streets", "Streets", "Doja Cat", 1300000000, 75000000],
+  ["agora-hills", "Agora Hills", "Doja Cat", 850000000, 75000000],
+  ["need-to-know", "Need To Know", "Doja Cat", 1050000000, 75000000],
+  ["you-right", "You Right", "Doja Cat & The Weeknd", 900000000, 75000000],
+  ["paparazzi", "Paparazzi", "Lady Gaga", 1400000000, 80000000],
+  ["abracadabra", "Abracadabra", "Lady Gaga", 400000000, 80000000],
+  ["always-remember-us-this-way", "Always Remember Us This Way", "Lady Gaga", 1300000000, 80000000],
+  ["telephone", "Telephone", "Lady Gaga & Beyoncé", 1200000000, 80000000],
 ];
 
-export const popularityTracks = snapshotRows.map(([id, title, artist, views, listeners]) => ({
-  id, title, artist, views, listeners,
+const polishMusicCatalog = musicCatalogForRegion("polish");
+const polishTrackKeys = new Set(polishMusicCatalog.map(track => normalizedText(`${track.title} ${track.artist}`)));
+function splitArtistCredits(value) {
+  const source = String(value || "").trim();
+  if (!source) return [];
+  const normalized = source.replace(/\s+(?:feat\.?|ft\.?|featuring|with)\s+/gi, " & ");
+  return [...new Set(normalized.split(/\s*(?:&|,)\s*/).map(item => item.trim()).filter(Boolean))];
+}
+const polishArtistKeys = new Set(polishMusicCatalog.flatMap(track => splitArtistCredits(track.artist)).map(normalizedText));
+const hasPolishArtistCredit = artist => splitArtistCredits(artist).some(item => polishArtistKeys.has(normalizedText(item)));
+const basePopularityTracks = snapshotRows.map(([id, title, artist, views, listeners, region]) => ({
+  id, title, artist, views, listeners, region:region === "polish" || polishTrackKeys.has(normalizedText(`${title} ${artist}`)) || hasPolishArtistCredit(artist) ? "polish" : "global",
   query: `${title} ${artist}`,
 }));
+const existingPopularityKeys = new Set(basePopularityTracks.map(track => normalizedText(`${track.title} ${track.artist}`)));
+const extraGlobalPopularityTracks = musicCatalogForRegion("global")
+  .filter(track => String(track.id || "").startsWith("itunes-") && !existingPopularityKeys.has(normalizedText(`${track.title} ${track.artist}`)))
+  .map((track, index) => ({
+    id:`global-pop-${index}`,
+    title:track.title,
+    artist:track.artist,
+    // To ten sam stały, lokalny snapshot używany przez grę — nie udaje
+    // bieżącego odczytu statystyk z zewnętrznego API.
+    views:Math.max(18000000, 1500000000 - index * 9100000),
+    listeners:Math.max(900000, 88000000 - index * 470000),
+    region:"global",
+    query:`${track.title} ${track.artist}`,
+  }));
+const extraPolishPopularityTracks = polishMusicCatalog.filter(track => !existingPopularityKeys.has(normalizedText(`${track.title} ${track.artist}`))).map((track, index) => ({
+  id:`polish-pop-${index}`,
+  title:track.title,
+  artist:track.artist,
+  // Statystyki są stałym, lokalnym snapshotem do gry; ich proporcje są
+  // celowo wiarygodne, ale nie udają bieżącego odczytu z API.
+  views:Math.max(12000000, 138000000 - index * 870000),
+  listeners:Math.max(180000, 4200000 - index * 22000),
+  region:"polish",
+  query:`${track.title} ${track.artist}`,
+}));
+export const popularityTracks = [...basePopularityTracks, ...extraGlobalPopularityTracks, ...extraPolishPopularityTracks];
 
 export const popularityLibrarySize = popularityTracks.length;
+function artistEntryTrack(track, artist) {
+  return { ...track, id:`${track.id}::${encodeURIComponent(normalizedText(artist))}`, artist };
+}
 const artistIndex = new Map();
 popularityTracks.forEach(track => {
-  const key = normalizedText(track.artist);
-  const current = artistIndex.get(key);
-  if (!current) {
-    artistIndex.set(key, { id:`artist-${track.id}`, artist:track.artist, listeners:Number(track.listeners) || 0, topTrack:track });
-    return;
-  }
-  artistIndex.set(key, {
-    ...current,
-    listeners:Math.max(Number(current.listeners) || 0, Number(track.listeners) || 0),
-    topTrack:Number(track.views) > Number(current.topTrack?.views) ? track : current.topTrack,
+  splitArtistCredits(track.artist).forEach(artist => {
+    const key = normalizedText(artist), artistTrack = artistEntryTrack(track, artist), current = artistIndex.get(key);
+    if (!current) {
+      artistIndex.set(key, { id:`artist-${encodeURIComponent(key)}`, artist, listeners:Number(track.listeners) || 0, region:track.region || "global", topTrack:artistTrack });
+      return;
+    }
+    artistIndex.set(key, {
+      ...current,
+      listeners:Math.max(Number(current.listeners) || 0, Number(track.listeners) || 0),
+      region:current.region === "polish" || track.region === "polish" ? "polish" : "global",
+      topTrack:Number(track.views) > Number(current.topTrack?.views) ? artistTrack : current.topTrack,
+    });
   });
 });
 export const popularityArtists = [...artistIndex.values()].map(artist => ({
@@ -507,7 +567,7 @@ export const popularityArtists = [...artistIndex.values()].map(artist => ({
   query: `${artist.topTrack.title} ${artist.topTrack.artist}`,
 }));
 export const popularityArtistLibrarySize = popularityArtists.length;
-export const popularityDefaults = { rounds: 10, choiceTime: 10, metric: "views", reversed: false };
+export const popularityDefaults = { rounds: 10, choiceTime: 10, metric: "views", reversed: false, region: "global" };
 
 export function sanitizePopularitySettings(settings = {}) {
   return {
@@ -515,27 +575,29 @@ export function sanitizePopularitySettings(settings = {}) {
     choiceTime: clamp(settings.choiceTime ?? settings.answerTime, 5, 30, popularityDefaults.choiceTime),
     metric: cleanMetric(settings.metric),
     reversed: settings.reversed === true || String(settings.reversed) === "true",
+    region: settings.region === "polish" ? "polish" : "global",
   };
 }
 
 function trackById(id) { return popularityTracks.find(track => track.id === id) || null; }
-function cloneTrack(track) { return track ? { id:track.id, title:track.title, artist:track.artist, views:track.views, listeners:track.listeners } : null; }
+function cloneTrack(track) { return track ? { id:track.id, title:track.title, artist:track.artist, views:track.views, listeners:track.listeners, region:track.region || "global" } : null; }
 function cloneCompetitionItem(item, metric = "views") {
   if (!item) return null;
-  if (cleanMetric(metric) === "artistListeners") return { id:item.id, artist:item.artist, listeners:item.listeners, topTrack:cloneTrack(item.topTrack), query:item.query || trackQuery(item.topTrack) };
+  if (cleanMetric(metric) === "artistListeners") return { id:item.id, artist:item.artist, listeners:item.listeners, region:item.region || item.topTrack?.region || "global", topTrack:cloneTrack(item.topTrack), query:item.query || trackQuery(item.topTrack) };
   return cloneTrack(item);
 }
 function trackQuery(track) { return String(track?.query || `${track?.title || ""} ${track?.artist || ""}`).trim(); }
 function pairKey(pair) { return array(pair).map(track => track?.id || "").sort().join("|"); }
-function nextPair(usedIds = [], metric = "views") {
-  const pool = cleanMetric(metric) === "artistListeners" ? popularityArtists : popularityTracks;
+function nextPair(usedIds = [], metric = "views", region = "global") {
+  const selectedRegion = region === "polish" ? "polish" : "global";
+  const pool = (cleanMetric(metric) === "artistListeners" ? popularityArtists : popularityTracks).filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion);
   const used = new Set(array(usedIds));
   let available = pool.filter(track => !used.has(track.id));
   if (available.length < 2) available = pool;
-  const left = available[Math.floor(Math.random() * available.length)] || popularityTracks[0];
+  const left = available[Math.floor(Math.random() * available.length)] || pool[0] || popularityTracks[0];
   const rightPool = available.filter(track => track.id !== left.id && (cleanMetric(metric) !== "listeners" || track.artist !== left.artist));
   const safeRightPool = rightPool.length ? rightPool : available.filter(track => track.id !== left.id);
-  const right = safeRightPool[Math.floor(Math.random() * safeRightPool.length)] || pool[1] || popularityTracks[1];
+  const right = safeRightPool[Math.floor(Math.random() * safeRightPool.length)] || pool[1] || pool[0] || popularityTracks[1];
   return [cloneCompetitionItem(left, metric), cloneCompetitionItem(right, metric)];
 }
 
@@ -574,7 +636,7 @@ function resolveRound(game) {
 export function createPopularityGame(players, settings = {}) {
   const clean = sanitizePopularitySettings(settings);
   const list = [...new Set(array(players).map(String).filter(Boolean))].slice(0, 8);
-  const pair = nextPair([], clean.metric);
+  const pair = nextPair([], clean.metric, clean.region);
   return {
     mode: "popularnosc-hitow",
     phase: "choosing",
@@ -583,6 +645,7 @@ export function createPopularityGame(players, settings = {}) {
     players: list,
     metric: clean.metric,
     reversed: clean.reversed,
+    region: clean.region,
     pair,
     usedIds: pair.map(track => track.id),
     choices: {},
@@ -613,7 +676,7 @@ export const PopularityEngine = {
   },
   nextRound(game, settings = {}) {
     if (game.phase !== "roundResult") return "Podsumowanie rundy nie jest jeszcze gotowe.";
-    const clean = sanitizePopularitySettings({ ...settings, metric:game.metric, reversed:game.reversed });
+    const clean = sanitizePopularitySettings({ ...settings, metric:game.metric, reversed:game.reversed, region:game.region });
     if (Number(game.round) >= Number(game.totalRounds || clean.rounds)) {
       game.phase = "gameSummary";
       game.finished = true;
@@ -621,10 +684,10 @@ export const PopularityEngine = {
       return;
     }
     const usedIds = [...new Set([...array(game.usedIds), ...array(game.pair).map(track => track?.id).filter(Boolean)])];
-    const pair = nextPair(usedIds, clean.metric);
+    const pair = nextPair(usedIds, clean.metric, clean.region);
     game.round = Number(game.round || 1) + 1;
     game.pair = pair;
-    game.usedIds = [...new Set([...usedIds, ...pair.map(track => track.id)])].slice(-popularityPoolSize(clean.metric));
+    game.usedIds = [...new Set([...usedIds, ...pair.map(track => track.id)])].slice(-popularityPoolSize(clean.metric, clean.region));
     game.choices = {};
     game.roundResult = null;
     game.phase = "choosing";
@@ -643,7 +706,11 @@ function metricLabel(metric) { return isArtistMetric(metric) ? "miesięcznych s�
 function metricShortLabel(metric) { return isArtistMetric(metric) ? "SŁUCHACZY ART." : cleanMetric(metric) === "listeners" ? "SŁUCHACZY PIOS." : "WYŚWIETLEŃ"; }
 function metricQuantity(metric) { return cleanMetric(metric) === "views" ? "wyświetleń" : "miesięcznych słuchaczy"; }
 function metricEntity(metric) { return isArtistMetric(metric) ? "artysta" : "piosenka"; }
-function popularityPoolSize(metric) { return isArtistMetric(metric) ? popularityArtistLibrarySize : popularityLibrarySize; }
+function popularityPoolSize(metric, region = "global") {
+  const selectedRegion = region === "polish" ? "polish" : "global";
+  const pool = isArtistMetric(metric) ? popularityArtists : popularityTracks;
+  return Math.max(2, pool.filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion).length);
+}
 function popularityItemName(item, metric) { return isArtistMetric(metric) ? item?.artist || "artysta" : item?.title || "piosenka"; }
 function formatPopularityExact(value, metric) {
   const number = Number(value) || 0;
@@ -657,7 +724,7 @@ function metricQuestion(metric, reversed = false) {
   const question = isArtistMetric(metric) ? "Który artysta ma" : cleanMetric(metric) === "listeners" ? "Która piosenka ma" : "Która piosenka ma";
   return `${question} ${reversed ? "mniej" : "więcej"} ${metricQuantity(metric)}?`;
 }
-function metricSource(metric) { return isArtistMetric(metric) ? "Spotify · snapshot miesięcznych słuchaczy artystów" : cleanMetric(metric) === "listeners" ? "Spotify · snapshot słuchaczy piosenek" : "YouTube · snapshot wyświetleń"; }
+function metricSource(metric) { return isArtistMetric(metric) ? `Spotify · miesięczni słuchacze artystów · dane z ${POPULARITY_SNAPSHOT_DATE}` : cleanMetric(metric) === "listeners" ? "Spotify · snapshot słuchaczy piosenek" : "YouTube · snapshot wyświetleń"; }
 function hashColor(value) {
   let hash = 0;
   for (const char of String(value || "")) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
@@ -667,12 +734,12 @@ function safeNick(accounts, uid) { return accounts?.[uid]?.nick || accounts?.[ui
 function userProfile(accounts, room, uid) { return { ...(room?.playerProfiles?.[uid] || {}), ...(accounts?.[uid] || {}), nick:safeNick(accounts, uid), uid }; }
 function popularityArt(track, side, reveal = false, metric = "views") {
   if (!track) return "";
-  const hue = hashColor(track.artist), query = trackQuery(isArtistMetric(metric) ? track.topTrack || track : track);
-  return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}"><span class="popularity-art-note">♫</span><small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
+  const artistMode = isArtistMetric(metric), hue = hashColor(track.artist), query = artistMode ? normalizedText(track.artist) : trackQuery(track.topTrack || track);
+  return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}"><span class="popularity-art-note">${artistMode ? "👤" : "♫"}</span><small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
 }
 function popularityTrackCard(track, side, { selected = false, reveal = false, correct = false, metric = "views" } = {}) {
-  const artistMode = isArtistMetric(metric), title = artistMode ? track?.artist || "Brak artysty" : track?.title || "Brak utworu", artist = artistMode ? `Najpopularniejszy utwór: ${track?.topTrack?.title || "—"}` : track?.artist || "", entity = artistMode ? "artystę" : "piosenkę", value = reveal ? `<strong class="popularity-value" data-popularity-number="${valueFor(track, metric)}" data-popularity-metric="${cleanMetric(metric)}">${formatPopularityValue(0, metric)}</strong>` : `<span class="popularity-hidden-value">???</span>`;
-  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, side, reveal, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b><small>${escapeHtml(artist)}</small>${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
+  const artistMode = isArtistMetric(metric), title = artistMode ? track?.artist || "Brak artysty" : track?.title || "Brak utworu", subtitle = artistMode ? (reveal && track?.topTrack?.title ? `Top utwór: ${track.topTrack.title}` : "") : track?.artist || "", entity = artistMode ? "artystę" : "piosenkę", value = reveal ? `<strong class="popularity-value" data-popularity-number="${valueFor(track, metric)}" data-popularity-metric="${cleanMetric(metric)}">${formatPopularityValue(0, metric)}</strong>` : `<span class="popularity-hidden-value">???</span>`;
+  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, side, reveal, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
 }
 function popularityRanking(game, accounts, room) {
   return [...array(game.players)].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => `<div class="popularity-ranking-row"><span class="popularity-ranking-player">${avatarHtml(userProfile(accounts, room, uid), "popularity-avatar", { disableIdle:true })}<b>${index + 1}. ${escapeHtml(safeNick(accounts, uid))}</b></span><strong>${Number(game.scores?.[uid] || 0)} pkt</strong></div>`).join("");
@@ -689,7 +756,8 @@ function popularityPlayerPicks(game, accounts, room) {
 }
 function popularityHeader(game, solo = false) {
   const round = Number(game.round || 1), total = Number(game.totalRounds || 1);
-  return `<div class="popularity-heading"><div><p class="eyebrow">${solo ? "TRYB SOLO" : "KTO MA WIĘCEJ?"}</p><h1>${solo ? (isArtistMetric(game.metric) ? "Najpopularniejszy artysta" : "Najpopularniejszy numer") : metricQuestion(game.metric, game.reversed)}</h1><p class="muted">${solo ? "Zbuduj jak najdłuższy streak, wybierając właściwą liczbę." : "Masz chwilę na wybór. Potem sprawdzimy, kto miał rację."}</p></div><div class="popularity-round-badge"><b>${solo ? "STREAK" : `RUNDA ${round}/${total}`}</b><strong>${solo ? Number(game.streak || 0) : metricShortLabel(game.metric)}</strong></div></div>`;
+  const region = musicRegionOptions.find(([id]) => id === game.region) || musicRegionOptions[0];
+  return `<div class="popularity-heading"><div><p class="eyebrow">${solo ? "TRYB SOLO" : "KTO MA WIĘCEJ?"} · ${region[1]} ${escapeHtml(region[2])}</p><h1>${solo ? (isArtistMetric(game.metric) ? "Najpopularniejszy artysta" : "Najpopularniejszy numer") : metricQuestion(game.metric, game.reversed)}</h1><p class="muted">${solo ? "Zbuduj jak najdłuższy streak, wybierając właściwą liczbę." : "Masz chwilę na wybór. Potem sprawdzimy, kto miał rację."}</p></div><div class="popularity-round-badge"><b>${solo ? "STREAK" : `RUNDA ${round}/${total}`}</b><strong>${solo ? Number(game.streak || 0) : metricShortLabel(game.metric)}</strong></div></div>`;
 }
 
 let popularityTimer = 0;
@@ -730,69 +798,130 @@ function schedulePopularityTimer(game, actions, expected) {
 }
 
 const mediaCache = new Map();
+function localTrackMedia(query) {
+  const normalizedQuery = normalizedText(query);
+  const match = musicPreviewCatalog.find(item => {
+    const normalizedTitle = normalizedText(item.title);
+    const normalizedFull = normalizedText(`${item.title} ${item.artist}`);
+    return normalizedFull === normalizedQuery || (normalizedTitle.length >= 4 && normalizedQuery.startsWith(`${normalizedTitle} `));
+  });
+  return match ? {
+    artworkUrl: match.coverUrl?.replace(/100x100/g, "600x600") || match.coverUrl || "",
+    previewUrl: match.previewUrl || "",
+  } : { artworkUrl:"", previewUrl:"" };
+}
 async function findTrackMedia(query) {
   const value = normalizedText(query);
-  if (!value || typeof fetch !== "function") return { artworkUrl:"", previewUrl:"" };
+  const fallback = localTrackMedia(query);
+  if (!value || typeof fetch !== "function") return fallback;
   if (mediaCache.has(value)) return mediaCache.get(value);
   try {
     const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=3&country=PL`);
     const data = await response.json();
     const item = data?.results?.find(candidate => candidate?.previewUrl || candidate?.artworkUrl100) || {};
     const media = {
-      artworkUrl: item?.artworkUrl100?.replace(/100x100/g, "600x600") || "",
-      previewUrl: item?.previewUrl || "",
+      artworkUrl: item?.artworkUrl100?.replace(/100x100/g, "600x600") || fallback.artworkUrl,
+      previewUrl: item?.previewUrl || fallback.previewUrl,
     };
     mediaCache.set(value, media);
     return media;
   } catch {
-    const media = { artworkUrl:"", previewUrl:"" };
-    mediaCache.set(value, media);
-    return media;
+    mediaCache.set(value, fallback);
+    return fallback;
   }
 }
-function hydratePopularityArtwork(root, tracks) {
+async function findArtistMedia(artist) {
+  const value = normalizedText(artist), cacheKey = `artist:${value}`;
+  if (!value || typeof fetch !== "function") return { artworkUrl:"", previewUrl:"" };
+  if (mediaCache.has(cacheKey)) return mediaCache.get(cacheKey);
+  try {
+    const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(String(artist).trim().replace(/\s+/g, "_"))}`);
+    if (!response.ok) throw new Error("artist profile not found");
+    const data = await response.json();
+    let artworkUrl = data?.originalimage?.source || data?.thumbnail?.source || "";
+    if (!artworkUrl) artworkUrl = await findArtistPhotoJsonp(artist);
+    const media = { artworkUrl, previewUrl:"" };
+    mediaCache.set(cacheKey, media);
+    return media;
+  } catch {
+    const artworkUrl = await findArtistPhotoJsonp(artist);
+    const fallback = { artworkUrl, previewUrl:"" };
+    mediaCache.set(cacheKey, fallback);
+    return fallback;
+  }
+}
+let artistPhotoCallbackId = 0;
+function findArtistPhotoJsonp(artist) {
+  if (typeof document === "undefined" || typeof window === "undefined") return Promise.resolve("");
+  return new Promise(resolve => {
+    const callback = `__grygrupoweArtistPhoto${++artistPhotoCallbackId}`;
+    const script = document.createElement("script");
+    let settled = false;
+    const finish = payload => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      script.remove();
+      try { delete window[callback]; } catch { window[callback] = undefined; }
+      const value = normalizedText(artist), exact = array(payload?.data).find(item => normalizedText(item?.name) === value), item = exact || payload?.data?.[0] || {};
+      const artworkUrl = String(item?.picture_xl || item?.picture_big || item?.picture_medium || "");
+      resolve(/^https?:\/\//i.test(artworkUrl) ? artworkUrl : "");
+    };
+    window[callback] = finish;
+    script.async = true;
+    script.onerror = () => finish(null);
+    script.src = `https://api.deezer.com/search/artist?q=${encodeURIComponent(artist)}&limit=5&output=jsonp&callback=${callback}`;
+    const timeout = window.setTimeout(() => finish(null), 5000);
+    document.head.append(script);
+  });
+}
+function updatePopularityPreview(root, query, media, metric, token, previewGeneration) {
+  if (("isConnected" in root && !root.isConnected) || root.dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
+  const preview = root.querySelector("[data-popularity-preview]");
+  if (!preview || preview.dataset.previewQuery !== query) return;
+  const audio = preview.querySelector("[data-popularity-preview-audio]"), status = preview.querySelector("[data-popularity-preview-status]"), spotify = preview.querySelector("[data-popularity-preview-spotify]");
+  if (spotify) spotify.href = `https://open.spotify.com/search/${encodeURIComponent(query)}`;
+  if (!audio || !media.previewUrl) {
+    if (audio) audio.hidden = true;
+    if (status) status.textContent = "Brak dostępnego preview — otwórz utwór w Spotify.";
+    preview.classList.add("is-unavailable");
+    return;
+  }
+  audio.hidden = false;
+  audio.dataset.trackKey = `popularity:${query}`;
+  audio.src = media.previewUrl;
+  audio.load();
+  Audio.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay:true });
+  popularityPreviewAudio = audio;
+  audio.addEventListener("play", () => { if (status) status.textContent = isArtistMetric(metric) ? "Fragment utworu artysty jest odtwarzany." : "Fragment zwycięskiej piosenki jest odtwarzany."; }, { once:true });
+  audio.addEventListener("error", () => { preview.classList.add("autoplay-blocked"); if (status) status.textContent = "Nie udało się odtworzyć preview — otwórz utwór w Spotify."; }, { once:true });
+}
+function hydratePopularityArtwork(root, tracks, metric = "views") {
   const dataset = root.dataset || (root.dataset = {});
   const token = dataset.popularityArtToken = String((Number(dataset.popularityArtToken) || 0) + 1);
   const previewGeneration = popularityPreviewGeneration;
   array(tracks).filter(Boolean).forEach(track => {
-    const query = trackQuery(track?.topTrack || track);
-    findTrackMedia(query).then(media => {
+    const artistMode = isArtistMetric(metric), artworkQuery = artistMode ? normalizedText(track.artist) : trackQuery(track?.topTrack || track), previewQuery = trackQuery(artistMode ? track.topTrack || track : track);
+    const artworkMedia = artistMode ? findArtistMedia(track.artist) : findTrackMedia(artworkQuery);
+    artworkMedia.then(media => {
       if (("isConnected" in root && !root.isConnected) || dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
-      [...root.querySelectorAll("[data-artwork-query]")].filter(element => element.dataset.artworkQuery === query).forEach(element => {
+      [...root.querySelectorAll("[data-artwork-query]")].filter(element => element.dataset.artworkQuery === artworkQuery).forEach(element => {
         element.classList.remove("is-loading");
         if (media.artworkUrl) {
           element.style.backgroundImage = `linear-gradient(135deg, hsla(${hashColor(track.artist)}, 80%, 40%, .22), rgba(2, 6, 23, .56)), url("${media.artworkUrl}")`;
           element.classList.add("has-artwork");
         }
       });
-      const preview = root.querySelector("[data-popularity-preview]");
-      if (!preview || preview.dataset.previewQuery !== query) return;
-      const audio = preview.querySelector("[data-popularity-preview-audio]");
-      const status = preview.querySelector("[data-popularity-preview-status]");
-      const spotify = preview.querySelector("[data-popularity-preview-spotify]");
-      if (spotify) spotify.href = `https://open.spotify.com/search/${encodeURIComponent(query)}`;
-      if (!audio || !media.previewUrl) {
-        if (audio) audio.hidden = true;
-        if (status) status.textContent = "Brak dostępnego preview — otwórz utwór w Spotify.";
-        preview.classList.add("is-unavailable");
-        return;
-      }
-      audio.hidden = false;
-      audio.dataset.trackKey = `popularity:${query}`;
-      audio.src = media.previewUrl;
-      audio.load();
-      Audio.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay:true });
-      popularityPreviewAudio = audio;
-      audio.addEventListener("play", () => { if (status) status.textContent = "Fragment zwycięskiej piosenki jest odtwarzany."; }, { once:true });
-      audio.addEventListener("error", () => { preview.classList.add("autoplay-blocked"); if (status) status.textContent = "Nie udało się odtworzyć preview — otwórz utwór w Spotify."; }, { once:true });
     });
+    if (artistMode) findTrackMedia(previewQuery).then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
+    else artworkMedia.then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
   });
 }
 
 function popularityPreviewHtml(track, metric = "views") {
   if (!track) return `<section class="popularity-preview popularity-preview-tie"><span class="popularity-preview-icon">♫</span><div><b>Remis — bez zwycięskiego utworu</b><small>Oba numery mają tę samą wartość.</small></div></section>`;
-  const artistMode = isArtistMetric(metric), song = artistMode ? track.topTrack : track, query = trackQuery(song), title = artistMode ? track.artist : song?.title, subtitle = artistMode ? `Najpopularniejszy utwór: ${song?.title || "—"}` : song?.artist;
-  return `<section class="popularity-preview" data-popularity-preview data-preview-query="${escapeHtml(query)}"><span class="popularity-preview-icon">♫</span><div class="popularity-preview-copy"><p class="eyebrow">${artistMode ? "FRAGMENT NAJPOPULARNIEJSZEJ PIOSENKI ARTYSTY" : "FRAGMENT ZWYCIĘSKIEJ PIOSENKI"}</p><b>${escapeHtml(title || "—")}</b><small>${escapeHtml(subtitle || "")}</small></div><audio data-popularity-preview-audio data-track-audio controls preload="none" hidden aria-label="Fragment najpopularniejszej piosenki"></audio>${Audio.trackVolumeControlHtml({ compact:true })}<p class="popularity-preview-status" data-popularity-preview-status>Ładuję publiczny preview…</p><a class="ghost popularity-preview-spotify" data-popularity-preview-spotify href="https://open.spotify.com/search/${encodeURIComponent(query)}" target="_blank" rel="noreferrer">Otwórz w Spotify</a></section>`;
+  const artistMode = isArtistMetric(metric), song = artistMode ? track.topTrack : track, query = trackQuery(song), title = song?.title, subtitle = artistMode ? `${track.artist} · najpopularniejszy utwór` : song?.artist;
+  return `<section class="popularity-preview" data-popularity-preview data-preview-query="${escapeHtml(query)}"><span class="popularity-preview-icon">♫</span><div class="popularity-preview-copy"><p class="eyebrow">${artistMode ? "FRAGMENT PO ODPOWIEDZI" : "FRAGMENT ZWYCIĘSKIEJ PIOSENKI"}</p><b>${escapeHtml(title || "—")}</b><small>${escapeHtml(subtitle || "")}</small></div><audio data-popularity-preview-audio data-track-audio controls preload="none" hidden aria-label="${artistMode ? "Fragment utworu artysty" : "Fragment zwycięskiej piosenki"}"></audio>${Audio.trackVolumeControlHtml({ compact:true })}<p class="popularity-preview-status" data-popularity-preview-status>Ładuję publiczny preview…</p><a class="ghost popularity-preview-spotify" data-popularity-preview-spotify href="https://open.spotify.com/search/${encodeURIComponent(query)}" target="_blank" rel="noreferrer">Otwórz w Spotify</a></section>`;
 }
 
 function popularityReadyPlayers(game, accounts, room) {
@@ -852,7 +981,7 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
   let content = popularityHeader(game);
   if (game.phase === "choosing") {
     const choiceCount = Object.keys(game.choices || {}).length, chosen = selected ? `<div class="popularity-choice-status"><span>✓</span><div><b>Twój wybór został zapisany</b><small>Czekamy na resztę graczy: ${choiceCount}/${game.players.length}.</small></div>${popularityReadyPlayers(game, accounts, room)}</div>` : `<div class="popularity-choice-status"><span>⚡</span><div><b>Wybierz stronę</b><small>${choiceCount ? `${choiceCount}/${game.players.length} graczy już wybrało.` : "Nie pokazujemy liczb, dopóki wszyscy nie odpowiedzą."}</small></div>${popularityReadyPlayers(game, accounts, room)}</div>`;
-    const librarySize = popularityPoolSize(game.metric), libraryEntity = isArtistMetric(game.metric) ? "artystów" : "utworów";
+    const librarySize = popularityPoolSize(game.metric, game.region), libraryEntity = isArtistMetric(game.metric) ? "artystów" : "utworów";
     content += `<section class="popularity-question"><span>📊</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${librarySize} ${libraryEntity} w bazie</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:selected === "left", metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:selected === "right", metric:game.metric })}</div>${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
   } else if (game.phase === "roundResult") {
     const correct = result.correctSide, leftCorrect = correct === "tie" || correct === "left", rightCorrect = correct === "tie" || correct === "right";
@@ -873,7 +1002,7 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
   if (game.phase === "choosing") bindPopularityKeyboard(root, actions, expected);
   if (game.phase === "roundResult") animatePopularityValues(root);
   Audio.bindTrackVolumeControls(root);
-  hydratePopularityArtwork(root, pair);
+  hydratePopularityArtwork(root, pair, game.metric);
 }
 
 const SOLO_METRICS = ["views", "listeners", "artistListeners"];
@@ -902,6 +1031,7 @@ function normalizeSoloState(raw, playerId) {
   return {
     status,
     playerId:owner,
+    region:source.region === "polish" ? "polish" : "global",
     metric,
     metricStats,
     streak:status === "over" ? savedStreak : status === "idle" ? 0 : current.streak,
@@ -939,12 +1069,12 @@ function ensureSoloMetricStats(state) {
 function saveSoloState(state) {
   try { localStorage.setItem(soloStorageKey(state.playerId), JSON.stringify(state)); } catch {}
 }
-function createSoloPair(usedIds, metric) { return nextPair(usedIds, metric); }
-export function startPopularitySolo(playerId, metric = "views") {
-  const owner = String(playerId || "guest"), previous = readSoloState(owner), clean = cleanMetric(metric), stats = ensureSoloMetricStats(previous), pair = createSoloPair([], clean);
+function createSoloPair(usedIds, metric, region = "global") { return nextPair(usedIds, metric, region); }
+export function startPopularitySolo(playerId, metric = "views", region = "global") {
+  const owner = String(playerId || "guest"), previous = readSoloState(owner), clean = cleanMetric(metric), selectedRegion = region === "polish" ? "polish" : "global", stats = ensureSoloMetricStats(previous), pair = createSoloPair([], clean, selectedRegion);
   stats[clean] = { ...(stats[clean] || { best:0 }), streak:0 };
   const best = Math.max(0, Number(stats[clean]?.best) || 0);
-  soloState = { status:"playing", playerId:owner, metric:clean, metricStats:stats, streak:0, best, round:1, usedIds:pair.map(track => track.id), pair, lastResult:null };
+  soloState = { status:"playing", playerId:owner, region:selectedRegion, metric:clean, metricStats:stats, streak:0, best, round:1, usedIds:pair.map(track => track.id), pair, lastResult:null };
   soloOwner = owner; saveSoloState(soloState); return soloState;
 }
 export function stopPopularitySolo(playerId) {
@@ -954,6 +1084,13 @@ export function stopPopularitySolo(playerId) {
   state.status = "idle"; state.pair = []; state.round = 0; state.streak = 0; state.best = Math.max(0, Number(stats[state.metric]?.best) || 0); state.lastResult = null; saveSoloState(state); return state;
 }
 export function getPopularitySoloState(playerId) { return { ...readSoloState(playerId) }; }
+export function setPopularitySoloRegion(playerId, region) {
+  const state = readSoloState(playerId);
+  if (state.status !== "idle") return state;
+  state.region = region === "polish" ? "polish" : "global";
+  saveSoloState(state);
+  return state;
+}
 export function setPopularitySoloMetric(playerId, metric) {
   const state = readSoloState(playerId), nextMetric = cleanMetric(metric), stats = ensureSoloMetricStats(state);
   if (state.metric !== nextMetric && state.status === "playing") {
@@ -963,7 +1100,7 @@ export function setPopularitySoloMetric(playerId, metric) {
     state.best = Math.max(0, Number(stats[nextMetric]?.best) || 0);
     state.round = 1;
     state.usedIds = [];
-    state.pair = createSoloPair([], nextMetric);
+    state.pair = createSoloPair([], nextMetric, state.region);
     state.usedIds = state.pair.map(item => item.id);
   } else {
     state.metric = nextMetric;
@@ -988,13 +1125,16 @@ export function continuePopularitySolo(playerId) {
   ensureSoloMetricStats(state);
   state.round = Number(state.round || 0) + 1;
   const usedIds = [...new Set([...array(state.usedIds), ...array(state.pair).map(track => track?.id).filter(Boolean)])];
-  state.pair = createSoloPair(usedIds, state.metric); state.usedIds = [...new Set([...usedIds, ...state.pair.map(track => track.id)])].slice(-popularityPoolSize(state.metric)); state.lastResult = null; state.status = "playing"; saveSoloState(state); return state;
+  state.pair = createSoloPair(usedIds, state.metric, state.region); state.usedIds = [...new Set([...usedIds, ...state.pair.map(track => track.id)])].slice(-popularityPoolSize(state.metric, state.region)); state.lastResult = null; state.status = "playing"; saveSoloState(state); return state;
 }
-export const PopularitySoloEngine = { start:startPopularitySolo, stop:stopPopularitySolo, get:getPopularitySoloState, choose:choosePopularitySolo, next:continuePopularitySolo, setMetric:setPopularitySoloMetric };
+export const PopularitySoloEngine = { start:startPopularitySolo, stop:stopPopularitySolo, get:getPopularitySoloState, choose:choosePopularitySolo, next:continuePopularitySolo, setMetric:setPopularitySoloMetric, setRegion:setPopularitySoloRegion };
 
 function storedSoloBest(playerId, metric) { return Number(readStoredSoloState(playerId).metricStats?.[cleanMetric(metric)]?.best) || 0; }
 function soloMetricLabel(metric) {
   return metric === "views" ? "Wyświetlenia" : metric === "listeners" ? "Słuchacze piosenek" : "Słuchacze artystów";
+}
+function soloRegionButtons(state) {
+  return `<div class="popularity-region-switch" role="radiogroup" aria-label="Katalog utworów">${musicRegionOptions.map(([id, icon, label, description]) => `<button type="button" class="music-region-option ${state.region === id ? "is-selected" : ""}" data-popularity-solo-region="${id}" aria-pressed="${state.region === id ? "true" : "false"}"><span class="music-region-option-icon">${icon}</span><span><b>${escapeHtml(label)}</b><small>${escapeHtml(description)}</small></span></button>`).join("")}</div>`;
 }
 function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null, leaderboard = {}) {
   const currentId = String(playerId || "guest"), accountIds = Object.keys(object(accounts)), remoteIds = Object.keys(object(leaderboard));
@@ -1035,7 +1175,7 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
   const state = readSoloState(playerId), game = { ...state, totalRounds:0 };
   let content = popularityHeader(game, true);
   if (state.status === "idle") {
-    content += `<section class="popularity-solo-start"><div class="popularity-solo-icon">♫</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile trafień zrobisz z rzędu?</h2><p class="muted">Klikasz większą liczbę, następna para pojawia się od razu. Możesz przerwać serię w dowolnym momencie.</p>${soloMetricButtons(state)}<div class="popularity-best-card"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><button class="primary big" id="popularity-solo-start">Zacznij serię</button></section>`;
+    content += `<section class="popularity-solo-start"><div class="popularity-solo-icon">♫</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile trafień zrobisz z rzędu?</h2><p class="muted">Klikasz większą liczbę, następna para pojawia się od razu. Możesz przerwać serię w dowolnym momencie.</p>${soloRegionButtons(state)}${soloMetricButtons(state)}<div class="popularity-best-card"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><button class="primary big" id="popularity-solo-start">Zacznij serię</button></section>`;
   } else if (state.status === "reveal") {
     const result = state.lastResult || {}, metric = result.metric || state.metric, pair = array(result.pair || state.pair).slice(0, 2), winningTrack = result.correctSide === "left" ? pair[0] : result.correctSide === "right" ? pair[1] : null, revealState = { ...state, metric }, selectedEntity = isArtistMetric(metric) ? "artystę" : "piosenkę";
     content += `<section class="popularity-solo-over popularity-solo-reveal ${result.correct ? "is-correct" : "is-wrong"}"><div class="popularity-over-icon">${result.correct ? "✓" : "×"}</div><p class="eyebrow">${result.correct ? "POPRAWNA ODPOWIEDŹ" : "BŁĘDNA ODPOWIEDŹ"}</p><h2>${result.correct ? "Dobra dedukcja!" : "Tym razem nie."}</h2><p class="muted">Wybrano ${selectedEntity} ${result.selected === "left" ? "A" : "B"}. Poprawna odpowiedź: <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p><div class="popularity-duel-stage popularity-reveal-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", revealState, true)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", revealState, true)}</div>${popularityPreviewHtml(winningTrack, metric)}<p class="popularity-solo-reveal-note">Wartości zostaną na ekranie, dopóki nie przejdziesz dalej.</p><div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-next">Następna para</button><button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div></section>`;
@@ -1048,14 +1188,15 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
     content += `<section class="popularity-question"><span>🔥</span><div><b>${escapeHtml(metricQuestion(state.metric))}</b><small>${escapeHtml(metricSource(state.metric))} · bez limitu rund</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", state)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", state)}</div><div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
   }
   root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard)}</div><button id="popularity-solo-home" class="ghost">Wróć do menu</button></main>`;
+  root.querySelectorAll("[data-popularity-solo-region]").forEach(button => button.addEventListener("click", () => actions.popularitySoloRegion?.(button.dataset.popularitySoloRegion)));
   root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => button.addEventListener("click", () => { actions.popularitySoloMetric(button.dataset.popularitySoloMetric); }));
   root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => button.addEventListener("click", () => {
     const metric = button.dataset.popularityLeaderboardMetric;
     root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(tab => { const active = tab.dataset.popularityLeaderboardMetric === metric; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false"); });
     root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== metric; });
   }));
-  root.querySelector("#popularity-solo-start")?.addEventListener("click", () => actions.popularitySoloStart(state.metric));
-  root.querySelector("#popularity-solo-restart")?.addEventListener("click", () => actions.popularitySoloStart(state.metric));
+  root.querySelector("#popularity-solo-start")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
+  root.querySelector("#popularity-solo-restart")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
   root.querySelector("#popularity-solo-next")?.addEventListener("click", actions.popularitySoloNext);
   root.querySelector("#popularity-solo-stop")?.addEventListener("click", actions.popularitySoloStop);
   root.querySelector("#popularity-solo-menu")?.addEventListener("click", actions.goPlatform);
@@ -1064,10 +1205,10 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
   if (state.status === "playing") bindPopularityKeyboard(root, actions, {}, true);
   if (["reveal", "over"].includes(state.status)) animatePopularityValues(root);
   Audio.bindTrackVolumeControls(root);
-  hydratePopularityArtwork(root, state.pair || state.lastResult?.pair || []);
+  hydratePopularityArtwork(root, state.pair || state.lastResult?.pair || [], state.metric);
 }
 
 export function renderPopularityLobbySettings(room, isHost) {
   const settings = sanitizePopularitySettings(room.settings);
-  return `<div class="popularity-settings"><label class="setting-row"><span>Statystyka do porównania</span><select data-popularity-setting="metric" ${isHost ? "" : "disabled"}><option value="views" ${settings.metric === "views" ? "selected" : ""}>Wyświetlenia piosenek</option><option value="listeners" ${settings.metric === "listeners" ? "selected" : ""}>Miesięczni słuchacze piosenek</option><option value="artistListeners" ${settings.metric === "artistListeners" ? "selected" : ""}>Miesięczni słuchacze artystów</option></select></label><label class="setting-row"><span>Liczba rund</span><select data-popularity-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,7,10,15,20,30].map(value => `<option value="${value}" ${settings.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór</span><select data-popularity-setting="choiceTime" ${isHost ? "" : "disabled"}>${[5,10,15,20,30].map(value => `<option value="${value}" ${settings.choiceTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Reversed<small>Wybierasz element z mniejszą liczbą.</small></span><input type="checkbox" data-popularity-setting="reversed" ${settings.reversed ? "checked" : ""} ${isHost ? "" : "disabled"}></label><p class="tiny">W każdej rundzie pokazujemy dwie opcje. Liczby są ujawniane dopiero po wyborach, a remis daje punkt każdemu trafionemu graczowi.</p></div>`;
+  return `<div class="popularity-settings">${musicRegionPicker(settings.region, "region", isHost, "popularity")}<label class="setting-row"><span>Statystyka do porównania</span><select data-popularity-setting="metric" ${isHost ? "" : "disabled"}><option value="views" ${settings.metric === "views" ? "selected" : ""}>Wyświetlenia piosenek</option><option value="listeners" ${settings.metric === "listeners" ? "selected" : ""}>Miesięczni słuchacze piosenek</option><option value="artistListeners" ${settings.metric === "artistListeners" ? "selected" : ""}>Miesięczni słuchacze artystów</option></select></label><label class="setting-row"><span>Liczba rund</span><select data-popularity-setting="rounds" ${isHost ? "" : "disabled"}>${[3,5,7,10,15,20,30].map(value => `<option value="${value}" ${settings.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na wybór</span><select data-popularity-setting="choiceTime" ${isHost ? "" : "disabled"}>${[5,10,15,20,30].map(value => `<option value="${value}" ${settings.choiceTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Reversed<small>Wybierasz element z mniejszą liczbą.</small></span><input type="checkbox" data-popularity-setting="reversed" ${settings.reversed ? "checked" : ""} ${isHost ? "" : "disabled"}></label><p class="tiny">W każdej rundzie pokazujemy dwie opcje. Liczby są ujawniane dopiero po wyborach, a remis daje punkt każdemu trafionemu graczowi.</p></div>`;
 }

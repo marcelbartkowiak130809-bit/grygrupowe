@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20260902-15";
+import { getGameMode } from "./games.js?v=20260902-16";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
@@ -29,9 +29,10 @@ import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
 import { adSenseBlock } from "./publicPages.js?v=20260901-7";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
-import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20260902-10";
-import { renderLyricsLobbySettings } from "./lyrics.js?v=20260902-7";
-import { renderPopularityLobbySettings } from "./popularity.js?v=20260902-4";
+import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20260902-17";
+import { renderLyricsLobbySettings } from "./lyrics.js?v=20260902-18";
+import { renderPopularityLobbySettings } from "./popularity.js?v=20260902-14";
+import { renderSongSpotLobbySettings } from "./songSpot.js?v=20260902-4";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 
@@ -84,6 +85,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "bitwa-hitow") return renderMusicArenaLobbySettings(room, isHost);
   if (mode.id === "dokoncz-tekst") return renderLyricsLobbySettings(room, isHost);
   if (mode.id === "popularnosc-hitow") return renderPopularityLobbySettings(room, isHost);
+  if (mode.id === "songspot") return renderSongSpotLobbySettings(room, isHost);
   if (mode.audience === "board") return renderBoardLobbySettings(room, isHost);
   if (mode.audience === "minecraft") return renderMinecraftLobbySettings(room, isHost);
   if (mode.audience === "pokemon") return renderPokemonLobbySettings(room, isHost);
@@ -135,6 +137,8 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-music-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.musicSetting, input.value)));
   root.querySelectorAll("[data-lyrics-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.lyricsSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-popularity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.popularitySetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-songspot-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.songspotSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-songspot-time]").forEach(input => input.addEventListener("change", () => actions.setSongSpotTimes?.([...root.querySelectorAll("[data-songspot-time]:checked")].map(item => Number(item.dataset.songspotTime)))));
   root.querySelectorAll("[data-board-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.boardSetting, input.value)));
   root.querySelectorAll("[data-minecraft-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.minecraftSetting, input.value)));
 }

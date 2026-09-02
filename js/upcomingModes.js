@@ -1,4 +1,4 @@
-import { isCategoryModeReleased } from "./categoryVoting.js?v=20260902-2";
+import { isCategoryModeReleased } from "./categoryVoting.js?v=20260902-4";
 
 // Główne tryby mają własną, niezależną kolejkę. Kategorie Pokémon, planszówki,
 // Minecraft i większość trybów muzycznych otwierają się przez głosowanie na stronie głównej.
@@ -17,7 +17,7 @@ export const futureModeUnlocks = {
 };
 export const MANUALLY_LOCKED_MODE_IDS = new Set(["pokemon-dex"]);
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? { ...futureModeUnlocks } : {};
-const CATEGORY_MODE_IDS = new Set(["pokemon-dex", "pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type", "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino", "minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome", "minecraft-truth", "minecraft-redstone", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "popularnosc-solo"]);
+const CATEGORY_MODE_IDS = new Set(["pokemon-dex", "pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type", "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino", "minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome", "minecraft-truth", "minecraft-redstone", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "popularnosc-solo", "dokoncz-tekst", "songspot"]);
 
 export function formatUnlockDate(unlockAt) {
   const date = new Date(unlockAt);

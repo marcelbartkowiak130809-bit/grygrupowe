@@ -1,10 +1,10 @@
-import { gamesList } from "./games.js?v=20260902-15";
+import { gamesList } from "./games.js?v=20260902-16";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260902-2";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260902-4";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-7";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260902-1";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260902-3";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20260901-5";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
@@ -118,7 +118,7 @@ function badgeTag(type) {
 }
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
+const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️", songspot:"🎧", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
   if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft" loading="lazy" decoding="async">`;
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
@@ -140,16 +140,19 @@ function minecraftHubCard() {
 }
 
 function musicHubCard() {
-  return `<article class="game-card music-hub-card" data-music-hub data-mode-category="music" data-mode-tags="music category new everyone crew" data-mode-search="muzyka muzyka hity piosenki spotify artyści wyświetlenia słuchacze pojedynek bitwa popularność tekst dokończ lyric kategoria"><div class="game-visual game-visual-music-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b class="music-hub-badge">MUZYKA</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-music">KATEGORIA</span></div><h2>MUZYKA</h2><p class="muted">Pojedynki hitów, bitwy ekip, popularność oraz dokańczanie tekstów piosenek.</p><div class="game-card-activity"><span>4 tryby</span><span>HITY I TEKSTY</span></div><div class="game-card-footer"><span class="players-count">🎧 DLA EKIP I ZNAJOMYCH</span><button class="primary" data-open-music>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card music-hub-card" data-music-hub data-mode-category="music" data-mode-tags="music category new everyone crew solo" data-mode-search="muzyka muzyka hity piosenki spotify artyści wyświetlenia słuchacze pojedynek bitwa popularność tekst dokończ lyric zgadnij utwór songspot kategoria"><div class="game-visual game-visual-music-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b class="music-hub-badge">MUZYKA</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-music">KATEGORIA</span></div><h2>MUZYKA</h2><p class="muted">Pojedynki hitów, bitwy ekip, popularność, teksty i rozpoznawanie piosenek.</p><div class="game-card-activity"><span>5 trybów</span><span>HITY I ZGADYWANIE</span></div><div class="game-card-footer"><span class="players-count">🎧 DLA EKIP I ZNAJOMYCH</span><button class="primary" data-open-music>Wybierz tryb</button></div></div></article>`;
 }
 
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
-  const soloModeId = mode.soloModeId || (mode.id === "popularnosc-hitow" ? "popularnosc-solo" : "");
+    const soloModeId = mode.soloModeId || (mode.id === "popularnosc-hitow" ? "popularnosc-solo" : "");
   const soloAvailable = soloModeId && !isModeLocked(soloModeId);
+    const soloOnly = Boolean(soloModeId && !mode.supportsLobby);
   const playControls = soloModeId && !locked
-    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? `<button class="ghost" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "dokoncz-tekst" ? "🎤" : "🔥"} Solo</button>` : ""}</div>`
+    ? soloOnly
+          ? `<div class="game-card-play-options"><button class="primary" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "songspot" ? "🎧" : mode.id === "dokoncz-tekst" ? "🎤" : "🔥"} Solo</button></div>`
+          : `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? `<button class="ghost" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "dokoncz-tekst" ? "🎤" : mode.id === "songspot" ? "🎧" : "🔥"} Solo</button>` : ""}</div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">

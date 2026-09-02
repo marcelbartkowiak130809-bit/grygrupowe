@@ -8,12 +8,12 @@ export const CATEGORY_CYCLE_DURATION_MS = CATEGORY_VOTE_DURATION_MS + CATEGORY_R
 const CATEGORY_RELEASES_KEY = "udowodnij.modeCategoryVoting.v1";
 const CATEGORY_VOTES_KEY = "udowodnij.modeCategoryVotes.v1";
 const HIDDEN_SOLO_VARIANTS = new Set(["popularnosc-solo"]);
-const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow"]);
+const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow", "dokoncz-tekst", "songspot"]);
 const CATEGORY_MODE_IDS = {
   pokemon: ["pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type"],
   board: ["board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino"],
   minecraft: ["minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome", "minecraft-truth", "minecraft-redstone"],
-  music: ["pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow"],
+  music: ["pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "dokoncz-tekst", "songspot"],
 };
 
 export const categoryVoteCategories = [
