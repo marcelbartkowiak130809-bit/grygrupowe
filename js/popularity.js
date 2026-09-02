@@ -1,7 +1,7 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-19";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-20";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};

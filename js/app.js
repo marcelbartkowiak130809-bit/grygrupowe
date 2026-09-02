@@ -34,7 +34,7 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-4";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-19";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-20";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-18";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260902-14";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-6";
