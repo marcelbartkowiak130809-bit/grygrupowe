@@ -179,6 +179,37 @@
         }
       }
     },
+    "lyricsSoloRecords": {
+      ".read": "auth != null",
+      "$uid": {
+        ".validate": "newData.hasChildren(['best', 'nick', 'avatarImage', 'selectedAvatarFrame', 'selectedAura', 'updatedAt']) && newData.child('best').isNumber() && newData.child('best').val() >= 0 && newData.child('best').val() <= 100000 && newData.child('updatedAt').isNumber()",
+        ".write": "auth != null && auth.uid == $uid && newData.hasChildren(['best', 'nick', 'avatarImage', 'selectedAvatarFrame', 'selectedAura', 'updatedAt']) && newData.child('best').isNumber() && newData.child('best').val() >= (data.exists() ? data.child('best').val() : 0)",
+        "best": {
+          ".write": "auth != null && auth.uid == $uid && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() >= (data.exists() ? data.val() : 0)",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+        },
+        "nick": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+        },
+        "avatarImage": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isString() && newData.val().length <= 200000"
+        },
+        "selectedAvatarFrame": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "selectedAura": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "updatedAt": {
+          ".write": "auth != null && auth.uid == $uid && newData.isNumber()",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
     "modeCategoryVoting": {
       "releases": {
         ".read": "auth != null",

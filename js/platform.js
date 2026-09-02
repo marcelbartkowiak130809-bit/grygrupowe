@@ -146,9 +146,10 @@ function musicHubCard() {
 function gameCard(mode) {
   const unlock = modeUnlockInfo(mode.id), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const searchText = escapeHtml(`${mode.name} ${mode.description}`.toLocaleLowerCase("pl-PL"));
-  const soloAvailable = !isModeLocked("popularnosc-solo");
-  const playControls = mode.id === "popularnosc-hitow" && !locked
-    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? '<button class="ghost" data-play-solo-mode="popularnosc-solo">🔥 Solo</button>' : ""}</div>`
+  const soloModeId = mode.soloModeId || (mode.id === "popularnosc-hitow" ? "popularnosc-solo" : "");
+  const soloAvailable = soloModeId && !isModeLocked(soloModeId);
+  const playControls = soloModeId && !locked
+    ? `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? `<button class="ghost" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "dokoncz-tekst" ? "🎤" : "🔥"} Solo</button>` : ""}</div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">

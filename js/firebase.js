@@ -589,6 +589,42 @@ export async function savePopularitySoloLeaderboard(uid, metricStats = {}, profi
     return sanitizePopularitySoloRecord(uid, payload);
   } catch { return null; }
 }
+function sanitizeLyricsSoloRecord(uid, entry = {}) {
+  const source = entry && typeof entry === "object" && !Array.isArray(entry) ? entry : {};
+  return {
+    uid,
+    nick: String(source.nick || "Gracz").slice(0, 40),
+    avatarImage: String(source.avatarImage || "").slice(0, 200000),
+    selectedAvatarFrame: String(source.selectedAvatarFrame || "defaultFrame").slice(0, 80),
+    selectedAura: String(source.selectedAura || "noAura").slice(0, 80),
+    best: Math.max(0, Math.min(100000, Number(source.best) || 0)),
+    updatedAt: Number(source.updatedAt) || 0,
+  };
+}
+export async function loadLyricsSoloLeaderboard() {
+  if (!canUseRemote()) return {};
+  try {
+    const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "lyricsSoloRecords"));
+    return Object.fromEntries(Object.entries(snapshot.val() || {}).map(([uid, entry]) => [uid, sanitizeLyricsSoloRecord(uid, entry)]));
+  } catch { return {}; }
+}
+export async function saveLyricsSoloLeaderboard(uid, best = 0, profile = {}) {
+  if (!canUseRemote() || !uid || remoteAuth.currentUser.uid !== uid || profile?.nickOnly) return null;
+  try {
+    const recordRef = firebaseDatabaseApi.ref(remoteDatabase, `lyricsSoloRecords/${uid}`);
+    const existing = sanitizeLyricsSoloRecord(uid, (await firebaseDatabaseApi.get(recordRef)).val() || {});
+    const payload = {
+      nick: String(profile?.nick || existing.nick || "Gracz").slice(0, 40),
+      avatarImage: String(profile?.avatarImage || existing.avatarImage || "").slice(0, 200000),
+      selectedAvatarFrame: String(profile?.selectedAvatarFrame || existing.selectedAvatarFrame || "defaultFrame").slice(0, 80),
+      selectedAura: String(profile?.selectedAura || existing.selectedAura || "noAura").slice(0, 80),
+      best: Math.max(existing.best, Math.min(100000, Math.max(0, Number(best) || 0))),
+      updatedAt: Math.floor(serverNow()),
+    };
+    await firebaseDatabaseApi.update(recordRef, payload);
+    return sanitizeLyricsSoloRecord(uid, payload);
+  } catch { return null; }
+}
 export async function updateRemoteProfileFields(uid, patch = {}) {
   if (!canUseRemote() || !uid || !Object.keys(patch).length) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }

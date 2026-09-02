@@ -3,9 +3,9 @@ import { Audio } from "./audio.js?v=20260902-1";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260902-1";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260902-2";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260902-3";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260902-1";
-import { gamesList, getGameMode } from "./games.js?v=20260902-15";
+import { gamesList, getGameMode } from "./games.js?v=20260902-16";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-4";
@@ -34,13 +34,13 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-4";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-8";
-import { createLyricsGame, LyricsEngine, sanitizeLyricsSettings, stopLyricsTimer } from "./lyrics.js?v=20260902-1";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-10";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-7";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260902-4";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20260901-13";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260902-4";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20260902-15";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260902-5";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-7";
 import { Router } from "./router.js?v=20260901-3";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260902-12";
@@ -103,7 +103,7 @@ function readUrlRoute() {
   } catch { return { mode:"", room:"", invalidMode:false }; }
 }
 const initialUrlRoute = readUrlRoute();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0 };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0, lyricsSoloLeaderboard:{}, lyricsSoloLeaderboardLoadedAt:0 };
 window.__globalStats = state.globalStats;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
@@ -127,7 +127,10 @@ const activeRoom = () => state.rooms.find(room => room.roomId === state.activeRo
 const popularitySoloPlayerId = () => getFirebaseSession()?.uid || state.currentUser || "guest";
 let popularitySoloLeaderboardRequest = null;
 function popularitySoloIsOpen() { return Router.current === "solo" && state.selectedGameMode === "popularnosc-solo"; }
+function lyricsSoloPlayerId() { return getFirebaseSession()?.uid || state.currentUser || "guest"; }
+function lyricsSoloIsOpen() { return Router.current === "solo" && state.selectedGameMode === "dokoncz-tekst"; }
 function popularitySoloBoardSignature(board = {}) { return JSON.stringify(board || {}); }
+function lyricsSoloBoardSignature(board = {}) { return JSON.stringify(board || {}); }
 async function syncPopularitySoloRecord({ rerender = true } = {}) {
   const uid = getFirebaseSession()?.uid, user = profile();
   if (!uid || !user || user.nickOnly || !hasOnlineBackend()) return null;
@@ -151,6 +154,31 @@ function refreshPopularitySoloData({ force = false } = {}) {
     return state.popularitySoloLeaderboard;
   }).catch(() => state.popularitySoloLeaderboard).finally(() => { popularitySoloLeaderboardRequest = null; });
   return popularitySoloLeaderboardRequest;
+}
+let lyricsSoloLeaderboardRequest = null;
+async function syncLyricsSoloRecord({ rerender = true } = {}) {
+  const uid = getFirebaseSession()?.uid, user = profile();
+  if (!uid || !user || user.nickOnly || !hasOnlineBackend()) return null;
+  const current = LyricsSoloEngine.get(uid), saved = await saveLyricsSoloLeaderboard(uid, current.best, user);
+  if (!saved) return null;
+  state.lyricsSoloLeaderboard = { ...state.lyricsSoloLeaderboard, [uid]:saved };
+  state.lyricsSoloLeaderboardLoadedAt = Date.now();
+  if (rerender && lyricsSoloIsOpen()) render({ preserveDrafts:true });
+  return saved;
+}
+function refreshLyricsSoloData({ force = false } = {}) {
+  if (!hasOnlineBackend()) return Promise.resolve(state.lyricsSoloLeaderboard);
+  if (lyricsSoloLeaderboardRequest) return lyricsSoloLeaderboardRequest;
+  if (!force && state.lyricsSoloLeaderboardLoadedAt && Date.now() - state.lyricsSoloLeaderboardLoadedAt < 15000) return Promise.resolve(state.lyricsSoloLeaderboard);
+  lyricsSoloLeaderboardRequest = loadLyricsSoloLeaderboard().then(async board => {
+    const before = lyricsSoloBoardSignature(state.lyricsSoloLeaderboard);
+    state.lyricsSoloLeaderboard = board || {};
+    state.lyricsSoloLeaderboardLoadedAt = Date.now();
+    await syncLyricsSoloRecord({ rerender:false });
+    if (lyricsSoloIsOpen() && before !== lyricsSoloBoardSignature(state.lyricsSoloLeaderboard)) render({ preserveDrafts:true });
+    return state.lyricsSoloLeaderboard;
+  }).catch(() => state.lyricsSoloLeaderboard).finally(() => { lyricsSoloLeaderboardRequest = null; });
+  return lyricsSoloLeaderboardRequest;
 }
 function ensureRoomPresence(room) {
   const nextId = room?.roomId && state.currentUser && room.players?.includes(state.currentUser) ? room.roomId : "";
@@ -1903,6 +1931,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
   goMusicModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
+  goModeCategory(mode = getGameMode(state.selectedGameMode)) { const audience = mode?.audience; if (audience === "pokemon") return actions.goPokemonModes(); if (audience === "board") return actions.goBoardModes(); if (audience === "minecraft") return actions.goMinecraftModes(); if (audience === "music") return actions.goMusicModes(); return actions.goPlatform(); },
   goPublicPage(path) { const screen=Router.publicScreenFromPath(path); if(!screen)return actions.goPlatform(); window.history.pushState(null,"",path); Router.go(screen); },
   goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },
@@ -2592,7 +2621,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   musicArenaSkip(expected={}){return mutateRoomGame((game,room)=>{reconcileMusicPlayers(game,room);if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Odsłuch rundy już się zakończył.";return MusicArenaEngine.skip(game,state.currentUser,room.settings);},{sound:"phase"});},
   musicArenaTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bitwa-hitow")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";MusicArenaEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   musicArenaNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=MusicArenaEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
-  lyricsAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return LyricsEngine.answer(game,state.currentUser,text,room.players,room.settings);},{sound:"submit",after:settleAdditionalModeResult});},
+  lyricsAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return LyricsEngine.answer(game,state.currentUser,text,game.players||room.players,room.settings);},{sound:"submit",after:settleAdditionalModeResult});},
   lyricsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="dokoncz-tekst")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";LyricsEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   lyricsNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=LyricsEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   popularityChoose(side, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór już minął.";return PopularityEngine.choose(game,state.currentUser,side);},{sound:"choice"});},
@@ -2655,6 +2684,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   popularitySoloMetric(metric){PopularitySoloEngine.setMetric(popularitySoloPlayerId(),metric);render({preserveDrafts:true});},
   popularitySoloChoose(side){const playerId=popularitySoloPlayerId(),wasPlaying=PopularitySoloEngine.get(playerId).status==="playing",result=PopularitySoloEngine.choose(playerId,side);if(wasPlaying&&result?.lastResult){Effects.hit(Boolean(result.lastResult.correct));void syncPopularitySoloRecord();}render({forceEnter:true});},
   popularitySoloNext(){PopularitySoloEngine.next(popularitySoloPlayerId());render({forceEnter:true});},
+  lyricsSoloStart(){LyricsSoloEngine.start(lyricsSoloPlayerId());render({forceEnter:true});},
+  lyricsSoloStop(){LyricsSoloEngine.stop(lyricsSoloPlayerId());render({forceEnter:true});},
+  lyricsSoloAudioStarted(){const playerId=lyricsSoloPlayerId();if(LyricsSoloEngine.audioStarted(playerId))render({forceEnter:true});},
+  lyricsSoloAnswer(text, expected={}){const playerId=lyricsSoloPlayerId(),wasAnswering=LyricsSoloEngine.get(playerId).status==="answering",result=LyricsSoloEngine.answer(playerId,text,expected);if(wasAnswering&&result?.lastResult){Effects.hit(Boolean(result.lastResult.correct));void syncLyricsSoloRecord();}render({forceEnter:true});},
+  lyricsSoloTimeout(expected={}){const playerId=lyricsSoloPlayerId(),result=LyricsSoloEngine.timeout(playerId,expected);if(result?.lastResult){Effects.hit(false);void syncLyricsSoloRecord();}render({forceEnter:true});},
+  lyricsSoloNext(){LyricsSoloEngine.next(lyricsSoloPlayerId());render({forceEnter:true});},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
   randomSecretRuleCategory(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="tajna-zasada")return;room.settings={...room.settings,category:secretRuleCategories[Math.floor(Math.random()*secretRuleCategories.length)]};touchRoom(room);animateHostSettingChange(room.settings.category);render({preserveDrafts:true});},
@@ -2965,7 +3000,7 @@ function renderNow(options = {}) {
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
   Audio.prepareTrackRerender();
-  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopPopularityTimer(); stopBoardGameTimer();
+  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
@@ -2981,13 +3016,13 @@ function renderNow(options = {}) {
   const activeMode = activeRoom()?.gameMode;
   const keepsTrackAudio = screen === "solo" || (screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst"].includes(activeMode));
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
-  Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst"].includes(activeMode)) || (screen === "solo" && state.selectedGameMode === "popularnosc-solo"));
+  Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
   view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
-  if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); }
+  if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") refreshPopularitySoloData(); return finish(state.selectedGameMode === "popularnosc-solo" ? renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard},actions) : renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {

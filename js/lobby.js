@@ -275,7 +275,10 @@ export function renderLobby(root, { rooms, selectedGameMode, onlineBackend }, ac
     </section>
   </main>`;
   if (mode.id === "quiz" && localStorage.getItem("quizTutorialSeen") !== "1") { const hint = document.createElement("span"); hint.className = "quiz-info-hint"; hint.textContent = "Kliknij i, aby poznać zasady"; root.querySelector(".mode-hero-actions")?.prepend(hint); }
-  $("#change-mode").addEventListener("click", actions.goPlatform);
+  $("#change-mode").addEventListener("click", () => {
+    if (typeof actions.goModeCategory === "function") actions.goModeCategory(mode);
+    else actions.goPlatform();
+  });
   $("#mode-info").addEventListener("click", () => { if (mode.id === "wavelength") localStorage.setItem("wavelengthTutorialSeen", "1"); actions.showGameInfo(mode.id); });
   $("#create-room").addEventListener("click", actions.openCreateRoom);
   $("#join-code-button").addEventListener("click", () => actions.joinByCode($("#join-code").value, $("#join-pass").value));
