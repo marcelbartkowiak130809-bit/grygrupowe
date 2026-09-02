@@ -2,6 +2,7 @@
 // Okładki i 30-sekundowe previewy pochodzą z publicznego katalogu iTunes;
 // brakujące media są uzupełniane przez wyszukiwarkę po stronie klienta.
 import { polishPreviewAssets } from "./polishPreviewAssets.js?v=20260902-1";
+import { polishExtraTrackData } from "./polishExtraMusic.js?v=20260903-1";
 
 const rawPolishTrackData = [
   { id: "polish-0", title: "Deli Supreme", artist: "MJ Deli", region: "polish", coverUrl: "", previewUrl: "", externalUrl: "https://open.spotify.com/search/MJ%20Deli%20Deli%20Supreme", provider: "preview" },
@@ -121,7 +122,7 @@ const rawPolishTrackData = [
   { id: "polish-114", title: "Nie Pytaj O Polskę", artist: "Obywatel G.C.", region: "polish", coverUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/5e/45/91/5e45916c-1f79-34b5-f2f3-676b7e3cefda/cover.jpg/300x300bb.jpg", previewUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/84/02/15/840215b8-cccd-5035-7f96-8dd53c9d783c/mzaf_4936466449478482066.plus.aac.p.m4a", externalUrl: "https://music.apple.com/pl/album/nie-pytaj-o-polsk%C4%99/1604203591?i=1604203989&uo=4", provider: "preview" },
 ];
 
-export const polishTrackData = rawPolishTrackData.map(track => ({
+export const polishTrackData = [...rawPolishTrackData, ...polishExtraTrackData].map(track => ({
   ...track,
   ...(polishPreviewAssets[track.id] || {}),
 }));

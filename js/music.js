@@ -1,6 +1,6 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
 import { Audio } from "./audio.js?v=20260902-1";
-import { polishTrackData } from "./polishMusic.js?v=20260902-3";
+import { polishTrackData } from "./polishMusic.js?v=20260903-1";
 import { extendedGlobalMusicTracks } from "./extendedMusic.js?v=20260902-1";
 import { extendedGlobalMusicTracks2 } from "./extendedGlobalMusic2.js?v=20260902-4";
 import { curatedArtistMusicTracks } from "./curatedArtistMusic.js?v=20260902-3";
@@ -849,7 +849,7 @@ export function renderMusicDuelGame(root, { room, accounts, currentUser }, actio
   if (game.phase === "listening") bindMusicSkipAvailability(root, game);
   root.querySelector("#music-duel-next")?.addEventListener("click", actions.musicDuelNext);
   root.querySelector("#music-duel-lobby")?.addEventListener("click", actions.returnToRoom);
-  root.querySelector("#music-duel-leave")?.addEventListener("click", () => actions.leaveRoom());
+  root.querySelector("#music-duel-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
   bindMusicPlayback(root);
   scheduleTimer(game, actions, "musicDuelTimeout", expected);
 }
@@ -883,7 +883,7 @@ export function renderMusicArenaGame(root, { room, accounts, currentUser }, acti
   if (game.phase === "listening") bindMusicSkipAvailability(root, game);
   root.querySelector("#music-arena-next")?.addEventListener("click", actions.musicArenaNext);
   root.querySelector("#music-arena-lobby")?.addEventListener("click", actions.returnToRoom);
-  root.querySelector("#music-arena-leave")?.addEventListener("click", () => actions.leaveRoom());
+  root.querySelector("#music-arena-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
   bindMusicPlayback(root);
   scheduleTimer(game, actions, "musicArenaTimeout", expected);
 }

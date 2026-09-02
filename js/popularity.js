@@ -1,7 +1,7 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-22";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-1";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -735,7 +735,8 @@ function userProfile(accounts, room, uid) { return { ...(room?.playerProfiles?.[
 function popularityArt(track, side, reveal = false, metric = "views") {
   if (!track) return "";
   const artistMode = isArtistMetric(metric), hue = hashColor(track.artist), query = artistMode ? normalizedText(track.artist) : trackQuery(track.topTrack || track);
-  return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}"><span class="popularity-art-note">${artistMode ? "👤" : "♫"}</span><small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
+  const note = artistMode ? "" : `<span class="popularity-art-note">♫</span>`;
+  return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}">${note}<small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
 }
 function popularityTrackCard(track, side, { selected = false, reveal = false, correct = false, metric = "views" } = {}) {
   const artistMode = isArtistMetric(metric), title = artistMode ? track?.artist || "Brak artysty" : track?.title || "Brak utworu", subtitle = artistMode ? (reveal && track?.topTrack?.title ? `Top utwór: ${track.topTrack.title}` : "") : track?.artist || "", entity = artistMode ? "artystę" : "piosenkę", value = reveal ? `<strong class="popularity-value" data-popularity-number="${valueFor(track, metric)}" data-popularity-metric="${cleanMetric(metric)}">${formatPopularityValue(0, metric)}</strong>` : `<span class="popularity-hidden-value">???</span>`;
@@ -798,9 +799,11 @@ function schedulePopularityTimer(game, actions, expected) {
 }
 
 const mediaCache = new Map();
-function localTrackMedia(query) {
+function localTrackMedia(query, region = "global") {
   const normalizedQuery = normalizedText(query);
-  const match = musicPreviewCatalog.find(item => {
+  const regionCatalog = musicCatalogForRegion(region);
+  const catalog = [...regionCatalog, ...musicPreviewCatalog.filter(item => !regionCatalog.some(local => local.id === item.id))];
+  const match = catalog.find(item => {
     const normalizedTitle = normalizedText(item.title);
     const normalizedFull = normalizedText(`${item.title} ${item.artist}`);
     return normalizedFull === normalizedQuery || (normalizedTitle.length >= 4 && normalizedQuery.startsWith(`${normalizedTitle} `));
@@ -810,23 +813,34 @@ function localTrackMedia(query) {
     previewUrl: match.previewUrl || "",
   } : { artworkUrl:"", previewUrl:"" };
 }
-async function findTrackMedia(query) {
+async function findTrackMedia(query, region = "global") {
   const value = normalizedText(query);
-  const fallback = localTrackMedia(query);
+  const fallback = localTrackMedia(query, region);
   if (!value || typeof fetch !== "function") return fallback;
-  if (mediaCache.has(value)) return mediaCache.get(value);
+  const cacheKey = `${region}:${value}`;
+  if (mediaCache.has(cacheKey)) return mediaCache.get(cacheKey);
+  // Katalog utworów zawiera już zweryfikowane previewy. Nie nadpisuj ich
+  // przypadkowym pierwszym wynikiem wyszukiwarki iTunes.
+  if (fallback.previewUrl) {
+    mediaCache.set(cacheKey, fallback);
+    return fallback;
+  }
   try {
-    const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=3&country=PL`);
+    const country = region === "polish" ? "PL" : "US";
+    const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=8&country=${country}`);
+    if (!response.ok) throw new Error(`iTunes returned ${response.status}`);
     const data = await response.json();
-    const item = data?.results?.find(candidate => candidate?.previewUrl || candidate?.artworkUrl100) || {};
+    const results = Array.isArray(data?.results) ? data.results : [];
+    const exact = results.find(candidate => normalizedText(`${candidate?.trackName || ""} ${candidate?.artistName || ""}`) === value || normalizedText(`${candidate?.artistName || ""} ${candidate?.trackName || ""}`) === value);
+    const item = exact || results.find(candidate => candidate?.previewUrl && normalizedText(candidate?.trackName || "").length >= 4 && value.includes(normalizedText(candidate.trackName))) || results.find(candidate => candidate?.previewUrl || candidate?.artworkUrl100) || {};
     const media = {
       artworkUrl: item?.artworkUrl100?.replace(/100x100/g, "600x600") || fallback.artworkUrl,
       previewUrl: item?.previewUrl || fallback.previewUrl,
     };
-    mediaCache.set(value, media);
+    mediaCache.set(cacheKey, media);
     return media;
   } catch {
-    mediaCache.set(value, fallback);
+    mediaCache.set(cacheKey, fallback);
     return fallback;
   }
 }
@@ -834,18 +848,30 @@ async function findArtistMedia(artist) {
   const value = normalizedText(artist), cacheKey = `artist:${value}`;
   if (!value || typeof fetch !== "function") return { artworkUrl:"", previewUrl:"" };
   if (mediaCache.has(cacheKey)) return mediaCache.get(cacheKey);
+  // Najpierw pytamy serwis muzyczny. Sam tytuł strony Wikipedii bywa
+  // niejednoznaczny — np. "Pitbull" prowadzi do rasy psa, a nie rapera.
+  let deezerArtworkUrl = "";
+  try { deezerArtworkUrl = await findArtistPhotoJsonp(artist); } catch {}
+  if (deezerArtworkUrl) {
+    const media = { artworkUrl:deezerArtworkUrl, previewUrl:"" };
+    mediaCache.set(cacheKey, media);
+    return media;
+  }
+  const wikipediaAliases = { pitbull:"Pitbull (rapper)" };
   try {
-    const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(String(artist).trim().replace(/\s+/g, "_"))}`);
+    const wikipediaTitle = wikipediaAliases[value] || String(artist).trim().replace(/\s+/g, "_");
+    const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikipediaTitle)}`);
     if (!response.ok) throw new Error("artist profile not found");
     const data = await response.json();
+    const summary = `${data?.description || ""} ${data?.extract || ""}`;
+    if (/\b(?:dog|animal|breed|species|reptile|fish|bird)\b/i.test(summary) || !/\b(?:singer|rapper|musician|songwriter|vocalist|band|duo|group|dj|producer|composer|performer|actor|actress)\b/i.test(summary)) throw new Error("not an artist profile");
     let artworkUrl = data?.originalimage?.source || data?.thumbnail?.source || "";
-    if (!artworkUrl) artworkUrl = await findArtistPhotoJsonp(artist);
+    if (!artworkUrl) throw new Error("artist artwork not found");
     const media = { artworkUrl, previewUrl:"" };
     mediaCache.set(cacheKey, media);
     return media;
   } catch {
-    const artworkUrl = await findArtistPhotoJsonp(artist);
-    const fallback = { artworkUrl, previewUrl:"" };
+    const fallback = { artworkUrl:"", previewUrl:"" };
     mediaCache.set(cacheKey, fallback);
     return fallback;
   }
@@ -888,10 +914,11 @@ function updatePopularityPreview(root, query, media, metric, token, previewGener
     return;
   }
   audio.hidden = false;
-  audio.dataset.trackKey = `popularity:${query}`;
-  audio.src = media.previewUrl;
-  audio.load();
-  Audio.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay:true });
+  // Nie używaj samego query jako klucza. Gdy gracz wcześniej ręcznie
+  // zatrzymał ten utwór, Audio mogłoby przywrócić stan "paused" zamiast
+  // automatycznie uruchomić nowy wynik rundy.
+  const playbackKey = `popularity:${query}:${previewGeneration}`;
+  Audio.setTrackAudioSource(audio, playbackKey, media.previewUrl, { autoplay:true });
   popularityPreviewAudio = audio;
   audio.addEventListener("play", () => { if (status) status.textContent = isArtistMetric(metric) ? "Fragment utworu artysty jest odtwarzany." : "Fragment zwycięskiej piosenki jest odtwarzany."; }, { once:true });
   audio.addEventListener("error", () => { preview.classList.add("autoplay-blocked"); if (status) status.textContent = "Nie udało się odtworzyć preview — otwórz utwór w Spotify."; }, { once:true });
@@ -901,8 +928,8 @@ function hydratePopularityArtwork(root, tracks, metric = "views") {
   const token = dataset.popularityArtToken = String((Number(dataset.popularityArtToken) || 0) + 1);
   const previewGeneration = popularityPreviewGeneration;
   array(tracks).filter(Boolean).forEach(track => {
-    const artistMode = isArtistMetric(metric), artworkQuery = artistMode ? normalizedText(track.artist) : trackQuery(track?.topTrack || track), previewQuery = trackQuery(artistMode ? track.topTrack || track : track);
-    const artworkMedia = artistMode ? findArtistMedia(track.artist) : findTrackMedia(artworkQuery);
+    const artistMode = isArtistMetric(metric), trackRegion = track.region === "polish" ? "polish" : "global", artworkQuery = artistMode ? normalizedText(track.artist) : trackQuery(track?.topTrack || track), previewQuery = trackQuery(artistMode ? track.topTrack || track : track);
+    const artworkMedia = artistMode ? findArtistMedia(track.artist) : findTrackMedia(artworkQuery, trackRegion);
     artworkMedia.then(media => {
       if (("isConnected" in root && !root.isConnected) || dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
       [...root.querySelectorAll("[data-artwork-query]")].filter(element => element.dataset.artworkQuery === artworkQuery).forEach(element => {
@@ -913,7 +940,7 @@ function hydratePopularityArtwork(root, tracks, metric = "views") {
         }
       });
     });
-    if (artistMode) findTrackMedia(previewQuery).then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
+    if (artistMode) findTrackMedia(previewQuery, trackRegion).then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
     else artworkMedia.then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
   });
 }
@@ -997,7 +1024,7 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
   root.querySelectorAll("[data-popularity-insight]").forEach(button => button.addEventListener("click", () => actions.popularityUseInsight(button.dataset.popularityInsight)));
   root.querySelector("#popularity-next")?.addEventListener("click", actions.popularityNext);
   root.querySelector("#popularity-lobby")?.addEventListener("click", actions.returnToRoom);
-  root.querySelector("#popularity-leave")?.addEventListener("click", () => actions.leaveRoom());
+  root.querySelector("#popularity-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
   schedulePopularityTimer(game, actions, expected);
   if (game.phase === "choosing") bindPopularityKeyboard(root, actions, expected);
   if (game.phase === "roundResult") animatePopularityValues(root);
@@ -1006,22 +1033,30 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
 }
 
 const SOLO_METRICS = ["views", "listeners", "artistListeners"];
+const SOLO_REGIONS = ["global", "polish"];
 const soloStorageKey = playerId => `grygrupowe-popularity-solo-v1:${String(playerId || "guest")}`;
 const emptySoloMetricStats = () => Object.fromEntries(SOLO_METRICS.map(metric => [metric, { streak:0, best:0 }]));
+const emptySoloRegionStats = () => Object.fromEntries(SOLO_REGIONS.map(region => [region, emptySoloMetricStats()]));
 function normalizeSoloState(raw, playerId) {
   const owner = String(playerId || raw?.playerId || "guest"), source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const metric = cleanMetric(source.metric), metricStats = emptySoloMetricStats(), storedStats = object(source.metricStats);
-  SOLO_METRICS.forEach(key => {
-    const entry = object(storedStats[key]);
-    metricStats[key] = { streak:Math.max(0, Number(entry.streak) || 0), best:Math.max(0, Number(entry.best) || 0) };
-    metricStats[key].best = Math.max(metricStats[key].best, metricStats[key].streak);
-  });
-  if (!Object.keys(storedStats).length) {
-    metricStats[metric] = { streak:Math.max(0, Number(source.streak) || 0), best:Math.max(0, Number(source.best) || 0) };
-    metricStats[metric].best = Math.max(metricStats[metric].best, metricStats[metric].streak);
-  }
+  const metric = cleanMetric(source.metric), storedStats = object(source.metricStats);
   const status = ["idle", "playing", "reveal", "over"].includes(source.status) ? source.status : "idle";
-  const current = metricStats[metric], hasSavedStreak = Object.prototype.hasOwnProperty.call(source, "streak");
+  const selectedRegion = source.region === "polish" ? "polish" : "global";
+  const storedRegionStats = object(source.regionStats || source.metricStatsByRegion);
+  const regionStats = emptySoloRegionStats();
+  SOLO_REGIONS.forEach(region => {
+    const regionSource = object(storedRegionStats[region]);
+    // Dane sprzed rozdzielenia topki były płaskie. Zachowaj je w Globalnych,
+    // aby aktualne rekordy nie zniknęły po aktualizacji aplikacji.
+    const legacySource = Object.keys(storedStats).length ? storedStats : { [metric]: { streak:Number(source.streak) || 0, best:Number(source.best) || 0 } };
+    const fallbackSource = region === selectedRegion && !Object.keys(regionSource).length ? legacySource : {};
+    SOLO_METRICS.forEach(key => {
+      const entry = object(regionSource[key] || fallbackSource[key]);
+      regionStats[region][key] = { streak:Math.max(0, Number(entry.streak) || 0), best:Math.max(0, Number(entry.best) || 0) };
+      regionStats[region][key].best = Math.max(regionStats[region][key].best, regionStats[region][key].streak);
+    });
+  });
+  const current = regionStats[selectedRegion][metric], hasSavedStreak = Object.prototype.hasOwnProperty.call(source, "streak");
   const savedStreak = Math.max(0, Number(hasSavedStreak ? source.streak : current.streak) || 0);
   // `metricStats.streak` used to survive a stopped/failed run. Treat idle and
   // over states as finished runs, so an old cached value cannot be added to
@@ -1031,9 +1066,10 @@ function normalizeSoloState(raw, playerId) {
   return {
     status,
     playerId:owner,
-    region:source.region === "polish" ? "polish" : "global",
+    region:selectedRegion,
     metric,
-    metricStats,
+    metricStats:regionStats[selectedRegion],
+    regionStats,
     streak:status === "over" ? savedStreak : status === "idle" ? 0 : current.streak,
     best:Math.max(current.best, savedStreak),
     round:Math.max(0, Number(source.round) || 0),
@@ -1060,8 +1096,10 @@ function readStoredSoloState(playerId) {
 }
 function ensureSoloMetricStats(state) {
   const normalized = normalizeSoloState(state, state?.playerId);
-  state.metricStats = normalized.metricStats;
+  state.region = normalized.region;
   state.metric = normalized.metric;
+  state.regionStats = normalized.regionStats;
+  state.metricStats = state.regionStats[state.region] || emptySoloMetricStats();
   state.streak = normalized.streak;
   state.best = normalized.best;
   return state.metricStats;
@@ -1071,10 +1109,10 @@ function saveSoloState(state) {
 }
 function createSoloPair(usedIds, metric, region = "global") { return nextPair(usedIds, metric, region); }
 export function startPopularitySolo(playerId, metric = "views", region = "global") {
-  const owner = String(playerId || "guest"), previous = readSoloState(owner), clean = cleanMetric(metric), selectedRegion = region === "polish" ? "polish" : "global", stats = ensureSoloMetricStats(previous), pair = createSoloPair([], clean, selectedRegion);
+  const owner = String(playerId || "guest"), previous = readSoloState(owner), clean = cleanMetric(metric), selectedRegion = region === "polish" ? "polish" : "global", regionStats = previous.regionStats || emptySoloRegionStats(), stats = regionStats[selectedRegion] || emptySoloMetricStats(), pair = createSoloPair([], clean, selectedRegion);
   stats[clean] = { ...(stats[clean] || { best:0 }), streak:0 };
   const best = Math.max(0, Number(stats[clean]?.best) || 0);
-  soloState = { status:"playing", playerId:owner, region:selectedRegion, metric:clean, metricStats:stats, streak:0, best, round:1, usedIds:pair.map(track => track.id), pair, lastResult:null };
+  soloState = { status:"playing", playerId:owner, region:selectedRegion, metric:clean, metricStats:stats, regionStats, streak:0, best, round:1, usedIds:pair.map(track => track.id), pair, lastResult:null };
   soloOwner = owner; saveSoloState(soloState); return soloState;
 }
 export function stopPopularitySolo(playerId) {
@@ -1088,6 +1126,9 @@ export function setPopularitySoloRegion(playerId, region) {
   const state = readSoloState(playerId);
   if (state.status !== "idle") return state;
   state.region = region === "polish" ? "polish" : "global";
+  state.metricStats = state.regionStats?.[state.region] || emptySoloMetricStats();
+  state.streak = 0;
+  state.best = Math.max(0, Number(state.metricStats?.[state.metric]?.best) || 0);
   saveSoloState(state);
   return state;
 }
@@ -1129,21 +1170,32 @@ export function continuePopularitySolo(playerId) {
 }
 export const PopularitySoloEngine = { start:startPopularitySolo, stop:stopPopularitySolo, get:getPopularitySoloState, choose:choosePopularitySolo, next:continuePopularitySolo, setMetric:setPopularitySoloMetric, setRegion:setPopularitySoloRegion };
 
-function storedSoloBest(playerId, metric) { return Number(readStoredSoloState(playerId).metricStats?.[cleanMetric(metric)]?.best) || 0; }
+function storedSoloBest(playerId, metric, region = "global") {
+  const state = readStoredSoloState(playerId), selectedRegion = region === "polish" ? "polish" : "global";
+  return Number(state.regionStats?.[selectedRegion]?.[cleanMetric(metric)]?.best) || 0;
+}
 function soloMetricLabel(metric) {
   return metric === "views" ? "Wyświetlenia" : metric === "listeners" ? "Słuchacze piosenek" : "Słuchacze artystów";
 }
 function soloRegionButtons(state) {
   return `<div class="popularity-region-switch" role="radiogroup" aria-label="Katalog utworów">${musicRegionOptions.map(([id, icon, label, description]) => `<button type="button" class="music-region-option ${state.region === id ? "is-selected" : ""}" data-popularity-solo-region="${id}" aria-pressed="${state.region === id ? "true" : "false"}"><span class="music-region-option-icon">${icon}</span><span><b>${escapeHtml(label)}</b><small>${escapeHtml(description)}</small></span></button>`).join("")}</div>`;
 }
+function popularityRegionRecords(remote, region) {
+  const records = object(remote?.records), nested = object(records[region]);
+  // Stare wpisy miały płaskie records. Odczytujemy je jako Globalne, ale
+  // nigdy nie dokładamy ich do polskiej topki.
+  return Object.keys(nested).length ? nested : region === "global" ? records : {};
+}
 function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null, leaderboard = {}) {
   const currentId = String(playerId || "guest"), accountIds = Object.keys(object(accounts)), remoteIds = Object.keys(object(leaderboard));
   const ids = [...new Set([...accountIds, ...remoteIds, currentId])].filter(Boolean);
-  const currentStats = object(state.metricStats);
-  const renderRows = metric => {
+  const selectedRegion = state.region === "polish" ? "polish" : "global";
+  const stateRegionStats = object(state.regionStats);
+  const renderRows = (region, metric) => {
+    const currentStats = object(stateRegionStats[region]);
     const ranked = ids.map(uid => {
-      const isCurrent = uid === currentId, account = accounts?.[uid] || {}, remote = leaderboard?.[uid] || {}, remoteRecords = object(remote.records);
-      const best = isCurrent ? Math.max(Number(currentStats?.[metric]?.best) || 0, storedSoloBest(uid, metric), Number(remoteRecords[metric]) || 0) : Math.max(storedSoloBest(uid, metric), Number(remoteRecords[metric]) || 0);
+      const isCurrent = uid === currentId, account = accounts?.[uid] || {}, remote = leaderboard?.[uid] || {}, remoteRecords = popularityRegionRecords(remote, region);
+      const best = isCurrent ? Math.max(Number(currentStats?.[metric]?.best) || 0, storedSoloBest(uid, metric, region), Number(remoteRecords[metric]) || 0) : Math.max(storedSoloBest(uid, metric, region), Number(remoteRecords[metric]) || 0);
       const nick = isCurrent ? (currentProfile?.nick || account.nick || remote.nick || "Ty") : (account.nick || remote.nick || safeNick(accounts, uid));
       const player = Object.keys(account).length ? userProfile(accounts, null, uid) : { ...remote, nick, uid };
       return { uid, best, isCurrent, nick, player };
@@ -1157,9 +1209,16 @@ function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentP
     const rows = visible.length ? visible.map(item => `<div class="popularity-leaderboard-row ${item.isCurrent ? "is-you" : ""}"><span class="popularity-leaderboard-rank">${item.rank}</span>${avatarHtml(item.player, "popularity-avatar", { disableIdle:true })}<span class="popularity-leaderboard-player"><b>${escapeHtml(item.nick)}</b><small>${item.isCurrent ? "Twój rekord" : "Najlepsza seria"}</small></span><strong>${item.best}</strong></div>`).join("") : `<p class="muted">Brak zapisanych serii.</p>`;
     return { count:ranked.length, html:rows };
   };
-  const tabs = SOLO_METRICS.map(metric => `<button type="button" class="popularity-leaderboard-tab ${state.metric === metric ? "active" : ""}" data-popularity-leaderboard-metric="${metric}" aria-selected="${state.metric === metric ? "true" : "false"}">${soloMetricLabel(metric)}</button>`).join("");
-  const panels = SOLO_METRICS.map(metric => { const board=renderRows(metric); return `<div class="popularity-leaderboard-panel" data-popularity-leaderboard-panel="${metric}" ${state.metric === metric ? "" : "hidden"}><div class="popularity-leaderboard-panel-heading"><b>${soloMetricLabel(metric)}</b><span>${board.count}</span></div><div class="popularity-leaderboard-list">${board.html}</div></div>`; }).join("");
-  return `<aside class="panel popularity-leaderboard" aria-label="Rankingi trybu solo"><div class="section-heading"><div><p class="eyebrow">KTO MA WIĘCEJ?</p><h2>Rankingi serii</h2></div><span class="badge">3</span></div><p class="popularity-leaderboard-note">Każda statystyka ma osobny rekord i osobną topkę.</p><div class="popularity-leaderboard-tabs" role="tablist" aria-label="Wybierz ranking">${tabs}</div>${panels}</aside>`;
+  const metricTabs = SOLO_METRICS.map(metric => `<button type="button" class="popularity-leaderboard-tab ${state.metric === metric ? "active" : ""}" data-popularity-leaderboard-metric="${metric}" aria-selected="${state.metric === metric ? "true" : "false"}">${soloMetricLabel(metric)}</button>`).join("");
+  const regionTabs = SOLO_REGIONS.map(region => {
+    const option = musicRegionOptions.find(([id]) => id === region) || [region, "", region];
+    return `<button type="button" class="popularity-leaderboard-region ${selectedRegion === region ? "active" : ""}" data-popularity-leaderboard-region="${region}" aria-selected="${selectedRegion === region ? "true" : "false"}">${option[1]} ${escapeHtml(option[2])}</button>`;
+  }).join("");
+  const panels = SOLO_REGIONS.flatMap(region => SOLO_METRICS.map(metric => {
+    const board = renderRows(region, metric), visible = selectedRegion === region && state.metric === metric;
+    return `<div class="popularity-leaderboard-panel" data-popularity-leaderboard-panel="${region}:${metric}" ${visible ? "" : "hidden"}><div class="popularity-leaderboard-panel-heading"><b>${soloMetricLabel(metric)} · ${region === "polish" ? "Polskie" : "Globalne"}</b><span>${board.count}</span></div><div class="popularity-leaderboard-list">${board.html}</div></div>`;
+  })).join("");
+  return `<aside class="panel popularity-leaderboard" aria-label="Rankingi trybu solo"><div class="section-heading"><div><p class="eyebrow">KTO MA WIĘCEJ?</p><h2>Rankingi serii</h2></div><span class="badge">3</span></div><p class="popularity-leaderboard-note">Globalne i Polskie mają osobne rekordy — wyniki nigdy się nie mieszają.</p><div class="popularity-leaderboard-regions" role="tablist" aria-label="Wybierz katalog">${regionTabs}</div><div class="popularity-leaderboard-tabs" role="tablist" aria-label="Wybierz ranking">${metricTabs}</div>${panels}</aside>`;
 }
 function soloMetricButtons(state) { return `<div class="popularity-metric-switch" role="tablist" aria-label="Rodzaj statystyki">${[["views", "Wyświetlenia piosenek"], ["listeners", "Słuchacze piosenek"], ["artistListeners", "Słuchacze artystów"]].map(([id, label]) => `<button type="button" class="${state.metric === id ? "active" : ""}" data-popularity-solo-metric="${id}">${label}</button>`).join("")}</div>`; }
 function soloTrackCard(track, side, state, reveal = false) { return popularityTrackCard(track, side, { selected:reveal && state.lastResult?.selected === side, reveal, correct:reveal && (state.lastResult?.correctSide === "tie" || state.lastResult?.correctSide === side), metric:state.metric }); }
@@ -1182,25 +1241,32 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
   } else if (state.status === "over") {
     const result = state.lastResult || {}, pair = result.pair || state.pair;
     const metric = result.metric || state.metric, revealState = { ...state, metric }, winningTrack = result.correctSide === "left" ? pair?.[0] : result.correctSide === "right" ? pair?.[1] : null;
-    content += `<section class="popularity-solo-over"><div class="popularity-over-icon">×</div><p class="eyebrow">SERIA ZAKOŃCZONA</p><h2>Streak: ${Number(state.streak || 0)}</h2><p class="muted">Błędna odpowiedź. Poprawna odpowiedź to <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p><div class="popularity-duel-stage popularity-reveal-stage">${soloTrackCard(pair?.[0], "left", revealState, true)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair?.[1], "right", revealState, true)}</div>${popularityPreviewHtml(winningTrack, metric)}<div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-restart">Zagraj jeszcze raz</button><button class="ghost" id="popularity-solo-menu">Wróć do menu</button></div></section>`;
+    content += `<section class="popularity-solo-over"><div class="popularity-over-icon">×</div><p class="eyebrow">SERIA ZAKOŃCZONA</p><h2>Streak: ${Number(state.streak || 0)}</h2><p class="muted">Błędna odpowiedź. Poprawna odpowiedź to <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p><div class="popularity-duel-stage popularity-reveal-stage">${soloTrackCard(pair?.[0], "left", revealState, true)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair?.[1], "right", revealState, true)}</div>${popularityPreviewHtml(winningTrack, metric)}<div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-restart">Zagraj jeszcze raz</button><button class="ghost" id="popularity-solo-menu">Wróć do muzyki</button></div></section>`;
   } else {
     const pair = array(state.pair).slice(0, 2);
     content += `<section class="popularity-question"><span>🔥</span><div><b>${escapeHtml(metricQuestion(state.metric))}</b><small>${escapeHtml(metricSource(state.metric))} · bez limitu rund</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", state)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", state)}</div><div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
   }
-  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard)}</div><button id="popularity-solo-home" class="ghost">Wróć do menu</button></main>`;
+  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard)}</div><button id="popularity-solo-home" class="ghost">Wróć do muzyki</button></main>`;
   root.querySelectorAll("[data-popularity-solo-region]").forEach(button => button.addEventListener("click", () => actions.popularitySoloRegion?.(button.dataset.popularitySoloRegion)));
   root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => button.addEventListener("click", () => { actions.popularitySoloMetric(button.dataset.popularitySoloMetric); }));
+  root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(button => button.addEventListener("click", () => {
+    const region = button.dataset.popularityLeaderboardRegion;
+    const metric = root.querySelector("[data-popularity-leaderboard-metric].active")?.dataset.popularityLeaderboardMetric || state.metric;
+    root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(tab => { const active = tab.dataset.popularityLeaderboardRegion === region; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false"); });
+    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${region}:${metric}`; });
+  }));
   root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => button.addEventListener("click", () => {
     const metric = button.dataset.popularityLeaderboardMetric;
     root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(tab => { const active = tab.dataset.popularityLeaderboardMetric === metric; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false"); });
-    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== metric; });
+    const region = root.querySelector("[data-popularity-leaderboard-region].active")?.dataset.popularityLeaderboardRegion || state.region || "global";
+    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${region}:${metric}`; });
   }));
   root.querySelector("#popularity-solo-start")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
   root.querySelector("#popularity-solo-restart")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
   root.querySelector("#popularity-solo-next")?.addEventListener("click", actions.popularitySoloNext);
   root.querySelector("#popularity-solo-stop")?.addEventListener("click", actions.popularitySoloStop);
-  root.querySelector("#popularity-solo-menu")?.addEventListener("click", actions.goPlatform);
-  root.querySelector("#popularity-solo-home")?.addEventListener("click", actions.goPlatform);
+  root.querySelector("#popularity-solo-menu")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
+  root.querySelector("#popularity-solo-home")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
   root.querySelectorAll("[data-popularity-choice]").forEach(button => button.addEventListener("click", () => actions.popularitySoloChoose(button.dataset.popularityChoice)));
   if (state.status === "playing") bindPopularityKeyboard(root, actions, {}, true);
   if (["reveal", "over"].includes(state.status)) animatePopularityValues(root);

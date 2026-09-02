@@ -1,11 +1,11 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
-import { Audio } from "./audio.js?v=20260902-1";
+import { Audio } from "./audio.js?v=20260902-2";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260902-2";
 import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260902-4";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260902-1";
-import { gamesList, getGameMode } from "./games.js?v=20260902-17";
+import { gamesList, getGameMode } from "./games.js?v=20260902-18";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-4";
@@ -34,17 +34,17 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-4";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-22";
-import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-18";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260902-14";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-9";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-1";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-22";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-1";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-15";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260902-19";
 import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260902-8";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-7";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260902-12";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260902-13";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260901-3";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260902-2";
@@ -52,7 +52,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260902-3
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260902-13";
+import { scheduleBot } from "./botController.js?v=20260902-14";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-11";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -136,7 +136,7 @@ function lyricsSoloBoardSignature(board = {}) { return JSON.stringify(board || {
 async function syncPopularitySoloRecord({ rerender = true } = {}) {
   const uid = getFirebaseSession()?.uid, user = profile();
   if (!uid || !user || user.nickOnly || !hasOnlineBackend()) return null;
-  const current = PopularitySoloEngine.get(uid), saved = await savePopularitySoloLeaderboard(uid, current.metricStats, user);
+  const current = PopularitySoloEngine.get(uid), saved = await savePopularitySoloLeaderboard(uid, current.regionStats || current.metricStats, user);
   if (!saved) return null;
   state.popularitySoloLeaderboard = { ...state.popularitySoloLeaderboard, [uid]:saved };
   state.popularitySoloLeaderboardLoadedAt = Date.now();
@@ -1969,7 +1969,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   goPokemonModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/pokemony";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("pokemon-select"); },
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
-  goMusicModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
+  goMusicModes() { if(activeRoom())return actions.leaveRoom("music-select");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
   goModeCategory(mode = getGameMode(state.selectedGameMode)) { const audience = mode?.audience; if (audience === "pokemon") return actions.goPokemonModes(); if (audience === "board") return actions.goBoardModes(); if (audience === "minecraft") return actions.goMinecraftModes(); if (audience === "music") return actions.goMusicModes(); return actions.goPlatform(); },
   goPublicPage(path) { const screen=Router.publicScreenFromPath(path); if(!screen)return actions.goPlatform(); window.history.pushState(null,"",path); Router.go(screen); },
   goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
@@ -2363,7 +2363,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     addRoomActivity(room, `${profile()?.nick || "Gracz"} opuścił pokój.`);
     room.players = room.players.filter(id => id !== state.currentUser); if(room.playerProfiles)delete room.playerProfiles[state.currentUser];if(room.joinedAt)delete room.joinedAt[state.currentUser]; if (room.hostUid === state.currentUser) room.hostUid = room.players.find(uid=>!isBotId(uid))||room.players[0];
     state.activeRoomId = null;clearPendingInvite();persistSession();
-    if(!roomHasHumanPlayers(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else{touchRoom(room);} state.rooms = state.rooms.filter(item => item.roomId!==room.roomId); destination==="platform"?setUrlRoute("", ""):setModeUrl(state.selectedGameMode); Audio.stopAllTrackAudio({clearPlayback:true}); Audio.play("leaveRoom"); Router.go(destination);
+    if(!roomHasHumanPlayers(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);}else{touchRoom(room);} state.rooms = state.rooms.filter(item => item.roomId!==room.roomId); if(destination==="platform")setUrlRoute("", ""); else if(destination==="music-select"){try{const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.replaceState(null,"",url);}catch{}} else setModeUrl(state.selectedGameMode); Audio.stopAllTrackAudio({clearPlayback:true}); Audio.play("leaveRoom"); Router.go(destination);
   },
   kickPlayer(playerId) { const room = activeRoom(); if (room?.hostUid === state.currentUser) { interruptProveRoundForDeparture(room,playerId);const nick=room.playerProfiles?.[playerId]?.nick||"Gracz";addRoomActivity(room, `${nick} został wyrzucony przez hosta.`);room.players = room.players.filter(id => id !== playerId); if(room.playerProfiles)delete room.playerProfiles[playerId];if(room.joinedAt)delete room.joinedAt[playerId];if(!room.players.length||shouldCloseLonelyFinishedRoom(room)){removeRemoteRoom(room.roomId);removeRoomLocally(room.roomId);state.activeRoomId=null;persistSession();Router.go("platform");showRoomClosedNotice();}else{touchRoom(room);render();} } },
   setRoomTime(answerTime) { const room = activeRoom(); if (room?.hostUid === state.currentUser && room.status === "lobby") { room.settings.answerTime = answerTime; addRoomActivity(room, `Host ustawił czas odpowiedzi na ${answerTime}s.`); touchRoom(room); animateHostSettingChange(answerTime); render({ preserveDrafts:true }); } },
@@ -2661,10 +2661,11 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   musicArenaTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bitwa-hitow")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";MusicArenaEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   musicArenaNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=MusicArenaEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   lyricsAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return LyricsEngine.answer(game,state.currentUser,text,game.players||room.players,room.settings);},{sound:"submit",after:settleAdditionalModeResult});},
+  lyricsSurrender(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return LyricsEngine.surrender(game,state.currentUser,game.players||room.players);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   lyricsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="dokoncz-tekst")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";LyricsEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   lyricsNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=LyricsEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   songSpotGroupAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Czas na tę odpowiedź już minął.";return SongSpotEngine.answer(game,state.currentUser,text,Date.now());},{sound:"submit",render:repaintSongSpot});},
-  songSpotGroupSkip(expected={}){const beforeGame=activeRoom()?.game||{},beforeIndex=Number(beforeGame.timeIndex)||0;return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Odsłuch rundy już się zakończył.";return SongSpotEngine.skip(game,state.currentUser,Date.now());},{sound:"phase",after:updated=>{const afterIndex=Number(updated?.game?.timeIndex)||0;if(updated?.game?.phase!=="preview"||afterIndex!==beforeIndex)Audio.stopAllTrackAudio({clearPlayback:false});},render:repaintSongSpot});},
+  songSpotGroupSkip(expected={}){const beforeGame=activeRoom()?.game||{},beforeIndex=Number(beforeGame.timeIndex)||0;return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Odsłuch rundy już się zakończył.";return SongSpotEngine.skip(game,state.currentUser,Date.now());},{sound:"phase",after:updated=>{const afterIndex=Number(updated?.game?.timeIndex)||0;if(updated?.game?.phase!=="preview"||afterIndex!==beforeIndex){Audio.prepareTrackRerender();Audio.stopAllTrackAudio({clearPlayback:false});}},render:repaintSongSpot});},
   songSpotGroupTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="songspot")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Faza gry już się zmieniła.";return SongSpotEngine.timeout(game,current.settings);},{sound:"roundEnd",render:repaintSongSpot});},
   songSpotGroupNext(){const room=activeRoom();if(!room||room.gameMode!=="songspot"||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=SongSpotEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult,render:repaintSongSpot});},
   popularityChoose(side, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór już minął.";return PopularityEngine.choose(game,state.currentUser,side);},{sound:"choice"});},
@@ -2733,14 +2734,15 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   lyricsSoloStop(){LyricsSoloEngine.stop(lyricsSoloPlayerId());render({forceEnter:true});},
   lyricsSoloAudioStarted(){return LyricsSoloEngine.audioStarted(lyricsSoloPlayerId());},
   lyricsSoloAnswer(text, expected={}){const playerId=lyricsSoloPlayerId(),wasAnswering=LyricsSoloEngine.get(playerId).status==="answering",result=LyricsSoloEngine.answer(playerId,text,expected);if(wasAnswering&&result?.lastResult){Effects.hit(Boolean(result.lastResult.correct));void syncLyricsSoloRecord();}render({forceEnter:true});},
+  lyricsSoloSurrender(expected={}){const playerId=lyricsSoloPlayerId(),wasAnswering=LyricsSoloEngine.get(playerId).status==="answering",result=LyricsSoloEngine.surrender(playerId,expected);if(wasAnswering&&result?.lastResult){Effects.hit(false);void syncLyricsSoloRecord();}render({forceEnter:true});},
   lyricsSoloTimeout(expected={}){const playerId=lyricsSoloPlayerId(),result=LyricsSoloEngine.timeout(playerId,expected);if(result?.lastResult){Effects.hit(false);void syncLyricsSoloRecord();}render({forceEnter:true});},
   lyricsSoloNext(){LyricsSoloEngine.next(lyricsSoloPlayerId());render({forceEnter:true});},
-  songSpotStart(region="global"){SongSpotSoloEngine.start(songSpotPlayerId(),region);render({forceEnter:true});},
+  songSpotStart(region="global"){Audio.stopAllTrackAudio({clearPlayback:true});SongSpotSoloEngine.start(songSpotPlayerId(),region);render({forceEnter:true});},
   songSpotStop(){SongSpotSoloEngine.stop(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
   songSpotDifficulty(difficulty){SongSpotSoloEngine.setDifficulty(songSpotPlayerId(),difficulty);repaintSongSpot();},
   songSpotRegion(region){const playerId=songSpotPlayerId(),before=SongSpotSoloEngine.get(playerId),next=SongSpotSoloEngine.setRegion(playerId,region);if(before.region!==next.region&&before.status!=="idle") { Audio.stopAllTrackAudio({clearPlayback:true}); message("Zmieniono katalog utworów. Rozpocznij nową serię.","info"); } repaintSongSpot();},
   songSpotGuess(text, expected={}){const result=SongSpotSoloEngine.guess(songSpotPlayerId(),text,expected);if(result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
-  songSpotSkip(expected={}){const result=SongSpotSoloEngine.skip(songSpotPlayerId(),expected);Audio.stopAllTrackAudio({clearPlayback:true});if(result?.lastResult)Effects.hit(false);repaintSongSpot();},
+  songSpotSkip(expected={}){const audio=root.querySelector("[data-songspot-audio]"),result=SongSpotSoloEngine.skip(songSpotPlayerId(),expected);if(result?.status==='playing'){if(audio?.paused&&result.played){const playing=audio.play();if(playing?.catch)playing.catch(()=>{});}}else Audio.stopAllTrackAudio({clearPlayback:true});if(result?.lastResult)Effects.hit(false);repaintSongSpot();},
   songSpotNext(){SongSpotSoloEngine.next(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   falseMessageNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>FalseMessageEngine.nextRound(game,current.settings),{sound:"turn"});},
@@ -3058,7 +3060,7 @@ function renderNow(options = {}) {
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-lucky-spin")?.addEventListener("click",actions.openLuckySpin); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
   const finish = result => {
     const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
     if(result?.then)return result.finally(after);
@@ -3257,6 +3259,23 @@ function clickedRoomPlayerUid(target) {
   if (!nick) return "";
   return (room.players||[]).find(uid=>String(state.accounts[uid]?.nick||room.playerProfiles?.[uid]?.nick||"").trim()===nick) || "";
 }
+let luckySpinTouchActivationAt = 0;
+document.addEventListener("pointerup", event => {
+  const button = event.target?.closest?.("#open-lucky-spin");
+  if (!button || event.pointerType !== "touch") return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  luckySpinTouchActivationAt = Date.now();
+  void actions.openLuckySpin();
+}, true);
+document.addEventListener("click", event => {
+  const button = event.target?.closest?.("#open-lucky-spin");
+  if (!button) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (Date.now() - luckySpinTouchActivationAt < 800) return;
+  void actions.openLuckySpin();
+}, true);
 document.addEventListener("click", event => {
   const target=event.target;
   const targetUid=clickedRoomPlayerUid(target);

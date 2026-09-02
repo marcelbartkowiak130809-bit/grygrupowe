@@ -25,10 +25,10 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-4";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260902-22";
-import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260902-18";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260902-14";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260902-6";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260903-1";
+import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260902-22";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260903-1";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260902-15";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
 
@@ -374,7 +374,7 @@ export const gamesRegistry = {
     id: "popularnosc-solo", name: "Kto ma więcej? · Solo", description: "Zgaduj popularność piosenek lub artystów i buduj rekordową serię.", help: ["Porównujesz dwie opcje bez presji czasu.", "Możesz przełączać wyświetlenia, słuchaczy piosenek albo słuchaczy artystów.", "Po każdym wyborze od razu dostajesz następną parę, a jedna pomyłka kończy serię."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🔥", art: "choice", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderPopularitySolo, defaultSettings: popularityDefaults,
   },
   "dokoncz-tekst": {
-    id: "dokoncz-tekst", name: "Dokończ tekst", description: "Posłuchaj początku, dokończ ten sam fragment i zbuduj serię trafień solo albo z ekipą.", help: ["W każdej rundzie słuchacie krótkiego preview piosenki.", "Po kilku sekundach fragment i tekst zatrzymują się w jednym miejscu.", "Wpisujesz dalszy ciąg dokładnie tego samego tekstu — liczy się każda poprawna litera.", "Możesz grać z ekipą albo uruchomić osobny tryb solo z rekordem i leaderboardem."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "dokoncz-tekst", symbol: "✍️", art: "music-lyrics", audience: "music", badges: ["new", "tiktok"], render: renderLyricsGame, soloRender: renderLyricsSolo, defaultSettings: lyricsDefaults,
+    id: "dokoncz-tekst", name: "Dokończ tekst", description: "Posłuchaj śpiewanego wersu, a po zatrzymaniu wpisz jego kolejną linię i zbuduj serię trafień solo albo z ekipą.", help: ["W każdej rundzie słuchacie krótkiego preview piosenki.", "Tekst pojawia się razem ze śpiewem, a po kilku sekundach zatrzymuje się na pełnym poprzednim wersie.", "Poniżej widzisz blanki kolejnej linii i wpisujesz odpowiedź — liczy się każda poprawna litera.", "Możesz grać z ekipą albo uruchomić osobny tryb solo z rekordem i leaderboardem."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "dokoncz-tekst", symbol: "✍️", art: "music-lyrics", audience: "music", badges: ["new", "tiktok"], render: renderLyricsGame, soloRender: renderLyricsSolo, defaultSettings: lyricsDefaults,
   },
   songspot: {
     id: "songspot", name: "Zgadnij utwór", description: "Rozpoznajcie tę samą piosenkę po krótkim fragmencie i zdobądźcie punkty za szybkość.", help: ["W pokoju wszyscy słuchają tego samego utworu i wpisują własną odpowiedź.", "Każda runda zaczyna się od 0,1 s i ma stałą sekwencję: 0,5 s, 2 s, 8 s oraz 15 s.", "Przycisk Skip przechodzi do następnego czasu tego samego utworu; dopiero Skip po 15 s kończy odsłuch.", "Po ostatniej rundzie zobaczycie pełne wyniki oraz zapis każdej piosenki i odpowiedzi."], allowReports: false, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "songspot-solo", symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new", "tiktok"], render: renderSongSpotGame, defaultSettings: songSpotDefaults,

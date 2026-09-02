@@ -95,6 +95,7 @@ const trackAudios = new Set();
 const trackVolumeControls = new Set();
 const trackPlayback = new Map();
 let activeTrackKey = "";
+let lastHoverSoundAt = 0;
 const TRACK_PREVIEW_LIMIT_SECONDS = 30;
 
 function getContext() {
@@ -383,7 +384,12 @@ export const Audio = {
     });
     document.addEventListener("pointerover", event => {
       const button=event.target.closest("button");
-      if (button&&!button.contains(event.relatedTarget)) this.play("buttonHover");
+      if (button&&!button.contains(event.relatedTarget)) {
+        const now = Date.now();
+        if (now - lastHoverSoundAt < 120) return;
+        lastHoverSoundAt = now;
+        this.play("buttonHover");
+      }
     });
   },
   get settings() {

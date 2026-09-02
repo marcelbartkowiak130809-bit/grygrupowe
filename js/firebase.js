@@ -12,6 +12,7 @@ const HONOR_TYPE_IDS = new Set(["nicePlayer", "goodOpponent", "greatHost", "notV
 const LOCAL_SITE_STATS_KEY = "udowodnij_site_stats_v1";
 const SITE_STAT_EVENT_TYPES = new Set(["gameFinished", "roomCreated", "userRegistered", "coinsEarned", "onlinePeak"]);
 const POPULARITY_SOLO_METRICS = ["views", "listeners", "artistListeners"];
+const POPULARITY_SOLO_REGIONS = ["global", "polish"];
 let remoteAuth;
 let firebaseAuthApi;
 let remoteDatabase;
@@ -553,13 +554,17 @@ export async function loadPublicProfiles() {
 function sanitizePopularitySoloRecord(uid, entry = {}) {
   const source = entry && typeof entry === "object" && !Array.isArray(entry) ? entry : {};
   const sourceRecords = source.records && typeof source.records === "object" ? source.records : {};
+  const records = Object.fromEntries(POPULARITY_SOLO_REGIONS.map(region => {
+    const regionRecords = sourceRecords[region] && typeof sourceRecords[region] === "object" ? sourceRecords[region] : region === "global" ? sourceRecords : {};
+    return [region, Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(0, Math.min(100000, Number(regionRecords[metric]) || 0))]))];
+  }));
   return {
     uid,
     nick: String(source.nick || "Gracz").slice(0, 40),
     avatarImage: String(source.avatarImage || "").slice(0, 200000),
     selectedAvatarFrame: String(source.selectedAvatarFrame || "defaultFrame").slice(0, 80),
     selectedAura: String(source.selectedAura || "noAura").slice(0, 80),
-    records: Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(0, Math.min(100000, Number(sourceRecords[metric]) || 0))])),
+    records,
     updatedAt: Number(source.updatedAt) || 0,
   };
 }
@@ -576,7 +581,11 @@ export async function savePopularitySoloLeaderboard(uid, metricStats = {}, profi
     const recordRef = firebaseDatabaseApi.ref(remoteDatabase, `popularitySoloRecords/${uid}`);
     const existing = sanitizePopularitySoloRecord(uid, (await firebaseDatabaseApi.get(recordRef)).val() || {});
     const incoming = metricStats && typeof metricStats === "object" ? metricStats : {};
-    const records = Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(existing.records[metric], Math.min(100000, Math.max(0, Number(incoming[metric]?.best) || 0)))]));
+    const records = Object.fromEntries(POPULARITY_SOLO_REGIONS.map(region => {
+      const incomingRegion = incoming[region] && typeof incoming[region] === "object" ? incoming[region] : region === "global" ? incoming : {};
+      const existingRegion = existing.records?.[region] || {};
+      return [region, Object.fromEntries(POPULARITY_SOLO_METRICS.map(metric => [metric, Math.max(Number(existingRegion[metric]) || 0, Math.min(100000, Math.max(0, Number(incomingRegion[metric]?.best) || 0)))]))];
+    }));
     const payload = {
       nick: String(profile?.nick || existing.nick || "Gracz").slice(0, 40),
       avatarImage: String(profile?.avatarImage || existing.avatarImage || "").slice(0, 200000),

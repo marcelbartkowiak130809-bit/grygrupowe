@@ -150,11 +150,13 @@
     "popularitySoloRecords": {
       ".read": "auth != null",
       "$uid": {
-        ".validate": "newData.hasChildren(['records', 'nick', 'avatarImage', 'selectedAvatarFrame', 'selectedAura', 'updatedAt']) && newData.child('records').hasChildren(['views', 'listeners', 'artistListeners']) && newData.child('records').child('views').isNumber() && newData.child('records').child('listeners').isNumber() && newData.child('records').child('artistListeners').isNumber() && newData.child('updatedAt').isNumber()",
+        ".validate": "newData.hasChildren(['records', 'nick', 'avatarImage', 'selectedAvatarFrame', 'selectedAura', 'updatedAt']) && newData.child('records').hasChildren(['global', 'polish']) && newData.child('records').child('global').hasChildren(['views', 'listeners', 'artistListeners']) && newData.child('records').child('polish').hasChildren(['views', 'listeners', 'artistListeners']) && newData.child('records').child('global').child('views').isNumber() && newData.child('records').child('global').child('listeners').isNumber() && newData.child('records').child('global').child('artistListeners').isNumber() && newData.child('records').child('polish').child('views').isNumber() && newData.child('records').child('polish').child('listeners').isNumber() && newData.child('records').child('polish').child('artistListeners').isNumber() && newData.child('updatedAt').isNumber()",
         "records": {
-          "$metric": {
-            ".write": "auth != null && auth.uid == $uid && ($metric == 'views' || $metric == 'listeners' || $metric == 'artistListeners') && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() >= (data.exists() ? data.val() : 0)",
-            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+          "$region": {
+            "$metric": {
+              ".write": "auth != null && auth.uid == $uid && ($region == 'global' || $region == 'polish') && ($metric == 'views' || $metric == 'listeners' || $metric == 'artistListeners') && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() >= (data.exists() ? data.val() : 0)",
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+            }
           }
         },
         "nick": {
