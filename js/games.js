@@ -25,10 +25,10 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260831-4";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260831-4";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260831-4";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260831-5";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260902-17";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260902-19";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260902-18";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260902-14";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260902-4";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260902-6";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260901-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260901-8";
 
@@ -377,10 +377,10 @@ export const gamesRegistry = {
     id: "dokoncz-tekst", name: "Dokończ tekst", description: "Posłuchaj początku, dokończ ten sam fragment i zbuduj serię trafień solo albo z ekipą.", help: ["W każdej rundzie słuchacie krótkiego preview piosenki.", "Po kilku sekundach fragment i tekst zatrzymują się w jednym miejscu.", "Wpisujesz dalszy ciąg dokładnie tego samego tekstu — liczy się każda poprawna litera.", "Możesz grać z ekipą albo uruchomić osobny tryb solo z rekordem i leaderboardem."], allowReports: true, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "dokoncz-tekst", symbol: "✍️", art: "music-lyrics", audience: "music", badges: ["new", "tiktok"], render: renderLyricsGame, soloRender: renderLyricsSolo, defaultSettings: lyricsDefaults,
   },
   songspot: {
-    id: "songspot", name: "Zgadnij utwór", description: "Rozpoznajcie tę samą piosenkę po krótkim fragmencie i zdobądźcie punkty za szybkość.", help: ["W pokoju wszyscy słuchają tego samego utworu i wpisują własną odpowiedź.", "Możesz zgadnąć w dowolnym momencie odsłuchu — wcześniejsza poprawna odpowiedź daje więcej punktów.", "Po ostatniej rundzie zobaczycie pełne wyniki oraz zapis każdej piosenki i odpowiedzi.", "Możesz też uruchomić osobny wariant solo z poziomami 0,1 s, 0,5 s, 2 s, 8 s i 15 s."], allowReports: false, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "songspot-solo", symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new", "tiktok"], render: renderSongSpotGame, defaultSettings: songSpotDefaults,
+    id: "songspot", name: "Zgadnij utwór", description: "Rozpoznajcie tę samą piosenkę po krótkim fragmencie i zdobądźcie punkty za szybkość.", help: ["W pokoju wszyscy słuchają tego samego utworu i wpisują własną odpowiedź.", "Każda runda zaczyna się od 0,1 s i ma stałą sekwencję: 0,5 s, 2 s, 8 s oraz 15 s.", "Przycisk Skip przechodzi do następnego czasu tego samego utworu; dopiero Skip po 15 s kończy odsłuch.", "Po ostatniej rundzie zobaczycie pełne wyniki oraz zapis każdej piosenki i odpowiedzi."], allowReports: false, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "songspot-solo", symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new", "tiktok"], render: renderSongSpotGame, defaultSettings: songSpotDefaults,
   },
   "songspot-solo": {
-    id: "songspot-solo", name: "Zgadnij utwór · Solo", description: "Rozpoznaj piosenkę po krótkim preview i buduj streak.", help: ["Wybierz poziom od 0,1 s do 15 s łącznego odsłuchu od początku utworu.", "Każdy fragment można odtworzyć tylko raz — potem wpisujesz tytuł piosenki.", "Pominięcie albo błędna odpowiedź kończy serię, a trafienie prowadzi do następnej rundy.", "Dostępne są osobne katalogi globalny i polski."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderSongSpotSolo, soloRender: renderSongSpotSolo, defaultSettings: songSpotDefaults,
+    id: "songspot-solo", name: "Zgadnij utwór · Solo", description: "Rozpoznaj piosenkę po krótkim preview i buduj streak.", help: ["Każdy utwór zaczyna się od 0,1 s, a potem możesz przechodzić do 0,5 s, 2 s, 8 s i 15 s.", "Każdy próg można odtworzyć tylko raz — Skip przechodzi do następnego czasu tego samego utworu.", "Skip na ostatnim progu albo błędna odpowiedź kończy serię, a trafienie prowadzi do następnej rundy.", "Dostępne są osobne katalogi globalny i polski."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderSongSpotSolo, soloRender: renderSongSpotSolo, defaultSettings: songSpotDefaults,
   },
 };
 

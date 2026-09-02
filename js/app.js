@@ -5,7 +5,7 @@ import { Effects } from "./effects.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260902-4";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260902-1";
-import { gamesList, getGameMode } from "./games.js?v=20260902-16";
+import { gamesList, getGameMode } from "./games.js?v=20260902-17";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260831-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260831-4";
@@ -34,10 +34,10 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-4";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-17";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260902-19";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-18";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260902-14";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-4";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-6";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260902-19";
@@ -53,7 +53,7 @@ import { friendRequestCount, friendsModal, showFriendNotification } from "./frie
 import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260902-13";
-import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-10";
+import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-11";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
@@ -2356,7 +2356,6 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); animateHostSettingChange(value);
   },
   setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds","selectionTime","votingTime","choiceTime","pairs","audioSeconds"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);if(room.gameMode==="falszywa-wiadomosc")room.settings=sanitizeFalseMessageSettings(room.settings);if(room.gameMode==="popularnosc-hitow")room.settings={...room.settings,...sanitizePopularitySettings(room.settings)};if(room.gameMode==="dokoncz-tekst")room.settings=sanitizeLyricsSettings(room.settings);if(room.gameMode==="songspot")room.settings=sanitizeSongSpotSettings(room.settings);if(room.gameMode?.startsWith("board-"))room.settings=sanitizeBoardSettings(room.settings,room.gameMode);if(room.gameMode?.startsWith("minecraft-"))room.settings=sanitizeMinecraftSettings(room.settings,room.gameMode);touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},
-  setSongSpotTimes(times){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="songspot")return;room.settings=sanitizeSongSpotSettings({...room.settings,enabledTimes:times});touchRoom(room);animateHostSettingChange(true);render({preserveDrafts:true});},
   setMostCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;const next=[...new Set(categories||[])];const addingAdult=next.some(item=>String(item).startsWith("18+"))&&!hasAdultCategory(room.settings);if(addingAdult&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wlaczyc kategorii 18+.", "info");const apply=()=>{room.settings={...room.settings,categories:next,adultWarningAccepted:next.some(item=>String(item).startsWith("18+"))};touchRoom(room);animateHostSettingChange(true);};if(addingAdult)return withAdultWarning(getGameMode(room.gameMode),apply,true);apply();},
   setBombCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="bomba")return;room.settings=sanitizeBombSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
   setClosestTruthCategories(categories){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode!=="najblizej-prawdy")return;room.settings=sanitizeClosestTruthSettings({...room.settings,categories:[...new Set(categories||[])]});touchRoom(room);animateHostSettingChange(true);},
@@ -2636,7 +2635,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   lyricsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="dokoncz-tekst")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";LyricsEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   lyricsNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=LyricsEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   songSpotGroupAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Czas na tę odpowiedź już minął.";return SongSpotEngine.answer(game,state.currentUser,text,Date.now());},{sound:"submit"});},
-  songSpotGroupSkip(expected={}){return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Odsłuch rundy już się zakończył.";return SongSpotEngine.skip(game,state.currentUser,Date.now());},{sound:"phase"});},
+  songSpotGroupSkip(expected={}){const beforeGame=activeRoom()?.game||{},beforeIndex=Number(beforeGame.timeIndex)||0;return mutateRoomGame((game,room)=>{if(room.gameMode!=="songspot"||game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Odsłuch rundy już się zakończył.";return SongSpotEngine.skip(game,state.currentUser,Date.now());},{sound:"phase",after:updated=>{const afterIndex=Number(updated?.game?.timeIndex)||0;if(updated?.game?.phase!=="preview"||afterIndex!==beforeIndex)Audio.stopAllTrackAudio({clearPlayback:false});}});},
   songSpotGroupTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="songspot")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Faza gry już się zmieniła.";return SongSpotEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
   songSpotGroupNext(){const room=activeRoom();if(!room||room.gameMode!=="songspot"||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=SongSpotEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   popularityChoose(side, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór już minął.";return PopularityEngine.choose(game,state.currentUser,side);},{sound:"choice"});},
@@ -2707,7 +2706,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   lyricsSoloAnswer(text, expected={}){const playerId=lyricsSoloPlayerId(),wasAnswering=LyricsSoloEngine.get(playerId).status==="answering",result=LyricsSoloEngine.answer(playerId,text,expected);if(wasAnswering&&result?.lastResult){Effects.hit(Boolean(result.lastResult.correct));void syncLyricsSoloRecord();}render({forceEnter:true});},
   lyricsSoloTimeout(expected={}){const playerId=lyricsSoloPlayerId(),result=LyricsSoloEngine.timeout(playerId,expected);if(result?.lastResult){Effects.hit(false);void syncLyricsSoloRecord();}render({forceEnter:true});},
   lyricsSoloNext(){LyricsSoloEngine.next(lyricsSoloPlayerId());render({forceEnter:true});},
-  songSpotStart(difficulty="easy", region="global"){SongSpotSoloEngine.start(songSpotPlayerId(),difficulty,region);render({forceEnter:true});},
+  songSpotStart(region="global"){SongSpotSoloEngine.start(songSpotPlayerId(),region);render({forceEnter:true});},
   songSpotStop(){SongSpotSoloEngine.stop(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});render({forceEnter:true});},
   songSpotDifficulty(difficulty){SongSpotSoloEngine.setDifficulty(songSpotPlayerId(),difficulty);render({preserveDrafts:true});},
   songSpotRegion(region){SongSpotSoloEngine.setRegion(songSpotPlayerId(),region);render({preserveDrafts:true});},
@@ -3030,7 +3029,7 @@ function renderNow(options = {}) {
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-lucky-spin")?.addEventListener("click",actions.openLuckySpin); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
   const finish = result => {
     const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
     if(result?.then)return result.finally(after);
@@ -3229,6 +3228,23 @@ function clickedRoomPlayerUid(target) {
   if (!nick) return "";
   return (room.players||[]).find(uid=>String(state.accounts[uid]?.nick||room.playerProfiles?.[uid]?.nick||"").trim()===nick) || "";
 }
+let luckySpinTouchActivationAt = 0;
+document.addEventListener("pointerup", event => {
+  const button = event.target.closest?.("#open-lucky-spin");
+  if (!button || event.pointerType !== "touch") return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  luckySpinTouchActivationAt = Date.now();
+  void actions.openLuckySpin();
+}, true);
+document.addEventListener("click", event => {
+  const button = event.target.closest?.("#open-lucky-spin");
+  if (!button) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (Date.now() - luckySpinTouchActivationAt < 800) return;
+  void actions.openLuckySpin();
+}, true);
 document.addEventListener("click", event => {
   const target=event.target;
   const targetUid=clickedRoomPlayerUid(target);

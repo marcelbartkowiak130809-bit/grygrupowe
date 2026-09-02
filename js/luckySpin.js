@@ -163,7 +163,13 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
   const timer = window.setInterval(() => updateButtonState(modal, clockOffset), 1000);
   updateButtonState(modal, clockOffset);
 
-  button.addEventListener("click", async () => {
+  let lastTouchActivationAt = 0;
+  const startSpin = async event => {
+    if (event?.type === "click" && Date.now() - lastTouchActivationAt < 800) return;
+    if (event?.type === "pointerup") {
+      lastTouchActivationAt = Date.now();
+      event.preventDefault();
+    }
     if (modal.dataset.luckySpinning || !updateButtonState(modal, clockOffset)) return;
     modal.dataset.luckySpinning = "true";
     button.disabled = true;
@@ -202,6 +208,10 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     button.textContent = "Odebrano";
     delete modal.dataset.luckySpinning;
     updateButtonState(modal, clockOffset);
+  };
+  button.addEventListener("pointerup", event => {
+    if (event.pointerType === "touch") void startSpin(event);
   });
+  button.addEventListener("click", event => void startSpin(event));
   return modal;
 }

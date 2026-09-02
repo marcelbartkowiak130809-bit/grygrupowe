@@ -33,6 +33,8 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano bazę 328 utworów z równym dla wszystkich snapshotem danych, ukrytymi liczbami i efektownym ujawnieniem wyniku.",
         "Dodano 157 nowych globalnych utworów z działającymi okładkami i previewami, dzięki czemu globalna pula ma 243 grywalne utwory.",
         "Globalna i polska pula są rozdzielone; łącznie katalog zawiera 358 utworów.",
+        "Naprawiono otwieranie Lucky Spin i jego przycisku na urządzeniach dotykowych.",
+        "Zgadnij utwór działa teraz jak Songspot: progi 0,1 → 0,5 → 2 → 8 → 15 s i Skip przechodzący do kolejnego czasu tego samego utworu.",
         "Dodano automatyczne pobieranie okładek z publicznego katalogu muzycznego oraz bezpieczny fallback, gdy obrazek nie jest dostępny.",
         "Dodano animowane karty A/B, awatary wyborów, informację o trafieniach i ranking po każdej rundzie.",
         "Dodano płynne ujawnianie liczb, skróty A/D i strzałki oraz widoczny stan gotowych graczy.",
