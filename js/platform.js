@@ -48,8 +48,10 @@ export async function renderPokemonModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const pokemonModes = gamesList.filter(game => game.audience === "pokemon");
   const mewtwo = pokemonDex.find(item => item.id === 150);
-  root.innerHTML = `<main class="page platform-page pokemon-selection-page enter"><section class="pokemon-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="pokemon-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>POKEMONY</h1><p>Wybierzcie sposób rywalizacji z Pokémonami.</p></div><div class="pokemon-selection-art">${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</div></section><section class="games-section pokemon-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY POKÉMON</p><h2>W co gramy?</h2></div><span class="badge">${pokemonModes.length}</span></div><div class="games-grid">${pokemonModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  const mobileLayout = getMobileGameLayout();
+  root.innerHTML = `<main class="page platform-page pokemon-selection-page enter"><section class="pokemon-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="pokemon-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>POKEMONY</h1><p>Wybierzcie sposób rywalizacji z Pokémonami.</p></div><div class="pokemon-selection-art">${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</div></section><section class="${mobileGamesSectionClass(mobileLayout)} pokemon-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY POKÉMON</p><h2>W co gramy?</h2></div><span class="badge">${pokemonModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${pokemonModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
@@ -59,8 +61,10 @@ export async function renderBoardModes(root, actions, context = {}) {
   await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const boardModes = gamesList.filter(game => game.audience === "board");
-  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="games-section board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span></div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  const mobileLayout = getMobileGameLayout();
+  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
@@ -70,8 +74,10 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
-  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="games-section minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span></div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  const mobileLayout = getMobileGameLayout();
+  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
@@ -81,8 +87,10 @@ export async function renderMusicModes(root, actions, context = {}) {
   await loadCategoryVotingView(context.voterId || "anonymous");
   const activityStats = context.activityStats || window.__activityStats || {};
   const musicModes = gamesList.filter(game => game.audience === "music" && !game.hiddenFromLibrary);
-  root.innerHTML = `<main class="page platform-page music-selection-page enter"><section class="music-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="music-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MUZYKA</h1><p>Wybierajcie hity, słuchajcie krótkich previewów i sprawdzajcie, który numer wygrywa.</p></div><div class="music-selection-art" aria-hidden="true"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b>HITS</b></div></section><section class="games-section music-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MUZYCZNE</p><h2>W co gramy?</h2></div><span class="badge">${musicModes.length}</span></div><div class="games-grid">${musicModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  const mobileLayout = getMobileGameLayout();
+  root.innerHTML = `<main class="page platform-page music-selection-page enter"><section class="music-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="music-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MUZYKA</h1><p>Wybierajcie hity, słuchajcie krótkich previewów i sprawdzajcie, który numer wygrywa.</p></div><div class="music-selection-art" aria-hidden="true"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b>HITS</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} music-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MUZYCZNE</p><h2>W co gramy?</h2></div><span class="badge">${musicModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${musicModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
+  bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
   activatePublicAds(root, "platform");
@@ -90,6 +98,42 @@ export async function renderMusicModes(root, actions, context = {}) {
 
 function modeFilterTags(mode) {
   return [modeCategory(mode), mode.supportsSolo ? "solo" : "", ...(mode.badges || [])].filter(Boolean).join(" ");
+}
+
+const MOBILE_GAME_LAYOUT_STORAGE_KEY = "mobileGameLayout";
+
+function getMobileGameLayout() {
+  try {
+    return localStorage.getItem(MOBILE_GAME_LAYOUT_STORAGE_KEY) === "classic" ? "classic" : "compact";
+  } catch {
+    return "compact";
+  }
+}
+
+function mobileGamesSectionClass(layout) {
+  return `games-section ${layout === "classic" ? "mobile-games-classic" : "mobile-games-compact"}`;
+}
+
+function mobileGameLayoutSwitchHtml(layout) {
+  const compact = layout !== "classic";
+  return `<div class="mobile-game-layout-switch" role="group" aria-label="Widok trybów"><span>Widok</span><button type="button" data-mobile-game-layout="compact" class="${compact ? "is-active" : ""}" aria-pressed="${compact}">Kompaktowy</button><button type="button" data-mobile-game-layout="classic" class="${compact ? "" : "is-active"}" aria-pressed="${!compact}">Klasyczny</button></div>`;
+}
+
+function bindMobileGameLayout(root) {
+  const section = root.querySelector(".games-section");
+  if (!section) return;
+  const setLayout = layout => {
+    const value = layout === "classic" ? "classic" : "compact";
+    section.classList.toggle("mobile-games-compact", value === "compact");
+    section.classList.toggle("mobile-games-classic", value === "classic");
+    root.querySelectorAll("[data-mobile-game-layout]").forEach(button => {
+      const active = button.dataset.mobileGameLayout === value;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    try { localStorage.setItem(MOBILE_GAME_LAYOUT_STORAGE_KEY, value); } catch {}
+  };
+  root.querySelectorAll("[data-mobile-game-layout]").forEach(button => button.addEventListener("click", () => setLayout(button.dataset.mobileGameLayout)));
 }
 
 function modeCountLabel(count) {
@@ -322,6 +366,7 @@ export async function renderPlatform(root, actions, context = {}) {
   clearTimeout(categoryVoteRefreshTimer);
   clearTimeout(modeUnlockAnnouncementTimer);
   const activityStats=context.activityStats||window.__activityStats||{};
+  const mobileLayout = getMobileGameLayout();
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page enter">
@@ -344,9 +389,9 @@ export async function renderPlatform(root, actions, context = {}) {
     ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
-    <section class="games-section">
-      <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
-      <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div></div>
+     <section class="${mobileGamesSectionClass(mobileLayout)}">
+       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
+       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
        <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && game.audience !== "minecraft" && game.audience !== "music" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}${musicHubCard()}</div>
     </section>
     ${homeInfoHtml()}
@@ -382,6 +427,7 @@ export async function renderPlatform(root, actions, context = {}) {
     applyGameFilters();
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
+  bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll("[data-category-vote]").forEach(button => button.addEventListener("click", async () => {
     root.querySelectorAll("[data-category-vote]").forEach(option => { option.disabled = true; });

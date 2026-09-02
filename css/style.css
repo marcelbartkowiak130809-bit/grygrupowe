@@ -1416,6 +1416,39 @@ html,body{max-width:100%;overflow-x:hidden}
 .songspot-round-score-row small{color:var(--muted);font-size:10px;white-space:nowrap}
 .songspot-group-skip{display:block;margin:12px auto 0}.songspot-group-skip:disabled{opacity:.65;cursor:default}.songspot-skip-hint{display:block;margin:6px 0 0;color:var(--muted);font-size:10px;text-align:center}
 .lucky-spin-top-button{z-index:2;pointer-events:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.mobile-game-layout-switch{display:none}
+@media(max-width:720px){
+  .mobile-game-layout-switch{display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;padding:3px;border:1px solid rgba(103,232,249,.2);border-radius:12px;background:rgba(8,15,30,.46);color:#94a3b8;font-size:10px;font-weight:900}
+  .mobile-game-layout-switch span{padding:0 4px 0 6px;letter-spacing:.05em;text-transform:uppercase}
+  .mobile-game-layout-switch button{min-height:30px;padding:6px 9px;border:1px solid transparent;border-radius:8px;background:transparent;color:#94a3b8;font-size:10px;font-weight:900;white-space:nowrap}
+  .mobile-game-layout-switch button.is-active{border-color:rgba(103,232,249,.48);background:rgba(6,182,212,.16);color:#67e8f9;box-shadow:0 0 13px rgba(34,211,238,.08)}
+  .section-intro>.mobile-game-layout-switch{align-self:stretch;width:auto;justify-content:space-between}
+  .section-intro>.mobile-game-layout-switch span{margin-right:auto}
+  .game-discovery-tools>.mobile-game-layout-switch{align-self:flex-start}
+  .mobile-games-compact .games-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+  .mobile-games-compact .game-card{min-height:0;border-radius:15px}
+  .mobile-games-compact .game-card:hover{transform:translateY(-2px)}
+  .mobile-games-compact .game-visual{height:78px}
+  .mobile-games-compact .game-visual span{font-size:36px}
+  .mobile-games-compact .game-visual span img,.mobile-games-compact .game-visual-pokemon-hub span img{width:54px!important;height:54px!important}
+  .mobile-games-compact .game-card-content{min-height:0;padding:10px}
+  .mobile-games-compact .game-card-top{min-height:17px;max-height:17px;overflow:hidden;flex-wrap:nowrap;gap:4px}
+  .mobile-games-compact .game-card-top .tag{min-width:0;overflow:hidden;padding:3px 5px;font-size:8px;letter-spacing:.04em;text-overflow:ellipsis;white-space:nowrap}
+  .mobile-games-compact .game-card-content h2{display:-webkit-box;min-height:34px;margin:7px 0 0;overflow:hidden;font-size:15px;line-height:1.1;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .mobile-games-compact .game-card-content p{display:none}
+  .mobile-games-compact .game-card-activity{display:none}
+  .mobile-games-compact .unlock-date{align-items:flex-start;gap:2px;margin:7px 0 0;padding:6px 7px;font-size:9px;line-height:1.15}
+  .mobile-games-compact .unlock-date span{font-size:8px}
+  .mobile-games-compact .unlock-date b{text-align:left}
+  .mobile-games-compact .game-card-footer{display:grid;align-items:stretch;gap:7px;margin-top:9px}
+  .mobile-games-compact .players-count{display:none}
+  .mobile-games-compact .game-card-footer>button,.mobile-games-compact .game-card-play-options{width:100%}
+  .mobile-games-compact .game-card-footer>button{min-height:35px;padding:7px 5px;font-size:10px}
+  .mobile-games-compact .game-card-play-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:5px}
+  .mobile-games-compact .game-card-play-options button{min-width:0;min-height:34px;padding:6px 3px;font-size:10px;line-height:1.05}
+  .mobile-games-compact .coming-lock b{font-size:14px;letter-spacing:.1em}
+  .mobile-games-compact .coming-lock svg{width:32px;height:32px}
+}
 .songspot-stage-list{display:grid;gap:5px;margin:18px auto 0;padding:11px 13px;border:1px solid rgba(103,232,249,.2);border-radius:13px;background:rgba(6,182,212,.06);color:var(--muted);font-size:11px}.songspot-stage-list b{color:#a5f3fc;font-size:10px;letter-spacing:.08em}.songspot-stage-list span{color:#67e8f9;font-variant-numeric:tabular-nums}
 
 /* Songspot: stable cards, clear stage progression and compact mobile layout. */
@@ -1497,3 +1530,24 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @media(prefers-reduced-motion:reduce){
   .songspot-start,.songspot-round,.songspot-result,.songspot-group-round,.songspot-group-result,.songspot-group-summary,.songspot-title-row .lyrics-solo-streak,.songspot-stage-step,.songspot-mystery-cover.is-playing,.songspot-round:not(.is-played) .songspot-play-button,.songspot-group-round .songspot-group-mystery-cover,.songspot-timeline-track>span.is-selected,.songspot-group-timeline-track>span.is-selected{animation:none!important}
 }
+/* SongSpot answer autocomplete: reuse the compact track-result treatment
+   while keeping the dropdown anchored to the input instead of rerendering the
+   whole route when the player types. */
+.songspot-answer-input-wrap{position:relative;display:block;flex:1;min-width:0}
+.songspot-answer-input-wrap>input{width:100%}
+.songspot-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;display:grid;gap:4px;max-height:280px;padding:6px;overflow:auto;border:1px solid rgba(103,232,249,.36);border-radius:13px;background:rgba(15,23,42,.98);box-shadow:0 18px 40px rgba(2,6,23,.42);text-align:left}
+.songspot-suggestions:empty{display:none}
+.songspot-suggestion{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:7px;border:1px solid transparent;border-radius:9px;background:rgba(255,255,255,.045);color:var(--text);text-align:left;cursor:pointer}
+.songspot-suggestion:hover,.songspot-suggestion:focus-visible{border-color:rgba(103,232,249,.45);background:rgba(6,182,212,.12);outline:none}
+.songspot-suggestion-cover{display:grid;width:34px;height:34px;flex:none;place-items:center;overflow:hidden;border-radius:7px;background:linear-gradient(145deg,#0e7490,#4338ca);color:#cffafe;font-size:17px}
+.songspot-suggestion-cover img{width:100%;height:100%;object-fit:cover}
+.songspot-suggestion-copy{display:grid;min-width:0;gap:2px}
+.songspot-suggestion-copy b,.songspot-suggestion-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.songspot-suggestion-copy b{font-size:12px}
+.songspot-suggestion-copy small{color:var(--muted);font-size:10px}
+.songspot-suggestion-action{flex:none;margin-left:auto;color:#67e8f9;font-size:11px;font-weight:900}
+.songspot-region-note{margin:6px auto 0;color:var(--muted);font-size:10px;text-align:center}
+.light-theme .songspot-suggestions{background:rgba(248,250,252,.98)}
+/* A skip/answer updates only the SongSpot panel; keep that update visually
+   quiet so the stage does not replay its entrance animation on every click. */
+.songspot-quiet-update .songspot-round,.songspot-quiet-update .songspot-result,.songspot-quiet-update .songspot-group-round,.songspot-quiet-update .songspot-group-result,.songspot-quiet-update .songspot-group-summary,.songspot-quiet-update .songspot-mystery-cover.is-playing,.songspot-quiet-update .songspot-group-mystery-cover,.songspot-quiet-update .songspot-round:not(.is-played) .songspot-play-button{animation:none!important}

@@ -1,5 +1,5 @@
 import { Audio } from "./audio.js?v=20260902-1";
-import { musicCatalogForRegion, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-20";
+import { musicCatalogForRegion, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-22";
 import { escapeHtml } from "./utils.js?v=20260901-3";
 
 export const songSpotDifficulties = [
@@ -150,6 +150,63 @@ function normalizeGuess(value) {
     .replace(/\s+/g, " ");
 }
 
+function songSpotSuggestionTracks(query, region) {
+  const needle = normalizeGuess(query);
+  if (needle.length < 2) return [];
+  return trackPool(region)
+    .map(track => {
+      const title = normalizeGuess(track.title), artist = normalizeGuess(track.artist);
+      if (!title.includes(needle) && !artist.includes(needle)) return null;
+      const score = title.startsWith(needle) ? 0 : artist.startsWith(needle) ? 1 : 2;
+      return { track, score, title, artist };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score || a.title.localeCompare(b.title, "pl-PL"))
+    .slice(0, 8)
+    .map(item => item.track);
+}
+
+function songSpotSuggestionHtml(track, index) {
+  const cover = track?.coverUrl
+    ? `<img src="${escapeHtml(track.coverUrl)}" alt="" loading="lazy" decoding="async">`
+    : "♫";
+  return `<button type="button" class="songspot-suggestion" role="option" data-songspot-suggestion="${index}"><span class="songspot-suggestion-cover">${cover}</span><span class="songspot-suggestion-copy"><b>${escapeHtml(track?.title || "Nieznany utwór")}</b><small>${escapeHtml(track?.artist || "")}${track?.album ? ` · ${escapeHtml(track.album)}` : ""}</small></span><span class="songspot-suggestion-action">Wybierz</span></button>`;
+}
+
+function bindSongSpotAnswerSuggestions(root, region) {
+  const input = root.querySelector("[data-songspot-answer-input]"), suggestions = root.querySelector("[data-songspot-suggestions]");
+  if (!input || !suggestions) return;
+  let matches = [], suppressFocusUpdate = false;
+  const close = () => {
+    matches = [];
+    suggestions.innerHTML = "";
+    input.setAttribute("aria-expanded", "false");
+  };
+  const update = () => {
+    if (input.disabled) return close();
+    matches = songSpotSuggestionTracks(input.value, region);
+    suggestions.innerHTML = matches.map(songSpotSuggestionHtml).join("");
+    input.setAttribute("aria-expanded", matches.length ? "true" : "false");
+    suggestions.querySelectorAll("[data-songspot-suggestion]").forEach(button => button.addEventListener("click", () => {
+      const track = matches[Number(button.dataset.songspotSuggestion)];
+      if (!track) return;
+      input.value = track.title;
+      close();
+      if (document.activeElement !== input) suppressFocusUpdate = true;
+      input.focus();
+    }));
+  };
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-expanded", "false");
+  input.addEventListener("input", update);
+  input.addEventListener("focus", () => {
+    if (suppressFocusUpdate) { suppressFocusUpdate = false; return; }
+    update();
+  });
+  input.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
+  input.form?.addEventListener("submit", close);
+}
+
 function isCorrectGuess(value, track) {
   const guess = normalizeGuess(value), title = normalizeGuess(track?.title);
   if (!guess || !title) return false;
@@ -213,8 +270,22 @@ export const SongSpotSoloEngine = {
   },
   setRegion(playerId, region) {
     const state = readState(playerId);
-    if (state.status !== "idle") return state;
-    state.region = safeRegion(region);
+    const nextRegion = safeRegion(region);
+    if (state.region === nextRegion) return state;
+    // The catalog is part of the run state. Switching it mid-run starts a
+    // clean series instead of mixing global and Polish tracks in one streak.
+    if (state.status !== "idle") {
+      state.status = "idle";
+      state.streak = 0;
+      state.round = 0;
+      state.trackId = "";
+      state.played = false;
+      state.playbackDone = false;
+      state.playbackStartedAt = 0;
+      state.timeIndex = 0;
+      state.lastResult = null;
+    }
+    state.region = nextRegion;
     saveStored(state);
     return state;
   },
@@ -347,20 +418,21 @@ function activeHtml(state, item) {
   const audio = item?.previewUrl ? `<audio data-songspot-audio data-track-audio preload="auto" data-track-key="songspot:${escapeHtml(state.playerId)}:${escapeHtml(state.round)}:${escapeHtml(state.trackId)}:${stageIndex}" src="${escapeHtml(item.previewUrl)}"></audio>` : "";
   const nextLabel = stageIndex < times.length - 1 ? `Skip · ${formatSeconds(times[stageIndex + 1])}` : "Poddaj się";
   const roundClass = `songspot-round${state.played ? " is-played" : ""}${state.playbackDone ? " is-ready" : ""}`;
-  return `<section class="${roundClass}"><div class="songspot-mystery-cover ${state.played && !state.playbackDone ? "is-playing" : ""}" aria-hidden="true"><span>♫</span><small>${escapeHtml(formatSeconds(duration))}</small></div><p class="eyebrow">FRAGMENT AUDIO · RUNDA ${Number(state.round || 1)}</p><h2>Jaki to utwór?</h2><p class="muted songspot-instruction">Posłuchasz ${formatSeconds(duration)} od początku. Jeśli nadal nie wiesz, przejdź do następnego czasu — to wciąż ten sam utwór.</p>${timeline(state)}<div class="songspot-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-play ${state.played ? "disabled" : ""}>▶ <span>${state.played ? "Fragment odsłuchany" : `Odtwórz ${formatSeconds(duration)}`}</span></button><span data-songspot-audio-state>${state.playbackDone ? "Odsłuch zakończony — zgaduj albo przejdź dalej." : state.played ? "Fragment jest odtwarzany…" : "Kliknij, aby rozpocząć odsłuch."}</span></div>${Audio.trackVolumeControlHtml({ compact: true })}<form class="songspot-answer-form" data-songspot-answer-form><label for="songspot-answer">Nazwa utworu</label><div><input id="songspot-answer" name="answer" maxlength="140" autocomplete="off" placeholder="Wpisz tytuł piosenki…" ${ready ? "" : "disabled"} required><button class="primary" type="submit" ${ready ? "" : "disabled"}>Sprawdź</button></div><small>${ready ? "Możesz wpisać sam tytuł — wykonawca nie jest wymagany." : "Najpierw odsłuchaj fragment."}</small></form><button class="ghost songspot-skip" type="button" data-songspot-skip>${nextLabel}</button></section>`;
+  return `<section class="${roundClass}"><div class="songspot-mystery-cover ${state.played && !state.playbackDone ? "is-playing" : ""}" aria-hidden="true"><span>♫</span><small>${escapeHtml(formatSeconds(duration))}</small></div><p class="eyebrow">FRAGMENT AUDIO · RUNDA ${Number(state.round || 1)}</p><h2>Jaki to utwór?</h2><p class="muted songspot-instruction">Posłuchasz ${formatSeconds(duration)} od początku. Jeśli nadal nie wiesz, przejdź do następnego czasu — to wciąż ten sam utwór.</p>${timeline(state)}<div class="songspot-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-play ${state.played ? "disabled" : ""}>▶ <span>${state.played ? "Fragment odsłuchany" : `Odtwórz ${formatSeconds(duration)}`}</span></button><span data-songspot-audio-state>${state.playbackDone ? "Odsłuch zakończony — zgaduj albo przejdź dalej." : state.played ? "Fragment jest odtwarzany…" : "Kliknij, aby rozpocząć odsłuch."}</span></div>${Audio.trackVolumeControlHtml({ compact: true })}<form class="songspot-answer-form" data-songspot-answer-form><label for="songspot-answer">Nazwa utworu</label><div><span class="songspot-answer-input-wrap"><input id="songspot-answer" name="answer" data-songspot-answer-input maxlength="140" autocomplete="off" placeholder="Wpisz tytuł piosenki…" ${ready ? "" : "disabled"} required><span class="songspot-suggestions" data-songspot-suggestions role="listbox"></span></span><button class="primary" type="submit" ${ready ? "" : "disabled"}>Sprawdź</button></div><small>${ready ? "Możesz wpisać sam tytuł — wykonawca nie jest wymagany." : "Najpierw odsłuchaj fragment."}</small></form><button class="ghost songspot-skip" type="button" data-songspot-skip>${nextLabel}</button></section>`;
 }
 
-export function renderSongSpotSolo(root, { playerId }, actions) {
+export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false } = {}) {
   stopSongSpotTimer();
   const state = SongSpotSoloEngine.get(playerId);
   const item = trackById(state.trackId);
   const expected = { trackId: state.trackId };
   let content = header(state);
+  if (state.status !== "idle") content += `${regionPicker(state)}<p class="songspot-region-note">Zmiana katalogu rozpocznie nową serię.</p>`;
   if (state.status === "idle") content += startHtml(state);
   else if (state.status === "playing" && item) content += activeHtml(state, item);
   else if (state.status === "playing") content += `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview. Przejdź do następnego czasu tego samego utworu.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
   else content += resultHtml(state);
-  root.innerHTML = `<main class="page music-page songspot-page enter"><section class="panel music-panel songspot-panel">${content}<p class="songspot-note">Czas jest łączny — np. 8 s oznacza osiem sekund od początku, a nie sumę wcześniejszych poziomów.</p></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}"><section class="panel music-panel songspot-panel">${content}<p class="songspot-note">Czas jest łączny — np. 8 s oznacza osiem sekund od początku, a nie sumę wcześniejszych poziomów.</p></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
   root.querySelectorAll("[data-songspot-region]").forEach(button => button.addEventListener("click", () => actions.songSpotRegion?.(button.dataset.songspotRegion)));
   root.querySelector("#songspot-start")?.addEventListener("click", () => actions.songSpotStart(state.region));
   root.querySelector("#songspot-restart")?.addEventListener("click", () => actions.songSpotStart(state.region));
@@ -372,6 +444,7 @@ export function renderSongSpotSolo(root, { playerId }, actions) {
   root.querySelector("[data-songspot-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.songSpotGuess(input?.value || "", expected); });
   root.querySelector("[data-songspot-skip]")?.addEventListener("click", () => actions.songSpotSkip(expected));
   Audio.bindTrackVolumeControls(root);
+  bindSongSpotAnswerSuggestions(root, state.region);
   if (state.status === "playing" && item) bindSongSpotAudio(root, state, playerId, actions);
 }
 
@@ -800,7 +873,7 @@ function bindSongSpotGameAudio(root, game) {
   window.clearTimeout(songSpotGameAudioTimer);
 }
 
-export function renderSongSpotGame(root, { room, accounts, currentUser }, actions) {
+export function renderSongSpotGame(root, { room, accounts, currentUser }, actions, { quiet = false } = {}) {
   const game = room.game, phase = game.phase, expected = { phase, phaseEndsAt: game.phaseEndsAt, round: game.round };
   const settings = sanitizeSongSpotSettings({ ...room.settings, enabledTimes: game.enabledTimes, region: game.region, answerTime: game.answerTime, rounds: game.totalRounds });
   const times = groupTimes(game, settings), currentTimeIndex = groupStageIndex(game, settings), currentSeconds = times[currentTimeIndex] || times[0] || 0.1;
@@ -810,15 +883,16 @@ export function renderSongSpotGame(root, { room, accounts, currentUser }, action
   let content = `<p class="eyebrow">BITWA O PIOSENKĘ · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><div class="songspot-game-title-row"><div><h1>Jaki to utwór?</h1><p class="muted">Wszyscy zgadują tę samą piosenkę. Szybsza poprawna odpowiedź = więcej punktów.</p></div><div class="songspot-game-round-clock"><small>${phase === "preview" ? "ODSŁUCH" : phase === "answering" ? "ODPOWIEDZI" : "WYNIK"}</small><b data-songspot-countdown></b></div></div>`;
   if (phase === "preview" || phase === "answering") {
     const answer = game.answers?.[currentUser], audio = game.track?.previewUrl ? `<audio data-songspot-game-audio data-track-audio preload="auto" data-track-key="songspot:room:${escapeHtml(room.roomId)}:${Number(game.round)}:${escapeHtml(game.track.id)}:${currentTimeIndex}" src="${escapeHtml(game.track.previewUrl)}"></audio>` : "";
-    content += `<section class="songspot-group-round"><div class="songspot-group-mystery-cover"><span>♫</span><small>${formatSeconds(currentSeconds)}</small></div><p class="eyebrow">${phase === "preview" ? "WSPÓLNY FRAGMENT" : "FRAGMENT ZAKOŃCZONY"}</p><h2>${phase === "preview" ? "Słuchajcie i zgadujcie" : "Wpisz swoją odpowiedź"}</h2><p class="muted">${phase === "preview" ? `Aktualny próg to ${formatSeconds(currentSeconds)} od początku. Wspólny Skip przechodzi do kolejnego czasu tego samego utworu.` : `Odsłuch się skończył — zostało jeszcze ${settings.answerTime} sekund na wpisanie odpowiedzi.`}</p>${groupTimeline(game)}<div class="songspot-group-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-group-play ${phase !== "preview" ? "disabled" : ""}>▶ <span>${phase === "preview" ? `Odtwórz ${formatSeconds(currentSeconds)}` : "Fragment zakończony"}</span></button><small>${phase === "preview" ? `Każdy gracz uruchamia u siebie fragment ${formatSeconds(currentSeconds)}.` : "Nie można już ponownie odsłuchać utworu."}</small></div>${phase === "preview" ? `<button class="ghost songspot-group-skip" type="button" data-songspot-group-skip data-songspot-skip-voted="${skipVoted ? "1" : "0"}" ${skipVoted ? "disabled" : ""}>${skipVoted ? `Przejście zapisane (${skipVotes}/${array(game.players).length})` : `${nextTimeLabel} (${skipVotes}/${array(game.players).length})`}</button><small class="songspot-skip-hint">Wymagana zgoda wszystkich graczy · kolejny etap zaczyna się od początku tego samego utworu</small>` : ""}${Audio.trackVolumeControlHtml({ compact:true })}<form class="songspot-group-answer-form" data-songspot-group-answer><label for="songspot-group-answer">Tytuł piosenki</label><div><input id="songspot-group-answer" maxlength="140" autocomplete="off" placeholder="Wpisz tytuł…" ${answer ? "disabled" : ""} required><button class="primary" type="submit" ${answer ? "disabled" : ""}>${answer ? "Odpowiedź zapisana" : "Zgaduję"}</button></div><small>${answer ? `Twój wynik: ${answer.correct ? `+${Number(answer.points || 0)} pkt` : "0 pkt"}. Czekamy na resztę.` : "Liczy się tytuł utworu — wykonawca nie jest wymagany."}</small></form>${groupAnswerStatus(game, accounts, currentUser)}<p class="songspot-group-countdown" data-songspot-countdown></p></section>`;
+    content += `<section class="songspot-group-round"><div class="songspot-group-mystery-cover"><span>♫</span><small>${formatSeconds(currentSeconds)}</small></div><p class="eyebrow">${phase === "preview" ? "WSPÓLNY FRAGMENT" : "FRAGMENT ZAKOŃCZONY"}</p><h2>${phase === "preview" ? "Słuchajcie i zgadujcie" : "Wpisz swoją odpowiedź"}</h2><p class="muted">${phase === "preview" ? `Aktualny próg to ${formatSeconds(currentSeconds)} od początku. Wspólny Skip przechodzi do kolejnego czasu tego samego utworu.` : `Odsłuch się skończył — zostało jeszcze ${settings.answerTime} sekund na wpisanie odpowiedzi.`}</p>${groupTimeline(game)}<div class="songspot-group-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-group-play ${phase !== "preview" ? "disabled" : ""}>▶ <span>${phase === "preview" ? `Odtwórz ${formatSeconds(currentSeconds)}` : "Fragment zakończony"}</span></button><small>${phase === "preview" ? `Każdy gracz uruchamia u siebie fragment ${formatSeconds(currentSeconds)}.` : "Nie można już ponownie odsłuchać utworu."}</small></div>${phase === "preview" ? `<button class="ghost songspot-group-skip" type="button" data-songspot-group-skip data-songspot-skip-voted="${skipVoted ? "1" : "0"}" ${skipVoted ? "disabled" : ""}>${skipVoted ? `Przejście zapisane (${skipVotes}/${array(game.players).length})` : `${nextTimeLabel} (${skipVotes}/${array(game.players).length})`}</button><small class="songspot-skip-hint">Wymagana zgoda wszystkich graczy · kolejny etap zaczyna się od początku tego samego utworu</small>` : ""}${Audio.trackVolumeControlHtml({ compact:true })}<form class="songspot-group-answer-form" data-songspot-group-answer><label for="songspot-group-answer">Tytuł piosenki</label><div><span class="songspot-answer-input-wrap"><input id="songspot-group-answer" data-songspot-answer-input maxlength="140" autocomplete="off" placeholder="Wpisz tytuł…" ${answer ? "disabled" : ""} required><span class="songspot-suggestions" data-songspot-suggestions role="listbox"></span></span><button class="primary" type="submit" ${answer ? "disabled" : ""}>${answer ? "Odpowiedź zapisana" : "Zgaduję"}</button></div><small>${answer ? `Twój wynik: ${answer.correct ? `+${Number(answer.points || 0)} pkt` : "0 pkt"}. Czekamy na resztę.` : "Liczy się tytuł utworu — wykonawca nie jest wymagany."}</small></form>${groupAnswerStatus(game, accounts, currentUser)}<p class="songspot-group-countdown" data-songspot-countdown></p></section>`;
   } else if (phase === "roundResult") content += groupRoundResult(game, accounts);
   else content += groupSummary(game, accounts);
-  root.innerHTML = `<main class="page music-page songspot-group-page enter"><section class="panel music-panel songspot-group-panel">${content}</section><button id="songspot-group-leave" class="ghost">Wyjdź z pokoju</button></main>`;
+  root.innerHTML = `<main class="page music-page songspot-group-page${quiet ? " songspot-quiet-update" : " enter"}"><section class="panel music-panel songspot-group-panel">${content}</section><button id="songspot-group-leave" class="ghost">Wyjdź z pokoju</button></main>`;
   root.querySelector("[data-songspot-group-answer]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.songSpotGroupAnswer?.(input?.value || "", expected); });
   root.querySelector("[data-songspot-group-skip]")?.addEventListener("click", event => { event.currentTarget.disabled = true; actions.songSpotGroupSkip?.(expected); });
   root.querySelector("#songspot-next")?.addEventListener("click", actions.songSpotGroupNext);
   root.querySelector("#songspot-lobby")?.addEventListener("click", actions.returnToRoom);
   root.querySelector("#songspot-group-leave")?.addEventListener("click", () => actions.leaveRoom());
   Audio.bindTrackVolumeControls(root);
+  bindSongSpotAnswerSuggestions(root, settings.region);
   if (phase === "preview" || phase === "answering") { bindSongSpotGameAudio(root, game); bindSongSpotGameTimer(root, game, actions); }
 }

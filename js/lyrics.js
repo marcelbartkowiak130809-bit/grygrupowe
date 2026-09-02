@@ -1,5 +1,5 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260901-3";
-import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-20";
+import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260902-22";
 import { Audio } from "./audio.js?v=20260902-1";
 
 export const lyricsDefaults = { rounds: 5, audioSeconds: 8, answerTime: 30, category: "all", region: "global" };
