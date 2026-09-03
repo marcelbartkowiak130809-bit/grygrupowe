@@ -13,6 +13,9 @@ const compact = value => normalize(value).replace(/ /g, "");
 // Te pozycje zostały potwierdzone ręcznie, gdy wyszukiwarka YouTube zwracała
 // chwilowy błąd albo nie umiała przypisać oficjalnego kanału do wykonawcy.
 const manualSnapshots = new Map([
+  [compact("Problem (feat. Iggy Azalea) Ariana Grande"), 1497008330],
+  [compact("everything i wanted Billie Eilish"), 532296844],
+  [compact("Levels Avicii"), 783843255],
   [compact("X Nicky Jam & J Balvin"), 2353562399],
   [compact("ON BTS"), 353757743],
   [compact("TP Rod Wave"), 630417],

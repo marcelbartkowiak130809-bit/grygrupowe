@@ -35,9 +35,9 @@ import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from 
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-2";
-import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-23";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-8";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260903-1";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260903-24";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-11";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260903-4";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260902-19";

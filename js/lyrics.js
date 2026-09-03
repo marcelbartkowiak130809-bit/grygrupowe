@@ -167,7 +167,7 @@ const lyricPairs = {
   "lyrics-wake-me-up": { previousLine: "Well, that's fine by me", answer: "So wake me up when it's all over" },
   "lyrics-mr-brightside": { previousLine: "Gotta, gotta be down because I want it all", answer: "It started out with a kiss, how did it end up like this?" },
   "lyrics-believer": { previousLine: "Seeing the beauty through the", answer: "Pain, you made me a, you made me a believer, believer" },
-  "lyrics-rolling-in-the-deep": { previousLine: "There's a fire starting in my heart", answer: "Reaching a fever pitch, it's bringing me out the dark" },
+  "lyrics-rolling-in-the-deep": { contextLines: ["The scars of your love remind me of us", "They keep me thinking that we almost had it all"], previousLine: "There's a fire starting in my heart", answer: "Reaching a fever pitch, it's bringing me out the dark" },
   "lyrics-uptown-funk": { previousLine: "Saturday night, and we in the spot", answer: "Don't believe me, just watch, come on!" },
   "lyrics-starboy": { previousLine: "I'm tryna put you in the worst mood, ah", answer: "P1 cleaner than your church shoes, ah" },
   "lyrics-cruel-summer": { previousLine: "What doesn't kill me makes me want you more", answer: "And it's new, the shape of your body" },
@@ -299,6 +299,7 @@ const lyricBank = lyricSeeds.map(([id, trackId, line, categories]) => {
     region: isMusicTrackInRegion(track, "polish") ? "polish" : "global",
     line: clean(line, 180),
     previousLine: clean(pair.previousLine || line, 180),
+    contextLines: unique([...array(pair.contextLines), pair.previousLine || line].map(value => clean(value, 180))),
     answer: clean(pair.answer, 180),
     categories: unique(categories),
   };
@@ -374,8 +375,14 @@ function expectedAnswer(game) {
   return [...item.line].slice(Math.max(1, Number(game?.cutAt) || 1)).join("").trim();
 }
 
+function lyricContextLines(item) {
+  const lines = array(item?.contextLines).map(value => clean(value, 180)).filter(Boolean);
+  const prompt = lyricPromptLine(item);
+  return unique([...lines, prompt]).filter(Boolean);
+}
+
 function fullLyricsText(item) {
-  if (item?.answer) return [item.previousLine || item.line, item.answer].filter(Boolean).join("\n");
+  if (item?.answer) return [...lyricContextLines(item), item.answer].filter(Boolean).join("\n");
   return item?.line || "";
 }
 
@@ -627,12 +634,15 @@ function blankContinuationHtml(answer) {
   return Array.from({ length: count }, () => `<span class="lyrics-karaoke-blank" aria-hidden="true"></span>`).join("");
 }
 
-function karaokeStage(promptLine, revealCount, cutAt, phase = "listening", answer = "") {
+function karaokeStage(item, revealCount, cutAt, phase = "listening", answer = "") {
+  const promptLine = lyricPromptLine(item);
+  const contextLines = lyricContextLines(item);
   const safeCut = Math.max(1, Number(cutAt) || 1);
   const shown = phase === "listening" ? Math.min(safeCut, Math.max(0, Number(revealCount) || 0)) : safeCut;
   const progress = phase === "listening" ? shown / Math.max(1, safeCut) : 1;
   const blanks = phase === "listening" ? "" : blankContinuationHtml(answer);
-  return `<span class="lyrics-karaoke-lines${phase === "listening" ? "" : " is-paused"}" data-lyrics-reveal data-lyrics-cut="${safeCut}" data-lyrics-revealed="${shown}"><span class="lyrics-karaoke-previous" data-lyrics-previous>${promptWordsHtml(promptLine, progress, phase)}</span><span class="lyrics-karaoke-blank-lines" data-lyrics-blanks>${blanks}</span></span>`;
+  const completedContext = contextLines.slice(0, -1).map(line => `<span class="lyrics-karaoke-context-line">${escapeHtml(line)}</span>`).join("");
+  return `<span class="lyrics-karaoke-lines${phase === "listening" ? "" : " is-paused"}" data-lyrics-reveal data-lyrics-cut="${safeCut}" data-lyrics-revealed="${shown}"><span class="lyrics-karaoke-context" data-lyrics-context>${completedContext}<span class="lyrics-karaoke-previous" data-lyrics-previous>${promptWordsHtml(promptLine, progress, phase)}</span></span><span class="lyrics-karaoke-blank-lines" data-lyrics-blanks>${blanks}</span></span>`;
 }
 
 function revealedCount(game, now = Date.now(), audioTime = undefined) {
@@ -821,9 +831,9 @@ export function renderLyricsGame(root, { room, accounts, currentUser }, actions)
   const namespace = room.roomId || "lyrics";
   let content = `<p class="eyebrow">DOKOŃCZ TEKST · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><h1>Jaki jest następny wers?</h1><div class="lyrics-category-banner"><span>✍️</span><div><small>KATEGORIA</small><strong>${escapeHtml(categoryLabel(game.category))}</strong></div></div>`;
   if (game.phase === "listening") {
-    content += `<section class="lyrics-challenge listening">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(lyricPromptLine(item), revealedCount(game), game.cutAt, "listening", expectedAnswer(game))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Fragment włączy się automatycznie po wejściu." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się w rytmie odsłuchu. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
+    content += `<section class="lyrics-challenge listening">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(game), game.cutAt, "listening", expectedAnswer(game))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Fragment włączy się automatycznie po wejściu." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się w rytmie odsłuchu. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
   } else if (game.phase === "answering") {
-    content += `<section class="lyrics-challenge answering">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(lyricPromptLine(item), game.cutAt, game.cutAt, "answering", expectedAnswer(game))}</div>${answerForm(game, currentUser)}</section>`;
+    content += `<section class="lyrics-challenge answering">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, game.cutAt, game.cutAt, "answering", expectedAnswer(game))}</div>${answerForm(game, currentUser)}</section>`;
   } else if (game.phase === "roundResult") {
     const fullText = game.roundResult?.fullText || fullLyricsText(item);
     const winners = array(game.players).filter(uid => Number(game.roundResult?.answers?.[uid]?.points || 0) === Math.max(0, ...Object.values(game.roundResult?.answers || {}).map(answer => Number(answer?.points) || 0)) && Number(game.roundResult?.answers?.[uid]?.points || 0) > 0);
@@ -1094,11 +1104,11 @@ export function renderLyricsSolo(root, { profile, playerId, accounts = {}, leade
   const expected = { phase:state.status, phaseEndsAt:state.phaseEndsAt };
   let content = lyricsSoloHeader(state);
   if (state.status === "idle") {
-    content += `<section class="lyrics-solo-start"><div class="lyrics-solo-icon">🎤</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile fragmentów trafisz z rzędu?</h2><p class="muted">Najpierw słuchasz krótkiego preview. Potem tekst zatrzymuje się na pełnym poprzednim wersie, a Ty wpisujesz kolejną linię.</p>${lyricsSoloRegionPicker(state)}<div class="lyrics-solo-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><p class="lyrics-beta-note">⚠️ BETA: synchronizacja tekstu z wokalem jest orientacyjna i może nie zawsze być dokładna.</p><button class="primary big" id="lyrics-solo-start">Zacznij serię</button></section>`;
+    content += `<section class="lyrics-solo-start"><div class="lyrics-solo-icon">🎤</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile fragmentów trafisz z rzędu?</h2><p class="muted">Najpierw słuchasz krótkiego preview. Potem widzisz ostatnie zaśpiewane linie i wpisujesz kolejną.</p>${lyricsSoloRegionPicker(state)}<div class="lyrics-solo-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><p class="lyrics-beta-note">⚠️ BETA: synchronizacja tekstu z wokalem jest orientacyjna i może nie zawsze być dokładna.</p><button class="primary big" id="lyrics-solo-start">Zacznij serię</button></section>`;
   } else if (state.status === "listening") {
-    content += `<section class="lyrics-challenge listening lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timerLabel}</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(lyricPromptLine(item), revealedCount(state), state.cutAt, "listening", expectedAnswer(state))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Kliknij, jeśli przeglądarka zablokuje automatyczny dźwięk." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się razem z odsłuchem. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
+    content += `<section class="lyrics-challenge listening lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timerLabel}</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(state), state.cutAt, "listening", expectedAnswer(state))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Kliknij, jeśli przeglądarka zablokuje automatyczny dźwięk." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się razem z odsłuchem. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
   } else if (state.status === "answering") {
-    content += `<section class="lyrics-challenge answering lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(lyricPromptLine(item), state.cutAt, state.cutAt, "answering", expectedAnswer(state))}</div><form class="lyrics-answer-form" data-lyrics-solo-answer-form><label for="lyrics-solo-answer">Odpowiedź</label><div><input id="lyrics-solo-answer" name="answer" maxlength="180" autocomplete="off" placeholder="Wpisz słowa…" required><button class="primary" type="submit">Zatwierdź</button></div><div class="lyrics-answer-actions"><small>Jedno puste miejsce oznacza jedno słowo. Liczy się każda poprawna litera — interpunkcja nie ma znaczenia.</small><button class="ghost lyrics-surrender" type="button" data-lyrics-solo-surrender>Poddaję się</button></div></form></section>`;
+    content += `<section class="lyrics-challenge answering lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, state.cutAt, state.cutAt, "answering", expectedAnswer(state))}</div><form class="lyrics-answer-form" data-lyrics-solo-answer-form><label for="lyrics-solo-answer">Odpowiedź</label><div><input id="lyrics-solo-answer" name="answer" maxlength="180" autocomplete="off" placeholder="Wpisz słowa…" required><button class="primary" type="submit">Zatwierdź</button></div><div class="lyrics-answer-actions"><small>Jedno puste miejsce oznacza jedno słowo. Liczy się każda poprawna litera — interpunkcja nie ma znaczenia.</small><button class="ghost lyrics-surrender" type="button" data-lyrics-solo-surrender>Poddaję się</button></div></form></section>`;
   } else {
     content += lyricsSoloResult(state);
   }

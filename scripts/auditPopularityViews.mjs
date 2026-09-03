@@ -10,6 +10,7 @@ const concurrency = Math.max(1, Math.min(6, Number(args.get("--concurrency") || 
 const delayMs = Math.max(0, Number(args.get("--delay") || 350) || 350);
 const retryNonOk = Boolean(args.get("--retry-non-ok"));
 const forceRefresh = Boolean(args.get("--force"));
+const MIN_AUTO_SNAPSHOT = 1000000;
 
 const normalize = value => String(value || "").toLocaleLowerCase("en-US").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 const compact = value => normalize(value).replace(/ /g, "");
@@ -96,8 +97,21 @@ function chooseCandidate(track, results) {
   const ranked = results.map((candidate, index) => ({ ...candidate, ...candidateScore(track, candidate, index) }))
     .filter(candidate => candidate.views && candidate.id);
   const highConfidence = ranked.filter(candidate => candidate.quality > 0);
-  return (highConfidence.length ? highConfidence : ranked)
-    .sort((left, right) => right.channelRank - left.channelRank || right.quality - left.quality || right.viewCount - left.viewCount || right.score - left.score)[0] || null;
+  const pool = highConfidence.length ? highConfidence : ranked;
+  const exactTitlePool = pool.filter(candidate => candidate.exactTitle);
+  const comparable = exactTitlePool.length ? exactTitlePool : pool;
+  const largestViewCount = Math.max(...comparable.map(candidate => candidate.viewCount), 0);
+  // A result with a matching title and a tiny count is often a mirror or
+  // reupload. If another equally titled official-looking result is over 100M,
+  // never let the tiny result win solely because its channel name matches.
+  const withoutTinyOutlier = comparable.filter(candidate => !(
+    candidate.viewCount > 0 &&
+    candidate.viewCount < MIN_AUTO_SNAPSHOT &&
+    largestViewCount >= 100000000 &&
+    largestViewCount >= candidate.viewCount * 100
+  ));
+  return (withoutTinyOutlier.length ? withoutTinyOutlier : comparable)
+    .sort((left, right) => right.viewCount - left.viewCount || right.quality - left.quality || right.channelRank - left.channelRank || right.score - left.score)[0] || null;
 }
 
 async function fetchTrack(track) {

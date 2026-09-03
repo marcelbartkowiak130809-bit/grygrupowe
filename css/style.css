@@ -1352,6 +1352,7 @@ html,body{max-width:100%;overflow-x:hidden}
 @media(max-width:1779px) and (min-width:1001px){.lyrics-solo-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,280px);gap:16px;max-width:1400px}.lyrics-solo-main{width:100%;max-width:none!important;margin:0!important}.lyrics-solo-layout>.lyrics-solo-leaderboard{position:sticky;top:16px;left:auto;width:100%;max-width:none}}
 @media(max-width:1000px){.lyrics-solo-layout{display:grid;grid-template-columns:1fr;gap:12px;max-width:1120px}.lyrics-solo-main{width:100%;max-width:none!important;margin:0!important}.lyrics-solo-layout>.lyrics-solo-leaderboard{position:static;order:2;width:100%;max-width:none}.lyrics-solo-leaderboard .popularity-leaderboard-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.lyrics-solo-page{width:100%!important;padding-inline:10px}.lyrics-solo-title-row{gap:10px}.lyrics-solo-title-row h1{font-size:clamp(30px,9vw,43px)}.lyrics-solo-title-row p{font-size:13px}.lyrics-solo-streak{min-width:77px;padding:9px 10px}.lyrics-solo-streak b{font-size:22px}.lyrics-solo-start{padding:22px 14px;border-radius:21px}.lyrics-solo-result-actions{align-items:stretch;flex-direction:column}.lyrics-solo-result-actions .big{width:100%}.lyrics-karaoke-cut{display:block;margin:7px 0 0;font-size:10px}.lyrics-karaoke-missing{font-size:.66em}.lyrics-solo-leaderboard .popularity-leaderboard-list{grid-template-columns:1fr}}
+@media(max-width:620px){.lyrics-karaoke-blank-lines{gap:4px}.lyrics-karaoke-blank-lines .lyrics-karaoke-blank{width:clamp(1.45rem,6vw,2.2rem)}}
 @media(prefers-reduced-motion:reduce){.lyrics-solo-icon,.lyrics-solo-result,.lyrics-solo-result-icon,.lyrics-karaoke-current,.lyrics-karaoke-cut,.lyrics-karaoke-missing{animation:none}}
 
 /* Karaoke: po zatrzymaniu zostaje ostatnia widoczna linia i osobne puste miejsce na kontynuację. */
@@ -1379,11 +1380,15 @@ html,body{max-width:100%;overflow-x:hidden}
    osobne, jednakowe blanki — jeden blank oznacza jedno słowo i nie zdradza
    jego długości literowej. */
 .lyrics-karaoke-lines{display:grid;gap:10px;min-height:4.2em;align-content:center}
+.lyrics-karaoke-context{display:grid;gap:3px;width:100%}
+.lyrics-karaoke-context-line{display:block;width:100%;color:rgba(226,232,240,.56);font-family:inherit;font-size:.72em;font-weight:700;line-height:1.35;white-space:normal}
 .lyrics-karaoke-previous{display:block;width:100%;min-height:1.45em;color:#f8fafc;line-height:1.55}
 .lyrics-karaoke-previous .lyrics-karaoke-word{display:inline-block;vertical-align:middle}
-.lyrics-karaoke-blank-lines{display:grid;gap:7px;width:100%}
-.lyrics-karaoke-blank-lines .lyrics-karaoke-blank{display:block;width:min(100%,19rem);height:.72em;margin:0;border-radius:999px;background:linear-gradient(90deg,rgba(148,163,184,.46),rgba(226,232,240,.7),rgba(148,163,184,.46));box-shadow:0 0 12px rgba(148,163,184,.1);opacity:.52}
+.lyrics-karaoke-blank-lines{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;min-height:1.45em}
+.lyrics-karaoke-blank-lines .lyrics-karaoke-blank{display:inline-block;flex:0 0 auto;width:clamp(2rem,3vw,3.5rem);min-width:0;height:.72em;min-height:0;margin:0;border-radius:999px;background:linear-gradient(90deg,rgba(148,163,184,.46),rgba(226,232,240,.7),rgba(148,163,184,.46));box-shadow:0 0 12px rgba(148,163,184,.1);opacity:.52}
 .light-theme .lyrics-karaoke-previous{color:#172554}
+.light-theme .lyrics-karaoke-context-line{color:rgba(30,41,59,.58)}
+.light-theme .lyrics-karaoke-lines.is-paused .lyrics-word-visible{color:#172554}
 .light-theme .lyrics-karaoke-blank-lines .lyrics-karaoke-blank{background:linear-gradient(90deg,rgba(100,116,139,.3),rgba(71,85,105,.52),rgba(100,116,139,.3))}
 
 /* Solo z rankingiem: zachowaj centralny panel, ale zostaw więcej oddechu przy prawej krawędzi. */
@@ -1724,4 +1729,120 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @media(prefers-reduced-motion:reduce){
   .bg-orb{filter:none;opacity:.12}
   .games-grid>.game-card{content-visibility:visible}
+}
+
+/* SongSpot: calm single-column stage. The previous compact grid squeezed the
+   play status, volume and answer controls into implicit rows on narrow widths. */
+.songspot-page .songspot-panel{padding:clamp(16px,2.4vw,28px)}
+.songspot-page .songspot-title-row{max-width:880px;margin:0 auto 14px}
+.songspot-page .songspot-round{display:block!important;max-width:840px;margin:8px auto 0;padding:22px clamp(15px,3vw,30px) 18px;border-radius:22px;text-align:center;overflow:visible}
+.songspot-page .songspot-active-head{display:flex;align-items:center;gap:15px;max-width:700px;margin:0 auto;text-align:left}
+.songspot-page .songspot-active-copy{min-width:0}
+.songspot-page .songspot-active-copy .eyebrow{margin:0}
+.songspot-page .songspot-active-copy h2{margin:3px 0 4px;font-size:clamp(25px,3.2vw,35px)}
+.songspot-page .songspot-active-copy .songspot-instruction{max-width:none;margin:0;font-size:11px;line-height:1.4}
+.songspot-page .songspot-active-head>.songspot-mystery-cover{width:76px;height:76px;flex:none;margin:0;border-radius:18px;transform:rotate(-2deg);box-shadow:0 0 26px rgba(6,182,212,.16)}
+.songspot-page .songspot-active-head>.songspot-mystery-cover span{font-size:34px}
+.songspot-page .songspot-active-head>.songspot-mystery-cover small{font-size:9px}
+.songspot-page .songspot-round>.songspot-timeline{width:100%;max-width:700px;margin:19px auto 9px}
+.songspot-page .songspot-round .songspot-timeline-caption{margin-top:21px;font-size:10px}
+.songspot-page .songspot-play-area{display:grid;justify-items:center;gap:7px;margin:14px auto 6px}
+.songspot-page .songspot-play-area audio{display:none}
+.songspot-page .songspot-play-area .songspot-play-button{width:106px;height:106px;font-size:27px;box-shadow:0 0 30px rgba(34,197,94,.22),inset 0 -8px 15px rgba(2,6,23,.14)}
+.songspot-page .songspot-play-area .songspot-play-button span{font-size:10px}
+.songspot-page .songspot-play-area [data-songspot-audio-state]{min-height:18px;margin:0;color:var(--muted);font-size:10px;line-height:1.35}
+.songspot-page .songspot-round>.music-track-volume{width:min(100%,400px);margin:8px auto 0!important}
+.songspot-page .songspot-round>.songspot-answer-form{display:block!important;width:100%;max-width:700px;margin:16px auto 0!important;text-align:left}
+.songspot-page .songspot-round>.songspot-answer-form label{margin-bottom:5px;font-size:11px}
+.songspot-page .songspot-round>.songspot-answer-form>div{display:flex;gap:7px}
+.songspot-page .songspot-round>.songspot-answer-form small{margin-top:5px;font-size:9px}
+.songspot-page .songspot-round>.songspot-answer-form button{min-width:100px}
+.songspot-page .songspot-round>.songspot-skip{display:inline-flex;justify-self:auto;margin:13px auto 0;min-height:36px;padding:8px 14px;font-size:11px}
+.songspot-page .songspot-note{display:none}
+
+.songspot-group-page .songspot-group-round{display:flex!important;align-items:stretch;flex-direction:column;max-width:840px;padding:22px clamp(15px,3vw,30px) 18px;text-align:center;overflow:visible}
+.songspot-group-page .songspot-group-mystery-cover{width:76px;height:76px;margin:0 auto 6px;border-radius:18px;transform:rotate(-2deg);box-shadow:0 0 26px rgba(6,182,212,.16)}
+.songspot-group-page .songspot-group-mystery-cover span{font-size:34px}
+.songspot-group-page .songspot-group-mystery-cover small{font-size:9px}
+.songspot-group-page .songspot-group-round>p.muted{max-width:700px;margin:0 auto;line-height:1.4}
+.songspot-group-page .songspot-group-timeline{width:100%;max-width:700px;margin:18px auto 9px}
+.songspot-group-page .songspot-group-timeline-labels{margin-top:21px;font-size:10px}
+.songspot-group-page .songspot-group-play-row{margin:14px auto 4px}
+.songspot-group-page .songspot-group-play-row .songspot-play-button{width:106px;height:106px;font-size:27px}
+.songspot-group-page .songspot-group-play-row>small{min-height:17px;text-align:center;font-size:10px}
+.songspot-group-page .songspot-group-round>.music-track-volume{width:min(100%,400px);margin:8px auto 0!important}
+.songspot-group-page .songspot-group-answer-form{width:100%;max-width:700px;margin:16px auto 0;text-align:left}
+.songspot-group-page .songspot-player-status{width:100%;max-width:700px;margin:12px auto 0}
+.songspot-group-page .songspot-group-skip{align-self:center;margin:12px auto 0}
+.songspot-group-page .songspot-skip-hint{margin:5px auto 0;text-align:center}
+
+@media(max-width:720px){
+  .songspot-page .songspot-panel,.songspot-group-page .songspot-group-panel{padding:13px 9px}
+  .songspot-page .songspot-title-row,.songspot-group-page .songspot-game-title-row{margin-bottom:9px}
+  .songspot-page .songspot-round,.songspot-group-page .songspot-group-round{padding:15px 11px 13px;border-radius:18px}
+  .songspot-page .songspot-active-head{display:grid;justify-items:center;gap:6px;text-align:center}
+  .songspot-page .songspot-active-head>.songspot-mystery-cover,.songspot-group-page .songspot-group-mystery-cover{width:64px;height:64px;margin:0 auto 2px}
+  .songspot-page .songspot-active-head>.songspot-mystery-cover span,.songspot-group-page .songspot-group-mystery-cover span{font-size:29px}
+  .songspot-page .songspot-active-copy .songspot-instruction{font-size:10px}
+  .songspot-page .songspot-round>.songspot-timeline,.songspot-group-page .songspot-group-timeline{margin-top:14px}
+  .songspot-page .songspot-play-area,.songspot-group-page .songspot-group-play-row{margin-top:11px}
+  .songspot-page .songspot-play-area .songspot-play-button,.songspot-group-page .songspot-group-play-row .songspot-play-button{width:84px;height:84px;font-size:22px}
+  .songspot-page .songspot-play-area .songspot-play-button span{font-size:9px}
+  .songspot-page .songspot-round>.songspot-answer-form,.songspot-group-page .songspot-group-answer-form{margin-top:12px!important}
+  .songspot-page .songspot-round>.songspot-answer-form>div,.songspot-group-page .songspot-group-answer-form>div{display:flex;flex-direction:row;gap:5px}
+  .songspot-page .songspot-round>.songspot-answer-form button,.songspot-group-page .songspot-group-answer-form button{width:auto;min-width:84px;min-height:38px;padding:7px 8px;font-size:11px}
+  .songspot-page .songspot-round>.songspot-skip,.songspot-group-page .songspot-group-skip{width:auto;margin-top:10px;min-height:33px;padding:7px 12px;font-size:10px}
+}
+
+@media(max-width:420px){
+  .songspot-page .songspot-round,.songspot-group-page .songspot-group-round{padding-inline:8px}
+  .songspot-page .songspot-round>.songspot-answer-form button,.songspot-group-page .songspot-group-answer-form button{min-width:76px;padding-inline:6px;font-size:10px}
+}
+
+/* Lucky Spin: give the reward legend enough room to show complete labels. */
+.lucky-spin-modal{width:min(96vw,720px);max-height:calc(100dvh - 20px);padding:22px 28px}
+.lucky-spin-modal .lucky-wheel-area{min-height:310px;padding:10px}
+.lucky-spin-modal .lucky-wheel{width:min(76vw,300px);height:min(76vw,300px)}
+.lucky-spin-modal .lucky-odds{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lucky-spin-modal .lucky-odds-item{min-height:46px;padding:9px 11px;align-items:flex-start}
+.lucky-spin-modal .lucky-odds-item b{overflow:visible;text-overflow:clip;white-space:normal;line-height:1.2}
+.light-theme .lucky-spin-modal .lucky-odds-item b{color:#334155}
+.light-theme .lucky-spin-modal .odds-weak strong{color:#047857}
+.light-theme .lucky-spin-modal .odds-medium strong{color:#a16207}
+.light-theme .lucky-spin-modal .odds-strong strong{color:#b45309}
+.light-theme .lucky-spin-modal .odds-epic strong{color:#86198f}
+.light-theme .lucky-spin-modal .odds-gamepass strong{color:#a16207}
+
+@media(max-width:560px){
+  .lucky-spin-modal{width:calc(100vw - 20px);max-width:none;padding:18px}
+  .lucky-spin-modal .lucky-wheel-area{min-height:280px;padding:10px}
+  .lucky-spin-modal .lucky-wheel{width:min(82vw,280px);height:min(82vw,280px)}
+  .lucky-spin-modal .lucky-odds{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lucky-spin-modal .lucky-odds-item{padding:8px 9px}
+  .lucky-spin-modal .lucky-odds-item b{font-size:10px}
+}
+
+@media(max-width:380px){
+  .lucky-spin-modal .lucky-odds{grid-template-columns:1fr}
+}
+
+/* SongSpot: keep the play target stable and remove the oversized hover ring. */
+.songspot-page .songspot-play-button,
+.songspot-group-page .songspot-play-button{
+  position:relative;
+  transform:none!important;
+  transition:filter .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.songspot-page .songspot-play-button::before,
+.songspot-group-page .songspot-play-button::before{
+  display:none!important;
+  content:none!important;
+  pointer-events:none!important;
+}
+.songspot-page .songspot-play-button:hover:not(:disabled),
+.songspot-group-page .songspot-play-button:hover:not(:disabled),
+.songspot-page .songspot-play-button:active:not(:disabled),
+.songspot-group-page .songspot-play-button:active:not(:disabled){
+  transform:none!important;
+  filter:brightness(1.05);
 }

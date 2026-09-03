@@ -2,7 +2,7 @@ import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
-import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit2";
+import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -15,12 +15,24 @@ const cleanMetric = value => ["listeners", "artistListeners"].includes(value) ? 
 const normalizedText = value => String(value || "").trim().toLocaleLowerCase("pl-PL");
 const POPULARITY_SNAPSHOT_DATE = "03.09.2026";
 const snapshotKey = value => String(value || "").toLocaleLowerCase("en-US").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "").trim();
-const auditedViewsFor = (title, artist) => popularityViewSnapshots.get(snapshotKey(`${title} ${artist}`));
+const MIN_TRUSTED_VIEW_SNAPSHOT = 1000000;
+const auditedViewsFor = (title, artist) => {
+  const value = Number(popularityViewSnapshots.get(snapshotKey(`${title} ${artist}`)));
+  // A few YouTube searches returned a real-looking official title with a
+  // tiny view count from a reupload/channel mirror. Keep those records out of
+  // the views mode until they are manually verified instead of showing a
+  // clearly false number in a comparison.
+  return Number.isFinite(value) && value >= MIN_TRUSTED_VIEW_SNAPSHOT ? value : undefined;
+};
 
 // Ręczne korekty dla utworów, których liczba wyświetleń została sprawdzona
-// poza lokalnym katalogiem. Generator poniżej ma tylko wartości zastępcze,
-// więc konkretne snapshoty zawsze powinny mieć pierwszeństwo.
+// poza lokalnym katalogiem. Są ważniejsze od automatycznych snapshotów, bo
+// wyszukiwarka YouTube potrafi zwrócić reupload z poprawnym tytułem, ale
+// kompletnie błędną liczbą wyświetleń.
 const verifiedViewOverrides = new Map([
+  ["problem (feat. iggy azalea) ariana grande", 1497008330],
+  ["everything i wanted billie eilish", 532296844],
+  ["levels avicii", 783843255],
   ["don't stop the music rihanna", 811168380],
   ["diamonds rihanna", 2612346360],
   ["umbrella rihanna", 1284391105],
@@ -560,9 +572,9 @@ function splitArtistCredits(value) {
 const polishArtistKeys = new Set(polishMusicCatalog.flatMap(track => splitArtistCredits(track.artist)).map(normalizedText));
 const hasPolishArtistCredit = artist => splitArtistCredits(artist).some(item => polishArtistKeys.has(normalizedText(item)));
 const basePopularityTracks = snapshotRows.map(([id, title, artist, views, listeners, region]) => {
-  const trackKey = normalizedText(`${title} ${artist}`), catalogTrack = musicMediaByKey.get(trackKey), auditedViews = auditedViewsFor(title, artist), manualViews = verifiedViewOverrides.get(trackKey);
+  const trackKey = normalizedText(`${title} ${artist}`), catalogTrack = musicMediaByKey.get(trackKey), auditedViews = auditedViewsFor(title, artist), manualViews = verifiedViewOverrides.get(trackKey), verifiedViews = Number.isFinite(Number(manualViews)) ? Number(manualViews) : auditedViews;
   return {
-    id, title, artist, views:auditedViews ?? manualViews ?? views, viewsVerified:auditedViews != null || manualViews != null, listeners, region:region === "polish" || polishTrackKeys.has(trackKey) || hasPolishArtistCredit(artist) ? "polish" : "global",
+    id, title, artist, views:verifiedViews ?? views, viewsVerified:verifiedViews != null, listeners, region:region === "polish" || polishTrackKeys.has(trackKey) || hasPolishArtistCredit(artist) ? "polish" : "global",
     query: `${title} ${artist}`,
     coverUrl:catalogTrack?.coverUrl || "",
     previewUrl:catalogTrack?.previewUrl || "",
@@ -577,8 +589,8 @@ const extraGlobalPopularityTracks = musicCatalogForRegion("global")
     artist:track.artist,
     // Pozycje bez audytu pozostają w katalogu dla innych metryk, ale nie są
     // losowane w porównaniu wyświetleń (viewsVerified === false).
-    views:auditedViewsFor(track.title, track.artist) ?? verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? Math.max(18000000, 1500000000 - index * 9100000),
-    viewsVerified:auditedViewsFor(track.title, track.artist) != null || verifiedViewOverrides.has(normalizedText(`${track.title} ${track.artist}`)),
+    views:verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? auditedViewsFor(track.title, track.artist) ?? Math.max(18000000, 1500000000 - index * 9100000),
+    viewsVerified:Number.isFinite(Number(verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)))) || auditedViewsFor(track.title, track.artist) != null,
     listeners:Math.max(900000, 88000000 - index * 470000),
     region:"global",
     query:`${track.title} ${track.artist}`,
@@ -591,8 +603,8 @@ const extraPolishPopularityTracks = polishMusicCatalog.filter(track => !existing
   artist:track.artist,
   // To tylko fallback dla metryk innych niż wyświetlenia. Niezweryfikowane
   // pozycje są odfiltrowane z trybu wyświetleń.
-  views:auditedViewsFor(track.title, track.artist) ?? verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? Math.max(12000000, 138000000 - index * 870000),
-  viewsVerified:auditedViewsFor(track.title, track.artist) != null || verifiedViewOverrides.has(normalizedText(`${track.title} ${track.artist}`)),
+  views:verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? auditedViewsFor(track.title, track.artist) ?? Math.max(12000000, 138000000 - index * 870000),
+  viewsVerified:Number.isFinite(Number(verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)))) || auditedViewsFor(track.title, track.artist) != null,
   listeners:Math.max(180000, 4200000 - index * 22000),
   region:"polish",
   query:`${track.title} ${track.artist}`,
@@ -862,14 +874,23 @@ const mediaCache = new Map();
 function mediaText(value) {
   return String(value || "").toLocaleLowerCase("pl-PL").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/[^a-z0-9]+/g, "").trim();
 }
+function mediaTitleCore(value) {
+  return mediaText(String(value || "").replace(/\([^)]*\)|\[[^\]]*\]/g, " ").replace(/\s+(?:feat\.?|ft\.?|featuring|with)\s+.*/i, " "));
+}
+function mediaArtistCore(value) {
+  return mediaText(String(value || "").replace(/\([^)]*\)|\[[^\]]*\]/g, " ").replace(/\s+(?:feat\.?|ft\.?|featuring|with)\s+.*/i, " "));
+}
+function mediaArtistMatches(expected, candidate) {
+  const expectedFull = mediaText(expected), candidateFull = mediaText(candidate), expectedCore = mediaArtistCore(expected), candidateCore = mediaArtistCore(candidate);
+  return Boolean(candidateFull && (candidateFull === expectedFull || candidateFull.includes(expectedFull) || expectedFull.includes(candidateFull) || candidateCore === expectedCore || candidateCore.includes(expectedCore) || expectedCore.includes(candidateCore)));
+}
 function localTrackMedia(query, region = "global", sourceTrack = null) {
   const normalizedQuery = normalizedText(query);
   const regionCatalog = musicCatalogForRegion(region);
   const catalog = [...regionCatalog, ...musicPreviewCatalog.filter(item => !regionCatalog.some(local => local.id === item.id))];
   const match = catalog.find(item => {
     if (sourceTrack?.title) {
-      const sameTitle = mediaText(item.title) === mediaText(sourceTrack.title), expectedArtist = mediaText(sourceTrack.artist), candidateArtist = mediaText(item.artist);
-      const sameArtist = !expectedArtist || candidateArtist === expectedArtist || candidateArtist.includes(expectedArtist) || expectedArtist.includes(candidateArtist);
+      const sameTitle = mediaTitleCore(item.title) === mediaTitleCore(sourceTrack.title), sameArtist = !mediaText(sourceTrack.artist) || mediaArtistMatches(sourceTrack.artist, item.artist);
       return sameTitle && sameArtist;
     }
     const normalizedTitle = normalizedText(item.title);
@@ -908,13 +929,13 @@ async function findTrackMedia(query, region = "global", sourceTrack = null) {
     if (!response.ok) throw new Error(`iTunes returned ${response.status}`);
     const data = await response.json();
     const results = Array.isArray(data?.results) ? data.results : [];
-    const requestedTitle = mediaText(sourceTrack?.title), requestedArtist = mediaText(sourceTrack?.artist), titleMatches = candidate => {
+    const requestedTitle = mediaTitleCore(sourceTrack?.title), requestedArtist = mediaArtistCore(sourceTrack?.artist), titleMatches = candidate => {
       const candidateTitle = mediaText(candidate?.trackName);
-      return requestedTitle ? candidateTitle === requestedTitle : mediaText(`${candidate?.trackName || ""} ${candidate?.artistName || ""}`) === mediaText(query);
+      const candidateTitleCore = mediaTitleCore(candidate?.trackName);
+      return requestedTitle ? candidateTitleCore === requestedTitle || candidateTitle === requestedTitle : mediaText(`${candidate?.trackName || ""} ${candidate?.artistName || ""}`) === mediaText(query);
     }, artistMatches = candidate => {
       if (!requestedArtist) return true;
-      const candidateArtist = mediaText(candidate?.artistName);
-      return candidateArtist === requestedArtist || candidateArtist.includes(requestedArtist) || requestedArtist.includes(candidateArtist);
+      return mediaArtistMatches(sourceTrack?.artist, candidate?.artistName);
     };
     // Jeżeli API nie ma dokładnie tego tytułu/wykonawcy, nie podstawiaj
     // losowego utworu o podobnej nazwie. Lepiej pokazać brak preview niż
