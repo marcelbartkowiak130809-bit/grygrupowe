@@ -53,7 +53,7 @@ import { friendRequestCount, friendsModal, showFriendNotification } from "./frie
 import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260902-14";
-import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260901-11";
+import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";

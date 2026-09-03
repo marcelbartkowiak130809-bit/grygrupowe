@@ -124,8 +124,8 @@ const ODDS_GROUPS = [
   { className:"gamepass", icon:"🎟️", label:"Losowy gamepass", chance:.1 },
 ];
 
-function updateButtonState(modal, clockOffset = 0) {
-  const button = modal.querySelector("#lucky-spin-start"), countdown = modal.querySelector("[data-lucky-countdown]"), now = Date.now() + clockOffset, status = luckySpinStatus(currentProfile, now);
+function updateButtonState(modal, profile = {}, clockOffset = 0) {
+  const button = modal.querySelector("#lucky-spin-start"), countdown = modal.querySelector("[data-lucky-countdown]"), now = Date.now() + clockOffset, status = luckySpinStatus(profile, now);
   const available = status.available;
   if (countdown) countdown.textContent = available
     ? (status.windowActive ? `Pozostało ${status.spinsRemaining} z ${status.spinLimit} spinów · reset za ${formatRemaining(status.nextSpinAt - now)}` : `Dostępne spiny: ${status.spinLimit}`)
@@ -160,8 +160,8 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
   const resultNode = modal.querySelector("[data-lucky-result]");
   const wheel = modal.querySelector("[data-lucky-wheel]");
   const button = modal.querySelector("#lucky-spin-start");
-  const timer = window.setInterval(() => updateButtonState(modal, clockOffset), 1000);
-  updateButtonState(modal, clockOffset);
+  const timer = window.setInterval(() => updateButtonState(modal, currentProfile, clockOffset), 1000);
+  updateButtonState(modal, currentProfile, clockOffset);
 
   let lastTouchActivationAt = 0;
   const startSpin = async event => {
@@ -170,7 +170,7 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
       lastTouchActivationAt = Date.now();
       event.preventDefault();
     }
-    if (modal.dataset.luckySpinning || !updateButtonState(modal, clockOffset)) return;
+    if (modal.dataset.luckySpinning || !updateButtonState(modal, currentProfile, clockOffset)) return;
     modal.dataset.luckySpinning = "true";
     button.disabled = true;
     button.textContent = "Losowanie…";
@@ -184,7 +184,7 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
       delete modal.dataset.luckySpinning;
       const rawError = String(response?.error || "Nie udało się wykonać spinu.");
       resultNode.textContent = rawError === "internal" ? "Serwer Lucky Spin wymaga ponownego wdrożenia. Spróbuj za chwilę." : rawError;
-      updateButtonState(modal, clockOffset);
+      updateButtonState(modal, currentProfile, clockOffset);
       return;
     }
 
@@ -207,7 +207,7 @@ export function luckySpinModal({ profile = {}, claimSpin, closeAction, onProfile
     resultNode.innerHTML = `Wygrałeś: <strong>${escapeHtml(rewardText(reward))}</strong>`;
     button.textContent = "Odebrano";
     delete modal.dataset.luckySpinning;
-    updateButtonState(modal, clockOffset);
+    updateButtonState(modal, currentProfile, clockOffset);
   };
   button.addEventListener("pointerup", event => {
     if (event.pointerType === "touch") void startSpin(event);
