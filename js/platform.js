@@ -1,7 +1,7 @@
 import { gamesList } from "./games.js?v=20260902-18";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260902-4";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260903-1";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20260901-7";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20260902-3";
@@ -53,7 +53,7 @@ export async function renderPokemonModes(root, actions, context = {}) {
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
-  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  bindGameCardInteractions(root);
   activatePublicAds(root, "platform");
 }
 
@@ -66,7 +66,7 @@ export async function renderBoardModes(root, actions, context = {}) {
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
-  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  bindGameCardInteractions(root);
   activatePublicAds(root, "platform");
 }
 
@@ -79,7 +79,7 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
-  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  bindGameCardInteractions(root);
   activatePublicAds(root, "platform");
 }
 
@@ -92,7 +92,7 @@ export async function renderMusicModes(root, actions, context = {}) {
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
-  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => card.querySelector("[data-play-mode]")?.click()));
+  bindGameCardInteractions(root);
   activatePublicAds(root, "platform");
 }
 
@@ -134,6 +134,16 @@ function bindMobileGameLayout(root) {
     try { localStorage.setItem(MOBILE_GAME_LAYOUT_STORAGE_KEY, value); } catch {}
   };
   root.querySelectorAll("[data-mobile-game-layout]").forEach(button => button.addEventListener("click", () => setLayout(button.dataset.mobileGameLayout)));
+}
+
+function bindGameCardInteractions(root) {
+  if (root.dataset.gameCardInteractionsBound === "true") return;
+  root.dataset.gameCardInteractionsBound = "true";
+  root.addEventListener("dblclick", event => {
+    const card = event.target.closest?.(".game-card");
+    if (!card || !root.contains(card)) return;
+    card.querySelector("[data-play-mode]")?.click();
+  });
 }
 
 function modeCountLabel(count) {
@@ -449,10 +459,7 @@ export async function renderPlatform(root, actions, context = {}) {
   root.querySelector("[data-open-minecraft]")?.addEventListener("click", actions.goMinecraftModes);
   root.querySelector("[data-music-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goMusicModes(); });
   root.querySelector("[data-open-music]")?.addEventListener("click", actions.goMusicModes);
-  root.querySelectorAll(".game-card").forEach(card => card.addEventListener("dblclick", () => {
-    const button = card.querySelector("[data-play-mode]");
-    if (button) actions.selectGame(button.dataset.playMode);
-  }));
+  bindGameCardInteractions(root);
   root.querySelector("#platform-join-form").addEventListener("submit", event => {
     event.preventDefault();
     actions.joinByCode(root.querySelector("#platform-room-code").value, root.querySelector("#platform-room-pass").value);

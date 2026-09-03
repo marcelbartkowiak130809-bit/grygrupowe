@@ -37,11 +37,11 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-2";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-23";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-8";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-15";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260903-1";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260902-19";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260902-8";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260903-1";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260901-7";
 import { Router } from "./router.js?v=20260901-3";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260902-13";
@@ -368,9 +368,7 @@ function repaintSongSpot() {
   if (Router.current === "game" && activeRoom()?.gameMode === "songspot") {
     const route = root.querySelector(".route-game");
     if (route?.isConnected) {
-      Audio.prepareTrackRerender();
-      stopSongSpotGameTimer();
-        renderSongSpotGame(route, { room:activeRoom(), accounts:state.accounts, currentUser:state.currentUser }, actions, { quiet:true });
+      renderSongSpotGame(route, { room:activeRoom(), accounts:state.accounts, currentUser:state.currentUser }, actions, { quiet:true });
       lastRenderedScreenSignature = currentScreenSignature();
       return;
     }

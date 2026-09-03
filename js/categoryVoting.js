@@ -28,6 +28,10 @@ const publicCategoryModes = categoryId => (CATEGORY_MODE_IDS[categoryId] || []).
 const releaseModeId = modeId => modeId === "popularnosc-solo" ? "popularnosc-hitow" : modeId;
 
 let cachedReleases;
+const CATEGORY_VIEW_CACHE_MS = 10000;
+let categoryViewCache = null;
+let categoryViewPending = null;
+let categoryViewRevision = 0;
 
 function safeLocalStorage() {
   try { return window.localStorage; } catch { return null; }
@@ -199,15 +203,31 @@ async function resolveMissingReleases(cycle, voterId, releases) {
 
 export async function loadCategoryVotingView(voterId = "anonymous", now = Date.now()) {
   const cycle = categoryVoteCycle(now);
-  let releases = readLocalReleases();
-  releases = await resolveMissingReleases(cycle, voterId, releases);
-  const categories = eligibleCategoryVotes(releases);
-  if (!categories.length) return { phase: "complete", cycleIndex: cycle.index, releases, categories: [], poll: null, pollState: null, phaseEndsAt: cycle.cycleEndsAt };
-  const poll = categoryVotePoll(cycle.index, categories, releases);
-  const pollStateRemote = await getRemotePollVotes(poll.id, voterId, poll.options.map(option => option.id));
-  const pollState = pollStateRemote ? { ...localPollState(poll, voterId, now), totals: pollStateRemote.totals, total: Object.values(pollStateRemote.totals || {}).reduce((sum, value) => sum + (Number(value) || 0), 0), vote: pollStateRemote.vote || localPollState(poll, voterId, now).vote, source: pollStateRemote.source } : localPollState(poll, voterId, now);
-  const release = releases[String(cycle.index)] || null;
-  return { phase: release || cycle.phase === "result" ? "result" : "voting", cycleIndex: cycle.index, releases, categories, poll, pollState, release, phaseEndsAt: cycle.phaseEndsAt, cycleEndsAt: cycle.cycleEndsAt };
+  const key = `${String(voterId)}:${cycle.index}:${cycle.phase}`;
+  const nowMs = Date.now();
+  if (categoryViewCache?.key === key && nowMs - categoryViewCache.at < CATEGORY_VIEW_CACHE_MS) return categoryViewCache.view;
+  if (categoryViewPending?.key === key) return categoryViewPending.promise;
+
+  const revision = categoryViewRevision;
+  const promise = (async () => {
+    let releases = readLocalReleases();
+    releases = await resolveMissingReleases(cycle, voterId, releases);
+    const categories = eligibleCategoryVotes(releases);
+    if (!categories.length) return { phase: "complete", cycleIndex: cycle.index, releases, categories: [], poll: null, pollState: null, phaseEndsAt: cycle.cycleEndsAt };
+    const poll = categoryVotePoll(cycle.index, categories, releases);
+    const pollStateRemote = await getRemotePollVotes(poll.id, voterId, poll.options.map(option => option.id));
+    const localState = localPollState(poll, voterId, now);
+    const pollState = pollStateRemote ? { ...localState, totals: pollStateRemote.totals, total: Object.values(pollStateRemote.totals || {}).reduce((sum, value) => sum + (Number(value) || 0), 0), vote: pollStateRemote.vote || localState.vote, source: pollStateRemote.source } : localState;
+    const release = releases[String(cycle.index)] || null;
+    return { phase: release || cycle.phase === "result" ? "result" : "voting", cycleIndex: cycle.index, releases, categories, poll, pollState, release, phaseEndsAt: cycle.phaseEndsAt, cycleEndsAt: cycle.cycleEndsAt };
+  })();
+  categoryViewPending = { key, promise };
+  promise.then(view => {
+    if (categoryViewRevision === revision) categoryViewCache = { key, at: Date.now(), view };
+  }, () => {}).finally(() => {
+    if (categoryViewPending?.promise === promise) categoryViewPending = null;
+  });
+  return promise;
 }
 
 export async function voteCategory(view, voterId, categoryId) {
@@ -215,6 +235,8 @@ export async function voteCategory(view, voterId, categoryId) {
   if (!view.poll.options.some(option => option.id === categoryId)) return false;
   const localAccepted = writeLocalVote(view.poll.id, voterId, categoryId);
   if (!localAccepted) return false;
+  categoryViewRevision += 1;
+  categoryViewCache = null;
   const remoteAccepted = await voteRemotePoll({ pollId: view.poll.id, voterId, optionId: categoryId, optionIds: view.poll.options.map(option => option.id) });
   return remoteAccepted || localAccepted;
 }

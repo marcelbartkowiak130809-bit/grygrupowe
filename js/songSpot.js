@@ -189,15 +189,17 @@ function bindSongSpotAnswerSuggestions(root, region) {
     matches = songSpotSuggestionTracks(input.value, region);
     suggestions.innerHTML = matches.map(songSpotSuggestionHtml).join("");
     input.setAttribute("aria-expanded", matches.length ? "true" : "false");
-    suggestions.querySelectorAll("[data-songspot-suggestion]").forEach(button => button.addEventListener("click", () => {
-      const track = matches[Number(button.dataset.songspotSuggestion)];
-      if (!track) return;
-      input.value = track.title;
-      close();
-      if (document.activeElement !== input) suppressFocusUpdate = true;
-      input.focus();
-    }));
   };
+  suggestions.addEventListener("click", event => {
+    const button = event.target.closest?.("[data-songspot-suggestion]");
+    if (!button || !suggestions.contains(button)) return;
+    const track = matches[Number(button.dataset.songspotSuggestion)];
+    if (!track) return;
+    input.value = track.title;
+    close();
+    if (document.activeElement !== input) suppressFocusUpdate = true;
+    input.focus();
+  });
   input.setAttribute("aria-autocomplete", "list");
   input.setAttribute("aria-expanded", "false");
   input.addEventListener("input", update);
@@ -464,12 +466,36 @@ function activeHtml(state, item) {
   return `<section class="${roundClass}"><div class="songspot-mystery-cover ${state.played && !state.playbackDone ? "is-playing" : ""}" aria-hidden="true"><span>♫</span><small>${escapeHtml(formatSeconds(duration))}</small></div><p class="eyebrow">FRAGMENT AUDIO · RUNDA ${Number(state.round || 1)}</p><h2>Jaki to utwór?</h2><p class="muted songspot-instruction">Próg to ${formatSeconds(duration)} łącznie od początku. Skip podczas odsłuchu dogrywa tylko brakujący fragment tego samego utworu.</p>${timeline(state)}<div class="songspot-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-play ${state.played ? "disabled" : ""}>▶ <span>${state.played ? "Fragment odsłuchany" : `Odtwórz ${formatSeconds(duration)}`}</span></button><span data-songspot-audio-state>${state.playbackDone ? "Odsłuch zakończony — zgaduj albo przejdź dalej." : state.played ? "Fragment jest odtwarzany…" : "Kliknij, aby rozpocząć odsłuch."}</span></div>${Audio.trackVolumeControlHtml({ compact: true })}<form class="songspot-answer-form" data-songspot-answer-form><label for="songspot-answer">Nazwa utworu</label><div><span class="songspot-answer-input-wrap"><input id="songspot-answer" name="answer" data-songspot-answer-input maxlength="140" autocomplete="off" placeholder="Wpisz tytuł piosenki…" required><span class="songspot-suggestions" data-songspot-suggestions role="listbox"></span></span><button class="primary" type="submit" ${ready ? "" : "disabled"}>Sprawdź</button></div><small>${ready ? "Możesz wpisać sam tytuł — wykonawca nie jest wymagany." : "Możesz wpisać tytuł już teraz — sprawdzenie będzie możliwe po odsłuchu."}</small></form><button class="ghost songspot-skip" type="button" data-songspot-skip>${nextLabel}</button></section>`;
 }
 
+function songSpotSoloViewKey(state) {
+  const result = state?.lastResult || {};
+  return [
+    state?.status,
+    state?.region,
+    state?.round,
+    state?.trackId,
+    state?.timeIndex,
+    state?.played ? 1 : 0,
+    state?.playbackDone ? 1 : 0,
+    state?.streak,
+    state?.best,
+    result.trackId,
+    result.correct ? 1 : 0,
+    result.skipped ? 1 : 0,
+    result.guess,
+    state?.lastError,
+  ].map(value => String(value ?? "")).join("|");
+}
+
 export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false } = {}) {
+  const state = SongSpotSoloEngine.get(playerId);
+  const item = trackById(state.trackId);
+  const viewKey = songSpotSoloViewKey(state);
+  const currentPage = root.querySelector(".songspot-page");
+  if (currentPage?.dataset.songspotViewKey === viewKey) return;
+
   stopSongSpotTimer();
   const previousAudio = root.querySelector("[data-songspot-audio]");
   const previousAudioKey = previousAudio?.dataset?.trackKey || "";
-  const state = SongSpotSoloEngine.get(playerId);
-  const item = trackById(state.trackId);
   const expected = { trackId: state.trackId };
   let content = header(state);
   if (state.status !== "idle") content += `${regionPicker(state)}<p class="songspot-region-note">Zmiana katalogu rozpocznie nową serię.</p>`;
@@ -477,7 +503,7 @@ export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false 
   else if (state.status === "playing" && item) content += activeHtml(state, item);
   else if (state.status === "playing") content += `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview. Przejdź do następnego czasu tego samego utworu.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
   else content += resultHtml(state);
-  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}"><section class="panel music-panel songspot-panel">${content}<p class="songspot-note">Czas jest łączny — np. 8 s oznacza osiem sekund od początku, a nie sumę wcześniejszych poziomów.</p></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}"><section class="panel music-panel songspot-panel">${content}<p class="songspot-note">Czas jest łączny — np. 8 s oznacza osiem sekund od początku, a nie sumę wcześniejszych poziomów.</p></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
   // A threshold change is not a new playback session. Reattach the existing
   // media element so a user gesture can continue it without autoplay.
   const nextAudio = root.querySelector("[data-songspot-audio]");
@@ -500,57 +526,74 @@ export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false 
 function bindSongSpotAudio(root, state, playerId) {
   const audio = root.querySelector("[data-songspot-audio]"), button = root.querySelector("[data-songspot-play]"), status = root.querySelector("[data-songspot-audio-state]"), input = root.querySelector("[data-songspot-answer-form] input"), submit = root.querySelector("[data-songspot-answer-form] button"), hint = root.querySelector("[data-songspot-answer-form] small");
   if (!audio || !button) return;
-  const duration = stageTimeFor(state);
   const key = audio.dataset.trackKey;
-  let playbackLocked = Boolean(SongSpotSoloEngine.get(playerId).played);
-  let rememberedPosition = Math.max(0, Number(SongSpotSoloEngine.get(playerId).playbackPosition) || 0);
+  const isNewBinding = !audio.__songSpotBinding;
+  const binding = audio.__songSpotBinding || { key, playerId, playbackLocked:false, rememberedPosition:0, eventsBound:false };
+  binding.key = key;
+  binding.playerId = playerId;
+  binding.root = root;
+  binding.state = state;
+  binding.duration = stageTimeFor(state);
+  binding.button = button;
+  binding.status = status;
+  binding.input = input;
+  binding.submit = submit;
+  binding.hint = hint;
+  binding.playbackLocked = binding.playbackLocked || Boolean(state.played);
+  binding.rememberedPosition = Math.max(binding.rememberedPosition, Number(state.playbackPosition) || 0);
+  audio.__songSpotBinding = binding;
   const updatePlayedUi = () => {
-    button.disabled = true;
-    const label = button.querySelector("span");
+    binding.button.disabled = true;
+    const label = binding.button.querySelector("span");
     if (label) label.textContent = "Fragment już odsłuchany";
   };
   const updateFinishedUi = () => {
     updatePlayedUi();
-    if (status) status.textContent = "Fragment już odsłuchany — wpisz odpowiedź.";
-    if (input) input.disabled = false;
-    if (submit) submit.disabled = false;
-    if (hint) hint.textContent = "Możesz wpisać sam tytuł — wykonawca nie jest wymagany.";
+    if (binding.status) binding.status.textContent = "Fragment już odsłuchany — wpisz odpowiedź.";
+    if (binding.input) binding.input.disabled = false;
+    if (binding.submit) binding.submit.disabled = false;
+    if (binding.hint) binding.hint.textContent = "Możesz wpisać sam tytuł — wykonawca nie jest wymagany.";
   };
   const finish = () => {
-    if (songSpotTimerKey !== key) return;
+    if (songSpotTimerKey !== binding.key) return;
+    const live = SongSpotSoloEngine.get(binding.playerId);
+    if (live.status !== "playing" || String(live.trackId) !== String(binding.state.trackId)) return;
+    const duration = binding.duration;
     // A timer callback can observe a few frames after the threshold. Snap
     // the media element back to the exact cumulative boundary before pausing,
     // so 0.1 s really remains 0.1 s for the next stage too.
     const position = Number(audio.currentTime);
     if (Number.isFinite(position) && position >= duration - 0.005) {
       try { audio.currentTime = duration; } catch {}
-      rememberedPosition = duration;
-      SongSpotSoloEngine.setPlaybackPosition(playerId, duration);
+      binding.rememberedPosition = duration;
+      SongSpotSoloEngine.setPlaybackPosition(binding.playerId, duration);
     } else {
-      SongSpotSoloEngine.updatePlaybackPosition(playerId, position);
+      SongSpotSoloEngine.updatePlaybackPosition(binding.playerId, position);
     }
     songSpotTimerKey = "";
     songSpotTimer = 0;
     try { audio.pause(); } catch {}
-    SongSpotSoloEngine.markPlaybackDone(playerId);
+    SongSpotSoloEngine.markPlaybackDone(binding.playerId);
     updateFinishedUi();
   };
   const scheduleFinish = () => {
-    if (songSpotTimerKey === key) return;
-    songSpotTimerKey = key;
-    const progress = root.querySelector("[data-songspot-solo-progress]");
-    const countdown = root.querySelector("[data-songspot-solo-countdown]");
+    if (songSpotTimerKey === binding.key) return;
+    songSpotTimerKey = binding.key;
     const tick = () => {
-      if (songSpotTimerKey !== key) return;
-      const live = SongSpotSoloEngine.get(playerId);
+      if (songSpotTimerKey !== binding.key) return;
+      const live = SongSpotSoloEngine.get(binding.playerId);
+      if (live.status !== "playing" || String(live.trackId) !== String(binding.state.trackId)) return;
+      const duration = binding.duration;
+      const progress = binding.root.querySelector("[data-songspot-solo-progress]");
+      const countdown = binding.root.querySelector("[data-songspot-solo-countdown]");
       const audioPosition = Number(audio.currentTime);
       const storedPosition = Number(live.playbackPosition) || 0;
       // HTMLMediaElement.currentTime is the source of truth. The persisted
       // value only bridges the tiny gap while a new audio element is loading.
       const position = Number.isFinite(audioPosition) ? Math.max(storedPosition, audioPosition) : storedPosition;
-      rememberedPosition = Math.max(rememberedPosition, position);
-      SongSpotSoloEngine.updatePlaybackPosition(playerId, rememberedPosition);
-      const bounded = Math.min(duration, rememberedPosition);
+      binding.rememberedPosition = Math.max(binding.rememberedPosition, position);
+      SongSpotSoloEngine.updatePlaybackPosition(binding.playerId, binding.rememberedPosition);
+      const bounded = Math.min(duration, binding.rememberedPosition);
       if (progress) progress.style.width = `${Math.min(100, (bounded / 15) * 100)}%`;
       if (countdown) countdown.textContent = bounded >= duration ? "0 s" : `pozostało ${formatSeconds(Math.max(0, duration - bounded))}`;
       if (bounded >= duration - 0.005) { finish(); return; }
@@ -559,56 +602,62 @@ function bindSongSpotAudio(root, state, playerId) {
     tick();
   };
   const started = () => {
-    playbackLocked = true;
-    SongSpotSoloEngine.markPlaybackStarted(playerId);
+    binding.playbackLocked = true;
+    SongSpotSoloEngine.markPlaybackStarted(binding.playerId);
     updatePlayedUi();
-    if (status) status.textContent = `Słuchaj uważnie — zatrzymam po ${formatSeconds(duration)}.`;
+    if (binding.status) binding.status.textContent = `Słuchaj uważnie — zatrzymam po ${formatSeconds(binding.duration)}.`;
     scheduleFinish();
   };
-  audio.addEventListener("play", started);
-  audio.addEventListener("ended", finish);
-  audio.addEventListener("error", () => {
-    if (songSpotTimerKey === key) {
-      songSpotTimerKey = "";
-      songSpotTimer = 0;
-    }
-    try { audio.pause(); } catch {}
-    SongSpotSoloEngine.markPlaybackDone(playerId);
-    updateFinishedUi();
-    if (status) status.textContent = "Nie udało się wczytać preview — możesz wpisać tytuł albo przejść dalej.";
-  });
-  button.addEventListener("click", () => {
-    if (playbackLocked || SongSpotSoloEngine.get(playerId).played) return;
-    // play() resolves asynchronously; reserve the fragment immediately so
-    // double clicks cannot queue multiple playback attempts.
-    playbackLocked = true;
-    SongSpotSoloEngine.markPlayed(playerId);
-    updatePlayedUi();
-    if (status) status.textContent = `Słuchaj uważnie — zatrzymam po ${formatSeconds(duration)}.`;
-    try { audio.currentTime = 0; } catch {}
-    Audio.bindTrackAudio(audio, key, { autoplay: false });
-    const playing = audio.play();
-    if (playing?.catch) playing.catch(() => {
-      SongSpotSoloEngine.markPlaybackDone(playerId);
+  if (!binding.eventsBound) {
+    audio.addEventListener("play", started);
+    audio.addEventListener("ended", finish);
+    audio.addEventListener("error", () => {
+      if (songSpotTimerKey === binding.key) {
+        songSpotTimerKey = "";
+        songSpotTimer = 0;
+      }
+      try { audio.pause(); } catch {}
+      SongSpotSoloEngine.markPlaybackDone(binding.playerId);
       updateFinishedUi();
-      if (status) status.textContent = "Przeglądarka zablokowała dźwięk — możesz wpisać tytuł albo przejść dalej.";
+      if (binding.status) binding.status.textContent = "Nie udało się wczytać preview — możesz wpisać tytuł albo przejść dalej.";
     });
-  });
-  const live = SongSpotSoloEngine.get(playerId);
-  const savedPlayback = Audio.getTrackPlayback(key);
-  const shouldResume = Boolean(live.played && !live.playbackDone && live.playbackStartedAt && Math.max(Number(live.playbackPosition) || 0, Number(savedPlayback?.time) || 0) < duration - 0.005);
-  if (!savedPlayback && Number(live.playbackPosition) > 0) {
-    try { audio.currentTime = Math.min(Number(live.playbackPosition), duration); } catch {}
+    binding.eventsBound = true;
   }
-  Audio.bindTrackAudio(audio, key, { autoplay: shouldResume });
-  if (shouldResume) {
-    // If the previous stage had already paused at its threshold, the audio
-    // manager correctly remembers `playing: false`; the next threshold must
-    // still resume the same track from that position.
+  if (button.__songSpotClickBound !== binding) {
+    button.__songSpotClickBound = binding;
+    button.addEventListener("click", () => {
+      if (binding.playbackLocked || SongSpotSoloEngine.get(binding.playerId).played) return;
+      // Reserve the fragment before play() resolves; double clicks must not
+      // queue multiple playback attempts.
+      binding.playbackLocked = true;
+      SongSpotSoloEngine.markPlayed(binding.playerId);
+      updatePlayedUi();
+      if (binding.status) binding.status.textContent = `Słuchaj uważnie — zatrzymam po ${formatSeconds(binding.duration)}.`;
+      try { audio.currentTime = 0; } catch {}
+      Audio.bindTrackAudio(audio, binding.key, { autoplay: false });
+      const playing = audio.play();
+      if (playing?.catch) playing.catch(() => {
+        SongSpotSoloEngine.markPlaybackDone(binding.playerId);
+        updateFinishedUi();
+        if (binding.status) binding.status.textContent = "Przeglądarka zablokowała dźwięk — możesz wpisać tytuł albo przejść dalej.";
+      });
+    });
+  }
+  const live = SongSpotSoloEngine.get(binding.playerId);
+  const savedPlayback = Audio.getTrackPlayback(binding.key);
+  const shouldResume = Boolean(live.played && !live.playbackDone && live.playbackStartedAt && Math.max(Number(live.playbackPosition) || 0, Number(savedPlayback?.time) || 0) < binding.duration - 0.005);
+  if (!savedPlayback && Number(live.playbackPosition) > 0) {
+    try { audio.currentTime = Math.min(Number(live.playbackPosition), binding.duration); } catch {}
+  }
+  Audio.bindTrackAudio(audio, binding.key, { autoplay: isNewBinding && shouldResume });
+  if (isNewBinding && shouldResume) {
+    // A reload can restore a run which was already playing. Do this only for
+    // the first binding; stage changes reuse the same audio element and the
+    // skip action is responsible for continuing it.
     let resumed = false;
     const resume = () => {
-      if (resumed || songSpotTimerKey === key) return;
-      const current = SongSpotSoloEngine.get(playerId);
+      if (resumed || songSpotTimerKey === binding.key) return;
+      const current = SongSpotSoloEngine.get(binding.playerId);
       if (current.status !== "playing" || current.playbackDone) return;
       resumed = true;
       const attempt = audio.play();
@@ -1008,8 +1057,33 @@ function bindSongSpotGameAudio(root, game) {
   window.clearTimeout(songSpotGameAudioTimer);
 }
 
+function songSpotGameViewKey(game, currentUser) {
+  return JSON.stringify({
+    currentUser,
+    phase: game?.phase,
+    phaseEndsAt: game?.phaseEndsAt,
+    round: game?.round,
+    totalRounds: game?.totalRounds,
+    timeIndex: game?.timeIndex,
+    trackId: game?.track?.id,
+    players: game?.players,
+    answers: game?.answers,
+    skipVotes: game?.skipVotes,
+    scores: game?.scores,
+    roundResult: game?.roundResult,
+    roundResults: game?.roundResults,
+    winners: game?.winners,
+    finished: game?.finished,
+  });
+}
+
 export function renderSongSpotGame(root, { room, accounts, currentUser }, actions, { quiet = false } = {}) {
   const game = room.game, phase = game.phase, expected = { phase, phaseEndsAt: game.phaseEndsAt, round: game.round };
+  const viewKey = songSpotGameViewKey(game, currentUser);
+  const currentPage = root.querySelector(".songspot-group-page");
+  if (currentPage?.dataset.songspotViewKey === viewKey) return;
+  Audio.prepareTrackRerender();
+  stopSongSpotGameTimer();
   const settings = sanitizeSongSpotSettings({ ...room.settings, enabledTimes: game.enabledTimes, region: game.region, answerTime: game.answerTime, rounds: game.totalRounds });
   const times = groupTimes(game, settings), currentTimeIndex = groupStageIndex(game, settings), currentSeconds = times[currentTimeIndex] || times[0] || 0.1;
   const skipVotes = Object.keys(game.skipVotes || {}).length;
@@ -1021,7 +1095,7 @@ export function renderSongSpotGame(root, { room, accounts, currentUser }, action
     content += `<section class="songspot-group-round"><div class="songspot-group-mystery-cover"><span>♫</span><small>${formatSeconds(currentSeconds)}</small></div><p class="eyebrow">${phase === "preview" ? "WSPÓLNY FRAGMENT" : "FRAGMENT ZAKOŃCZONY"}</p><h2>${phase === "preview" ? "Słuchajcie i zgadujcie" : "Wpisz swoją odpowiedź"}</h2><p class="muted">${phase === "preview" ? `Aktualny próg to ${formatSeconds(currentSeconds)} łącznie od początku. Wspólny Skip dogrywa tylko brakujący fragment tego samego utworu.` : `Odsłuch się skończył — zostało jeszcze ${settings.answerTime} sekund na wpisanie odpowiedzi.`}</p>${groupTimeline(game)}<div class="songspot-group-play-row">${audio}<button class="songspot-play-button" type="button" data-songspot-group-play ${phase !== "preview" ? "disabled" : ""}>▶ <span>${phase === "preview" ? `Odtwórz ${formatSeconds(currentSeconds)}` : "Fragment zakończony"}</span></button><small>${phase === "preview" ? `Każdy gracz uruchamia u siebie fragment ${formatSeconds(currentSeconds)}.` : "Nie można już ponownie odsłuchać utworu."}</small></div>${phase === "preview" ? `<button class="ghost songspot-group-skip" type="button" data-songspot-group-skip data-songspot-skip-voted="${skipVoted ? "1" : "0"}" ${skipVoted ? "disabled" : ""}>${skipVoted ? `Przejście zapisane (${skipVotes}/${array(game.players).length})` : `${nextTimeLabel} (${skipVotes}/${array(game.players).length})`}</button><small class="songspot-skip-hint">Wymagana zgoda wszystkich graczy · kolejny etap kontynuuje ten sam utwór od bieżącej pozycji</small>` : ""}${Audio.trackVolumeControlHtml({ compact:true })}<form class="songspot-group-answer-form" data-songspot-group-answer><label for="songspot-group-answer">Tytuł piosenki</label><div><span class="songspot-answer-input-wrap"><input id="songspot-group-answer" data-songspot-answer-input maxlength="140" autocomplete="off" placeholder="Wpisz tytuł…" ${answer ? "disabled" : ""} required><span class="songspot-suggestions" data-songspot-suggestions role="listbox"></span></span><button class="primary" type="submit" ${answer ? "disabled" : ""}>${answer ? "Odpowiedź zapisana" : "Zgaduję"}</button></div><small>${answer ? `Twój wynik: ${answer.correct ? `+${Number(answer.points || 0)} pkt` : "0 pkt"}. Czekamy na resztę.` : "Liczy się tytuł utworu — wykonawca nie jest wymagany."}</small></form>${groupAnswerStatus(game, accounts, currentUser)}<p class="songspot-group-countdown" data-songspot-countdown></p></section>`;
   } else if (phase === "roundResult") content += groupRoundResult(game, accounts);
   else content += groupSummary(game, accounts);
-  root.innerHTML = `<main class="page music-page songspot-group-page${quiet ? " songspot-quiet-update" : " enter"}"><section class="panel music-panel songspot-group-panel">${content}</section><button id="songspot-group-leave" class="ghost">Wyjdź z pokoju</button></main>`;
+  root.innerHTML = `<main class="page music-page songspot-group-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}"><section class="panel music-panel songspot-group-panel">${content}</section><button id="songspot-group-leave" class="ghost">Wyjdź z pokoju</button></main>`;
   root.querySelector("[data-songspot-group-answer]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.songSpotGroupAnswer?.(input?.value || "", expected); });
   root.querySelector("[data-songspot-group-skip]")?.addEventListener("click", event => { event.currentTarget.disabled = true; actions.songSpotGroupSkip?.(expected); });
   root.querySelector("#songspot-next")?.addEventListener("click", actions.songSpotGroupNext);

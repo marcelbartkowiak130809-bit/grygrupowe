@@ -1568,6 +1568,137 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .songspot-play-button:hover:not(:disabled){transform:none!important}
 .songspot-round:not(.is-played) .songspot-play-button,.songspot-group-round .songspot-play-button:not(:disabled){animation:none!important}
 
+/* SongSpot compact pass: one calm card, one stable audio element and less
+   vertical chrome. This is scoped to SongSpot so the desktop layout of the
+   remaining music modes stays unchanged. */
+.songspot-page,.songspot-group-page{width:min(calc(100% - 1rem),1120px);min-height:calc(100dvh - 96px);padding-bottom:8px}
+.songspot-page .songspot-panel,.songspot-group-page .songspot-group-panel{padding:clamp(14px,1.8vw,24px);background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(24,31,61,.95));box-shadow:0 18px 48px rgba(2,6,23,.24)}
+.songspot-page .songspot-panel:before,.songspot-group-page .songspot-group-panel:before{display:none}
+.songspot-page .songspot-title-row{margin-bottom:10px}
+.songspot-page .songspot-title-row h1{font-size:clamp(32px,4.6vw,56px)}
+.songspot-page .songspot-title-row p{font-size:13px}
+.songspot-page>.songspot-panel>.songspot-region-picker{grid-template-columns:repeat(2,minmax(0,1fr));max-width:540px;margin:0 auto 4px}
+.songspot-page>.songspot-panel>.songspot-region-note{margin:3px auto 5px}
+.songspot-page>.songspot-panel>.songspot-region-picker .music-region-option{min-height:43px;padding:7px 10px}
+.songspot-page>.songspot-panel>.songspot-region-picker .music-region-option small{display:none}
+.songspot-page>.songspot-panel>.songspot-region-picker .music-region-option b{font-size:11px}
+.songspot-start{max-width:780px;margin:8px auto 0;padding:18px 22px;border-radius:20px}
+.songspot-start h2{font-size:clamp(23px,3.2vw,32px)}
+.songspot-start>p:not(.eyebrow){font-size:12px;line-height:1.38}
+.songspot-icon{width:50px;height:50px;margin-bottom:8px;border-radius:16px;font-size:25px}
+.songspot-start .songspot-region-picker{margin-top:12px}
+.songspot-stage-list{margin-top:12px;padding:10px 12px}
+.songspot-best{margin:12px auto;padding:9px 12px}
+.songspot-note{margin-top:8px;font-size:10px}
+
+.songspot-page .songspot-round{display:grid;grid-template-columns:92px minmax(0,1fr);grid-template-areas:"cover eyebrow" "cover title" "cover instruction" "cover timeline" "cover play" "cover volume" "cover form" "cover skip";align-items:center;column-gap:18px;max-width:980px;margin:7px auto 0;padding:15px 18px;border-radius:20px;text-align:left}
+.songspot-page .songspot-round>.songspot-mystery-cover{grid-area:cover;width:88px;height:88px;margin:0;align-self:start;border-radius:19px;transform:rotate(-2deg);box-shadow:0 0 26px rgba(6,182,212,.14)}
+.songspot-page .songspot-round>.songspot-mystery-cover span{font-size:39px}
+.songspot-page .songspot-round>.songspot-mystery-cover small{font-size:9px}
+.songspot-page .songspot-round>.eyebrow{grid-area:eyebrow}
+.songspot-page .songspot-round>h2{grid-area:title;margin:2px 0 1px;font-size:clamp(24px,3vw,34px)}
+.songspot-page .songspot-round>.songspot-instruction{grid-area:instruction;max-width:none;margin:0;font-size:11px;line-height:1.35}
+.songspot-page .songspot-round>.songspot-timeline{grid-area:timeline;width:100%;margin:8px 0 5px}
+.songspot-page .songspot-round .songspot-timeline-caption{margin-top:22px;font-size:10px}
+.songspot-page .songspot-round>.songspot-play-row{grid-area:play;display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:4px 0 0}
+.songspot-page .songspot-round .songspot-play-button{width:78px;height:78px;flex:none;font-size:23px}
+.songspot-page .songspot-round .songspot-play-button:before{inset:6px}
+.songspot-page .songspot-round .songspot-play-button span{font-size:9px}
+.songspot-page .songspot-round .songspot-play-row>span{text-align:left;font-size:10px}
+.songspot-page .songspot-round>.music-track-volume{grid-area:volume;max-width:360px;margin:5px 0 0!important}
+.songspot-page .songspot-round>.songspot-answer-form{grid-area:form;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 9px;max-width:none;margin:8px 0 0}
+.songspot-page .songspot-round>.songspot-answer-form label{grid-column:1/-1;margin:0;font-size:11px}
+.songspot-page .songspot-round>.songspot-answer-form>div{grid-column:1/-1;display:flex;gap:7px}
+.songspot-page .songspot-round>.songspot-answer-form small{grid-column:1/-1;margin:0;font-size:9px}
+.songspot-page .songspot-round>.songspot-answer-form button{min-width:100px}
+.songspot-page .songspot-round>.songspot-skip{grid-area:skip;justify-self:start;margin:6px 0 0;min-width:0;min-height:35px;padding:7px 12px;font-size:11px}
+.songspot-page .songspot-result{max-width:780px;margin:8px auto 0;padding:18px 22px;border-radius:20px}
+.songspot-page .songspot-result-mark{width:48px;height:48px;margin-bottom:6px;font-size:25px}
+.songspot-page .songspot-result h2{margin:2px 0 10px;font-size:clamp(25px,4vw,36px)}
+.songspot-page .songspot-result-actions{margin-top:12px}
+
+.songspot-group-page .songspot-group-panel{padding:clamp(14px,1.8vw,24px)}
+.songspot-group-page .songspot-game-title-row{margin-bottom:10px}
+.songspot-group-page .songspot-game-title-row h1{font-size:clamp(32px,4.6vw,56px)}
+.songspot-group-page .songspot-game-title-row p{font-size:13px}
+.songspot-group-page .songspot-group-round{display:grid;grid-template-columns:92px minmax(0,1fr);grid-template-areas:"cover eyebrow" "cover title" "cover instruction" "cover timeline" "cover play" "cover skip" "cover hint" "cover volume" "cover form" "cover status";align-items:center;column-gap:18px;max-width:980px;margin:7px auto 0;padding:15px 18px;border-radius:20px;text-align:left}
+.songspot-group-page .songspot-group-mystery-cover{grid-area:cover;width:88px;height:88px;margin:0;align-self:start;border-radius:19px;box-shadow:0 0 26px rgba(6,182,212,.14);transform:rotate(-2deg)}
+.songspot-group-page .songspot-group-mystery-cover span{font-size:39px}
+.songspot-group-page .songspot-group-mystery-cover small{font-size:9px}
+.songspot-group-page .songspot-group-round>.eyebrow{grid-area:eyebrow}
+.songspot-group-page .songspot-group-round>h2{grid-area:title;margin:2px 0 1px;font-size:clamp(24px,3vw,34px)}
+.songspot-group-page .songspot-group-round>p.muted{grid-area:instruction;margin:0;font-size:11px;line-height:1.35}
+.songspot-group-page .songspot-group-timeline{grid-area:timeline;width:100%;margin:8px 0 5px}
+.songspot-group-page .songspot-group-timeline-labels{margin-top:22px;font-size:10px}
+.songspot-group-page .songspot-group-play-row{grid-area:play;display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:4px 0 0}
+.songspot-group-page .songspot-group-play-row .songspot-play-button{width:78px;height:78px;flex:none;font-size:23px}
+.songspot-group-page .songspot-group-play-row>small{text-align:left;font-size:10px}
+.songspot-group-page .songspot-group-skip{grid-area:skip;justify-self:start;margin:6px 0 0;min-height:35px;padding:7px 12px;font-size:11px}
+.songspot-group-page .songspot-skip-hint{grid-area:hint;margin:2px 0 0;text-align:left;font-size:9px}
+.songspot-group-page .songspot-group-round>.music-track-volume{grid-area:volume;max-width:360px;margin:5px 0 0!important}
+.songspot-group-page .songspot-group-answer-form{grid-area:form;max-width:none;margin:8px 0 0}
+.songspot-group-page .songspot-group-answer-form label{margin-bottom:4px;font-size:11px}
+.songspot-group-page .songspot-group-answer-form>div{display:flex;gap:7px}
+.songspot-group-page .songspot-group-answer-form small{margin-top:4px;font-size:9px}
+.songspot-group-page .songspot-group-answer-form button{min-width:100px}
+.songspot-group-page .songspot-player-status{grid-area:status;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));max-width:none;margin:8px 0 0}
+.songspot-group-page .songspot-player-chip{padding:6px 8px}
+.songspot-group-page .songspot-group-countdown{display:none!important}
+.songspot-group-page .songspot-group-result,.songspot-group-page .songspot-group-summary{max-width:880px;margin:7px auto 0;padding:18px 22px;border-radius:20px}
+.songspot-group-page .songspot-history{margin-top:14px;padding-top:12px}
+
+@media(max-width:720px){
+  .songspot-page,.songspot-group-page{width:100%;min-height:auto;padding-inline:7px;padding-bottom:4px}
+  .songspot-page .songspot-panel,.songspot-group-page .songspot-group-panel{padding:10px 9px;border-radius:18px}
+  .songspot-page .songspot-title-row,.songspot-group-page .songspot-game-title-row{gap:7px;margin-bottom:7px}
+  .songspot-page .songspot-title-row h1,.songspot-group-page .songspot-game-title-row h1{font-size:clamp(29px,9vw,42px)}
+  .songspot-page .songspot-title-row p,.songspot-group-page .songspot-game-title-row p{font-size:11px}
+  .songspot-page>.songspot-panel>.songspot-region-picker{gap:5px;margin-bottom:3px}
+  .songspot-page>.songspot-panel>.songspot-region-picker .music-region-option{min-height:37px;padding:5px 7px}
+  .songspot-page>.songspot-panel>.songspot-region-picker .music-region-option b{font-size:10px}
+  .songspot-page .songspot-round,.songspot-group-page .songspot-group-round{display:grid;grid-template-columns:1fr;grid-template-areas:"cover" "eyebrow" "title" "instruction" "timeline" "play" "volume" "form" "skip" "hint" "status";gap:0;margin-top:4px;padding:11px 10px;border-radius:17px;text-align:center}
+  .songspot-page .songspot-round>.songspot-mystery-cover,.songspot-group-page .songspot-group-mystery-cover{width:66px;height:66px;margin:0 auto 3px;align-self:auto;border-radius:15px}
+  .songspot-page .songspot-round>.songspot-mystery-cover span,.songspot-group-page .songspot-group-mystery-cover span{font-size:30px}
+  .songspot-page .songspot-round>.eyebrow,.songspot-group-page .songspot-group-round>.eyebrow{margin:0}
+  .songspot-page .songspot-round>h2,.songspot-group-page .songspot-group-round>h2{margin:1px 0 2px;font-size:24px}
+  .songspot-page .songspot-round>.songspot-instruction,.songspot-group-page .songspot-group-round>p.muted{display:-webkit-box;max-width:100%;margin:0 auto;overflow:hidden;font-size:10px;line-height:1.28;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .songspot-page .songspot-round>.songspot-timeline,.songspot-group-page .songspot-group-timeline{margin:7px 0 3px}
+  .songspot-page .songspot-round .songspot-timeline-caption,.songspot-group-page .songspot-group-timeline-labels{margin-top:20px;font-size:9px}
+  .songspot-page .songspot-round>.songspot-play-row,.songspot-group-page .songspot-group-play-row{justify-content:center;margin:4px 0 0}
+  .songspot-page .songspot-round .songspot-play-button,.songspot-group-page .songspot-group-play-row .songspot-play-button{width:72px;height:72px;font-size:21px}
+  .songspot-page .songspot-round .songspot-play-row>span,.songspot-group-page .songspot-group-play-row>small{font-size:9px;text-align:left}
+  .songspot-page .songspot-round>.music-track-volume,.songspot-group-page .songspot-group-round>.music-track-volume{max-width:100%;margin:4px 0 0!important;text-align:left}
+  .songspot-page .songspot-round>.songspot-answer-form,.songspot-group-page .songspot-group-round>.songspot-group-answer-form{margin:7px 0 0;text-align:left}
+  .songspot-page .songspot-round>.songspot-answer-form label,.songspot-group-page .songspot-group-answer-form label{font-size:10px}
+  .songspot-page .songspot-round>.songspot-answer-form>div,.songspot-group-page .songspot-group-answer-form>div{flex-direction:row;align-items:stretch}
+  .songspot-page .songspot-round>.songspot-answer-form input,.songspot-group-page .songspot-group-answer-form input{min-width:0;min-height:38px}
+  .songspot-page .songspot-round>.songspot-answer-form button,.songspot-group-page .songspot-group-answer-form button{width:auto;min-width:88px;min-height:38px;padding:7px 9px;font-size:11px}
+  .songspot-page .songspot-round>.songspot-answer-form small,.songspot-group-page .songspot-group-answer-form small{font-size:8px}
+  .songspot-page .songspot-round>.songspot-skip,.songspot-group-page .songspot-group-skip{justify-self:center;margin:6px 0 0;min-height:33px;padding:7px 12px;font-size:10px}
+  .songspot-group-page .songspot-skip-hint{grid-area:hint;margin:3px 0 0;text-align:center;font-size:8px}
+  .songspot-group-page .songspot-player-status{grid-area:status;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:7px}
+  .songspot-group-page .songspot-player-chip{padding:5px 6px}
+  .songspot-group-page .songspot-group-result,.songspot-group-page .songspot-group-summary,.songspot-page .songspot-result{padding:14px 11px;border-radius:17px}
+  .songspot-page .songspot-result-actions{align-items:stretch;flex-direction:column;margin-top:10px}
+  .songspot-page .songspot-result-actions>*{width:100%}
+  .songspot-start{padding:13px 12px}
+  .songspot-start>p:not(.eyebrow){font-size:10px}
+  .songspot-start .songspot-region-picker{margin-top:8px}
+  .songspot-start .songspot-stage-list{margin-top:8px}
+  .songspot-best{margin:8px auto;padding:7px 9px}
+  .songspot-note{margin-top:5px;font-size:8px}
+}
+
+@media(max-width:420px){
+  .songspot-page,.songspot-group-page{padding-inline:4px}
+  .songspot-page .songspot-panel,.songspot-group-page .songspot-group-panel{padding:8px 7px}
+  .songspot-page .songspot-round,.songspot-group-page .songspot-group-round{padding:9px 8px}
+  .songspot-page .songspot-round>.songspot-mystery-cover,.songspot-group-page .songspot-group-mystery-cover{width:58px;height:58px}
+  .songspot-page .songspot-round .songspot-play-button,.songspot-group-page .songspot-group-play-row .songspot-play-button{width:66px;height:66px;font-size:19px}
+  .songspot-page .songspot-round>.songspot-answer-form>div,.songspot-group-page .songspot-group-answer-form>div{gap:5px}
+  .songspot-page .songspot-round>.songspot-answer-form button,.songspot-group-page .songspot-group-answer-form button{min-width:78px;padding-inline:6px;font-size:10px}
+}
+
 /* Dokończ tekst: gracz może zakończyć własne zgadywanie bez udawania pustej
    odpowiedzi. W lobby przycisk nie omija rundy — zapisuje poddanie i czeka na
    pozostałych graczy. */
@@ -1577,3 +1708,20 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .lyrics-answer-saved.is-surrendered{border-color:rgba(251,191,36,.32);background:rgba(120,53,15,.12)}
 .lyrics-answer-saved.is-surrendered>span{background:#b45309}
 .light-theme .lyrics-answer-actions .lyrics-surrender{border-color:rgba(180,83,9,.3);color:#92400e}
+
+/* Performance: defer layout/paint for cards that are below the fold. */
+.games-grid>.game-card{content-visibility:auto;contain-intrinsic-size:0 355px}
+
+@media(max-width:720px){
+  html{-webkit-text-size-adjust:100%}
+  .page,.panel,.games-section,.game-card{min-width:0;max-width:100%}
+  .games-grid>.game-card{contain-intrinsic-size:0 270px}
+  .bg-orb{width:220px;height:220px;filter:blur(44px);opacity:.2}
+  .topbar{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .games-section{overflow:hidden}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .bg-orb{filter:none;opacity:.12}
+  .games-grid>.game-card{content-visibility:visible}
+}
