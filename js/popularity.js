@@ -1,7 +1,8 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260822-1";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-1";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
+import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit2";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -12,11 +13,57 @@ const clamp = (value, min, max, fallback) => {
 const deadline = seconds => Date.now() + Math.max(1, Number(seconds) || 10) * 1000;
 const cleanMetric = value => ["listeners", "artistListeners"].includes(value) ? value : "views";
 const normalizedText = value => String(value || "").trim().toLocaleLowerCase("pl-PL");
-const POPULARITY_SNAPSHOT_DATE = "02.09.2026";
+const POPULARITY_SNAPSHOT_DATE = "03.09.2026";
+const snapshotKey = value => String(value || "").toLocaleLowerCase("en-US").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "").trim();
+const auditedViewsFor = (title, artist) => popularityViewSnapshots.get(snapshotKey(`${title} ${artist}`));
 
-// Dane są celowo zapisane jako snapshot. Dzięki temu każdy gracz dostaje
-// identyczne porównanie, nawet gdy publiczne API jest chwilowo niedostępne.
-// Wartości są orientacyjne i służą rozgrywce, a nie jako ranking platformy.
+// Ręczne korekty dla utworów, których liczba wyświetleń została sprawdzona
+// poza lokalnym katalogiem. Generator poniżej ma tylko wartości zastępcze,
+// więc konkretne snapshoty zawsze powinny mieć pierwszeństwo.
+const verifiedViewOverrides = new Map([
+  ["don't stop the music rihanna", 811168380],
+  ["diamonds rihanna", 2612346360],
+  ["umbrella rihanna", 1284391105],
+  ["only girl (in the world) rihanna", 1040571172],
+  ["we found love (feat. calvin harris) rihanna", 1200867640],
+  ["love on the brain rihanna", 366488675],
+  ["stay (feat. mikky ekko) rihanna", 1232952326],
+  ["rude boy rihanna", 738658874],
+  ["what's my name? (feat. drake) rihanna", 1157243609],
+  ["take a bow rihanna", 873420292],
+  ["disturbia rihanna", 265126477],
+  ["s&m rihanna", 279964841],
+  ["russian roulette rihanna", 307428127],
+  ["kiss it better rihanna", 264035125],
+  ["needed me rihanna", 341517658],
+  ["pour it up rihanna", 548887544],
+  ["man down rihanna", 1050593153],
+  ["california king bed rihanna", 350784719],
+  ["where have you been rihanna", 863775134],
+  ["animal katseye", 80833916],
+  ["touch katseye", 294728102],
+  ["gnarly katseye", 225980909],
+  ["gabriela katseye", 92109466],
+  ["debut katseye", 85015279],
+  ["gameboy katseye", 190023866],
+  ["mean girls katseye", 10086271],
+  ["juicy doja cat", 394008378],
+  ["rules doja cat", 233125324],
+  ["like that (feat. gucci mane) doja cat", 335645902],
+  ["bottom bitch doja cat", 53504363],
+  ["freaky deaky tyga & doja cat", 108110992],
+  ["mooo! doja cat", 147103246],
+  ["get into it (yuh) doja cat", 115038138],
+  ["tia tamera (feat. rico nasty) doja cat", 131436898],
+  ["attention doja cat", 37537551],
+  ["demons doja cat", 41409912],
+  ["celebrity skin doja cat", 760175],
+  ["freak doja cat", 82247564],
+  ["motive ariana grande & doja cat", 66317157],
+]);
+
+// Te rekordy są bazą metadanych i bezpiecznym fallbackiem dla innych metryk.
+// W trybie wyświetleń pierwszeństwo mają snapshoty z audytu YouTube poniżej.
 const snapshotRows = [
   ["blinding-lights", "Blinding Lights", "The Weeknd", 4300000000, 108000000],
   ["shape-of-you", "Shape of You", "Ed Sheeran", 6200000000, 82000000],
@@ -503,6 +550,7 @@ const snapshotRows = [
 
 const polishMusicCatalog = musicCatalogForRegion("polish");
 const polishTrackKeys = new Set(polishMusicCatalog.map(track => normalizedText(`${track.title} ${track.artist}`)));
+const musicMediaByKey = new Map([...musicCatalogForRegion("global"), ...polishMusicCatalog].map(track => [normalizedText(`${track.title} ${track.artist}`), track]));
 function splitArtistCredits(value) {
   const source = String(value || "").trim();
   if (!source) return [];
@@ -511,10 +559,15 @@ function splitArtistCredits(value) {
 }
 const polishArtistKeys = new Set(polishMusicCatalog.flatMap(track => splitArtistCredits(track.artist)).map(normalizedText));
 const hasPolishArtistCredit = artist => splitArtistCredits(artist).some(item => polishArtistKeys.has(normalizedText(item)));
-const basePopularityTracks = snapshotRows.map(([id, title, artist, views, listeners, region]) => ({
-  id, title, artist, views, listeners, region:region === "polish" || polishTrackKeys.has(normalizedText(`${title} ${artist}`)) || hasPolishArtistCredit(artist) ? "polish" : "global",
-  query: `${title} ${artist}`,
-}));
+const basePopularityTracks = snapshotRows.map(([id, title, artist, views, listeners, region]) => {
+  const trackKey = normalizedText(`${title} ${artist}`), catalogTrack = musicMediaByKey.get(trackKey), auditedViews = auditedViewsFor(title, artist), manualViews = verifiedViewOverrides.get(trackKey);
+  return {
+    id, title, artist, views:auditedViews ?? manualViews ?? views, viewsVerified:auditedViews != null || manualViews != null, listeners, region:region === "polish" || polishTrackKeys.has(trackKey) || hasPolishArtistCredit(artist) ? "polish" : "global",
+    query: `${title} ${artist}`,
+    coverUrl:catalogTrack?.coverUrl || "",
+    previewUrl:catalogTrack?.previewUrl || "",
+  };
+});
 const existingPopularityKeys = new Set(basePopularityTracks.map(track => normalizedText(`${track.title} ${track.artist}`)));
 const extraGlobalPopularityTracks = musicCatalogForRegion("global")
   .filter(track => String(track.id || "").startsWith("itunes-") && !existingPopularityKeys.has(normalizedText(`${track.title} ${track.artist}`)))
@@ -522,23 +575,29 @@ const extraGlobalPopularityTracks = musicCatalogForRegion("global")
     id:`global-pop-${index}`,
     title:track.title,
     artist:track.artist,
-    // To ten sam stały, lokalny snapshot używany przez grę — nie udaje
-    // bieżącego odczytu statystyk z zewnętrznego API.
-    views:Math.max(18000000, 1500000000 - index * 9100000),
+    // Pozycje bez audytu pozostają w katalogu dla innych metryk, ale nie są
+    // losowane w porównaniu wyświetleń (viewsVerified === false).
+    views:auditedViewsFor(track.title, track.artist) ?? verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? Math.max(18000000, 1500000000 - index * 9100000),
+    viewsVerified:auditedViewsFor(track.title, track.artist) != null || verifiedViewOverrides.has(normalizedText(`${track.title} ${track.artist}`)),
     listeners:Math.max(900000, 88000000 - index * 470000),
     region:"global",
     query:`${track.title} ${track.artist}`,
+    coverUrl:track.coverUrl || "",
+    previewUrl:track.previewUrl || "",
   }));
 const extraPolishPopularityTracks = polishMusicCatalog.filter(track => !existingPopularityKeys.has(normalizedText(`${track.title} ${track.artist}`))).map((track, index) => ({
   id:`polish-pop-${index}`,
   title:track.title,
   artist:track.artist,
-  // Statystyki są stałym, lokalnym snapshotem do gry; ich proporcje są
-  // celowo wiarygodne, ale nie udają bieżącego odczytu z API.
-  views:Math.max(12000000, 138000000 - index * 870000),
+  // To tylko fallback dla metryk innych niż wyświetlenia. Niezweryfikowane
+  // pozycje są odfiltrowane z trybu wyświetleń.
+  views:auditedViewsFor(track.title, track.artist) ?? verifiedViewOverrides.get(normalizedText(`${track.title} ${track.artist}`)) ?? Math.max(12000000, 138000000 - index * 870000),
+  viewsVerified:auditedViewsFor(track.title, track.artist) != null || verifiedViewOverrides.has(normalizedText(`${track.title} ${track.artist}`)),
   listeners:Math.max(180000, 4200000 - index * 22000),
   region:"polish",
   query:`${track.title} ${track.artist}`,
+  coverUrl:track.coverUrl || "",
+  previewUrl:track.previewUrl || "",
 }));
 export const popularityTracks = [...basePopularityTracks, ...extraGlobalPopularityTracks, ...extraPolishPopularityTracks];
 
@@ -558,7 +617,7 @@ popularityTracks.forEach(track => {
       ...current,
       listeners:Math.max(Number(current.listeners) || 0, Number(track.listeners) || 0),
       region:current.region === "polish" || track.region === "polish" ? "polish" : "global",
-      topTrack:Number(track.views) > Number(current.topTrack?.views) ? artistTrack : current.topTrack,
+      topTrack:track.viewsVerified === true && (current.topTrack?.viewsVerified !== true || Number(track.views) > Number(current.topTrack?.views)) ? artistTrack : current.topTrack,
     });
   });
 });
@@ -580,7 +639,7 @@ export function sanitizePopularitySettings(settings = {}) {
 }
 
 function trackById(id) { return popularityTracks.find(track => track.id === id) || null; }
-function cloneTrack(track) { return track ? { id:track.id, title:track.title, artist:track.artist, views:track.views, listeners:track.listeners, region:track.region || "global" } : null; }
+function cloneTrack(track) { return track ? { id:track.id, title:track.title, artist:track.artist, views:track.views, viewsVerified:track.viewsVerified === true, listeners:track.listeners, region:track.region || "global", coverUrl:track.coverUrl || "", previewUrl:track.previewUrl || "" } : null; }
 function cloneCompetitionItem(item, metric = "views") {
   if (!item) return null;
   if (cleanMetric(metric) === "artistListeners") return { id:item.id, artist:item.artist, listeners:item.listeners, region:item.region || item.topTrack?.region || "global", topTrack:cloneTrack(item.topTrack), query:item.query || trackQuery(item.topTrack) };
@@ -590,12 +649,13 @@ function trackQuery(track) { return String(track?.query || `${track?.title || ""
 function pairKey(pair) { return array(pair).map(track => track?.id || "").sort().join("|"); }
 function nextPair(usedIds = [], metric = "views", region = "global") {
   const selectedRegion = region === "polish" ? "polish" : "global";
-  const pool = (cleanMetric(metric) === "artistListeners" ? popularityArtists : popularityTracks).filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion);
+  const metricName = cleanMetric(metric);
+  const pool = (metricName === "artistListeners" ? popularityArtists : popularityTracks).filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion && (metricName !== "views" || item.viewsVerified === true));
   const used = new Set(array(usedIds));
   let available = pool.filter(track => !used.has(track.id));
   if (available.length < 2) available = pool;
   const left = available[Math.floor(Math.random() * available.length)] || pool[0] || popularityTracks[0];
-  const rightPool = available.filter(track => track.id !== left.id && (cleanMetric(metric) !== "listeners" || track.artist !== left.artist));
+  const rightPool = available.filter(track => track.id !== left.id && (metricName !== "listeners" || track.artist !== left.artist));
   const safeRightPool = rightPool.length ? rightPool : available.filter(track => track.id !== left.id);
   const right = safeRightPool[Math.floor(Math.random() * safeRightPool.length)] || pool[1] || pool[0] || popularityTracks[1];
   return [cloneCompetitionItem(left, metric), cloneCompetitionItem(right, metric)];
@@ -708,8 +768,8 @@ function metricQuantity(metric) { return cleanMetric(metric) === "views" ? "wyś
 function metricEntity(metric) { return isArtistMetric(metric) ? "artysta" : "piosenka"; }
 function popularityPoolSize(metric, region = "global") {
   const selectedRegion = region === "polish" ? "polish" : "global";
-  const pool = isArtistMetric(metric) ? popularityArtists : popularityTracks;
-  return Math.max(2, pool.filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion).length);
+  const metricName = cleanMetric(metric), pool = isArtistMetric(metric) ? popularityArtists : popularityTracks;
+  return Math.max(2, pool.filter(item => (item.region || item.topTrack?.region || "global") === selectedRegion && (metricName !== "views" || item.viewsVerified === true)).length);
 }
 function popularityItemName(item, metric) { return isArtistMetric(metric) ? item?.artist || "artysta" : item?.title || "piosenka"; }
 function formatPopularityExact(value, metric) {
@@ -724,7 +784,7 @@ function metricQuestion(metric, reversed = false) {
   const question = isArtistMetric(metric) ? "Który artysta ma" : cleanMetric(metric) === "listeners" ? "Która piosenka ma" : "Która piosenka ma";
   return `${question} ${reversed ? "mniej" : "więcej"} ${metricQuantity(metric)}?`;
 }
-function metricSource(metric) { return isArtistMetric(metric) ? `Spotify · miesięczni słuchacze artystów · dane z ${POPULARITY_SNAPSHOT_DATE}` : cleanMetric(metric) === "listeners" ? "Spotify · snapshot słuchaczy piosenek" : "YouTube · snapshot wyświetleń"; }
+function metricSource(metric) { return isArtistMetric(metric) ? `Spotify · miesięczni słuchacze artystów · dane z ${POPULARITY_SNAPSHOT_DATE}` : cleanMetric(metric) === "listeners" ? "Spotify · snapshot słuchaczy piosenek" : `YouTube · oficjalne snapshoty wyświetleń · dane z ${POPULARITY_SNAPSHOT_DATE}`; }
 function hashColor(value) {
   let hash = 0;
   for (const char of String(value || "")) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
@@ -799,11 +859,19 @@ function schedulePopularityTimer(game, actions, expected) {
 }
 
 const mediaCache = new Map();
-function localTrackMedia(query, region = "global") {
+function mediaText(value) {
+  return String(value || "").toLocaleLowerCase("pl-PL").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/[^a-z0-9]+/g, "").trim();
+}
+function localTrackMedia(query, region = "global", sourceTrack = null) {
   const normalizedQuery = normalizedText(query);
   const regionCatalog = musicCatalogForRegion(region);
   const catalog = [...regionCatalog, ...musicPreviewCatalog.filter(item => !regionCatalog.some(local => local.id === item.id))];
   const match = catalog.find(item => {
+    if (sourceTrack?.title) {
+      const sameTitle = mediaText(item.title) === mediaText(sourceTrack.title), expectedArtist = mediaText(sourceTrack.artist), candidateArtist = mediaText(item.artist);
+      const sameArtist = !expectedArtist || candidateArtist === expectedArtist || candidateArtist.includes(expectedArtist) || expectedArtist.includes(candidateArtist);
+      return sameTitle && sameArtist;
+    }
     const normalizedTitle = normalizedText(item.title);
     const normalizedFull = normalizedText(`${item.title} ${item.artist}`);
     return normalizedFull === normalizedQuery || (normalizedTitle.length >= 4 && normalizedQuery.startsWith(`${normalizedTitle} `));
@@ -813,11 +881,20 @@ function localTrackMedia(query, region = "global") {
     previewUrl: match.previewUrl || "",
   } : { artworkUrl:"", previewUrl:"" };
 }
-async function findTrackMedia(query, region = "global") {
+async function findTrackMedia(query, region = "global", sourceTrack = null) {
   const value = normalizedText(query);
-  const fallback = localTrackMedia(query, region);
+  const direct = sourceTrack?.previewUrl || sourceTrack?.coverUrl ? {
+    artworkUrl:sourceTrack?.coverUrl?.replace(/100x100/g, "600x600") || sourceTrack?.coverUrl || "",
+    previewUrl:sourceTrack?.previewUrl || "",
+  } : { artworkUrl:"", previewUrl:"" };
+  const local = localTrackMedia(query, region, sourceTrack);
+  const fallback = direct.previewUrl || direct.artworkUrl ? { ...local, ...direct } : local;
   if (!value || typeof fetch !== "function") return fallback;
   const cacheKey = `${region}:${value}`;
+  if (direct.previewUrl) {
+    mediaCache.set(cacheKey, fallback);
+    return fallback;
+  }
   if (mediaCache.has(cacheKey)) return mediaCache.get(cacheKey);
   // Katalog utworów zawiera już zweryfikowane previewy. Nie nadpisuj ich
   // przypadkowym pierwszym wynikiem wyszukiwarki iTunes.
@@ -831,8 +908,18 @@ async function findTrackMedia(query, region = "global") {
     if (!response.ok) throw new Error(`iTunes returned ${response.status}`);
     const data = await response.json();
     const results = Array.isArray(data?.results) ? data.results : [];
-    const exact = results.find(candidate => normalizedText(`${candidate?.trackName || ""} ${candidate?.artistName || ""}`) === value || normalizedText(`${candidate?.artistName || ""} ${candidate?.trackName || ""}`) === value);
-    const item = exact || results.find(candidate => candidate?.previewUrl && normalizedText(candidate?.trackName || "").length >= 4 && value.includes(normalizedText(candidate.trackName))) || results.find(candidate => candidate?.previewUrl || candidate?.artworkUrl100) || {};
+    const requestedTitle = mediaText(sourceTrack?.title), requestedArtist = mediaText(sourceTrack?.artist), titleMatches = candidate => {
+      const candidateTitle = mediaText(candidate?.trackName);
+      return requestedTitle ? candidateTitle === requestedTitle : mediaText(`${candidate?.trackName || ""} ${candidate?.artistName || ""}`) === mediaText(query);
+    }, artistMatches = candidate => {
+      if (!requestedArtist) return true;
+      const candidateArtist = mediaText(candidate?.artistName);
+      return candidateArtist === requestedArtist || candidateArtist.includes(requestedArtist) || requestedArtist.includes(candidateArtist);
+    };
+    // Jeżeli API nie ma dokładnie tego tytułu/wykonawcy, nie podstawiaj
+    // losowego utworu o podobnej nazwie. Lepiej pokazać brak preview niż
+    // zagrać piosenkę innego artysty.
+    const item = results.find(candidate => candidate?.previewUrl && titleMatches(candidate) && artistMatches(candidate)) || (sourceTrack ? {} : results.find(candidate => candidate?.previewUrl && titleMatches(candidate)) || {});
     const media = {
       artworkUrl: item?.artworkUrl100?.replace(/100x100/g, "600x600") || fallback.artworkUrl,
       previewUrl: item?.previewUrl || fallback.previewUrl,
@@ -929,7 +1016,8 @@ function hydratePopularityArtwork(root, tracks, metric = "views") {
   const previewGeneration = popularityPreviewGeneration;
   array(tracks).filter(Boolean).forEach(track => {
     const artistMode = isArtistMetric(metric), trackRegion = track.region === "polish" ? "polish" : "global", artworkQuery = artistMode ? normalizedText(track.artist) : trackQuery(track?.topTrack || track), previewQuery = trackQuery(artistMode ? track.topTrack || track : track);
-    const artworkMedia = artistMode ? findArtistMedia(track.artist) : findTrackMedia(artworkQuery, trackRegion);
+    const sourceTrack = track?.topTrack || track;
+    const artworkMedia = artistMode ? findArtistMedia(track.artist) : findTrackMedia(artworkQuery, trackRegion, sourceTrack);
     artworkMedia.then(media => {
       if (("isConnected" in root && !root.isConnected) || dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
       [...root.querySelectorAll("[data-artwork-query]")].filter(element => element.dataset.artworkQuery === artworkQuery).forEach(element => {
@@ -940,7 +1028,7 @@ function hydratePopularityArtwork(root, tracks, metric = "views") {
         }
       });
     });
-    if (artistMode) findTrackMedia(previewQuery, trackRegion).then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
+    if (artistMode) findTrackMedia(previewQuery, trackRegion, sourceTrack).then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
     else artworkMedia.then(media => updatePopularityPreview(root, previewQuery, media, metric, token, previewGeneration));
   });
 }

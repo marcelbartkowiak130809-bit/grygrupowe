@@ -34,9 +34,9 @@ import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260831-4";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260831-4";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260831-5";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-1";
-import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-22";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-1";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-2";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260902-23";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260903-8";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260902-15";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
@@ -1604,11 +1604,11 @@ function repairGameStateForPlayers(room) {
     const metric = validMetrics.has(game.metric) ? game.metric : popularitySettings.metric;
     const region = game.region === "polish" || game.region === "global" ? game.region : popularitySettings.region;
     const artistMode = metric === "artistListeners";
-    const knownItems = (artistMode ? popularityArtists : popularityTracks).filter(item => (item.region || item.topTrack?.region || "global") === region);
+    const knownItems = (artistMode ? popularityArtists : popularityTracks).filter(item => (item.region || item.topTrack?.region || "global") === region && (metric !== "views" || item.viewsVerified === true));
     const knownItemIds = new Set(knownItems.map(item => item.id));
     const clonePopularityItem = item => artistMode
-      ? { id:item.id, artist:item.artist, listeners:item.listeners, region:item.region || item.topTrack?.region || region, topTrack:{ id:item.topTrack.id, title:item.topTrack.title, artist:item.topTrack.artist, views:item.topTrack.views, listeners:item.topTrack.listeners, region:item.topTrack.region || region } }
-      : { id:item.id, title:item.title, artist:item.artist, views:item.views, listeners:item.listeners, region:item.region || region };
+      ? { id:item.id, artist:item.artist, listeners:item.listeners, region:item.region || item.topTrack?.region || region, topTrack:{ id:item.topTrack.id, title:item.topTrack.title, artist:item.topTrack.artist, views:item.topTrack.views, viewsVerified:item.topTrack.viewsVerified === true, listeners:item.topTrack.listeners, region:item.topTrack.region || region } }
+      : { id:item.id, title:item.title, artist:item.artist, views:item.views, viewsVerified:item.viewsVerified === true, listeners:item.listeners, region:item.region || region };
     const normalizePopularityPair = (rawPair, fallback = knownItems.slice(0, 2)) => {
       const sources = Array.isArray(rawPair) ? rawPair.slice(0, 2).map(raw => knownItems.find(item => item.id === raw?.id)).filter(Boolean) : [];
       const selected = sources.length === 2 && new Set(sources.map(item => item.id)).size === 2 ? sources : fallback;

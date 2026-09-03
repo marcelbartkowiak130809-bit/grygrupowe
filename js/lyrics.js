@@ -1,5 +1,5 @@
 import { avatarHtml, escapeHtml } from "./utils.js?v=20260901-3";
-import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-1";
+import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
 import { Audio } from "./audio.js?v=20260902-1";
 
 export const lyricsDefaults = { rounds: 5, audioSeconds: 8, answerTime: 30, category: "all", region: "global" };
@@ -106,6 +106,16 @@ const lyricSeeds = [
   ["lyrics-abracadabra", "fallback-83", "Abracadabra, amor-ooh-na-na", ["all", "pop", "dance", "viral", "2020s", "2025"]],
   ["lyrics-always-remember-us-this-way", "fallback-84", "When the sun goes down", ["all", "pop", "romantic", "sad", "2010s", "2018"]],
   ["lyrics-telephone", "fallback-85", "Stop callin', stop callin'", ["all", "pop", "dance", "party", "2000s", "2010"]],
+  ["lyrics-selena-same-old-love", "itunes-1440839641", "I'm so sick of that same old love", ["all", "pop", "breakup", "2010s", "2015"]],
+  ["lyrics-selena-love-you-like-a-love-song", "itunes-1440619218", "I, I love you like a love song, baby", ["all", "pop", "romantic", "2010s", "2011"]],
+  ["lyrics-selena-lose-you-to-love-me", "itunes-1506661712", "I saw the signs and I ignored it", ["all", "pop", "breakup", "sad", "2020s", "2019"]],
+  ["lyrics-selena-hands-to-myself", "itunes-1440839635", "Can't keep my hands to myself", ["all", "pop", "romantic", "2010s", "2015"]],
+  ["lyrics-selena-heart-wants", "itunes-1440502294", "The heart wants what it wants", ["all", "pop", "sad", "2010s", "2014"]],
+  ["lyrics-selena-back-to-you", "itunes-1381915969", "Took you like a shot", ["all", "pop", "romantic", "2010s", "2018"]],
+  ["lyrics-selena-wolves", "itunes-1445055017", "I've been running through the jungle", ["all", "pop", "dance", "dark", "2010s", "2017"]],
+  ["lyrics-selena-it-aint-me", "itunes-1205671288", "I had a dream", ["all", "pop", "dance", "sad", "2010s", "2017"]],
+  ["lyrics-selena-rare", "itunes-1488413283", "Baby, you've got nothing to prove", ["all", "pop", "confidence", "2020s", "2020"]],
+  ["lyrics-selena-single-soon", "itunes-1703517719", "Should I do it on the phone", ["all", "pop", "party", "2020s", "2023"]],
   ["lyrics-pl-ale-jazz", "polish-6", "Ale jazz, ale jazz", ["all", "polish", "pop", "party"]],
   ["lyrics-pl-szampan", "polish-7", "A ja mam w sobie szampan", ["all", "polish", "pop", "party"]],
   ["lyrics-pl-melodia", "polish-8", "To jest moja melodia", ["all", "polish", "pop"]],
@@ -227,6 +237,16 @@ const lyricPairs = {
   "lyrics-abracadabra": { previousLine: "It's time to cast your spell on the night", answer: "Abracadabra, amor-ooh-na-na" },
   "lyrics-always-remember-us-this-way": { previousLine: "Every time we say goodbye, baby, it hurts", answer: "When the sun goes down" },
   "lyrics-telephone": { previousLine: "Hello, hello, baby", answer: "You called, I can't hear a thing" },
+  "lyrics-selena-same-old-love": { previousLine: "I'm so sick of that same old love", answer: "That shit, it tears me up" },
+  "lyrics-selena-love-you-like-a-love-song": { previousLine: "I, I love you like a love song, baby", answer: "And I keep hitting repeat" },
+  "lyrics-selena-lose-you-to-love-me": { previousLine: "I saw the signs and I ignored it", answer: "Rose colored glasses all distorted" },
+  "lyrics-selena-hands-to-myself": { previousLine: "Can't keep my hands to myself", answer: "No matter how hard I'm trying to" },
+  "lyrics-selena-heart-wants": { previousLine: "The heart wants what it wants", answer: "There's no logic to your love" },
+  "lyrics-selena-back-to-you": { previousLine: "Took you like a shot", answer: "Thought that I could chase you with a cold evening" },
+  "lyrics-selena-wolves": { previousLine: "I've been running through the jungle", answer: "I've been running with the wolves" },
+  "lyrics-selena-it-aint-me": { previousLine: "I had a dream", answer: "We were sipping whiskey neat" },
+  "lyrics-selena-rare": { previousLine: "Baby, you've got nothing to prove", answer: "You can be yourself" },
+  "lyrics-selena-single-soon": { previousLine: "Should I do it on the phone", answer: "Should I leave a little note" },
   "lyrics-pl-ale-jazz": { previousLine: "Kawka na wynos dzisiaj towarzyszy mi", answer: "To cappucino niesłodzone, będę fit" },
   "lyrics-pl-szampan": { previousLine: "Pod górkę mam", answer: "Ale na to się pisałam, tak czy siak" },
   "lyrics-pl-melodia": { previousLine: "Musiałam uciec stąd na jakiś czas", answer: "Wróciłam nie taka sama" },

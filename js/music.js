@@ -4,6 +4,7 @@ import { polishTrackData } from "./polishMusic.js?v=20260903-1";
 import { extendedGlobalMusicTracks } from "./extendedMusic.js?v=20260902-1";
 import { extendedGlobalMusicTracks2 } from "./extendedGlobalMusic2.js?v=20260902-4";
 import { curatedArtistMusicTracks } from "./curatedArtistMusic.js?v=20260902-3";
+import { selenaGomezMusicTracks } from "./selenaGomezMusic.js?v=20260903-1";
 
 export const musicDuelDefaults = { rounds: 5, selectionTime: 30, votingTime: 25, category: "all", region: "global" };
 export const musicArenaDefaults = { rounds: 10, selectionTime: 30, votingTime: 25, category: "all", region: "global" };
@@ -296,7 +297,7 @@ const globalMusicPreviewCatalog = fallbackTrackNames.map(([title, artist], index
   const [coverUrl = "", previewUrl = ""] = fallbackTrackAssets[index] || [];
   return { id:`fallback-${index}`, title, artist, region:"global", coverUrl, previewUrl, externalUrl:`https://open.spotify.com/search/${encodeURIComponent(`${artist} ${title}`)}`, provider:"preview" };
 });
-export const musicPreviewCatalog = [...globalMusicPreviewCatalog, ...extendedGlobalMusicTracks, ...extendedGlobalMusicTracks2, ...curatedArtistMusicTracks, ...polishTrackData];
+export const musicPreviewCatalog = [...globalMusicPreviewCatalog, ...extendedGlobalMusicTracks, ...extendedGlobalMusicTracks2, ...curatedArtistMusicTracks, ...selenaGomezMusicTracks, ...polishTrackData];
 const fallbackTracks = musicPreviewCatalog;
 
 const polishArtistNames = new Set(polishTrackData.map(track => clean(track.artist, 100).toLocaleLowerCase("pl-PL")));
