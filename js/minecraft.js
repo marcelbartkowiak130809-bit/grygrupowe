@@ -1,4 +1,4 @@
-import { avatarHtml, escapeHtml, normalizeAnswer } from "./utils.js?v=20260822-1";
+import { avatarHtml, escapeHtml, normalizeAnswer, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 // The Explorer page itself returns HTML for a file URL. The assets subdomain
@@ -297,7 +297,7 @@ function winnerData(game) {
   const players = safePlayers(game.players);
   const scores = scoresFor(players, game.scores);
   const max = Math.max(0, ...players.map(uid => scores[uid]));
-  const winners = players.filter(uid => scores[uid] === max);
+  const winners = max > 0 ? players.filter(uid => scores[uid] === max) : [];
   return { scores, max, winners, ranking: players.map(uid => ({ uid, score: scores[uid] })).sort((a, b) => b.score - a.score) };
 }
 
@@ -459,7 +459,7 @@ function scoreStrip(game, accounts) {
 function roundRanking(game, accounts) {
   const ranking = safePlayers(game.players).map(uid => ({ uid, score: Number(game.roundResult?.scoreSnapshot?.[uid] ?? game.scores?.[uid] ?? 0) || 0 }))
     .sort((a, b) => b.score - a.score || safePlayers(game.players).indexOf(a.uid) - safePlayers(game.players).indexOf(b.uid));
-  return `<div class="minecraft-round-ranking"><p class="eyebrow">RANKING PO RUNDZIE</p>${ranking.map((entry, index) => `<div class="minecraft-round-ranking-row"><span>#${index + 1}</span>${avatarHtml(accounts[entry.uid] || { nick: "Gracz" }, "minecraft-mini-avatar", { disableIdle: true })}<b>${escapeHtml(accounts[entry.uid]?.nick || "Gracz")}</b><strong>${entry.score} pkt</strong>${Number(game.roundResult?.points?.[entry.uid] || 0) > 0 ? `<em class="minecraft-earned">+${Number(game.roundResult.points[entry.uid])}</em>` : ""}</div>`).join("")}</div>`;
+    return `<div class="minecraft-round-ranking"><p class="eyebrow">RANKING PO RUNDZIE</p>${ranking.map((entry, index) => `<div class="minecraft-round-ranking-row"><span>#${index + 1}</span>${resultPlayerMiniHtml(accounts[entry.uid] || { nick: "Gracz" }, Number(game.roundResult?.points?.[entry.uid] || 0) > 0 ? "win" : "lose")}<strong>${entry.score} pkt</strong>${Number(game.roundResult?.points?.[entry.uid] || 0) > 0 ? `<em class="minecraft-earned">+${Number(game.roundResult.points[entry.uid])}</em>` : ""}</div>`).join("")}</div>`;
 }
 
 function timerMarkup(game) {
@@ -517,17 +517,17 @@ function questionCard(game, currentUser, accounts) {
 function revealCard(game, accounts) {
   const result = game.roundResult || {};
   if (result.kind === "truth") {
-    return `<section class="minecraft-reveal-card is-truth"><p class="eyebrow">UJAWNIENIE FAKTU</p><strong class="minecraft-big-reveal">${result.correctAnswer ? "✅ PRAWDA" : "❌ FAŁSZ"}</strong><p class="minecraft-explanation">${escapeHtml(result.explanation || "Sprawdzone w grze.")}</p><div class="minecraft-round-answers">${safePlayers(game.players).map(uid => `<span>${avatarHtml(accounts[uid] || { nick: "Gracz" }, "minecraft-mini-avatar", { disableIdle: true })}<b>${escapeHtml(accounts[uid]?.nick || "Gracz")}</b><small>${result.answers?.[uid]?.correct ? "+1 pkt" : "nie trafił"}</small></span>`).join("")}</div>${roundRanking(game, accounts)}</section>`;
+    return `<section class="minecraft-reveal-card is-truth"><p class="eyebrow">UJAWNIENIE FAKTU</p><strong class="minecraft-big-reveal">${result.correctAnswer ? "✅ PRAWDA" : "❌ FAŁSZ"}</strong><p class="minecraft-explanation">${escapeHtml(result.explanation || "Sprawdzone w grze.")}</p><div class="minecraft-round-answers">${safePlayers(game.players).map(uid => `<span>${resultPlayerMiniHtml(accounts[uid] || { nick: "Gracz" }, result.answers?.[uid]?.correct ? "win" : "lose")}<small>${result.answers?.[uid]?.correct ? "+1 pkt" : "nie trafił"}</small></span>`).join("")}</div>${roundRanking(game, accounts)}</section>`;
   }
   const answerOwner = accounts[result.uid] || { nick: "Gracz" };
   const expected = result.expected || game.question?.answer || "—";
-  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">ODPOWIEDŹ ${result.correct ? "TRAFIONA" : "NIE TRAFIŁA"}</p>${game.mode === "minecraft-mob" ? imageHtml(game.question?.icon, "Rozwiązany mob", "minecraft-reveal-icon") : ""}<div class="minecraft-reveal-owner">${avatarHtml(answerOwner, "minecraft-reveal-avatar", { disableIdle: true })}<b>${escapeHtml(answerOwner.nick || "Gracz")}</b></div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : "❌"} ${escapeHtml(result.answer || "Brak odpowiedzi")}</strong><p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
+  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">ODPOWIEDŹ ${result.correct ? "TRAFIONA" : "NIE TRAFIŁA"}</p>${game.mode === "minecraft-mob" ? imageHtml(game.question?.icon, "Rozwiązany mob", "minecraft-reveal-icon") : ""}<div class="minecraft-reveal-owner">${resultPlayerMiniHtml(answerOwner, result.correct ? "win" : "lose")}</div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : "❌"} ${escapeHtml(result.answer || "Brak odpowiedzi")}</strong><p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
 }
 
 function finalResults(game, accounts, room, currentUser) {
   const result = game.result || winnerData(game);
   const isHost = room?.hostUid === currentUser;
-  return `<section class="minecraft-final-card"><div class="minecraft-final-icon">🏆</div><p class="eyebrow">MINECRAFT · KONIEC GRY</p><h2>${result.winners?.length > 1 ? "REMIS!" : "ZWYCIĘZCA"}</h2><p class="minecraft-final-winner">${result.winners?.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(" · ") || "Ekipa"}</p><div class="minecraft-leaderboard">${list(result.ranking).map((entry, index) => `<div class="minecraft-leaderboard-row"><span>#${index + 1}</span>${avatarHtml(accounts[entry.uid] || { nick: "Gracz" }, "minecraft-mini-avatar", { disableIdle: true })}<b>${escapeHtml(accounts[entry.uid]?.nick || "Gracz")}</b><strong>${entry.score} pkt</strong></div>`).join("")}</div><p class="muted">Wynik zapisany. Możecie od razu powtórzyć ten tryb albo wrócić do lobby.</p><div class="minecraft-result-actions"><button class="primary" id="minecraft-play-again" ${isHost ? "" : "disabled"}>🔄 Zagraj ponownie</button><button class="ghost" id="minecraft-exit">Wyjdź z pokoju</button></div>${isHost ? "" : '<small class="minecraft-result-note">Tylko host uruchamia kolejną grę.</small>'}</section>`;
+  return `<section class="minecraft-final-card"><div class="minecraft-final-icon">🏆</div><p class="eyebrow">MINECRAFT · KONIEC GRY</p><h2>${result.winners?.length > 1 ? "REMIS!" : result.winners?.length ? "ZWYCIĘZCA" : "KONIEC GRY"}</h2><p class="minecraft-final-winner">${result.winners?.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(" · ") || "Brak zwycięzcy"}</p><div class="minecraft-leaderboard">${list(result.ranking).map((entry, index) => `<div class="minecraft-leaderboard-row"><span>#${index + 1}</span>${resultPlayerMiniHtml(accounts[entry.uid] || { nick: "Gracz" }, result.winners?.includes(entry.uid) ? "win" : "lose")}<strong>${entry.score} pkt</strong></div>`).join("")}</div><p class="muted">Wynik zapisany. Możecie od razu powtórzyć ten tryb albo wrócić do lobby.</p><div class="minecraft-result-actions"><button class="primary" id="minecraft-play-again" ${isHost ? "" : "disabled"}>🔄 Zagraj ponownie</button><button class="ghost" id="minecraft-exit">Wyjdź z pokoju</button></div>${isHost ? "" : '<small class="minecraft-result-note">Tylko host uruchamia kolejną grę.</small>'}</section>`;
 }
 
 export function renderMinecraftGame(root, { room, accounts, currentUser }, actions) {

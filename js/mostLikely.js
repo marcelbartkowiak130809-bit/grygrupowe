@@ -1,5 +1,5 @@
 import { mostLikelyCategories, mostLikelyPrompts } from "../content/kto-najpredzej/prompts.js?v=20260604-2";
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
@@ -173,10 +173,11 @@ export function renderMostLikelyGame(root, { room, accounts, currentUser }, acti
   else if (g.phase === "voting") body = `<section class="panel center phase-card"><p class="eyebrow">RUNDA ${g.round}/${g.questions.length}</p><h1>${escapeHtml(g.questions[g.round - 1])}</h1>${timer(g)}${currentUser in g.votes ? `<div class="waiting-state"><span class="waiting-pulse">✓</span><h3>Głos zapisany</h3><p>Czekamy na pozostałych graczy. Wynik rundy pojawi się automatycznie.</p></div>` : `<div class="vote-grid">${room.players.map(uid => `<button data-most-vote="${uid}" ${!s.allowSelfVote && uid === currentUser ? "disabled" : ""}>${mini(accounts[uid])}</button>`).join("")}</div>`}</section>`;
   else if (g.phase === "roundResult") {
     const result = g.results.at(-1);
-    body = `<section class="panel center phase-card"><p class="eyebrow">WYNIK RUNDY</p><h1>${escapeHtml(result.question)}</h1><div class="result-player-grid">${room.players.map(uid => `<article class="${result.winners.includes(uid) ? "winner-card" : ""}">${mini(accounts[uid])}<strong>${result.counts[uid] || 0} gł.</strong></article>`).join("")}</div>${s.showVoteDetails ? `<div class="vote-details">${Object.entries(result.votes).map(([uid, target]) => `<span>${escapeHtml(accounts[uid]?.nick)} → ${escapeHtml(accounts[target]?.nick)}</span>`).join("")}</div>` : ""}<button class="primary" id="most-next">Następne pytanie</button></section>`;
+    body = `<section class="panel center phase-card"><p class="eyebrow">WYNIK RUNDY</p><h1>${escapeHtml(result.question)}</h1><div class="result-player-grid">${room.players.map(uid => `<article class="${result.winners.includes(uid) ? "winner-card" : ""}">${resultPlayerMiniHtml(accounts[uid], result.winners.includes(uid) ? "win" : "lose")}<strong>${result.counts[uid] || 0} gł.</strong></article>`).join("")}</div>${s.showVoteDetails ? `<div class="vote-details">${Object.entries(result.votes).map(([uid, target]) => `<span>${escapeHtml(accounts[uid]?.nick)} → ${escapeHtml(accounts[target]?.nick)}</span>`).join("")}</div>` : ""}<button class="primary" id="most-next">Następne pytanie</button></section>`;
   } else {
     const ranking = Object.entries(g.totals).sort((a, b) => b[1] - a[1]);
-    body = `<section class="panel center phase-card"><p class="eyebrow">PODSUMOWANIE</p><h1>Najczęściej wybierani</h1><p class="muted">Ekipa przemówiła. Nie przyjmujemy reklamacji.</p><div class="final-ranking">${ranking.map(([uid, score], index) => `<article><b>#${index + 1}</b>${mini(accounts[uid])}<strong>${score} razy</strong></article>`).join("")}</div><p class="money-pop">Każdy uczestnik otrzymuje +25$, zwycięzcy rund po +10$.</p><button class="primary" id="most-lobby">Wróć do lobby</button></section>`;
+    const topScore = Math.max(0, ...ranking.map(([, score]) => Number(score) || 0));
+    body = `<section class="panel center phase-card"><p class="eyebrow">PODSUMOWANIE</p><h1>Najczęściej wybierani</h1><p class="muted">Ekipa przemówiła. Nie przyjmujemy reklamacji.</p><div class="final-ranking">${ranking.map(([uid, score], index) => `<article><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], Number(score) === topScore && topScore > 0 ? "win" : "lose")}<strong>${score} razy</strong></article>`).join("")}</div><p class="money-pop">Każdy uczestnik otrzymuje +25$, zwycięzcy rund po +10$.</p><button class="primary" id="most-lobby">Wróć do lobby</button></section>`;
   }
   root.innerHTML = `<main class="page social-page vote-board board-shell enter">${boardPlayerStripHtml(room.players, accounts, { scores:g.totals })}<section class="vote-table">${body}</section><button class="ghost" id="leave-room">Wyjdź z pokoju</button></main>`;
   $("#leave-room").addEventListener("click", actions.leaveRoom);

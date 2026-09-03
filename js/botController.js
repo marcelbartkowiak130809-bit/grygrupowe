@@ -14,7 +14,7 @@ import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
 import { PokemonEngine } from "./pokemon.js?v=20260831-11";
-import { WavelengthEngine } from "./wavelength.js?v=20260831-5";
+import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20260823-1";
@@ -172,16 +172,16 @@ function bombAnswer(game) {
 }
 
 const wavelengthCluePools = [
-  ["Skrajnie po stronie {left}","Prawie całkiem {left}","Bardzo blisko końca {left}","Niemal sam {left}","Mocno przechylone na {left}","Prawie bez domieszki {right}","Zdecydowanie {left}","Prawie maksymalnie {left}","Daleko od {right}","Najbliżej {left} jak się da"],
-  ["Wyraźnie w stronę {left}","Raczej {left}","Bliżej {left} niż środka","Mocno bliżej {left}","Z przewagą {left}","Jeszcze daleko do {right}","Po lewej, ale nie skrajnie","Dość mocno {left}","Lekko od środka w stronę {left}","Prawie środek, lecz {left}"],
-  ["Trochę po stronie {left}","Lekko w stronę {left}","Raczej bliżej {left}","Niewielka przewaga {left}","Jeszcze trochę {left}","Odrobinę od środka ku {left}","Delikatnie przechylone na {left}","Minimalnie bardziej {left}","Środek z lekkim skrętem {left}","Nieznacznie od {right}"],
-  ["Prawie środek, lekko {left}","Trochę bliżej środka","Niewielki skręt w stronę {left}","Delikatnie od {right}","Środek z małą przewagą {left}","Bardzo subtelnie {left}","Tylko odrobinę {left}","Prawie neutralnie","Minimalnie w stronę {left}","Ledwo po stronie {left}"],
-  ["W samym środku","Prawie idealny środek","Neutralnie","Dokładnie pomiędzy","Bez wyraźnej przewagi","Równo między skrajnościami","Centralnie","Ani {left}, ani {right}","Środek skali","Bardzo neutralnie"],
-  ["Prawie środek, lekko {right}","Trochę bliżej środka","Niewielki skręt w stronę {right}","Delikatnie od {left}","Środek z małą przewagą {right}","Bardzo subtelnie {right}","Tylko odrobinę {right}","Prawie neutralnie","Minimalnie w stronę {right}","Ledwo po stronie {right}"],
-  ["Trochę po stronie {right}","Lekko w stronę {right}","Raczej bliżej {right}","Niewielka przewaga {right}","Jeszcze trochę {right}","Odrobinę od środka ku {right}","Delikatnie przechylone na {right}","Minimalnie bardziej {right}","Środek z lekkim skrętem {right}","Nieznacznie od {left}"],
-  ["Wyraźnie w stronę {right}","Raczej {right}","Bliżej {right} niż środka","Mocno bliżej {right}","Z przewagą {right}","Jeszcze daleko do {left}","Po prawej, ale nie skrajnie","Dość mocno {right}","Lekko od środka w stronę {right}","Prawie środek, lecz {right}"],
-  ["Skrajnie po stronie {right}","Prawie całkiem {right}","Bardzo blisko końca {right}","Niemal sam {right}","Mocno przechylone na {right}","Prawie bez domieszki {left}","Zdecydowanie {right}","Prawie maksymalnie {right}","Daleko od {left}","Najbliżej {right} jak się da"],
-  ["Na samym skraju {right}","Prawie poza skalą po stronie {right}","Maksymalnie {right}","Niemal ekstremalne {right}","Prawie tylko {right}","Bardzo mocno {right}","Zdecydowanie przy końcu {right}","Prawie całkowicie {right}","Minimalnie brakuje do skraju {right}","Skrajna wersja {right}"]
+  ["Bardzo blisko lewego końca skali.","Prawie przy samym lewym końcu.","Skrajnie po lewej stronie."],
+  ["Wyraźnie bliżej lewego końca niż środka.","Dość mocno w stronę lewego końca.","Po lewej, ale jeszcze nie skrajnie."],
+  ["Trochę bliżej lewego końca, ale nadal z zapasem.","Lekko po lewej stronie środka.","Umiarkowanie w lewo od środka."],
+  ["Prawie na środku, tylko odrobinę w lewo.","Lekko na lewo od środka.","Minimalnie bliżej lewej strony."],
+  ["Prawie idealnie na środku.","Dokładnie okolice środka skali.","Mniej więcej po równo między końcami."],
+  ["Prawie na środku, tylko odrobinę w prawo.","Lekko na prawo od środka.","Minimalnie bliżej prawej strony."],
+  ["Trochę bliżej prawego końca, ale nadal z zapasem.","Umiarkowanie w prawo od środka.","Lekko po prawej stronie środka."],
+  ["Wyraźnie bliżej prawego końca niż środka.","Dość mocno w stronę prawego końca.","Po prawej, ale jeszcze nie skrajnie."],
+  ["Bardzo blisko prawego końca skali.","Prawie przy samym prawym końcu.","Skrajnie po prawej stronie."],
+  ["Praktycznie na samym prawym końcu.","Niemal maksymalnie po prawej.","Prawie poza prawym końcem skali."]
 ];
 
 const impostorClueWords = {
@@ -273,12 +273,19 @@ function wavelengthOffset(room, bot) {
   return roll<.95?0:roll<.975?-1:1;
 }
 function wavelengthBotClue(game,room,bot) {
-  const bucket=Math.max(0,Math.min(9,Math.floor((Number(game.target)||0)/10)+wavelengthOffset(room,bot))), pool=wavelengthCluePools[bucket], text=pool[Math.floor(Math.random()*pool.length)];
-  return text.replaceAll("{left}","lewej").replaceAll("{right}","prawej");
+  const bucket=Math.max(0,Math.min(9,Math.round((Number(game.target)||0)/10)+wavelengthOffset(room,bot))), pool=wavelengthCluePools[bucket] || wavelengthCluePools[5];
+  return pool[Math.floor(Math.random()*pool.length)];
 }
 function wavelengthBotPosition(game,room,bot) {
-  const target=Math.max(0,Math.min(100,Number(game.target)||0)), offset=wavelengthOffset(room,bot);
-  return Math.max(0,Math.min(100,target+offset*10+Math.round(Math.random()*8-4)));
+  const target=Math.max(0,Math.min(100,Number(game.target)||0));
+  const difficulty=botDifficulty(room,bot).id;
+  const accurate=botShouldBeCorrect(room,bot);
+  const errorRange={easy:20,normal:14,hard:8,expert:4}[difficulty] ?? 14;
+  if (accurate) return Math.max(0,Math.min(100,target+Math.round(Math.random()*(errorRange*2)-errorRange)));
+  const missRange={easy:[22,48],normal:[18,40],hard:[14,32],expert:[10,24]}[difficulty] || [18,40];
+  const direction=target <= 50 ? 1 : target >= 50 ? -1 : Math.random() < .5 ? -1 : 1;
+  const miss=missRange[0]+Math.floor(Math.random()*(missRange[1]-missRange[0]+1));
+  return Math.max(0,Math.min(100,target+direction*miss));
 }
 function timeoutMutation(room, game, bot) {
   const settings = room.settings || {};

@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 
 export const sequenceDefaults={sequenceLength:5,hardMode:false,sequenceSkin:"defaultSequence"};
 const baseColors=["yellow","red","orange","green","blue","purple"],hardColors=["black","white","gold","silver"];
@@ -73,7 +73,7 @@ function historyHtml(game,accounts){return game.players.map(uid=>`<details class
 export function renderSequenceGame(root,{room,currentUser,accounts},actions){
   stopSequenceTimer();const game=room.game;ensureSequenceState(game);const colorblind=Boolean(accounts[currentUser]?.colorblindMode),skin=accounts[currentUser]?.selectedSequenceSkin||game.sequenceSkin||"defaultSequence";
   if(game.phase==="result"){
-    root.innerHTML=`<main class="page sequence-page"><section class="panel sequence-panel"><p class="eyebrow">ZGADNIJ SEKWENCJĘ · WYNIKI</p><h1>${escapeHtml(accounts[game.winner]?.nick||"Gracz")} odgadł sekwencję!</h1><p class="muted">Obie sekwencje i pełna historia prób pozostają widoczne do zamknięcia rundy.</p><div class="sequence-results">${game.players.map(uid=>`<article><h3>${escapeHtml(accounts[uid]?.nick||"Gracz")}</h3><div class="sequence-reveal">${sequenceSlots(game.sequences?.[uid]||[],game.length,true)}</div></article>`).join("")}</div><div class="sequence-feedback">${game.feedback.map(item=>`<div><b>${escapeHtml(accounts[item.uid]?.nick||"Gracz")}</b><span>${item.timeout?"Czas minął":`${item.correct}/${item.total} na poprawnym miejscu`}</span></div>`).join("")}</div>${historyHtml(game,accounts)}<button class="primary" id="sequence-room">Wróć do lobby</button></section></main>`;
+    root.innerHTML=`<main class="page sequence-page"><section class="panel sequence-panel"><p class="eyebrow">ZGADNIJ SEKWENCJĘ · WYNIKI</p><h1>${escapeHtml(accounts[game.winner]?.nick||"Gracz")} odgadł sekwencję!</h1><p class="muted">Obie sekwencje i pełna historia prób pozostają widoczne do zamknięcia rundy.</p><div class="sequence-results">${game.players.map(uid=>`<article><div class="sequence-result-player">${resultPlayerMiniHtml(accounts[uid],uid===game.winner?"win":"lose")}</div><div class="sequence-reveal">${sequenceSlots(game.sequences?.[uid]||[],game.length,true)}</div></article>`).join("")}</div><div class="sequence-feedback">${game.feedback.map(item=>`<div><b>${escapeHtml(accounts[item.uid]?.nick||"Gracz")}</b><span>${item.timeout?"Czas minął":`${item.correct}/${item.total} na poprawnym miejscu`}</span></div>`).join("")}</div>${historyHtml(game,accounts)}<button class="primary" id="sequence-room">Wróć do lobby</button></section></main>`;
     root.querySelector("#sequence-room").addEventListener("click",actions.returnToRoom);return;
   }
   const expected={phase:game.phase,turnUid:game.turnUid,guessEndsAt:game.guessEndsAt,createEndsAt:game.createEndsAt,uid:currentUser};

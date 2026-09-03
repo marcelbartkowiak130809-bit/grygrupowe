@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 export const numberMysteryDefaults = {
@@ -156,7 +156,7 @@ function quickQuestionHtml(game, actions, expected) {
 export function renderNumberMysteryGame(root, { room, accounts, currentUser }, actions) {
   const game = room.game, me = currentUser, opponent = other(game, me), expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt };
   if (game.phase === "result") {
-    const winner = game.winner ? name(accounts, game.winner) : "Remis", numbers = game.players.map(uid => `<div class="number-mystery-result-row"><b>${escapeHtml(name(accounts, uid))}</b><span>Numer: <strong>${game.numbers?.[uid] ?? "—"}</strong> · Próba: <strong>${game.guesses?.[uid] ?? "—"}</strong>${game.distances ? ` · Różnica: <strong>${game.distances[uid]}</strong>` : ""}</span></div>`).join("");
+    const winner = game.winner ? name(accounts, game.winner) : "Remis", numbers = game.players.map(uid => `<div class="number-mystery-result-row">${resultPlayerMiniHtml(accounts[uid],uid===game.winner?"win":"lose")}<span>Numer: <strong>${game.numbers?.[uid] ?? "—"}</strong> · Próba: <strong>${game.guesses?.[uid] ?? "—"}</strong>${game.distances ? ` · Różnica: <strong>${game.distances[uid]}</strong>` : ""}</span></div>`).join("");
     root.innerHTML = `<main class="page number-mystery-page"><section class="panel number-mystery-panel center"><p class="eyebrow">TAJEMNICZA LICZBA · WYNIKI</p><h1>${escapeHtml(winner)}${game.winner ? " wygrywa" : ""}</h1><p class="muted">Numery zostają ujawnione dopiero po zakończeniu gry.</p><div class="number-mystery-results">${numbers}</div><button class="primary" id="number-mystery-room">Wróć do lobby</button></section></main>`;
     root.querySelector("#number-mystery-room").addEventListener("click", actions.returnToRoom); return;
   }

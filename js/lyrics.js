@@ -1,4 +1,4 @@
-import { avatarHtml, escapeHtml } from "./utils.js?v=20260901-3";
+import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
 import { Audio } from "./audio.js?v=20260902-1";
 
@@ -689,19 +689,22 @@ function bindLyricsCoverFallbacks(root) {
 }
 
 function resultRows(game, accounts = {}) {
+  const topPoints = Math.max(0, ...Object.values(game.roundResult?.answers || {}).map(answer => Number(answer?.points) || 0));
   return array(game.players).map((uid, index) => {
     const result = object(game.roundResult?.answers?.[uid]);
     const accuracy = Math.round(Math.max(0, Math.min(1, Number(result.accuracy) || 0)) * 100);
     const name = accounts?.[uid]?.nick || (String(uid).startsWith("bot:") ? "Bot" : "Gracz");
+    const profile = { ...(accounts?.[uid] || {}), nick: name };
     const status = result.surrendered ? "Poddano rundę" : result.timedOut ? "Brak odpowiedzi" : `${accuracy}% zgodności`;
-    return `<div class="lyrics-result-row"><span><b>${escapeHtml(name)}</b><small>${status}</small></span><strong>${Number(result.points || 0)} pkt</strong><em>#${index + 1}</em></div>`;
+    return `<div class="lyrics-result-row"><div class="lyrics-result-player">${resultPlayerMiniHtml(profile, Number(result.points || 0) === topPoints && topPoints > 0 ? "win" : "lose")}<small>${status}</small></div><strong>${Number(result.points || 0)} pkt</strong><em>#${index + 1}</em></div>`;
   }).join("");
 }
 
 function rankingRows(game, accounts = {}) {
+  const topScore = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   return [...array(game.players)].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => {
-    const name = accounts?.[uid]?.nick || (String(uid).startsWith("bot:") ? "Bot" : "Gracz");
-    return `<div class="lyrics-ranking-row"><span>${index + 1}. ${escapeHtml(name)}</span><b>${Number(game.scores?.[uid] || 0)} pkt</b></div>`;
+    const score = Number(game.scores?.[uid] || 0);
+    return `<div class="lyrics-ranking-row"><em>#${index + 1}</em>${resultPlayerMiniHtml(accounts?.[uid], score === topScore && topScore > 0 ? "win" : "lose")}<b>${score} pkt</b></div>`;
   }).join("");
 }
 
@@ -839,7 +842,7 @@ export function renderLyricsGame(root, { room, accounts, currentUser }, actions)
     const winners = array(game.players).filter(uid => Number(game.roundResult?.answers?.[uid]?.points || 0) === Math.max(0, ...Object.values(game.roundResult?.answers || {}).map(answer => Number(answer?.points) || 0)) && Number(game.roundResult?.answers?.[uid]?.points || 0) > 0);
     content += `<section class="lyrics-challenge result">${trackHtml(item)}<p class="eyebrow">UJAWNIENIE</p><div class="lyrics-full-text">${escapeHtml(fullText)}</div><p class="lyrics-answer-note">Odpowiedź: <b>${escapeHtml(game.roundResult?.expected || "")}</b></p><div class="lyrics-result-list">${resultRows(game, accounts)}</div>${winners.length ? `<p class="lyrics-winner">✦ Najlepiej trafili: ${winners.map(uid => escapeHtml(accounts?.[uid]?.nick || "Gracz")).join(", ")}</p>` : ""}<p class="lyrics-score-note">Każda poprawna litera zwiększa procent zgodności. Maksymalnie 3 punkty za rundę.</p><button class="primary big" id="lyrics-next">${Number(game.round) >= Number(game.totalRounds) ? "Pokaż końcowy ranking" : "Następna runda"}</button></section>`;
   } else {
-    const winners = array(game.winners).length ? game.winners : array(game.players).filter(uid => Number(game.scores?.[uid] || 0) === Math.max(0, ...Object.values(game.scores || {}).map(Number)));
+    const winners = array(game.winners).length ? game.winners : array(game.players).filter(uid => Number(game.scores?.[uid] || 0) === Math.max(0, ...Object.values(game.scores || {}).map(Number)) && Math.max(0, ...Object.values(game.scores || {}).map(Number)) > 0);
     content += `<section class="lyrics-final"><span>🎤</span><p class="eyebrow">KONIEC GRY</p><h2>${winners.length ? `Wygrywa ${winners.map(uid => escapeHtml(accounts?.[uid]?.nick || "Gracz")).join(", ")}!` : "Tym razem bez zwycięzcy."}</h2><p>Najlepszy wynik w dokończeniu tekstów.</p><div class="lyrics-ranking-list">${rankingRows(game, accounts)}</div><button class="primary big" id="lyrics-lobby">Zagraj ponownie</button></section>`;
   }
   root.innerHTML = `<main class="page music-page lyrics-page enter"><section class="panel music-panel lyrics-panel">${content}</section><button id="lyrics-leave" class="ghost">Wyjdź z pokoju</button></main>`;

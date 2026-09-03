@@ -1,5 +1,5 @@
 import { categories } from "./categories.js?v=20260824-2";
-import { $, escapeHtml, icon, normalizeAnswer } from "./utils.js?v=20260822-1";
+import { $, escapeHtml, icon, normalizeAnswer, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { playerMini } from "./room.js?v=20260901-10";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
@@ -60,7 +60,8 @@ function gameContent(room, accounts, currentUser) {
   const roundLabel = `<p class="eyebrow">RUNDA ${Number(game.round) || 1}/${Number(game.totalRounds) || Number(room.settings?.rounds) || 5}</p>`;
   if (game.phase === "gameSummary") {
     const ranking = Object.entries(game.roundWins || {}).sort(([,a],[,b]) => Number(b) - Number(a));
-    return `<section class="panel center result-card prove-turn-card"><p class="eyebrow">KONIEC GRY</p><h1>Wyniki końcowe</h1><p class="muted">Rozegrano ${Number(game.totalRounds) || 5} rund.</p><div class="prove-final-ranking">${ranking.map(([uid, score], index) => `<div><b>${index + 1}. ${escapeHtml(accounts[uid]?.nick || "Gracz")}</b><span>${Number(score) || 0} pkt</span></div>`).join("") || '<p class="muted">Brak wyników.</p>'}</div><button class="primary" id="return-to-room">Wróć do lobby</button></section>`;
+    const topScore = Math.max(0, ...ranking.map(([, score]) => Number(score) || 0));
+    return `<section class="panel center result-card prove-turn-card"><p class="eyebrow">KONIEC GRY</p><h1>Wyniki końcowe</h1><p class="muted">Rozegrano ${Number(game.totalRounds) || 5} rund.</p><div class="prove-final-ranking">${ranking.map(([uid, score], index) => `<div><b>${index + 1}.</b>${resultPlayerMiniHtml(accounts[uid], Number(score) === topScore && topScore > 0 ? "win" : "lose")}<span>${Number(score) || 0} pkt</span></div>`).join("") || '<p class="muted">Brak wyników.</p>'}</div><button class="primary" id="return-to-room">Wróć do lobby</button></section>`;
   }
   if (game.phase === "initialBid") return `<section class="panel center prove-turn-card">${roundLabel}
     <h2>Startuje: ${accounts[game.starter]?.nick}</h2>
@@ -79,7 +80,7 @@ function gameContent(room, accounts, currentUser) {
     </div>
   </section>`;
   return `<section class="panel center result-card prove-turn-card">${roundLabel}
-    <h1>${game.result?.success ? "Dał radę!" : "Nie dał rady!"}</h1><p>${game.result?.text}</p>
+    <h1>${game.result?.success ? "Dał radę!" : "Nie dał rady!"}</h1><div class="result-focus-player">${resultPlayerMiniHtml(accounts[game.currentBidder], game.result?.success ? "win" : "lose")}</div><p>${game.result?.text}</p>
     ${game.result?.leftRoom ? '<p class="muted">Gracz został usunięty z kolejnych rund. Ta runda nie przyznaje coinów.</p>' : game.result?.success ? '<p class="money-pop">Udowadniający gracz dostał +100$</p>' : '<p class="money-pop">Pozostali gracze dostali +100$</p>'}
     <div class="answer-list result-answer-list"><p class="eyebrow">ODPOWIEDZI W TEJ RUNDZIE</p><div class="answers">${answerList(game.answers).map(answer => `<span class="answer ${answer.valid ? "valid" : "invalid"}">${escapeHtml(answer.raw)}</span>`).join("") || '<span class="muted">Brak wpisanych odpowiedzi.</span>'}</div></div>
     <button class="primary" id="next-round">${Number(game.round) >= Number(game.totalRounds || room.settings?.rounds || 5) ? "Pokaż wyniki" : "Następna runda"}</button>

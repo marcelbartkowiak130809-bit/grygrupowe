@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
@@ -233,7 +233,7 @@ function summaryStage(room, accounts, game) {
   const max = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   const winners = room.players.filter(uid => Number(game.scores?.[uid] || 0) === max);
   Effects.play("roundWin", `${room.roomId}:five:summary`);
-  return `<section class="five-stage five-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa refleks</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="five-lobby">Wroc do lobby</button></section>`;
+  return `<section class="five-stage five-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa refleks</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], winners.includes(uid) ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="five-lobby">Wroc do lobby</button></section>`;
 }
 
 export function renderFiveSecondsGame(root, { room, accounts, currentUser }, actions) {

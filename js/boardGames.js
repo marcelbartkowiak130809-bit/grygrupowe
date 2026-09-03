@@ -1,6 +1,6 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
 export const boardModeDefinitions = [
@@ -657,7 +657,7 @@ function renderDomino(game,accounts,currentUser){
 
 function renderBoardResult(game,accounts){
   const winners=arrayOrEmpty(game.winners),max=Math.max(...game.players.map(uid=>Number(game.scores?.[uid])||0));
-  return `<section class="board-stage board-result-stage"><p class="eyebrow">PLANSZÓWKA · KONIEC MECZU</p><div class="board-result-icon">🏆</div><h1>${winners.length?`Wygrywa ${winners.map(uid=>safeName(accounts,uid)).join(", ")}`:"Remis!"}</h1><p class="muted">Dobra partia. Możecie od razu zagrać jeszcze raz.</p><div class="board-final-ranking">${game.players.slice().sort((a,b)=>(Number(game.scores?.[b])||0)-(Number(game.scores?.[a])||0)).map((uid,index)=>`<article class="${winners.includes(uid)?"is-winner":""}"><b>#${index+1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid]||0)} pkt</strong></article>`).join("")}</div></section>`;
+  return `<section class="board-stage board-result-stage"><p class="eyebrow">PLANSZÓWKA · KONIEC MECZU</p><div class="board-result-icon">🏆</div><h1>${winners.length?`Wygrywa ${winners.map(uid=>safeName(accounts,uid)).join(", ")}`:"Remis!"}</h1><p class="muted">Dobra partia. Możecie od razu zagrać jeszcze raz.</p><div class="board-final-ranking">${game.players.slice().sort((a,b)=>(Number(game.scores?.[b])||0)-(Number(game.scores?.[a])||0)).map((uid,index)=>`<article class="${winners.includes(uid)?"is-winner":""}"><b>#${index+1}</b>${resultPlayerMiniHtml(accounts[uid], winners.includes(uid) ? "win" : "lose")}<strong>${Number(game.scores?.[uid]||0)} pkt</strong></article>`).join("")}</div></section>`;
 }
 
 export function renderBoardGame(root,{room,accounts,currentUser},actions){

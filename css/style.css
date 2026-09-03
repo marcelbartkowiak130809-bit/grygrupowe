@@ -1846,3 +1846,77 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   transform:none!important;
   filter:brightness(1.05);
 }
+
+/* Wyniki: animacja zależy od miejsca w tabeli i od zakupionej kategorii.
+   Bez „Wygrane”/„Przegrane” mini-profil nie dostaje żadnego ruchu. */
+.result-player-win,
+.result-player-lose,
+.result-player-static{position:relative;min-width:0;overflow:visible}
+.result-player-win{animation:resultPlayerWin .55s cubic-bezier(.16,1,.3,1) both}
+.result-player-lose{animation:resultPlayerLose .45s ease-out both}
+.result-player-win>.cosmetic-fx-group.cosmetic-fx-win,
+.result-player-lose>.cosmetic-fx-group.cosmetic-fx-lose{display:block;opacity:1}
+.result-player-win>.cosmetic-fx-group.cosmetic-fx-lose,
+.result-player-lose>.cosmetic-fx-group.cosmetic-fx-win,
+.result-player-static>.cosmetic-fx-group{display:none!important;opacity:0!important}
+.result-player-static *{animation:none!important}
+.songspot-round-score-player{display:flex;align-items:center;min-width:0;flex:1;overflow:visible}.songspot-round-score-player>.mini-player{min-width:0;overflow:visible}.songspot-round-score-row>.songspot-round-score-player{margin-right:auto}.lyrics-result-row>.lyrics-result-player{display:grid;gap:3px;min-width:0}.lyrics-result-row>.lyrics-result-player>.mini-player{min-width:0;overflow:visible}
+.songspot-final-score-player>.mini-player>.nick,.music-ranking-player>.mini-player>.nick{display:inline;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.songspot-final-score-player>.mini-player>.level-badge,.music-ranking-player>.mini-player>.level-badge{display:inline-flex}
+@keyframes resultPlayerWin{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes resultPlayerLose{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.connect-ranking-row>.mini-player,
+.false-message-ranking-row>.mini-player,
+.liar-ranking-row>.mini-player,
+.secret-rule-ranking-row>.mini-player,
+.wavelength-ranking-row>.mini-player{flex:1;min-width:0}
+.connect-ranking-row>span:first-child,
+.false-message-ranking-row>span:first-child,
+.liar-ranking-row>span:first-child,
+.secret-rule-ranking-row>span:first-child,
+.wavelength-ranking-row>span:first-child{flex:none;color:#a78bfa;font-weight:900}
+.wavelength-ranking-row>.mini-player{gap:8px}
+.wavelength-podium-place>.mini-player{justify-content:center;flex-direction:column;gap:4px;text-align:center}
+.wavelength-podium-place>.mini-player .nick{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.family-rank-row>.mini-player{flex:1;min-width:0}
+.family-rank-row>strong{flex:none}
+.quiz-result-row>.mini-player,.math-result-row>.mini-player,.number-mystery-result-row>.mini-player{flex:1;min-width:0}
+.quiz-result-row,.math-result-row,.number-mystery-result-row{align-items:center;gap:10px}
+.quiz-result-row>b,.math-result-row>b{flex:none;color:#a78bfa}
+.prove-final-ranking>div>.mini-player{flex:1;min-width:0}
+.board-final-ranking article>.mini-player{min-width:0}
+.lyrics-result-player{display:grid!important;gap:3px;min-width:0}
+.lyrics-result-player>.mini-player{min-width:0}
+.lyrics-ranking-row>.mini-player{min-width:0}
+.lyrics-ranking-row>em{color:#a78bfa;font-size:11px;font-style:normal;font-weight:900}
+.pokemon-result-row>div:first-child{display:flex;align-items:center;gap:8px;min-width:0}
+.pokemon-result-row>div:first-child>.mini-player{min-width:0}
+.minecraft-leaderboard-row>.mini-player{min-width:0}
+.popularity-ranking-place{flex:none;color:#a78bfa;font-style:normal;font-weight:900}
+.popularity-result-player{min-width:0}
+.songspot-final-score-player,.music-ranking-player{display:flex;align-items:center;gap:8px;min-width:0;overflow:visible}
+.songspot-final-score-player>.mini-player,.music-ranking-player>.mini-player{min-width:0;overflow:visible}
+.popularity-ranking-player>.mini-player{min-width:0;overflow:visible}
+.music-ranking-player>i{display:grid;width:21px;height:21px;flex:none;place-items:center;border-radius:50%;background:rgba(124,58,237,.3);color:#ddd6fe;font-style:normal;font-size:10px;font-weight:1000}
+.sequence-result-player{display:flex;align-items:center;min-width:0;margin-bottom:10px}
+.sequence-result-player>.mini-player{min-width:0}
+.marker-result-players,.unique-answer-final-ranking,.impostor-result-players{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;width:min(100%,700px);margin:18px auto;text-align:left}
+.marker-result-player,.unique-answer-final-ranking>div,.impostor-result-players>article{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)}
+.marker-result-player>.mini-player,.unique-answer-final-ranking>div>.mini-player,.impostor-result-players>article>.mini-player{min-width:0}
+.marker-result-player>strong,.unique-answer-final-ranking>div>strong,.impostor-result-players>article>strong{flex:none;color:#67e8f9;font-size:11px}
+.word-chain-result-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.word-chain-result-roster>article{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)}
+.word-chain-result-roster>article>.mini-player{min-width:0}
+.word-chain-result-roster>article>strong{flex:none;color:#67e8f9;font-size:11px}
+.minecraft-round-ranking-row{grid-template-columns:27px minmax(0,1fr) auto auto}.minecraft-round-ranking-row>.mini-player,.minecraft-round-answers>span>.mini-player,.minecraft-reveal-owner>.mini-player{min-width:0;overflow:visible}
+@media(max-width:620px){
+  .lyrics-result-row>.lyrics-result-player{grid-column:1;grid-row:1 / span 2}
+  .lyrics-ranking-row{grid-template-columns:auto minmax(0,1fr) auto}
+  .lyrics-ranking-row>.mini-player{gap:7px}
+  .marker-result-player,.unique-answer-final-ranking>div,.impostor-result-players>article{align-items:flex-start;flex-direction:column}
+  .word-chain-result-roster>article{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:720px){.minecraft-round-ranking-row{grid-template-columns:24px minmax(0,1fr) auto}}
+@media(prefers-reduced-motion:reduce){
+  .result-player-win,.result-player-lose{animation:none!important}
+}

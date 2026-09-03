@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { Effects } from "./effects.js";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));
@@ -533,12 +533,12 @@ function resultStage(room, accounts, game) {
     <div class="truth-bars">${ranking.map((row, index) => {
       const closeness = Math.max(0, Math.round((1 - (Number(row.distance) || 0) / maxDistance) * 100));
       return `<article class="${index === 0 ? "closest" : ""}" style="--truth:${closeness}">
-        <div class="truth-bar-head"><b>#${row.place}</b>${playerMiniHtml(accounts[row.uid])}<strong>+${row.points} pkt</strong></div>
+        <div class="truth-bar-head"><b>#${row.place}</b>${resultPlayerMiniHtml(accounts[row.uid], Number(row.points) > 0 ? "win" : "lose")}<strong>+${row.points} pkt</strong></div>
         <div class="truth-scale"><span></span></div>
         <div class="truth-values"><span>${numberText(row.value, game.question?.unit)}</span><span>roznica: ${numberText(row.distance, game.question?.unit)}</span></div>
       </article>`;
     }).join("")}</div>
-    <div class="truth-round-ranking final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${index === 0 ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div>
+    <div class="truth-round-ranking final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index,rows)=>{const topScore=Math.max(0,...rows.map(player=>Number(game.scores?.[player]||0)));return `<article class="${Number(game.scores?.[uid]||0)===topScore&&topScore>0?"winner-card":""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], Number(game.scores?.[uid]||0)===topScore&&topScore>0 ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`;}).join("")}</div>
     <button class="primary" id="truth-next-round">Nastepna runda</button>
   </section>`;
 }
@@ -547,7 +547,7 @@ function summaryStage(room, accounts, game) {
   const max = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   const winners = room.players.filter(uid => Number(game.scores?.[uid] || 0) === max);
   Effects.play("roundWin", `${room.roomId}:truth:summary`);
-  return `<section class="truth-stage truth-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} najblizej prawdy</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="truth-lobby">Wroc do lobby</button></section>`;
+  return `<section class="truth-stage truth-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} najblizej prawdy</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], winners.includes(uid) ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="truth-lobby">Wroc do lobby</button></section>`;
 }
 
 export function renderClosestTruthGame(root, { room, accounts, currentUser }, actions) {

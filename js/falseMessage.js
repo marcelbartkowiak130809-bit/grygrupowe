@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const falseMessageDefaults = { rounds: 0, answerTime: 30, voteTime: 25, categories: ["all"] };
@@ -186,8 +186,9 @@ export const FalseMessageEngine = {
 };
 
 function situationText(game, accounts) { return String(game.situation || "").replaceAll("[GRACZ]", nick(accounts, game.heroUid)); }
-function rankingHtml(game, accounts) {
-  return [...(game.players || [])].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => "<div class=\"false-message-ranking-row\"><span>" + (index + 1) + ". " + escapeHtml(nick(accounts, uid)) + "</span><b>" + Number(game.scores?.[uid] || 0) + " pkt</b></div>").join("");
+function rankingHtml(game, accounts, winners = []) {
+  const winnerSet = new Set(winners);
+  return [...(game.players || [])].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => "<div class=\"false-message-ranking-row\"><span>" + (index + 1) + ".</span>" + resultPlayerMiniHtml(accounts[uid], winnerSet.has(uid) ? "win" : "lose") + "<b>" + Number(game.scores?.[uid] || 0) + " pkt</b></div>").join("");
 }
 function bubblesHtml(game, accounts, reveal = false, selectable = false) {
   const answers = game.roundResult?.answers || game.answers || {};
@@ -215,10 +216,10 @@ export function renderFalseMessageGame(root, { room, accounts, currentUser }, ac
     content += "<h2>" + (canChoose ? "Wybierz wiadomość, która brzmi najbardziej jak Ty" : escapeHtml(hero) + " wybiera wiadomość") + "</h2><p class=\"muted\">Odpowiedzi są anonimowe. " + (canChoose ? "Kliknij tę, która najbardziej do Ciebie pasuje." : "Poczekaj na wybór bohatera.") + "</p><div class=\"false-message-bubbles\">" + bubblesHtml(game, accounts, false, canChoose) + "</div><p class=\"false-message-timer\">Wybór kończy się za <b>" + timer + "s</b></p>";
   } else if (game.phase === "roundResult") {
     const winner = game.roundResult?.winnerUid;
-    content += "<h2>Wiadomość wybrana</h2><div class=\"false-message-bubbles\">" + bubblesHtml(game, accounts, true) + "</div>" + (winner ? "<div class=\"false-message-winner\"><span>🏆 Najbardziej pasowała wiadomość</span><strong>" + escapeHtml(nick(accounts, winner)) + " zdobywa punkt</strong></div>" : "<div class=\"false-message-winner\"><span>Brak wybranej wiadomości</span><strong>Nikt nie zdobywa punktu w tej rundzie.</strong></div>") + "<div class=\"false-message-ranking\">" + rankingHtml(game, accounts) + "</div><button id=\"false-message-next\" class=\"primary\" " + (currentUser === room.hostUid ? "" : "disabled") + ">" + (Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda") + "</button><p class=\"round-advance-notice\">" + (currentUser === room.hostUid ? "Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>." : "Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>.") + "</p>";
+    content += "<h2>Wiadomość wybrana</h2><div class=\"false-message-bubbles\">" + bubblesHtml(game, accounts, true) + "</div>" + (winner ? "<div class=\"false-message-winner\"><span>🏆 Najbardziej pasowała wiadomość</span><strong>" + escapeHtml(nick(accounts, winner)) + " zdobywa punkt</strong></div>" : "<div class=\"false-message-winner\"><span>Brak wybranej wiadomości</span><strong>Nikt nie zdobywa punktu w tej rundzie.</strong></div>") + "<div class=\"false-message-ranking\">" + rankingHtml(game, accounts, winner ? [winner] : []) + "</div><button id=\"false-message-next\" class=\"primary\" " + (currentUser === room.hostUid ? "" : "disabled") + ">" + (Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda") + "</button><p class=\"round-advance-notice\">" + (currentUser === room.hostUid ? "Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>." : "Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>.") + "</p>";
   } else {
-    const top = Math.max(0, ...Object.values(game.scores || {}).map(Number)), winners = (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top);
-    content += "<div class=\"false-message-final\"><span>🏆</span><h2>Koniec gry</h2><p>Najlepsza wiadomość wygrała najwięcej rund.</p><div class=\"false-message-ranking\">" + rankingHtml(game, accounts) + "</div><strong>Zwycięzca: " + winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") + "</strong></div><button id=\"false-message-lobby\" class=\"primary\">Zagraj ponownie</button>";
+    const top = Math.max(0, ...Object.values(game.scores || {}).map(Number)), winners = top > 0 ? (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top) : [];
+    content += "<div class=\"false-message-final\"><span>🏆</span><h2>Koniec gry</h2><p>Najlepsza wiadomość wygrała najwięcej rund.</p><div class=\"false-message-ranking\">" + rankingHtml(game, accounts, winners) + "</div><strong>Zwycięzca: " + winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") + "</strong></div><button id=\"false-message-lobby\" class=\"primary\">Zagraj ponownie</button>";
   }
   root.innerHTML = "<main class=\"page false-message-page enter\"><section class=\"panel false-message-panel\">" + content + "</section><button id=\"false-message-leave\" class=\"ghost\">Wyjdź z pokoju</button></main>";
   root.querySelector("#false-message-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.falseMessageAnswer(root.querySelector("#false-message-answer").value, expected); });

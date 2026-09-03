@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
@@ -271,12 +271,12 @@ function bombStage(room, accounts, currentUser) {
     const resultSkinOwner = game.result?.bombSkinOwner;
     const skin = game.result?.bombSkin || (resultSkinOwner ? accounts[resultSkinOwner]?.selectedBombSkin || "defaultBomb" : bombSkinId(game, settings, accounts, loser));
     Effects.play("roundFail", `${room.roomId}:bomb:${game.round}:${loser}`);
-    return `<section class="bomb-stage bomb-exploded bomb-explosion-${skin}"><p class="eyebrow">WYBUCH</p><h1>${escapeHtml(accounts[loser]?.nick || "Gracz")} przegrywa runde</h1><div class="bomb-blast bomb-blast-${skin}"><i></i><i></i><i></i><span></span><span></span><span></span><span></span><span></span><span></span><b>BOOM</b></div><p class="money-pop">Pozostali gracze dostaja po 1 punkcie.</p><div class="result-player-grid">${room.players.map(uid => `<article class="${uid !== loser ? "winner-card" : ""}">${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-next-round">Nastepna runda</button></section>`;
+    return `<section class="bomb-stage bomb-exploded bomb-explosion-${skin}"><p class="eyebrow">WYBUCH</p><h1>${escapeHtml(accounts[loser]?.nick || "Gracz")} przegrywa runde</h1><div class="bomb-blast bomb-blast-${skin}"><i></i><i></i><i></i><span></span><span></span><span></span><span></span><span></span><span></span><b>BOOM</b></div><p class="money-pop">Pozostali gracze dostaja po 1 punkcie.</p><div class="result-player-grid">${room.players.map(uid => `<article class="${uid !== loser ? "winner-card" : ""}">${resultPlayerMiniHtml(accounts[uid], uid !== loser ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-next-round">Nastepna runda</button></section>`;
   }
   const max = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   const winners = room.players.filter(uid => Number(game.scores?.[uid] || 0) === max);
   Effects.play("roundWin", `${room.roomId}:bomb:summary`);
-  return `<section class="bomb-stage bomb-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-lobby">Wroc do lobby</button></section>`;
+  return `<section class="bomb-stage bomb-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], winners.includes(uid) ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="bomb-lobby">Wroc do lobby</button></section>`;
 }
 
 export function renderBombGame(root, { room, accounts, currentUser }, actions) {

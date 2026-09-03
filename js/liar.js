@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const liarDefaults = { rounds: 5, answerTime: 30, discussionTime: 20, voteTime: 25 };
@@ -119,8 +119,9 @@ export const LiarEngine = {
   }
 };
 
-function rankingHtml(game, accounts) {
-  return [...(game.players || [])].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => "<div class=\"liar-ranking-row\"><span>" + (index + 1) + ". " + escapeHtml(nick(accounts, uid)) + "</span><b>" + Number(game.scores?.[uid] || 0) + " pkt</b></div>").join("");
+function rankingHtml(game, accounts, winners = []) {
+  const winnerSet = new Set(winners);
+  return [...(game.players || [])].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => "<div class=\"liar-ranking-row\"><span>" + (index + 1) + ".</span>" + resultPlayerMiniHtml(accounts[uid], winnerSet.has(uid) ? "win" : "lose") + "<b>" + Number(game.scores?.[uid] || 0) + " pkt</b></div>").join("");
 }
 
 function answersHtml(game, accounts, currentUser, reveal = false) {
@@ -153,10 +154,11 @@ export function renderLiarGame(root, { room, accounts, currentUser }, actions) {
     content += "<h2>Kto jest Kłamcą?</h2><p class=\"muted\">Wybierz jedną osobę. Nie możesz głosować na siebie.</p><div class=\"liar-answers\">" + answersHtml(game, accounts, currentUser) + "</div>" + (currentUser in object(game.votes) ? "<div class=\"waiting-state\"><h2>Głos zapisany ✓</h2><p>Czekamy na pozostałych graczy.</p></div>" : "") + "<p class=\"liar-timer\">Głosowanie kończy się za <b>" + timer + "s</b></p>";
   } else if (game.phase === "roundResult") {
     const liar = game.roundResult?.liarUid || game.liarUid;
-    content += "<h2>Wyniki głosowania</h2><div class=\"liar-answers\">" + answersHtml(game, accounts, currentUser, true) + "</div><div class=\"liar-reveal\"><span>KŁAMCĄ BYŁ...</span><strong>🎭 " + escapeHtml(nick(accounts, liar)) + "</strong><p>Jego fałszywa odpowiedź: „" + escapeHtml(game.roundResult?.answers?.[liar] || "Brak odpowiedzi") + "”</p><b>" + (game.roundResult?.liarCaught ? "Większość go wykryła." : "Kłamca przechytrzył większość i zdobywa 2 pkt.") + "</b></div><div class=\"liar-ranking\">" + rankingHtml(game, accounts) + "</div><button id=\"liar-next\" class=\"primary\"" + (currentUser === room.hostUid ? "" : " disabled") + ">" + (Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda") + "</button><p class=\"round-advance-notice\">" + (currentUser === room.hostUid ? "Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>." : "Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>.") + "</p>";
+    const roundWinners = game.roundResult?.liarCaught ? (game.roundResult?.correctVoters || []) : liar ? [liar] : [];
+    content += "<h2>Wyniki głosowania</h2><div class=\"liar-answers\">" + answersHtml(game, accounts, currentUser, true) + "</div><div class=\"liar-reveal\"><span>KŁAMCĄ BYŁ...</span><strong>🎭 " + escapeHtml(nick(accounts, liar)) + "</strong><p>Jego fałszywa odpowiedź: „" + escapeHtml(game.roundResult?.answers?.[liar] || "Brak odpowiedzi") + "”</p><b>" + (game.roundResult?.liarCaught ? "Większość go wykryła." : "Kłamca przechytrzył większość i zdobywa 2 pkt.") + "</b></div><div class=\"liar-ranking\">" + rankingHtml(game, accounts, roundWinners) + "</div><button id=\"liar-next\" class=\"primary\"" + (currentUser === room.hostUid ? "" : " disabled") + ">" + (Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda") + "</button><p class=\"round-advance-notice\">" + (currentUser === room.hostUid ? "Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>." : "Czekamy na hosta. Kolejna runda rozpocznie się automatycznie za <b>" + timer + "s</b>.") + "</p>";
   } else {
-    const top = Math.max(0, ...Object.values(game.scores || {}).map(Number)), winners = (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top);
-    content += "<div class=\"liar-final\"><span>🏆</span><h2>Koniec gry</h2><p>Najlepszy blef i najlepsze śledztwo zostały rozstrzygnięte.</p><div class=\"liar-ranking\">" + rankingHtml(game, accounts) + "</div><p class=\"liar-winner\">Zwycięzca: " + winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") + "</p></div><button id=\"liar-lobby\" class=\"primary\">Zagraj ponownie</button>";
+    const top = Math.max(0, ...Object.values(game.scores || {}).map(Number)), winners = top > 0 ? (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top) : [];
+    content += "<div class=\"liar-final\"><span>🏆</span><h2>Koniec gry</h2><p>Najlepszy blef i najlepsze śledztwo zostały rozstrzygnięte.</p><div class=\"liar-ranking\">" + rankingHtml(game, accounts, winners) + "</div><p class=\"liar-winner\">Zwycięzca: " + winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") + "</p></div><button id=\"liar-lobby\" class=\"primary\">Zagraj ponownie</button>";
   }
   root.innerHTML = "<main class=\"page liar-page enter\"><section class=\"panel liar-panel\">" + content + "</section><button id=\"liar-leave\" class=\"ghost\">Wyjdź z pokoju</button></main>";
   root.querySelector("#liar-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.liarAnswer(root.querySelector("#liar-answer").value, expected); });

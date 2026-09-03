@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { impostorWords } from "../content/impostor/words.js";
 
 export const wordChainDefaults={answerTime:20,allowRepeats:false,repeatGap:3,acceptEnglish:false,hearts:3};
@@ -37,10 +37,19 @@ let wordChainRenderToken = 0;
 renderWordChainGame = (root, context, actions) => {
   stopWordChainTimer();
   const token = wordChainRenderToken;
-  return renderWordChainGameBase(root, context, {
+  const output = renderWordChainGameBase(root, context, {
     ...actions,
     wordChainTimeout: expected => token === wordChainRenderToken ? actions.wordChainTimeout(expected) : undefined
   });
+  const game = context?.room?.game;
+  if (game?.phase === "result") {
+    const roster = root.querySelector(".word-chain-roster");
+    if (roster) {
+      roster.className = "word-chain-result-roster";
+      roster.innerHTML = (game.players || []).map(uid => `<article>${resultPlayerMiniHtml({ ...(context.accounts?.[uid] || {}), nick: context.accounts?.[uid]?.nick || (String(uid).startsWith("bot:") ? "Bot" : "Gracz") }, uid === game.winner ? "win" : "lose")}<strong>${uid === game.winner ? "Zwycięzca" : "Odpadł"}</strong></article>`).join("");
+    }
+  }
+  return output;
 };
 
 export function wordChainBotWord(game){const last=normalize(String(game?.chain?.at(-1)||""));const required=last.at(-1);const pool=[...new Set([...(game?.acceptEnglish?[...polishWords,...english]:polishWords)].map(normalize))].filter(word=>word[0]===required&&!game.used?.includes(word));return pool[Math.floor(Math.random()*pool.length)]||pool[0]||"";}

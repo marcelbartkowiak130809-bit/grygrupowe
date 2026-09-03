@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const secretRuleDefaults = {
@@ -167,7 +167,7 @@ function historyHtml(game, uid) {
   const column = (title, entries, tone) => `<div class="secret-rule-history-column ${tone}"><h3>${title}</h3>${entries.length ? entries.map(item => `<div class="secret-rule-history-entry"><small>#${item.number}</small><span>${escapeHtml(item.text)}</span></div>`).join("") : `<p class="muted">Jeszcze nic tu nie trafiło.</p>`}</div>`;
   return `<section class="secret-rule-history"><div class="section-intro"><div><p class="eyebrow">ODKRYWANIE ZASADY PRZECIWNIKA</p><h2>Twoje dotychczasowe próby</h2></div><span class="badge">${history.length}</span></div><div class="secret-rule-history-grid">${column("✅ PASUJE", yes, "is-yes")}${column("❌ NIE PASUJE", no, "is-no")}</div></section>`;
 }
-function rankingHtml(game, accounts) { return [...game.players].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => `<div class="secret-rule-ranking-row"><span>${index + 1}. ${escapeHtml(nick(accounts, uid))}</span><b>${Number(game.scores?.[uid] || 0)} pkt ${uid === game.winner ? "🏆" : ""}</b></div>`).join(""); }
+function rankingHtml(game, accounts) { return [...game.players].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => `<div class="secret-rule-ranking-row"><span>${index + 1}.</span>${resultPlayerMiniHtml(accounts[uid], uid === game.winner ? "win" : "lose")}<b>${Number(game.scores?.[uid] || 0)} pkt ${uid === game.winner ? "🏆" : ""}</b></div>`).join(""); }
 function rulesHtml(game, accounts) { return game.players.map(uid => `<div class="secret-rule-final-rule"><b>${escapeHtml(nick(accounts, uid))}</b><span>${escapeHtml(game.secretRules?.[uid] || "—")}</span></div>`).join(""); }
 
 export function renderSecretRuleLobbySettings(room, isHost) {

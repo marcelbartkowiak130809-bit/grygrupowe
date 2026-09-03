@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml } from "./utils.js?v=20260901-3";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 
@@ -243,11 +243,11 @@ function resultStage(room, accounts, game) {
       ${arrayOrEmpty(game.ranking).map((row, index) => {
         const pct = Math.max(0, Math.min(100, Number(row.elapsedMs || 0) / maxMs * 100));
         return `<article class="${index === 0 ? "closest" : ""}" style="--pos:${pct};--delay:${index}">
-          <span></span><div class="clock-axis-player">${miniClockHtml(accounts[row.uid])}${playerMiniHtml(accounts[row.uid])}</div><strong>${secondsText(row.elapsedMs)}</strong><small>roznica ${secondsText(row.differenceMs)} ${row.points ? "+1 pkt" : ""}</small>
+          <span></span><div class="clock-axis-player">${miniClockHtml(accounts[row.uid])}${resultPlayerMiniHtml(accounts[row.uid], row.points ? "win" : "lose")}</div><strong>${secondsText(row.elapsedMs)}</strong><small>roznica ${secondsText(row.differenceMs)} ${row.points ? "+1 pkt" : ""}</small>
         </article>`;
       }).join("")}
     </div>
-    <div class="truth-round-ranking final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${index === 0 ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div>
+    <div class="truth-round-ranking final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index,rows)=>{const topScore=Math.max(0,...rows.map(player=>Number(game.scores?.[player]||0)));return `<article class="${Number(game.scores?.[uid]||0)===topScore&&topScore>0?"winner-card":""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], Number(game.scores?.[uid]||0)===topScore&&topScore>0 ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`;}).join("")}</div>
     <button class="primary" id="clock-next-round">${game.result?.gameOver ? "Pokaz podsumowanie" : "Nastepna runda"}</button>
   </section>`;
 }
@@ -256,7 +256,7 @@ function summaryStage(room, accounts, game) {
   const max = Math.max(0, ...Object.values(game.scores || {}).map(Number));
   const winners = room.players.filter(uid => Number(game.scores?.[uid] || 0) === max);
   Effects.play("roundWin", `${room.roomId}:clock:summary`);
-  return `<section class="clock-stage clock-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa czas</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${playerMiniHtml(accounts[uid])}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="clock-lobby">Wroc do lobby</button></section>`;
+  return `<section class="clock-stage clock-summary"><p class="eyebrow">KONIEC GRY</p><h1>${winners.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ")} wygrywa czas</h1><div class="final-ranking">${room.players.slice().sort((a,b)=>Number(game.scores?.[b]||0)-Number(game.scores?.[a]||0)).map((uid,index)=>`<article class="${winners.includes(uid) ? "winner-card" : ""}"><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], winners.includes(uid) ? "win" : "lose")}<strong>${Number(game.scores?.[uid] || 0)} pkt</strong></article>`).join("")}</div><button class="primary" id="clock-lobby">Wroc do lobby</button></section>`;
 }
 
 export function renderClockGame(root, { room, accounts, currentUser }, actions) {

@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20260902-18";
+import { getGameMode } from "./games.js?v=20260903-9";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
@@ -13,7 +13,7 @@ import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260831-3";
 import { renderPokemonLobbySettings } from "./pokemon.js?v=20260831-11";
-import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260831-5";
+import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260903-6";
 import { renderQuizLobbySettings } from "./quiz.js?v=20260823-5";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260805-1";
 import { renderMarkerLobbySettings } from "./marker.js?v=20260823-1";

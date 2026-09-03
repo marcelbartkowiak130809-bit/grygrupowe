@@ -1,9 +1,9 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 
 export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [
-  ["Gorące","Zimne"],["Bogaty","Biedny"],["Śmieszne","Poważne"],["Szybkie","Wolne"],["Jasne","Ciemne"],["Głośne","Ciche"],["Łatwe","Trudne"],["Stare","Nowe"],["Blisko","Daleko"],["Duże","Małe"],["Wysokie","Niskie"],["Ciężkie","Lekkie"],["Słodkie","Gorzkie"],["Mokre","Suche"],["Miękkie","Twarde"],["Pełne","Puste"],["Otwarte","Zamknięte"],["Dzień","Noc"],["Lato","Zima"],["Miasto","Wieś"],["Formalne","Luźne"],["Bezpieczne","Ryzykowne"],["Zdrowe","Niezdrowe"],["Popularne","Niszowe"],["Tanie","Drogie"],["Spokojne","Chaotyczne"],["Przyjazne","Wrogie"],["Realistyczne","Fantastyczne"],["Nowoczesne","Klasyczne"],["Eleganckie","Kiczowate"],["Praktyczne","Niepraktyczne"],["Pożyteczne","Bezużyteczne"],["Szczęśliwe","Smutne"],["Odważne","Tchórzliwe"],["Mądre","Głupie"],["Czyste","Brudne"],["Szerokie","Wąskie"],["Długie","Krótkie"],["Wysuszone","Wilgotne"],["Naturalne","Sztuczne"],["Widoczne","Ukryte"],["Zwyczajne","Dziwne"],["Prawdopodobne","Nieprawdopodobne"],["Wygodne","Niewygodne"],["Słabe","Mocne"],["Młode","Dojrzałe"],["Poranne","Wieczorne"],["Samotne","Towarzyskie"],["Zwycięskie","Przegrane"],["Królewskie","Zwyczajne"],["Ciepłe","Chłodne"],["Ciasne","Przestronne"],["Radosne","Ponure"],["Skomplikowane","Proste"],["Poważne","Żartobliwe"]
+  ["Gorące","Zimne"],["Bogaty","Biedny"],["Śmieszne","Poważne"],["Szybkie","Wolne"],["Jasne","Ciemne"],["Głośne","Ciche"],["Łatwe","Trudne"],["Stare","Nowe"],["Blisko","Daleko"],["Duże","Małe"],["Wysokie","Niskie"],["Ciężkie","Lekkie"],["Słodkie","Gorzkie"],["Mokre","Suche"],["Miękkie","Twarde"],["Pełne","Puste"],["Otwarte","Zamknięte"],["Lato","Zima"],["Miasto","Wieś"],["Formalne","Luźne"],["Bezpieczne","Ryzykowne"],["Zdrowe","Niezdrowe"],["Popularne","Niszowe"],["Tanie","Drogie"],["Spokojne","Chaotyczne"],["Przyjazne","Wrogie"],["Realistyczne","Fantastyczne"],["Nowoczesne","Klasyczne"],["Eleganckie","Kiczowate"],["Praktyczne","Niepraktyczne"],["Pożyteczne","Bezużyteczne"],["Szczęśliwe","Smutne"],["Odważne","Tchórzliwe"],["Mądre","Głupie"],["Czyste","Brudne"],["Szerokie","Wąskie"],["Długie","Krótkie"],["Wysuszone","Wilgotne"],["Naturalne","Sztuczne"],["Widoczne","Ukryte"],["Zwyczajne","Dziwne"],["Prawdopodobne","Nieprawdopodobne"],["Wygodne","Niewygodne"],["Słabe","Mocne"],["Młode","Dojrzałe"],["Poranne","Wieczorne"],["Samotne","Towarzyskie"],["Zwycięskie","Przegrane"],["Królewskie","Zwyczajne"],["Ciepłe","Chłodne"],["Ciasne","Przestronne"],["Radosne","Ponure"],["Skomplikowane","Proste"],["Poważne","Żartobliwe"]
 ];
 const displayPair = pair => pair?.[0] === "Ciasne" ? ["Mało miejsca", "Dużo miejsca"] : pair;
 const randomPair = () => displayPair(pairs[Math.floor(Math.random() * pairs.length)]);
@@ -21,8 +21,10 @@ function finishRound(game, players, settings) {
   game.scores = game.scores || Object.fromEntries(players.map(uid => [uid, 0]));
   players.forEach(uid => { game.scores[uid] = Number(game.scores[uid]) || 0; });
   const guesser = game.guesserUid || players[1] || players[0];
+  const clueAuthors = Object.keys(game.clues || {}).filter(uid => players.includes(uid) && uid !== guesser && String(game.clues[uid] || "").trim());
+  const describer = clueAuthors[0] || players.find(uid => uid !== guesser) || "";
   game.scores[guesser] += points;
-  game.roundResult = { target:game.target, position:game.position, difference, points, describer:guesser, guesser };
+  game.roundResult = { target:Number(game.target), position:Number(game.position), difference, points, describer, clueAuthors, guesser };
   game.phase = "result";
   game.finished = Number(game.round) >= Math.max(5, Math.min(20, Number(settings.rounds) || 8));
 }
@@ -101,11 +103,17 @@ function scaleMarkup(game, canMove, canConfirm, showTarget = false) {
 }
 
 function resultMarkup(game, accounts, actions) {
-  const result = game.roundResult || {}, name = escapeHtml(accounts[result.describer]?.nick || "Opisujący");
+  const result = game.roundResult || {};
+  const savedClueAuthors = Object.keys(game.clues || {}).filter(uid => String(game.clues[uid] || "").trim());
+  const clueAuthors = Array.isArray(result.clueAuthors) && result.clueAuthors.length ? result.clueAuthors : savedClueAuthors.length ? savedClueAuthors : [result.describer].filter(Boolean);
+  const name = clueAuthors.map(uid => escapeHtml(accounts[uid]?.nick || "Gracz")).join(", ") || "Opisujący";
   const standings=Object.entries(game.scores||{}).sort(([,a],[,b])=>Number(b)-Number(a));
-  const ranking=standings.map(([uid,score],index)=>`<div class="wavelength-ranking-row"><span>${index+1}. ${escapeHtml(accounts[uid]?.nick||"Gracz")}</span><b>${Number(score)||0} pkt</b></div>`).join("");
-  const podium=game.finished ? `<div class="wavelength-podium">${standings.slice(0,3).map(([uid,score],index)=>`<div class="wavelength-podium-place place-${index+1}"><strong>${index+1}</strong><b>${escapeHtml(accounts[uid]?.nick||"Gracz")}</b><span>${Number(score)||0} pkt</span></div>`).join("")}</div>` : "";
-  return `<section class="panel wavelength-panel enter"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}</p><h1>Cel został odsłonięty</h1><div class="wavelength-reveal">${scaleMarkup(game, false, false)}</div><p class="wavelength-clue">„${escapeHtml(game.clue || "Brak podpowiedzi")}" · ${name}</p><div class="wavelength-result-stats"><b>Odległość: ${result.difference ?? "-"}</b><strong>+${result.points ?? 0} pkt</strong></div>${podium}<div class="wavelength-ranking"><p class="eyebrow">RANKING</p>${ranking}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p><button class="primary" id="wavelength-lobby">Wróć do lobby</button>` : `<button class="primary" id="wavelength-next">Następna runda</button>`}</section>`;
+  const topScore=standings.length ? Number(standings[0][1]) || 0 : 0;
+  const outcome=score => topScore > 0 && Number(score) === topScore ? "win" : "lose";
+  const ranking=standings.map(([uid,score],index)=>`<div class="wavelength-ranking-row"><span>${index+1}.</span>${resultPlayerMiniHtml(accounts[uid], outcome(score))}<b>${Number(score)||0} pkt</b></div>`).join("");
+  const podium=game.finished ? `<div class="wavelength-podium">${standings.slice(0,3).map(([uid,score],index)=>`<div class="wavelength-podium-place place-${index+1}"><strong>${index+1}</strong>${resultPlayerMiniHtml(accounts[uid], outcome(score))}<span>${Number(score)||0} pkt</span></div>`).join("")}</div>` : "";
+  const reveal = { ...game, target:result.target ?? game.target, position:result.position ?? game.position };
+  return `<section class="panel wavelength-panel enter"><p class="eyebrow">WAVELENGTH · RUNDA ${game.round}</p><h1>Cel został odsłonięty</h1><div class="wavelength-reveal">${scaleMarkup(reveal, false, false)}</div><p class="wavelength-clue">„${escapeHtml(game.clue || "Brak podpowiedzi")}" · ${name}</p><div class="wavelength-result-stats"><b>Odległość: ${result.difference ?? "-"}</b><strong>+${result.points ?? 0} pkt</strong></div>${podium}<div class="wavelength-ranking"><p class="eyebrow">RANKING</p>${ranking}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p><button class="primary" id="wavelength-lobby">Wróć do lobby</button>` : `<button class="primary" id="wavelength-next">Następna runda</button>`}</section>`;
 }
 
 export function renderWavelengthGame(root, { room, accounts, currentUser }, actions) {

@@ -10,6 +10,7 @@ export function escapeHtml(value) {
 }
 
 export const safeCosmeticClass = value => String(value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 48);
+const safeCosmeticClassList = value => String(value || "").split(/\s+/).map(safeCosmeticClass).filter(Boolean).join(" ");
 
 export function avatarHtml(profile = {}, className = "", options = {}) {
   const idleClass = options.disableIdle ? "" : safeCosmeticClass(profile.selectedIdleAnimation);
@@ -55,18 +56,25 @@ function playerFxMarkup(id) {
   return "";
 }
 
-function playerFxHtml(profile = {}) {
+function playerFxHtml(profile = {}, effectType = null) {
   return [
     ["win", profile.selectedWinAnimation],
     ["lose", profile.selectedLoseAnimation],
-  ].filter(([, id]) => Boolean(id)).map(([type, id]) => {
+  ].filter(([type, id]) => Boolean(id) && (!effectType || type === effectType)).map(([type, id]) => {
     const markup = playerFxMarkup(id);
     return markup ? `<span class="cosmetic-fx-group cosmetic-fx-${type} ${safeCosmeticClass(id)}" aria-hidden="true">${markup}</span>` : "";
   }).join("");
 }
 
 export function playerMiniHtml(profile = {}, className = "", options = {}) {
-  return `<div class="mini-player ${safeCosmeticClass(profile.selectedWinAnimation)} ${safeCosmeticClass(profile.selectedLoseAnimation)} ${safeCosmeticClass(className)}">${playerFxHtml(profile)}${avatarHtml(profile, "", options)}<span class="nick ${safeCosmeticClass(profile.selectedNickEffect) || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+  return `<div class="mini-player ${safeCosmeticClass(profile.selectedWinAnimation)} ${safeCosmeticClass(profile.selectedLoseAnimation)} ${safeCosmeticClassList(className)}">${playerFxHtml(profile, options.effectType)}${avatarHtml(profile, "", options)}<span class="nick ${safeCosmeticClass(profile.selectedNickEffect) || "defaultNick"}">${escapeHtml(profile.nick || "Gracz")}</span>${levelBadgeHtml(profile)}</div>`;
+}
+
+export function resultPlayerMiniHtml(profile = {}, outcome = "lose", className = "") {
+  const status = outcome === "win" ? "win" : outcome === "lose" ? "lose" : "static";
+  const selectedEffect = status === "win" ? profile.selectedWinAnimation : status === "lose" ? profile.selectedLoseAnimation : "";
+  const resultClass = selectedEffect ? `result-player-${status}` : "result-player-static";
+  return playerMiniHtml(profile, `${resultClass} ${className}`, { disableIdle: true, effectType: selectedEffect ? status : "none" });
 }
 
 export function boardPlayerStripHtml(players = [], accounts = {}, options = {}) {

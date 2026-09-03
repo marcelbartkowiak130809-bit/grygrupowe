@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 
 export const familyDefaults={rounds:5,answerTime:30,turnMode:"afterAnswer",topSize:10,scoring:"one"};
 const baseQuestionBank=[
@@ -67,6 +67,16 @@ FamilyEngine.next = game => familyNext(ensureFamilyRoundState(game));
 const renderFamilyGameBase = renderFamilyGame;
 renderFamilyGame = (root, context, actions) => {
   ensureFamilyRoundState(context?.room?.game);
-  return renderFamilyGameBase(root, context, actions);
+  const output = renderFamilyGameBase(root, context, actions);
+  if (context?.room?.game?.phase === "result") {
+    const ranking = Object.entries(context.room.game.scores || {}).sort(([,a],[,b]) => Number(b) - Number(a));
+    const topScore = Math.max(0, ...ranking.map(([, score]) => Number(score) || 0));
+    root.querySelectorAll(".family-rank-row").forEach((row, index) => {
+      const [uid, score] = ranking[index] || [];
+      if (!uid) return;
+      row.innerHTML = `<b>${index + 1}.</b>${resultPlayerMiniHtml(context.accounts?.[uid], Number(score) === topScore && topScore > 0 ? "win" : "lose")}<strong>${score} pkt</strong>`;
+    });
+  }
+  return output;
 };
 export function renderFamilyLobbySettingsV2(room,isHost){const s=room.settings||familyDefaults;const sizes=[5,10,15,20,25,30];return `<div class="family-settings"><label>Liczba rund <input data-family-setting="rounds" type="number" min="1" max="20" value="${s.rounds||5}" ${isHost?"":"disabled"}></label><label>Czas odpowiedzi <input data-family-setting="answerTime" type="number" min="10" max="180" value="${s.answerTime||30}" ${isHost?"":"disabled"}> s</label><label>Ranking <select data-family-setting="topSize" ${isHost?"":"disabled"}>${sizes.map(value=>`<option value="${value}" ${Number(s.topSize||10)===value?"selected":""}>Top ${value}</option>`).join("")}</select></label><label>Punktacja <select data-family-setting="scoring" ${isHost?"":"disabled"}><option value="one" ${s.scoring!=="higher"&&s.scoring!=="lower"?"selected":""}>Każda poprawna = 1</option><option value="higher" ${s.scoring==="higher"?"selected":""}>Wyżej = więcej punktów</option><option value="lower" ${s.scoring==="lower"?"selected":""}>Niżej = więcej punktów</option></select></label><label>Sposób zmiany gracza <select data-family-setting="turnMode" ${isHost?"":"disabled"}><option value="afterAnswer" ${s.turnMode!=="untilWrong"?"selected":""}>Po każdej odpowiedzi</option><option value="untilWrong" ${s.turnMode==="untilWrong"?"selected":""}>Dopóki się nie pomyli</option></select></label><p class="tiny">Zbyt długie rankingi są automatycznie pomijane, jeśli pytanie nie ma tylu sensownych odpowiedzi.</p></div>`;}
