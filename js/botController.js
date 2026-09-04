@@ -29,7 +29,7 @@ import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260903-2";
 import { LyricsEngine } from "./lyrics.js?v=20260902-23";
-import { PopularityEngine } from "./popularity.js?v=20260903-11";
+import { PopularityEngine } from "./popularity.js?v=20260904-3";
 import { SongSpotEngine } from "./songSpot.js?v=20260902-15";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
@@ -49,6 +49,7 @@ const orderUid = (game, keys = ["order", "turnOrder"], index = "turnIndex") => {
   return "";
 };
 const isMissing = (map, uid) => !(uid in object(map));
+const isPopularityChoiceMissing = (map, uid) => !["left", "right"].includes(object(map)[uid]);
 const firstMissingBot = (room, map) => botsOf(room).find(uid => isMissing(map, uid)) || botsOf(room)[0] || "";
 
 /*
@@ -90,7 +91,7 @@ export function botActor(room) {
     if (game.phase === "selecting") return bots.find(uid => game.duelists?.includes(uid) && isMissing(game.submissions, uid)) || "";
     if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
   }
-  if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isMissing(game.choices, uid)) || "";
+  if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode === "songspot" && ["preview", "answering"].includes(game.phase)) return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode?.startsWith("minecraft-")) {
@@ -543,7 +544,7 @@ export function botMutation(room) {
         };
         break;
       case "popularnosc-hitow":
-        if (game.phase === "choosing" && isMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
+        if (game.phase === "choosing" && isPopularityChoiceMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
         break;
       case "dokoncz-tekst":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => LyricsEngine.answer(g, bot, LyricsEngine.botAnswer(g, bot, correct(), botDifficulty(room, bot).id), players, settings);

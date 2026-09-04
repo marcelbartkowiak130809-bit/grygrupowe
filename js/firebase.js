@@ -594,7 +594,21 @@ export async function savePopularitySoloLeaderboard(uid, metricStats = {}, profi
       records,
       updatedAt: Math.floor(serverNow()),
     };
-    await firebaseDatabaseApi.update(recordRef, payload);
+    // Rules for popularitySoloRecords grant writes to the individual leaf
+    // fields. A parent update at /$uid is rejected by RTDB even when every
+    // nested value would be valid, so flatten the patch to the authorized
+    // paths instead of silently losing every leaderboard submission.
+    const updatePayload = {
+      nick: payload.nick,
+      avatarImage: payload.avatarImage,
+      selectedAvatarFrame: payload.selectedAvatarFrame,
+      selectedAura: payload.selectedAura,
+      updatedAt: payload.updatedAt,
+    };
+    POPULARITY_SOLO_REGIONS.forEach(region => POPULARITY_SOLO_METRICS.forEach(metric => {
+      updatePayload[`records/${region}/${metric}`] = records[region][metric];
+    }));
+    await firebaseDatabaseApi.update(recordRef, updatePayload);
     return sanitizePopularitySoloRecord(uid, payload);
   } catch { return null; }
 }

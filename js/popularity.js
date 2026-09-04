@@ -3,6 +3,7 @@ import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 import { Audio } from "./audio.js?v=20260902-1";
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
 import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
+import { SPOTIFY_MONTHLY_LISTENERS_AUDIT_DATE, spotifyMonthlyListenerSnapshots } from "./spotifyListenerSnapshots.js?v=20260904-1";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -30,6 +31,9 @@ const auditedViewsFor = (title, artist) => {
 // wyszukiwarka YouTube potrafi zwrócić reupload z poprawnym tytułem, ale
 // kompletnie błędną liczbą wyświetleń.
 const verifiedViewOverrides = new Map([
+  // Official Luis Fonsi video: youtube.com/watch?v=kJQP7kiw5Fk.
+  // The generated audit matched a tiny mirror/reupload instead of this clip.
+  ["despacito luis fonsi", 9113419300],
   ["problem (feat. iggy azalea) ariana grande", 1497008330],
   ["everything i wanted billie eilish", 532296844],
   ["levels avicii", 783843255],
@@ -620,14 +624,14 @@ function artistEntryTrack(track, artist) {
 const artistIndex = new Map();
 popularityTracks.forEach(track => {
   splitArtistCredits(track.artist).forEach(artist => {
-    const key = normalizedText(artist), artistTrack = artistEntryTrack(track, artist), current = artistIndex.get(key);
+    const key = normalizedText(artist), artistTrack = artistEntryTrack(track, artist), current = artistIndex.get(key), auditedListeners = Number(spotifyMonthlyListenerSnapshots.get(snapshotKey(artist)));
     if (!current) {
-      artistIndex.set(key, { id:`artist-${encodeURIComponent(key)}`, artist, listeners:Number(track.listeners) || 0, region:track.region || "global", topTrack:artistTrack });
+      artistIndex.set(key, { id:`artist-${encodeURIComponent(key)}`, artist, listeners:Number.isFinite(auditedListeners) ? auditedListeners : Number(track.listeners) || 0, region:track.region || "global", topTrack:artistTrack });
       return;
     }
     artistIndex.set(key, {
       ...current,
-      listeners:Math.max(Number(current.listeners) || 0, Number(track.listeners) || 0),
+      listeners:Number.isFinite(auditedListeners) ? auditedListeners : Number(current.listeners) || Number(track.listeners) || 0,
       region:current.region === "polish" || track.region === "polish" ? "polish" : "global",
       topTrack:track.viewsVerified === true && (current.topTrack?.viewsVerified !== true || Number(track.views) > Number(current.topTrack?.views)) ? artistTrack : current.topTrack,
     });
@@ -678,6 +682,7 @@ function correctSide(pair, metric, reversed = false) {
   const left = valueFor(pair?.[0], metric), right = valueFor(pair?.[1], metric);
   return left === right ? "tie" : reversed ? (left < right ? "left" : "right") : (left > right ? "left" : "right");
 }
+const isPopularityChoice = value => value === "left" || value === "right";
 
 function resolveRound(game) {
   const pair = array(game.pair).slice(0, 2).map(item => cloneCompetitionItem(item, game.metric));
@@ -734,11 +739,13 @@ export const PopularityEngine = {
   choose(game, uid, side) {
     if (game.phase !== "choosing") return "Wybór w tej rundzie jest już zamknięty.";
     if (!array(game.players).includes(uid)) return "Nie bierzesz udziału w tej grze.";
-    if (!["left", "right"].includes(side)) return "Wybierz jedną z dwóch opcji.";
+    if (!isPopularityChoice(side)) return "Wybierz jedną z dwóch opcji.";
     game.choices = object(game.choices);
-    if (uid in game.choices) return "Twój wybór jest już zapisany.";
+    // Firebase/RTDB can preserve an explicit null for an unanswered player.
+    // That is a placeholder, not a submitted answer.
+    if (isPopularityChoice(game.choices[uid])) return "Twój wybór jest już zapisany.";
     game.choices[uid] = side;
-    if (game.players.every(player => player in game.choices)) resolveRound(game);
+    if (game.players.every(player => isPopularityChoice(game.choices[player]))) resolveRound(game);
   },
   timeout(game) {
     if (game.phase !== "choosing") return;
@@ -796,7 +803,7 @@ function metricQuestion(metric, reversed = false) {
   const question = isArtistMetric(metric) ? "Który artysta ma" : cleanMetric(metric) === "listeners" ? "Która piosenka ma" : "Która piosenka ma";
   return `${question} ${reversed ? "mniej" : "więcej"} ${metricQuantity(metric)}?`;
 }
-function metricSource(metric) { return isArtistMetric(metric) ? `Spotify · miesięczni słuchacze artystów · dane z ${POPULARITY_SNAPSHOT_DATE}` : cleanMetric(metric) === "listeners" ? "Spotify · snapshot słuchaczy piosenek" : `YouTube · oficjalne snapshoty wyświetleń · dane z ${POPULARITY_SNAPSHOT_DATE}`; }
+function metricSource(metric) { return isArtistMetric(metric) ? `Spotify · miesięczni słuchacze artystów · dane z ${SPOTIFY_MONTHLY_LISTENERS_AUDIT_DATE}` : cleanMetric(metric) === "listeners" ? "Spotify nie publikuje miesięcznych słuchaczy osobno dla piosenek" : `YouTube · oficjalne snapshoty wyświetleń · dane z ${POPULARITY_SNAPSHOT_DATE}`; }
 function hashColor(value) {
   let hash = 0;
   for (const char of String(value || "")) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
@@ -1062,7 +1069,7 @@ function popularityPreviewHtml(track, metric = "views") {
 }
 
 function popularityReadyPlayers(game, accounts, room) {
-  const choices = object(game.choices), ready = array(game.players).filter(uid => uid in choices);
+  const choices = object(game.choices), ready = array(game.players).filter(uid => isPopularityChoice(choices[uid]));
   if (!ready.length) return "";
   return `<div class="popularity-ready-avatars" aria-label="${ready.length} graczy już wybrało"><span>${ready.length}</span>${ready.slice(0, 8).map(uid => avatarHtml(userProfile(accounts, room, uid), "popularity-avatar", { disableIdle:true })).join("")}</div>`;
 }
@@ -1113,11 +1120,11 @@ function animatePopularityValues(root) {
 }
 
 export function renderPopularityGame(root, { room, accounts, currentUser }, actions) {
-  const game = room.game, result = game.roundResult || {}, selected = game.choices?.[currentUser], expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt };
+  const game = room.game, result = game.roundResult || {}, selected = isPopularityChoice(game.choices?.[currentUser]) ? game.choices[currentUser] : "", expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt };
   const pair = array(game.phase === "roundResult" ? result.pair : game.pair).slice(0, 2);
   let content = popularityHeader(game);
   if (game.phase === "choosing") {
-    const choiceCount = Object.keys(game.choices || {}).length, chosen = selected ? `<div class="popularity-choice-status"><span>✓</span><div><b>Twój wybór został zapisany</b><small>Czekamy na resztę graczy: ${choiceCount}/${game.players.length}.</small></div>${popularityReadyPlayers(game, accounts, room)}</div>` : `<div class="popularity-choice-status"><span>⚡</span><div><b>Wybierz stronę</b><small>${choiceCount ? `${choiceCount}/${game.players.length} graczy już wybrało.` : "Nie pokazujemy liczb, dopóki wszyscy nie odpowiedzą."}</small></div>${popularityReadyPlayers(game, accounts, room)}</div>`;
+    const choiceCount = array(game.players).filter(uid => isPopularityChoice(game.choices?.[uid])).length, chosen = selected ? `<div class="popularity-choice-status"><span>✓</span><div><b>Twój wybór został zapisany</b><small>Czekamy na resztę graczy: ${choiceCount}/${game.players.length}.</small></div>${popularityReadyPlayers(game, accounts, room)}</div>` : `<div class="popularity-choice-status"><span>⚡</span><div><b>Wybierz stronę</b><small>${choiceCount ? `${choiceCount}/${game.players.length} graczy już wybrało.` : "Nie pokazujemy liczb, dopóki wszyscy nie odpowiedzą."}</small></div>${popularityReadyPlayers(game, accounts, room)}</div>`;
     const librarySize = popularityPoolSize(game.metric, game.region), libraryEntity = isArtistMetric(game.metric) ? "artystów" : "utworów";
     content += `<section class="popularity-question"><span>📊</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${librarySize} ${libraryEntity} w bazie</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:selected === "left", metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:selected === "right", metric:game.metric })}</div>${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
   } else if (game.phase === "roundResult") {
@@ -1296,10 +1303,11 @@ function popularityRegionRecords(remote, region) {
   // nigdy nie dokładamy ich do polskiej topki.
   return Object.keys(nested).length ? nested : region === "global" ? records : {};
 }
-function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null, leaderboard = {}) {
+function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentProfile = null, leaderboard = {}, selection = {}) {
   const currentId = String(playerId || "guest"), accountIds = Object.keys(object(accounts)), remoteIds = Object.keys(object(leaderboard));
   const ids = [...new Set([...accountIds, ...remoteIds, currentId])].filter(Boolean);
-  const selectedRegion = state.region === "polish" ? "polish" : "global";
+  const selectedRegion = selection.region === "polish" ? "polish" : "global";
+  const selectedMetric = SOLO_METRICS.includes(selection.metric) ? selection.metric : cleanMetric(state.metric);
   const stateRegionStats = object(state.regionStats);
   const renderRows = (region, metric) => {
     const currentStats = object(stateRegionStats[region]);
@@ -1319,13 +1327,13 @@ function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentP
     const rows = visible.length ? visible.map(item => `<div class="popularity-leaderboard-row ${item.isCurrent ? "is-you" : ""}"><span class="popularity-leaderboard-rank">${item.rank}</span>${avatarHtml(item.player, "popularity-avatar", { disableIdle:true })}<span class="popularity-leaderboard-player"><b>${escapeHtml(item.nick)}</b><small>${item.isCurrent ? "Twój rekord" : "Najlepsza seria"}</small></span><strong>${item.best}</strong></div>`).join("") : `<p class="muted">Brak zapisanych serii.</p>`;
     return { count:ranked.length, html:rows };
   };
-  const metricTabs = SOLO_METRICS.map(metric => `<button type="button" class="popularity-leaderboard-tab ${state.metric === metric ? "active" : ""}" data-popularity-leaderboard-metric="${metric}" aria-selected="${state.metric === metric ? "true" : "false"}">${soloMetricLabel(metric)}</button>`).join("");
+  const metricTabs = SOLO_METRICS.map(metric => `<button type="button" class="popularity-leaderboard-tab ${selectedMetric === metric ? "active" : ""}" data-popularity-leaderboard-metric="${metric}" aria-selected="${selectedMetric === metric ? "true" : "false"}">${soloMetricLabel(metric)}</button>`).join("");
   const regionTabs = SOLO_REGIONS.map(region => {
     const option = musicRegionOptions.find(([id]) => id === region) || [region, "", region];
     return `<button type="button" class="popularity-leaderboard-region ${selectedRegion === region ? "active" : ""}" data-popularity-leaderboard-region="${region}" aria-selected="${selectedRegion === region ? "true" : "false"}">${option[1]} ${escapeHtml(option[2])}</button>`;
   }).join("");
   const panels = SOLO_REGIONS.flatMap(region => SOLO_METRICS.map(metric => {
-    const board = renderRows(region, metric), visible = selectedRegion === region && state.metric === metric;
+    const board = renderRows(region, metric), visible = selectedRegion === region && selectedMetric === metric;
     return `<div class="popularity-leaderboard-panel" data-popularity-leaderboard-panel="${region}:${metric}" ${visible ? "" : "hidden"}><div class="popularity-leaderboard-panel-heading"><b>${soloMetricLabel(metric)} · ${region === "polish" ? "Polskie" : "Globalne"}</b><span>${board.count}</span></div><div class="popularity-leaderboard-list">${board.html}</div></div>`;
   })).join("");
   return `<aside class="panel popularity-leaderboard" aria-label="Rankingi trybu solo"><div class="section-heading"><div><p class="eyebrow">KTO MA WIĘCEJ?</p><h2>Rankingi serii</h2></div><span class="badge">3</span></div><p class="popularity-leaderboard-note">Globalne i Polskie mają osobne rekordy — wyniki nigdy się nie mieszają.</p><div class="popularity-leaderboard-regions" role="tablist" aria-label="Wybierz katalog">${regionTabs}</div><div class="popularity-leaderboard-tabs" role="tablist" aria-label="Wybierz ranking">${metricTabs}</div>${panels}</aside>`;
@@ -1339,7 +1347,7 @@ function popularitySoloAnswerLabel(result, metric) {
   return `${entity} ${result?.correctSide === "left" ? "A" : "B"}`;
 }
 
-export function renderPopularitySolo(root, { profile, playerId, accounts = {}, leaderboard = {} }, actions) {
+export function renderPopularitySolo(root, { profile, playerId, accounts = {}, leaderboard = {}, leaderboardRegion = "global", leaderboardMetric = "views" }, actions) {
   if (typeof window !== "undefined") stopPopularityTimer();
   const state = readSoloState(playerId), game = { ...state, totalRounds:0 };
   let content = popularityHeader(game, true);
@@ -1356,20 +1364,31 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
     const pair = array(state.pair).slice(0, 2);
     content += `<section class="popularity-question"><span>🔥</span><div><b>${escapeHtml(metricQuestion(state.metric))}</b><small>${escapeHtml(metricSource(state.metric))} · bez limitu rund</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", state)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", state)}</div><div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
   }
-  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard)}</div><button id="popularity-solo-home" class="ghost">Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard, { region:leaderboardRegion, metric:leaderboardMetric })}</div><button id="popularity-solo-home" class="ghost">Wróć do muzyki</button></main>`;
   root.querySelectorAll("[data-popularity-solo-region]").forEach(button => button.addEventListener("click", () => actions.popularitySoloRegion?.(button.dataset.popularitySoloRegion)));
   root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => button.addEventListener("click", () => { actions.popularitySoloMetric(button.dataset.popularitySoloMetric); }));
+  let activeLeaderboardRegion = leaderboardRegion === "polish" ? "polish" : "global";
+  let activeLeaderboardMetric = SOLO_METRICS.includes(leaderboardMetric) ? leaderboardMetric : cleanMetric(state.metric);
+  const applyLeaderboardSelection = () => {
+    root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(tab => {
+      const active = tab.dataset.popularityLeaderboardRegion === activeLeaderboardRegion;
+      tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(tab => {
+      const active = tab.dataset.popularityLeaderboardMetric === activeLeaderboardMetric;
+      tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => {
+      panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${activeLeaderboardRegion}:${activeLeaderboardMetric}`;
+    });
+  };
   root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(button => button.addEventListener("click", () => {
-    const region = button.dataset.popularityLeaderboardRegion;
-    const metric = root.querySelector("[data-popularity-leaderboard-metric].active")?.dataset.popularityLeaderboardMetric || state.metric;
-    root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(tab => { const active = tab.dataset.popularityLeaderboardRegion === region; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false"); });
-    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${region}:${metric}`; });
+    activeLeaderboardRegion = button.dataset.popularityLeaderboardRegion === "polish" ? "polish" : "global";
+    actions.popularitySoloLeaderboardRegion?.(activeLeaderboardRegion); applyLeaderboardSelection();
   }));
   root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => button.addEventListener("click", () => {
-    const metric = button.dataset.popularityLeaderboardMetric;
-    root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(tab => { const active = tab.dataset.popularityLeaderboardMetric === metric; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active ? "true" : "false"); });
-    const region = root.querySelector("[data-popularity-leaderboard-region].active")?.dataset.popularityLeaderboardRegion || state.region || "global";
-    root.querySelectorAll("[data-popularity-leaderboard-panel]").forEach(panel => { panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${region}:${metric}`; });
+    activeLeaderboardMetric = SOLO_METRICS.includes(button.dataset.popularityLeaderboardMetric) ? button.dataset.popularityLeaderboardMetric : "views";
+    actions.popularitySoloLeaderboardMetric?.(activeLeaderboardMetric); applyLeaderboardSelection();
   }));
   root.querySelector("#popularity-solo-start")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
   root.querySelector("#popularity-solo-restart")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));

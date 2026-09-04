@@ -27,7 +27,7 @@ import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260903-9";
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20260903-9";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260903-9";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260903-9";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260904-3";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260903-9";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
