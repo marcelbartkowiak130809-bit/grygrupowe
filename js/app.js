@@ -2,10 +2,11 @@ import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260902-2";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20260902-2";
 import { Effects } from "./effects.js";
+import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260904-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260905-1";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20260904-3";
+import { gamesList, getGameMode } from "./games.js?v=20260905-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -36,7 +37,7 @@ import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSetting
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260903-9";
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20260903-9";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260903-9";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260904-3";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20260903-9";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
@@ -52,7 +53,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260902-3
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260903-15";
+import { scheduleBot } from "./botController.js?v=20260905-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -531,14 +532,22 @@ async function mutateRoomGame(mutator,{sound,after,render:renderOption=true}={})
     render();
   };
   const room=activeRoom();if(!room?.game)return false;
+  const actor = state.currentUser, mode = room.gameMode, host = room.hostUid, moment = gameMomentKey(room.game);
+  if (hasOnlineBackend() && !state.networkOnline) { message("Brak internetu. Poczekaj na połączenie, zanim wykonasz ruch.", "info"); return false; }
+  const guardedMutation = (game, currentRoom) => {
+    if (currentRoom.hostUid !== host) return "Host pokoju się zmienił. Spróbuj ponownie.";
+    if (state.currentUser !== actor || state.activeRoomId !== room.roomId || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return "Ta akcja dotyczy poprzedniej rundy lub tury.";
+    if (!currentRoom.players.includes(actor)) return "Nie bierzesz już udziału w tym pokoju.";
+    return mutator(game, currentRoom);
+  };
   await roomSyncChains.get(room.roomId);
-  const remote=await mutateRemoteRoomGame(room.roomId,(game,rawRoom)=>mutator(game,{...room,settings:rawRoom.settings||room.settings,players:Array.isArray(rawRoom.players)?rawRoom.players:Object.keys(rawRoom.players||{})}));
+  const remote=await mutateRemoteRoomGame(room.roomId,(game,rawRoom)=>guardedMutation(game,{...room,...rawRoom,game,settings:rawRoom.settings||room.settings,players:Array.isArray(rawRoom.players)?rawRoom.players:Object.keys(rawRoom.players||{})}));
   if(remote?.ok){
     const synced=installRemoteRoom(remote.room);if(after){after(synced);touchRoom(synced);}
     if(sound)typeof sound === "function" ? sound(synced) : Audio.play(sound);repaint();return true;
   }
   if(remote){if(remote.error)message(remote.error,remote.rejected?"info":"error");return false;}
-  const beforeGame=JSON.stringify(room.game),error=mutator(room.game,room);if(error){message(error,"info");return false;}if(JSON.stringify(room.game)===beforeGame)return false;
+  const beforeGame=JSON.stringify(room.game),error=guardedMutation(room.game,room);if(error){message(error,"info");return false;}if(JSON.stringify(room.game)===beforeGame)return false;
   if(after)after(room);touchRoom(room);if(sound)typeof sound === "function" ? sound(room) : Audio.play(sound);repaint();return true;
 }
 function reconcileMusicPlayers(game, room) {
@@ -3014,12 +3023,13 @@ function setupRoundAdvance(view, room, actions) {
   if (!isHost) button.title = "Tylko host może rozpocząć następną rundę.";
   // Kolejne podsumowania mogą mieć ten sam numer rundy po ponownym użyciu
   // pokoju. Identyfikator wyniku rozróżnia konkretne ujawnienie, a wygasły
-  // timer jest resetowany zamiast przeskakiwać świeżo wyrenderowany wynik.
+  // timer zachowuje termin mimo kolejnych odświeżeń widoku.
   const resultIdentity = ["ranking", "popularnosc-hitow"].includes(room.gameMode) ? (game.revealedAt || game.resultId || game.roundResult?.resultId || "") : "";
-  const key = `${room.roomId}:${room.gameMode}:${game.round || 0}:${game.phase}:${resultIdentity}`;
+  const moment = gameMomentKey(game);
+  const key = `${room.roomId}:${room.gameMode}:${moment}:${resultIdentity}`;
   const delay = Number(config.delay) || 10000;
   const storedDeadline = Number(roundAdvanceDeadlines.get(key) || 0);
-  const deadline = storedDeadline > Date.now() + 250 ? storedDeadline : Date.now() + delay;
+  const deadline = roundAdvanceDeadline(room.gameMode === "popularnosc-hitow" ? game : {}, storedDeadline, delay);
   roundAdvanceDeadlines.set(key, deadline);
   const finalReveal=(room.gameMode === "zegar" && game.result?.gameOver) || (room.gameMode === "udowodnij" && Number(game.round || 1) >= Number(game.totalRounds || room.settings?.rounds || 5));
   const notice = document.createElement("p");
@@ -3037,7 +3047,8 @@ function setupRoundAdvance(view, room, actions) {
   roundAdvanceInterval = window.setInterval(update, 1000);
   roundAdvanceTimer = window.setTimeout(() => {
     window.clearInterval(roundAdvanceInterval);
-    if (isHost && activeRoom()?.roomId === room.roomId && activeRoom()?.game?.phase === game.phase) actions[config.action]();
+    const current = activeRoom();
+    if (current?.roomId === room.roomId && current.hostUid === state.currentUser && current.gameMode === room.gameMode && gameMomentKey(current.game) === moment) actions[config.action]();
   }, Math.max(100, deadline - Date.now() + 50));
 }
 

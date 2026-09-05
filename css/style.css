@@ -1920,3 +1920,33 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @media(prefers-reduced-motion:reduce){
   .result-player-win,.result-player-lose{animation:none!important}
 }
+/* Room comparisons: both options stay visible together on a phone. */
+@media (max-width:720px) {
+  .popularity-room-page .popularity-heading{display:flex;gap:10px;align-items:flex-start}
+  .popularity-room-page .popularity-heading>div:first-child{min-width:0;flex:1}
+  .popularity-room-page .popularity-heading h1{font-size:clamp(22px,5.8vw,32px);line-height:1.08}
+  .popularity-room-page .popularity-heading .muted{display:none}
+  .popularity-room-page .popularity-round-badge{min-width:0;max-width:95px;padding:9px 7px;flex:none}
+  .popularity-room-page .popularity-round-badge strong{font-size:10px;overflow-wrap:anywhere}
+  .popularity-room-page .popularity-round-badge b{font-size:9px}
+  .popularity-room-page .popularity-question{margin:14px auto 10px;padding:10px;gap:8px}
+  .popularity-room-page .popularity-question>span{width:32px;height:32px;font-size:18px}
+  .popularity-room-page .popularity-question b{font-size:12px}
+  .popularity-room-page .popularity-question small{font-size:9px}
+  .popularity-room-page .popularity-duel-stage{position:relative;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:14px auto}
+  .popularity-room-page .popularity-choice{display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:17px}
+  .popularity-room-page .popularity-side-label{width:27px;height:27px;font-size:12px;border-radius:9px}
+  .popularity-room-page .popularity-art{width:100%;min-height:clamp(100px,30vw,180px);padding:9px;border-radius:12px;box-sizing:border-box}
+  .popularity-room-page .popularity-art-note{font-size:36px}
+  .popularity-room-page .popularity-art small{font-size:9px;letter-spacing:0}
+  .popularity-room-page .popularity-track-copy{width:100%;gap:5px}
+  .popularity-room-page .popularity-track-copy b{font-size:14px;line-height:1.2}
+  .popularity-room-page .popularity-track-copy small{font-size:10px}
+  .popularity-room-page .popularity-value{font-size:clamp(12px,3.4vw,18px)}
+  .popularity-room-page .popularity-vs{position:absolute;z-index:2;left:50%;top:44%;transform:translate(-50%,-50%);display:block;pointer-events:none}
+  .popularity-room-page .popularity-vs span{width:28px;height:28px;font-size:9px;animation:none;background:#252039}
+  .popularity-room-page .popularity-vs i{display:none}
+  .popularity-room-page .popularity-reveal-mark{top:8px;right:8px;width:27px;height:27px;font-size:18px}
+  .popularity-room-page .popularity-live-timer{margin:10px 0}
+  .popularity-room-page .popularity-key-hint{display:none}
+}

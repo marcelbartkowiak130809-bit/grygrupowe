@@ -738,11 +738,11 @@ export function createPopularityGame(players, settings = {}) {
 export const PopularityEngine = {
   choose(game, uid, side) {
     if (game.phase !== "choosing") return "Wybór w tej rundzie jest już zamknięty.";
+    if (Number(game.phaseEndsAt) > 0 && Date.now() >= Number(game.phaseEndsAt)) return "Czas na wybór już minął.";
     if (!array(game.players).includes(uid)) return "Nie bierzesz udziału w tej grze.";
     if (!isPopularityChoice(side)) return "Wybierz jedną z dwóch opcji.";
     game.choices = object(game.choices);
-    // Firebase/RTDB can preserve an explicit null for an unanswered player.
-    // That is a placeholder, not a submitted answer.
+    // A local placeholder is not a submitted answer.
     if (isPopularityChoice(game.choices[uid])) return "Twój wybór jest już zapisany.";
     game.choices[uid] = side;
     if (game.players.every(player => isPopularityChoice(game.choices[player]))) resolveRound(game);
@@ -750,6 +750,8 @@ export const PopularityEngine = {
   timeout(game) {
     if (game.phase !== "choosing") return;
     game.choices = object(game.choices);
+    const allAnswered = game.players.length > 0 && game.players.every(uid => isPopularityChoice(game.choices[uid]));
+    if (!allAnswered && !(Number(game.phaseEndsAt) > 0 && Date.now() >= Number(game.phaseEndsAt))) return;
     game.players.forEach(uid => { if (!(uid in game.choices)) game.choices[uid] = null; });
     resolveRound(game);
   },
@@ -817,9 +819,9 @@ function popularityArt(track, side, reveal = false, metric = "views") {
   const note = artistMode ? "" : `<span class="popularity-art-note">♫</span>`;
   return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}">${note}<small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
 }
-function popularityTrackCard(track, side, { selected = false, reveal = false, correct = false, metric = "views" } = {}) {
+function popularityTrackCard(track, side, { selected = false, reveal = false, correct = false, disabled = false, metric = "views" } = {}) {
   const artistMode = isArtistMetric(metric), title = artistMode ? track?.artist || "Brak artysty" : track?.title || "Brak utworu", subtitle = artistMode ? (reveal && track?.topTrack?.title ? `Top utwór: ${track.topTrack.title}` : "") : track?.artist || "", entity = artistMode ? "artystę" : "piosenkę", value = reveal ? `<strong class="popularity-value" data-popularity-number="${valueFor(track, metric)}" data-popularity-metric="${cleanMetric(metric)}">${formatPopularityValue(0, metric)}</strong>` : `<span class="popularity-hidden-value">???</span>`;
-  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, side, reveal, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
+  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected || disabled ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, side, reveal, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
 }
 function popularityRanking(game, accounts, room, winners = []) {
   const winnerSet = new Set(winners);
@@ -866,16 +868,16 @@ export function stopPopularityTimer() {
   popularityKeyHandler = null;
   stopPopularityPreview();
 }
-function schedulePopularityTimer(game, actions, expected) {
+function schedulePopularityTimer(root, game, actions, expected) {
   stopPopularityTimer();
   if (game.phase !== "choosing" || !Number(game.phaseEndsAt)) return;
   const update = () => {
-    const element = document.querySelector("[data-popularity-time]");
+    const element = root.querySelector("[data-popularity-time]");
     if (element) element.textContent = `${Math.max(0, Math.ceil((Number(game.phaseEndsAt) - Date.now()) / 1000))}s`;
   };
   update();
   popularityInterval = window.setInterval(update, 1000);
-  popularityTimer = window.setTimeout(() => actions.popularityTimeout(expected), Math.max(100, Number(game.phaseEndsAt) - Date.now() + 50));
+  popularityTimer = window.setTimeout(() => { if (root.isConnected) actions.popularityTimeout(expected); }, Math.max(100, Number(game.phaseEndsAt) - Date.now() + 50));
 }
 
 const mediaCache = new Map();
@@ -1126,7 +1128,7 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
   if (game.phase === "choosing") {
     const choiceCount = array(game.players).filter(uid => isPopularityChoice(game.choices?.[uid])).length, chosen = selected ? `<div class="popularity-choice-status"><span>✓</span><div><b>Twój wybór został zapisany</b><small>Czekamy na resztę graczy: ${choiceCount}/${game.players.length}.</small></div>${popularityReadyPlayers(game, accounts, room)}</div>` : `<div class="popularity-choice-status"><span>⚡</span><div><b>Wybierz stronę</b><small>${choiceCount ? `${choiceCount}/${game.players.length} graczy już wybrało.` : "Nie pokazujemy liczb, dopóki wszyscy nie odpowiedzą."}</small></div>${popularityReadyPlayers(game, accounts, room)}</div>`;
     const librarySize = popularityPoolSize(game.metric, game.region), libraryEntity = isArtistMetric(game.metric) ? "artystów" : "utworów";
-    content += `<section class="popularity-question"><span>📊</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${librarySize} ${libraryEntity} w bazie</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:selected === "left", metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:selected === "right", metric:game.metric })}</div>${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
+    content += `<section class="popularity-question"><span>📊</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${librarySize} ${libraryEntity} w bazie</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:selected === "left", disabled:Boolean(selected), metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:selected === "right", disabled:Boolean(selected), metric:game.metric })}</div>${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
   } else if (game.phase === "roundResult") {
     const correct = result.correctSide, leftCorrect = correct === "tie" || correct === "left", rightCorrect = correct === "tie" || correct === "right";
     const winningTrack = correct === "left" ? pair[0] : correct === "right" ? pair[1] : null;
@@ -1136,14 +1138,14 @@ export function renderPopularityGame(root, { room, accounts, currentUser }, acti
     const top = Math.max(0, ...game.players.map(uid => Number(game.scores?.[uid] || 0))), winners = game.players.filter(uid => Number(game.scores?.[uid] || 0) === top && top > 0);
     content += `<section class="popularity-final"><span class="popularity-trophy">🏆</span><p class="eyebrow">KONIEC GRY</p><h2>${winners.length ? `Wygrywa ${winners.map(uid => escapeHtml(safeNick(accounts, uid))).join(", ")}!` : "Tym razem bez zwycięzcy"}</h2><p class="muted">Każdy trafny wybór dawał punkt.</p><section class="popularity-ranking">${popularityRanking(game, accounts, room, winners)}</section><button class="primary big" id="popularity-lobby">Zagraj ponownie</button></section>`;
   }
-  root.innerHTML = `<main class="page popularity-page enter"><section class="panel popularity-panel">${content}<p class="popularity-snapshot-note">Liczby są stałym snapshotem rundy — wszyscy grają na tych samych danych.</p></section><button id="popularity-leave" class="ghost">Wyjdź z pokoju</button></main>`;
+  root.innerHTML = `<main class="page popularity-page popularity-room-page enter"><section class="panel popularity-panel">${content}<p class="popularity-snapshot-note">Liczby są stałym snapshotem rundy — wszyscy grają na tych samych danych.</p></section><button id="popularity-leave" class="ghost">Wyjdź z pokoju</button></main>`;
   root.querySelectorAll("[data-popularity-choice]").forEach(button => button.addEventListener("click", () => actions.popularityChoose(button.dataset.popularityChoice, expected)));
   root.querySelectorAll("[data-popularity-insight]").forEach(button => button.addEventListener("click", () => actions.popularityUseInsight(button.dataset.popularityInsight)));
   root.querySelector("#popularity-next")?.addEventListener("click", actions.popularityNext);
   root.querySelector("#popularity-lobby")?.addEventListener("click", actions.returnToRoom);
   root.querySelector("#popularity-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
-  schedulePopularityTimer(game, actions, expected);
-  if (game.phase === "choosing") bindPopularityKeyboard(root, actions, expected);
+  schedulePopularityTimer(root, game, actions, expected);
+  if (game.phase === "choosing" && !selected) bindPopularityKeyboard(root, actions, expected);
   if (game.phase === "roundResult") animatePopularityValues(root);
   Audio.bindTrackVolumeControls(root);
   hydratePopularityArtwork(root, pair, game.metric);

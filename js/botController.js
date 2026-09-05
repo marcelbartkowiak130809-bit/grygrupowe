@@ -29,11 +29,12 @@ import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20260903-2";
 import { LyricsEngine } from "./lyrics.js?v=20260902-23";
-import { PopularityEngine } from "./popularity.js?v=20260904-3";
+import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./songSpot.js?v=20260902-15";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
 import { serverNow } from "./firebase.js?v=20260902-2";
+import { gameMomentKey } from "./roomLifecycle.js";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
@@ -544,7 +545,7 @@ export function botMutation(room) {
         };
         break;
       case "popularnosc-hitow":
-        if (game.phase === "choosing" && isPopularityChoiceMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
+        if (bot && game.phase === "choosing" && isPopularityChoiceMissing(game.choices, bot)) return g => PopularityEngine.choose(g, bot, PopularityEngine.botChoice(g, botDifficulty(room, bot).id));
         break;
       case "dokoncz-tekst":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => LyricsEngine.answer(g, bot, LyricsEngine.botAnswer(g, bot, correct(), botDifficulty(room, bot).id), players, settings);
@@ -590,5 +591,12 @@ export function scheduleBot(room, { mutate, onDone }) {
   const actor = botActor(room) || botsOf(room)[0];
   const key = `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const delay = expired(room.game) ? 80 : botDelay(room, "answer", actor);
-  return { key, delay, run:() => mutate(mutation).finally(() => onDone?.()) };
+  const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
+  return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {
+    if (currentRoom.hostUid !== hostUid || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return;
+    // Re-evaluate against the transaction snapshot, including expiry and votes
+    // submitted while the bot was thinking. Never replay a captured answer.
+    const freshMutation = botMutation({ ...currentRoom, game });
+    return freshMutation?.(game);
+  })).finally(() => onDone?.()) };
 }

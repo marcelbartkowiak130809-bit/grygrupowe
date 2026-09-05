@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v4.3.0-global-expansion";
+const CACHE_NAME = "grygrupowe-shell-v4.3.0-20260905";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png"];
 
 self.addEventListener("install", event => {
@@ -14,10 +14,20 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
-    if (response.ok && (url.pathname.endsWith(".js") || url.pathname.endsWith(".css") || url.pathname === "/" || url.pathname.endsWith(".html"))) {
+    if (response.ok && (event.request.mode === "navigate" || url.pathname.endsWith(".js") || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/"))) {
       const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => {});
+      event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => {}));
     }
     return response;
-  }).catch(() => caches.match(event.request).then(cached => cached || caches.match("/index.html"))));
+  }).catch(async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    // HTML is only a navigation fallback. Returning it for audio or modules
+    // breaks playback/imports with misleading MIME errors after reconnect.
+    if (event.request.mode === "navigate") {
+      const shell = await caches.match("/index.html");
+      if (shell) return shell;
+    }
+    return Response.error();
+  }));
 });

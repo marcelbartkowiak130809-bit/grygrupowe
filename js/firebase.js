@@ -984,21 +984,9 @@ export async function syncRoomState(room) {
         });
         saved=result.snapshot.val()||cleanPayload;
       } catch(transactionError) {
-        // Niektóre przeglądarki/wersje SDK potrafią przerwać transakcję przy
-        // równoczesnym wejściu do lobby. Odczyt + set jest tu bezpiecznym
-        // fallbackiem, bo zapis nadal przechodzi przez te same reguły RTDB.
-        try {
-          const current=(await firebaseDatabaseApi.get(roomRef)).val();
-          if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0)) saved=current;
-          else {
-            saved={ ...cleanPayload, presence:current?.presence || cleanPayload.presence };
-            await firebaseDatabaseApi.set(roomRef,saved);
-          }
-        } catch(fallbackError) {
-          const first=transactionError?.code || transactionError?.message || String(transactionError);
-          const second=fallbackError?.code || fallbackError?.message || String(fallbackError);
-          throw new Error(`Firebase synchronizacja (transakcja: ${first}; zapis awaryjny: ${second})`);
-        }
+        // The caller retries failed syncs. A get+set fallback is not atomic:
+        // it can erase a vote or host change committed between those calls.
+        throw transactionError;
       }
     }
     const local=readLocal(LOCAL_ROOMS_KEY);local[room.roomId]=saved;saveLocal(LOCAL_ROOMS_KEY,local);
