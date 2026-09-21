@@ -37,11 +37,19 @@ function safeLocalStorage() {
   try { return window.localStorage; } catch { return null; }
 }
 
+function validReleases(releases) {
+  return Object.entries(releases || {}).reduce((result, [cycleIndex, release]) => {
+    const normalized = normalizeRelease(release, Number(cycleIndex));
+    if (normalized) result[String(cycleIndex)] = normalized;
+    return result;
+  }, {});
+}
+
 function readLocalReleases() {
   if (cachedReleases) return { ...cachedReleases };
   try {
     const saved = JSON.parse(safeLocalStorage()?.getItem(CATEGORY_RELEASES_KEY) || "{}");
-    cachedReleases = saved?.releases && typeof saved.releases === "object" ? { ...saved.releases } : {};
+    cachedReleases = validReleases(saved?.releases);
   } catch { cachedReleases = {}; }
   return { ...cachedReleases };
 }
@@ -54,13 +62,18 @@ function saveLocalReleases(releases) {
 function normalizeRelease(value, cycleIndex) {
   const categoryId = String(value?.categoryId || "");
   const modeId = releaseModeId(String(value?.modeId || ""));
-  if (!categoryMap.has(categoryId) || !publicCategoryModes(categoryId).some(mode => mode.id === modeId)) return null;
+  const winningVotes = Number(value?.winningVotes);
+  // A category mode is only available after that category actually won a poll.
+  // Older records did not contain this proof and could have been generated when
+  // nobody voted, so deliberately do not treat them as releases.
+  if (!categoryMap.has(categoryId) || !publicCategoryModes(categoryId).some(mode => mode.id === modeId) || !Number.isFinite(winningVotes) || winningVotes < 1) return null;
   return {
     cycle: Number.isFinite(Number(value?.cycle)) ? Number(value.cycle) : cycleIndex,
     categoryId,
     modeId,
     pollId: String(value?.pollId || categoryPollId(cycleIndex)),
     decidedAt: Number(value?.decidedAt) || Date.now(),
+    winningVotes,
   };
 }
 
@@ -168,12 +181,14 @@ function chooseRelease(cycleIndex, poll, pollState, releases) {
   const categories = poll.options.filter(option => categoryModesRemaining(option.id, releases).length > 0);
   if (!categories.length) return null;
   const highest = Math.max(...categories.map(option => Number(pollState?.totals?.[option.id]) || 0));
+  // Do not unlock anything when the poll received no votes.
+  if (highest < 1) return null;
   const tied = categories.filter(option => (Number(pollState?.totals?.[option.id]) || 0) === highest);
   const category = tied[hashSeed(`category:${cycleIndex}`) % tied.length];
   const remaining = categoryModesRemaining(category.id, releases);
   if (!remaining.length) return null;
   const mode = remaining[hashSeed(`mode:${cycleIndex}:${category.id}`) % remaining.length];
-  return { cycle: cycleIndex, categoryId: category.id, modeId: mode.id, pollId: poll.id, decidedAt: Date.now() };
+  return { cycle: cycleIndex, categoryId: category.id, modeId: mode.id, pollId: poll.id, decidedAt: Date.now(), winningVotes: highest };
 }
 
 async function resolveMissingReleases(cycle, voterId, releases) {
@@ -191,7 +206,9 @@ async function resolveMissingReleases(cycle, voterId, releases) {
     const remotePoll = await getRemotePollVotes(poll.id, voterId, poll.options.map(option => option.id));
     const pollState = remotePoll ? { ...local, totals: remotePoll.totals, total: Object.values(remotePoll.totals || {}).reduce((sum, value) => sum + (Number(value) || 0), 0), vote: remotePoll.vote || local.vote, source: remotePoll.source } : local;
     const release = chooseRelease(index, poll, pollState, releases);
-    if (!release) break;
+    // A past poll without votes has no winner. It must not prevent a later,
+    // genuinely voted-on cycle from being settled.
+    if (!release) continue;
     releases[String(index)] = release;
     saveLocalReleases(releases);
     await claimModeCategoryRelease(index, release);

@@ -217,8 +217,8 @@
         ".read": "auth != null",
         "$cycleId": {
           ".read": "auth != null",
-          ".write": "auth != null && !data.exists() && newData.hasChildren(['cycle', 'categoryId', 'modeId', 'pollId', 'decidedAt']) && newData.child('cycle').isNumber() && newData.child('categoryId').isString() && newData.child('modeId').isString() && newData.child('pollId').isString() && newData.child('decidedAt').isNumber()",
-          ".validate": "newData.child('cycle').isNumber() && newData.child('categoryId').isString() && newData.child('modeId').isString() && newData.child('pollId').isString() && newData.child('decidedAt').isNumber()"
+            ".write": "auth != null && !data.exists() && newData.hasChildren(['cycle', 'categoryId', 'modeId', 'pollId', 'decidedAt', 'winningVotes']) && newData.child('cycle').isNumber() && newData.child('categoryId').isString() && newData.child('modeId').isString() && newData.child('pollId').isString() && newData.child('decidedAt').isNumber() && newData.child('winningVotes').isNumber() && newData.child('winningVotes').val() > 0",
+            ".validate": "newData.child('cycle').isNumber() && newData.child('categoryId').isString() && newData.child('modeId').isString() && newData.child('pollId').isString() && newData.child('decidedAt').isNumber() && newData.child('winningVotes').isNumber() && newData.child('winningVotes').val() > 0"
         }
       }
     }
