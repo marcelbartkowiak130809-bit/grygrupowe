@@ -63,6 +63,55 @@ import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncement
 import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260831-3";
 
 const root = $("#app");
+let deferredPwaInstallPrompt = null;
+let pwaInstalled = false;
+
+function isStandalonePwa() {
+  return Boolean(window.matchMedia?.("(display-mode: standalone)")?.matches || navigator.standalone);
+}
+
+function isAppleMobileDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+}
+
+function pwaInstallButtonHtml() {
+  if (pwaInstalled || isStandalonePwa() || (!deferredPwaInstallPrompt && !isAppleMobileDevice())) return "";
+  return `<button class="icon-btn install-app-button" id="install-app" type="button" aria-label="Zainstaluj aplikację" title="Zainstaluj aplikację"><span aria-hidden="true">⇩</span><span class="install-app-label">Zainstaluj</span></button>`;
+}
+
+function showPwaInstallHelp() {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `<section class="modal enter pwa-install-help" role="dialog" aria-modal="true"><div class="modal-title"><div><p class="eyebrow">APLIKACJA GRY GRUPOWE</p><h2>Dodaj na ekran główny</h2></div><button class="icon-btn" data-close aria-label="Zamknij">×</button></div><p>W Safari stuknij <b>Udostępnij</b>, a następnie wybierz <b>Do ekranu początkowego</b>. Gra otworzy się potem jak zwykła aplikacja.</p><div class="modal-actions"><button class="primary" data-close>Gotowe</button></div></section>`;
+  modal.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => modal.remove()));
+  document.body.append(modal);
+}
+
+async function requestPwaInstall() {
+  if (deferredPwaInstallPrompt) {
+    const prompt = deferredPwaInstallPrompt;
+    deferredPwaInstallPrompt = null;
+    prompt.prompt();
+    try {
+      const choice = await prompt.userChoice;
+      if (choice?.outcome === "accepted") message("Aplikacja jest instalowana.", "info");
+    } catch {}
+    render({ preserveDrafts:true });
+    return;
+  }
+  if (isAppleMobileDevice()) showPwaInstallHelp();
+}
+
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredPwaInstallPrompt = event;
+  if (root.isConnected) render({ preserveDrafts:true });
+});
+window.addEventListener("appinstalled", () => {
+  deferredPwaInstallPrompt = null;
+  pwaInstalled = true;
+  if (root.isConnected) render({ preserveDrafts:true });
+});
 const APP_VERSION = "v4.3.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
@@ -2856,7 +2905,7 @@ function changelogModal() {
   modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);bindEntryActions();}));
   document.body.append(modal);Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${pwaInstallButtonHtml()}${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -3071,7 +3120,7 @@ function renderNow(options = {}) {
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#install-app")?.addEventListener("click",requestPwaInstall); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
   const finish = result => {
     const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
     if(result?.then)return result.finally(after);
