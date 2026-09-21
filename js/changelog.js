@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260921-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260921-2";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },

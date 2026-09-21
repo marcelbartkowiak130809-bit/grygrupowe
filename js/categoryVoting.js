@@ -2,7 +2,10 @@ import { claimModeCategoryRelease, getRemotePollVotes, loadModeCategoryReleases,
 
 export const CATEGORY_VOTING_START_AT = "2026-09-01T20:00:00+02:00";
 export const CATEGORY_VOTE_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
-export const CATEGORY_RESULT_DURATION_MS = 24 * 60 * 60 * 1000;
+// Każdy cykl trwa dokładnie trzy dni. Poprzednia jednodniowa faza wyniku
+// pokazywała jeszcze formularz głosowania po jego zamknięciu, ale blokowała
+// kliknięcia — przy braku głosów użytkownik widział „0 m” i nie mógł zagłosować.
+export const CATEGORY_RESULT_DURATION_MS = 0;
 export const CATEGORY_CYCLE_DURATION_MS = CATEGORY_VOTE_DURATION_MS + CATEGORY_RESULT_DURATION_MS;
 
 const CATEGORY_RELEASES_KEY = "udowodnij.modeCategoryVoting.v1";
@@ -248,7 +251,7 @@ export async function loadCategoryVotingView(voterId = "anonymous", now = Date.n
 }
 
 export async function voteCategory(view, voterId, categoryId) {
-  if (!view?.poll || view.phase !== "voting" || !voterId || view.pollState?.vote) return false;
+  if (!view?.poll || view.phase !== "voting" || view.pollState?.active === false || !voterId || view.pollState?.vote) return false;
   if (!view.poll.options.some(option => option.id === categoryId)) return false;
   const localAccepted = writeLocalVote(view.poll.id, voterId, categoryId);
   if (!localAccepted) return false;
