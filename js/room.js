@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20260905-1";
+import { getGameMode } from "./games.js?v=20260922-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
@@ -20,6 +20,8 @@ import { renderMarkerLobbySettings } from "./marker.js?v=20260823-1";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20260813-2";
 import { renderFamilyLobbySettingsV2 as renderFamilyLobbySettings } from "./family.js?v=20260822-2";
 import { renderWordChainLobbySettings } from "./wordChain.js?v=20260822-2";
+import { renderCharadesLobbySettings } from "./charades.js?v=20260922-1";
+import { renderHangmanLobbySettings } from "./hangman.js?v=20260922-1";
 import { renderNumberMysteryLobbySettings } from "./numberMystery.js?v=20260831-4";
 import { renderUniqueAnswerLobbySettings } from "./uniqueAnswer.js?v=20260823-5";
 import { renderConnectLobbySettings } from "./connect.js?v=20260831-4";
@@ -37,7 +39,7 @@ import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
-const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️" };
+const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️" };
 function modeVisual(mode) { const pokemon = mode.audience === "pokemon" && pokemonDex.find(item => item.id === pokemonCardIds[mode.id]); if (pokemon) return `<img class="mode-pokemon-symbol" src="${pokemon.sprite}" alt="${escapeHtml(pokemon.name)}" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`; if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft">`; return modeEmojis[mode.id] || mode.symbol; }
 
 export function playerMini(profile = {}, options = {}) {
@@ -75,6 +77,8 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "sequence") return renderSequenceLobbySettings(room, isHost);
   if (mode.id === "family") return renderFamilyLobbySettings(room, isHost);
   if (mode.id === "word-chain") return renderWordChainLobbySettings(room, isHost);
+  if (mode.id === "charades") return renderCharadesLobbySettings(room, isHost);
+  if (mode.id === "hangman") return renderHangmanLobbySettings(room, isHost);
   if (mode.id === "number-mystery") return renderNumberMysteryLobbySettings(room, isHost);
   if (mode.id === "unique-answer") return renderUniqueAnswerLobbySettings(room, isHost);
   if (mode.id === "polacz-nas") return renderConnectLobbySettings(room, isHost);
@@ -125,6 +129,8 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
+  root.querySelectorAll("[data-charades-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.charadesSetting, input.value)));
+  root.querySelectorAll("[data-hangman-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.hangmanSetting, input.value)));
   root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
   root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-connect-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.connectSetting, input.value)));

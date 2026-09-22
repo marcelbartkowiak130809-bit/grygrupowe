@@ -14,6 +14,8 @@ export const futureModeUnlocks = {
   klamca: "2026-09-25T20:00:00+02:00",
   "falszywa-wiadomosc": "2026-09-28T20:00:00+02:00",
   "tajna-zasada": "2026-10-01T20:00:00+02:00",
+  charades: "2026-10-04T20:00:00+02:00",
+  hangman: "2026-10-07T20:00:00+02:00",
 };
 export const MANUALLY_LOCKED_MODE_IDS = new Set(["pokemon-dex"]);
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? { ...futureModeUnlocks } : {};

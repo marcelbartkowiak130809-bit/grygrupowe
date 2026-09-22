@@ -1,6 +1,6 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260901-5";
 import { botTooltip } from "./bots.js?v=20260823-2";
-import { isModeLocked } from "./upcomingModes.js?v=20260921-2";
+import { isModeLocked } from "./upcomingModes.js?v=20260922-1";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 
@@ -50,12 +50,12 @@ const modeLabels = {
   "pokemon-dex":"Najbliższy numer Pokédex", "pokemon-last-letter":"Ostatnia litera", "pokemon-evolution":"Evolution Race",
   "pokemon-auction":"Licytacja teamu", "pokemon-types":"Typy na start", "pokemon-match-type":"Dopasuj typ",
   wavelength:"Wavelength", quiz:"Quiz", mathematics:"Matematyka", marker:"Marker", sequence:"Zgadnij sekwencję",
-  family:"Familiada", "word-chain":"Łańcuch słów", "number-mystery":"Tajemnicza liczba", "unique-answer":"Bez powtórek",
+  family:"Familiada", "word-chain":"Łańcuch słów", charades:"Kalambury", hangman:"Wisielec", "number-mystery":"Tajemnicza liczba", "unique-answer":"Bez powtórek",
   "polacz-nas":"Połącz nas", klamca:"Kłamca", "falszywa-wiadomosc":"Fałszywa wiadomość", "tajna-zasada":"Tajna zasada",
   "pojedynek-hitow":"Pojedynek hitów", "bitwa-hitow":"Bitwa hitów", "popularnosc-hitow":"Kto ma więcej?", "popularnosc-solo":"Kto ma więcej? · Solo", "dokoncz-tekst":"Dokończ tekst",
 };
 const modeIds = Object.keys(modeLabels).filter(id => id !== "all");
-const newModeIds = ["wavelength", "quiz", "mathematics", "marker", "sequence", "family", "word-chain", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "dokoncz-tekst"];
+const newModeIds = ["wavelength", "quiz", "mathematics", "marker", "sequence", "family", "word-chain", "charades", "hangman", "number-mystery", "unique-answer", "polacz-nas", "klamca", "falszywa-wiadomosc", "tajna-zasada", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "dokoncz-tekst"];
 
 export function xpForLevel(level) {
   const step = Math.max(0, Number(level || 1) - 1);
@@ -143,7 +143,7 @@ const questModeIcons = {
   udowodnij:"⚡", impostor:"🕵️", "kim-jestem":"🤔", "inne-pytanie":"❓", "kto-najpredzej":"🏃",
   "co-wolisz":"⚖️", "test-znajomosci":"🧠", "zatruty-cukierek":"🍬", bomba:"💣", "najblizej-prawdy":"🎯",
   ranking:"🏆", "5-sekund":"⏱️", zegar:"⏰", wavelength:"🌈", quiz:"🎲", mathematics:"🧮",
-  marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", "pokemon-dex":"🔴",
+  marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", "pokemon-dex":"🔴",
   "pokemon-last-letter":"🔤", "pokemon-evolution":"🧬", "pokemon-auction":"💰",
   "pokemon-types":"🔥", "pokemon-match-type":"🔗", "number-mystery":"🔢", "unique-answer":"🧩",
   "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠",
@@ -225,6 +225,8 @@ const questList = now => {
     q(`daily-play-sequence-${d}`,"daily","Zagraj w Zgadnij sekwencje",1,"mode","CODE","medium",{mode:"sequence"}),
     q(`daily-play-family-${d}`,"daily","Zagraj w Familiade",1,"mode","FAM","easy",{mode:"family"}),
     q(`daily-play-word-chain-${d}`,"daily","Zagraj w Lancuch slow",1,"mode","WORD","medium",{mode:"word-chain"}),
+    q(`daily-play-charades-${d}`,"daily","Zagraj w Kalambury",1,"mode","ACT","easy",{mode:"charades"}),
+    q(`daily-play-hangman-${d}`,"daily","Zagraj w Wisielca",1,"mode","HANG","easy",{mode:"hangman"}),
     q(`daily-play-number-mystery-${d}`,"daily","Zagraj w Tajemnicza liczbe",1,"mode","NUM","medium",{mode:"number-mystery"}),
     q(`daily-win-number-mystery-${d}`,"daily","Wygraj Tajemnicza liczbe",1,"winMode","NUM+","hard",{mode:"number-mystery"}),
     q(`daily-play-unique-answer-${d}`,"daily","Zagraj w Bez powtorek",1,"mode","UNIQ","medium",{mode:"unique-answer"}),
@@ -269,6 +271,8 @@ const questList = now => {
     q(`weekly-play-music-${w}`,"weekly","Zagraj w muzyczny tryb",1,"anyModeGroup","MUSIC","medium",{modes:["pojedynek-hitow","bitwa-hitow","popularnosc-hitow","dokoncz-tekst"]}),
     q(`weekly-play-sequence-${w}`,"weekly","Zagraj 4 gry w Zgadnij sekwencje",4,"mode","CODE","medium",{mode:"sequence"}),
     q(`weekly-play-word-chain-${w}`,"weekly","Zagraj 4 gry w Lancuch slow",4,"mode","WORD","medium",{mode:"word-chain"}),
+    q(`weekly-play-charades-${w}`,"weekly","Zagraj 4 gry w Kalambury",4,"mode","ACT4","medium",{mode:"charades"}),
+    q(`weekly-play-hangman-${w}`,"weekly","Zagraj 4 gry w Wisielca",4,"mode","HANG4","medium",{mode:"hangman"}),
     q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
     q(`weekly-spend-${w}`,"weekly","Wydaj 2500 coinow",2500,"spent","$$","medium"),
   ].filter(quest => questIsAvailable(quest, now));

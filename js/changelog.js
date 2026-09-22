@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260921-2";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20260922-1";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -7,6 +7,8 @@ const stagedModes = [
   { id: "5-sekund", name: "5 sekund" },
   { id: "zegar", name: "Zegar" },
   { id: "number-mystery", name: "Tajemnicza liczba" },
+  { id: "charades", name: "Kalambury" },
+  { id: "hangman", name: "Wisielec" },
 ];
 
 function unlockedModeChanges(now = Date.now()) {
@@ -17,6 +19,17 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version: "v5.0.0",
+      date: "2026-09-22",
+      title: "Kalambury i Wisielec",
+      changes: [
+        "Dodano Kalambury dla 3–8 osób: pokazuj hasła gestami, zgaduj na czas i zdobywaj punkty dla całej ekipy.",
+        "Dodano Wisielca dla 2–8 osób: odkrywajcie słowa na zmianę, śledźcie próby i rywalizujcie o wynik.",
+        "Oba tryby otrzymały ustawienia lobby, animowane ekrany gry, wyniki, nagrody, zadania i miejsce w kolejce odblokowań.",
+        "Odświeżono wspólne animacje i dopracowano układ nowych ekranów na telefonach oraz dla ograniczonego ruchu.",
+      ],
+    },
     {
       version: "v4.3.0",
       date: "2026-09-01",

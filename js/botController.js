@@ -21,6 +21,8 @@ import { MarkerEngine } from "./marker.js?v=20260823-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
+import { CharadesEngine } from "./charades.js?v=20260922-1";
+import { HangmanEngine } from "./hangman.js?v=20260922-1";
 import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260831-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { ConnectEngine } from "./connect.js?v=20260831-4";
@@ -95,6 +97,8 @@ export function botActor(room) {
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode === "songspot" && ["preview", "answering"].includes(game.phase)) return bots.find(uid => isMissing(game.answers, uid)) || "";
+  if (room.gameMode === "charades" && game.phase === "acting") return bots.find(uid => uid !== game.actorUid && !(game.guesses || []).some(row => row.uid === uid)) || "";
+  if (room.gameMode === "hangman" && game.phase === "guessing" && isBotId(game.currentUid)) return game.currentUid;
   if (room.gameMode?.startsWith("minecraft-")) {
     if (game.mode === "minecraft-truth" && game.phase === "question") return bots.find(uid => isMissing(game.answers, uid)) || "";
     if (game.phase === "turn" && isBotId(game.currentUid)) return game.currentUid;
@@ -322,6 +326,8 @@ function timeoutMutation(room, game, bot) {
     case "mathematics": return g => MathematicsEngine.timeout(g, players);
     case "family": return g => FamilyEngine.timeout(g);
     case "word-chain": return g => WordChainEngine.timeout(g);
+    case "charades": return g => CharadesEngine.timeout(g);
+    case "hangman": return g => HangmanEngine.timeout(g);
     case "sequence": return g => SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
@@ -481,6 +487,23 @@ export function botMutation(room) {
           const word = wordChainBotWord(g);
           return correct() && word ? WordChainEngine.answer(g, bot, word) : WordChainEngine.timeout(g);
         };
+        break;
+      case "charades":
+        if (game.phase === "acting" && bot !== game.actorUid && !(game.guesses || []).some(row => row.uid === bot)) {
+          const correctGuess = botShouldBeCorrect(room, bot);
+          const guesses = ["niebo", "rower", "śmieszna mina", "samochód", "taniec"];
+          return g => CharadesEngine.guess(g, bot, correctGuess ? g.word : guesses[Math.floor(Math.random() * guesses.length)]);
+        }
+        break;
+      case "hangman":
+        if (game.phase === "guessing" && game.currentUid === bot) {
+          const guessed = new Set(array(game.guessed));
+          const wordLetters = [...String(game.word || "").toLocaleLowerCase("pl-PL").normalize("NFC")].filter(letter => /[a-ząćęłńóśźż]/u.test(letter));
+          const remaining = [...new Set(wordLetters)].filter(letter => !guessed.has(letter));
+          const alphabet = [..."aąbcćdeęfghijklłmnńoópqrsśtuvwxyzźż"].filter(letter => !guessed.has(letter));
+          const letter = remaining.length && botShouldBeCorrect(room, bot) ? remaining[Math.floor(Math.random() * remaining.length)] : alphabet.find(candidate => !wordLetters.includes(candidate)) || alphabet[0] || "a";
+          return g => HangmanEngine.guess(g, bot, letter);
+        }
         break;
       case "number-mystery":
         if (game.phase === "ask" && game.turnUid === bot) return g => {

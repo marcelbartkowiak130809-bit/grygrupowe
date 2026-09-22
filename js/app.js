@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260902-2";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20260902-2";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20260922-1";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260905-1";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20260905-1";
+import { gamesList, getGameMode } from "./games.js?v=20260922-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -29,6 +29,8 @@ import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=2
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260903-9";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260903-9";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260903-9";
+import { createCharadesGame, CharadesEngine, stopCharadesTimer } from "./charades.js?v=20260922-1";
+import { createHangmanGame, HangmanEngine, stopHangmanTimer } from "./hangman.js?v=20260922-1";
 import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260903-9";
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260903-9";
 import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260903-9";
@@ -42,18 +44,18 @@ import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotG
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260921-1";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20260922-1";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260903-9";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260903-9";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20260922-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260902-2";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260921-2";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260922-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20260905-1";
+import { scheduleBot } from "./botController.js?v=20260922-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -112,12 +114,11 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v4.3.0";
+const APP_VERSION = "v5.0.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
   localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
-  localStorage.removeItem("udowodnij_local_rooms_v1");
   window.setTimeout(() => window.location.reload(), 0);
 }
 const THEME_STORAGE_KEY = "grygrupowe-theme";
@@ -834,6 +835,8 @@ const additionalModeRewardConfig = Object.freeze({
   sequence: { participation:30, point:6, scoreCap:8, winner:35, xp:35 },
   family: { participation:35, point:7, scoreCap:8, winner:40, xp:40 },
   "word-chain": { participation:30, point:2, scoreCap:24, winner:45, xp:45, referenceRounds:6, lengthStep:2, lengthCap:18 },
+  charades: { participation:35, point:4, scoreCap:20, winner:45, xp:45, referenceRounds:8, lengthStep:1, lengthCap:12 },
+  hangman: { participation:35, point:5, scoreCap:20, winner:45, xp:45 },
   "number-mystery": { participation:35, point:7, scoreCap:10, winner:40, xp:40 },
   "unique-answer": { participation:35, point:6, scoreCap:10, winner:40, xp:40 },
   mathematics: { participation:40, point:7, scoreCap:12, winner:50, xp:50, referenceRounds:10, lengthStep:1, lengthCap:20 },
@@ -885,6 +888,7 @@ function additionalModeRoundCount(room) {
   const game = room?.game || {};
   if (room.gameMode === "board-slowotwor") return Math.max(1, Number(game.rounds || room.settings?.rounds) || 6);
   if (room.gameMode === "mathematics") return Math.max(1, Number(game.questions?.length || room.settings?.questionCount) || 10);
+  if (room.gameMode === "charades") return Math.max(1, Number(game.rounds || room.settings?.rounds) || 1);
   return Math.max(1, Number(game.totalRounds || room.settings?.rounds) || 1);
 }
 
@@ -1514,6 +1518,35 @@ function repairGameStateForPlayers(room) {
     Object.keys(game.hearts).forEach(uid => { if (!players.includes(uid)) { delete game.hearts[uid]; changed = true; } });
     const active = game.players.filter(uid => !game.eliminated.includes(uid));
     if (active.length && !active.includes(game.currentUid)) { game.currentUid = active[0]; game.turnIndex = game.players.indexOf(active[0]); changed = true; }
+  }
+  if (room.gameMode === "charades") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!Array.isArray(game.prompts) || !game.prompts.length) { game.prompts = [String(game.word || "kot")]; changed = true; }
+    if (!Array.isArray(game.guesses)) { game.guesses = []; changed = true; }
+    if (!game.players.includes(game.actorUid) && game.players.length) { game.actorIndex = 0; game.actorUid = game.players[0]; changed = true; }
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.rounds)) || Number(game.rounds) < 1) { game.rounds = game.prompts.length; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(20, Number(game.answerTime) || 75) * 1000; changed = true; }
+  }
+  if (room.gameMode === "hangman") {
+    const order = keepPlayers(game.players);
+    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
+    const beforeScores = JSON.stringify(game.scores || {});
+    game.scores = ensureScoreObject(game.scores, players, 0);
+    if (JSON.stringify(game.scores) !== beforeScores) changed = true;
+    if (!Array.isArray(game.words) || !game.words.length) { game.words = [String(game.word || "tajemnica")]; changed = true; }
+    if (!Array.isArray(game.mask) || game.mask.length !== [...String(game.word || "")].length) { game.mask = [...String(game.word || "tajemnica")].map(char => /[a-ząćęłńóśźż]/iu.test(char) ? "" : char); changed = true; }
+    if (!Array.isArray(game.guessed)) { game.guessed = []; changed = true; }
+    if (!game.players.includes(game.currentUid) && game.players.length) { game.turnIndex = 0; game.currentUid = game.players[0]; changed = true; }
+    if (!Number.isFinite(Number(game.mistakes))) { game.mistakes = 0; changed = true; }
+    if (!Number.isFinite(Number(game.maxMistakes))) { game.maxMistakes = 6; changed = true; }
+    if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
+    if (!Number.isFinite(Number(game.rounds)) || Number(game.rounds) < 1) { game.rounds = game.words.length; changed = true; }
+    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(8, Number(game.turnTime) || 20) * 1000; changed = true; }
   }
   if (room.gameMode === "number-mystery") {
     const order = keepPlayers(game.players);
@@ -2459,7 +2492,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.players = players;
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
      room.status = "playing"; room.everStarted = true; addRoomActivity(room, "Host rozpoczął grę."); room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):mode.id==="dokoncz-tekst"?sanitizeLyricsSettings(room.settings):mode.id==="songspot"?sanitizeSongSpotSettings(room.settings):mode.audience==="board"?sanitizeBoardSettings(room.settings,mode.id):mode.audience==="minecraft"?sanitizeMinecraftSettings(room.settings,mode.id):room.settings;
-     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
+     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
@@ -2642,6 +2675,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   familyNext(){return mutateRoomGame((game)=>FamilyEngine.next(game),{sound:"turn"});},
   wordChainAnswer(value, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WordChainEngine.answer(game,state.currentUser,value);},{sound:"submit"});},
   wordChainTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="word-chain")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";WordChainEngine.timeout(game);},{sound:"roundEnd"});},
+  charadesGuess(text, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Ta runda już się zmieniła.";return CharadesEngine.guess(game,state.currentUser,text);},{sound:"submit",after:settleAdditionalModeResult});},
+  charadesTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="charades")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Ta runda już się zmieniła.";CharadesEngine.timeout(game);},{sound:"roundEnd",after:settleAdditionalModeResult});},
+  charadesNext(){const room=activeRoom();if(!room||room.gameMode!=="charades"||room.hostUid!==state.currentUser)return message("Tylko host może przejść dalej.","info");return mutateRoomGame((game,current)=>{const result=CharadesEngine.next(game);if(game.finished&&game.phase==="result")current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
+  hangmanGuess(letter, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Ten ruch już się zakończył.";return HangmanEngine.guess(game,state.currentUser,letter);},{sound:"choice",after:settleAdditionalModeResult});},
+  hangmanTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="hangman")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||Number(game.round)!==Number(expected.round))return "Ten ruch już się zakończył.";HangmanEngine.timeout(game);},{sound:"roundEnd",after:settleAdditionalModeResult});},
+  hangmanNext(){const room=activeRoom();if(!room||room.gameMode!=="hangman"||room.hostUid!==state.currentUser)return message("Tylko host może przejść dalej.","info");return mutateRoomGame((game,current)=>{const result=HangmanEngine.next(game);if(game.finished&&game.phase==="result")current.status="results";return result;},{sound:"turn",after:settleAdditionalModeResult});},
   numberMysteryAsk(question, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na pytanie już minął.";return NumberMysteryEngine.ask(game,state.currentUser,question);},{sound:"clue"});},
   numberMysteryAnswer(answer, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedź już minął.";return NumberMysteryEngine.answer(game,state.currentUser,answer);},{sound:"choice"});},
   numberMysteryGuess(value, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase&&game.roundMode!=="race")return "Faza gry już się zmieniła.";return NumberMysteryEngine.guess(game,state.currentUser,value);},{sound:"submit"});},
@@ -2860,7 +2899,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] , defaultLudoBoard:["selectedBoardLudoSkin","defaultLudoBoard"], defaultMemoryBoard:["selectedBoardMemorySkin","defaultMemoryBoard"] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", "board-ludo":"selectedBoardLudoSkin", "board-memory":"selectedBoardMemorySkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
-const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext", "musicDuelNext", "musicArenaNext", "lyricsNext", "popularityNext"];
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext", "musicDuelNext", "musicArenaNext", "lyricsNext", "popularityNext", "charadesNext", "hangmanNext"];
 hostOnlyRoundActions.forEach(actionName => {
   const original = actions[actionName];
   if (!original) return;
@@ -3053,6 +3092,8 @@ const roundAdvanceControls = {
   "dokoncz-tekst": { selector: "#lyrics-next", action: "lyricsNext", delay: 6000 },
   "popularnosc-hitow": { selector: "#popularity-next", action: "popularityNext", delay: 10000 },
   songspot: { selector: "#songspot-next", action: "songSpotGroupNext", delay: 6000 },
+  charades: { selector: "#charades-next", action: "charadesNext", delay: 4500 },
+  hangman: { selector: "#hangman-next", action: "hangmanNext", delay: 4200 },
 };
 
 function roundAdvanceControl(room) {
@@ -3115,7 +3156,7 @@ function renderNow(options = {}) {
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
   Audio.prepareTrackRerender();
-  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
+  stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopCharadesTimer(); stopHangmanTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;

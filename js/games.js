@@ -31,6 +31,8 @@ import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20260903-9";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
+import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
+import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20260922-1";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -315,6 +317,12 @@ export const gamesRegistry = {
   },
   "word-chain": {
     id: "word-chain", name: "Łańcuch słów", description: "Budujcie łańcuch słów, pilnując ostatniej litery.", help: ["Pierwsze słowo jest losowane z dużego słownika.", "Każde kolejne słowo zaczyna się ostatnią literą poprzedniego.", "Host może włączyć język angielski oraz kontrolowane powtórki."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↔", art:"word-chain", audience:"everyone", badges:["new"], render:renderWordChainGame, defaultSettings:wordChainDefaults,
+  },
+  charades: {
+    id: "charades", name: "Kalambury", description: "Pokazuj hasła gestami, a reszta ekipy niech zgaduje, zanim skończy się czas.", help: ["W każdej rundzie jedna osoba dostaje tajne hasło i pokazuje je bez słów.", "Pozostali gracze wpisują swoje typy — każdy ma jedną próbę na rundę.", "Poprawna odpowiedź daje punkty zgadującemu i osobie pokazującej.", "Role zmieniają się po każdym haśle, a wynik zobaczycie na wspólnym podium."], allowReports: true, players: "3–8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎭", art: "charades", audience: "crew", badges: ["new", "tiktok"], render: renderCharadesGame, defaultSettings: charadesDefaults,
+  },
+  hangman: {
+    id: "hangman", name: "Wisielec", description: "Odkrywajcie ukryte hasła, wybierając litery na zmianę i pilnując liczby prób.", help: ["W każdej rundzie zgadujecie jedno wspólne hasło.", "Gracze po kolei wybierają literę z klawiatury.", "Za odgadnięcie hasła przed szóstą pomyłką zdobywasz punkty.", "Po ustalonej liczbie haseł wygrywa osoba z najwyższym wynikiem."], allowReports: true, players: "2–8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🪢", art: "hangman", audience: "crew", badges: ["new"], render: renderHangmanGame, defaultSettings: hangmanDefaults,
   },
   "tajna-zasada": {
     id: "tajna-zasada", name: "Tajna zasada", description: "Podawaj przykłady, odkrywaj wzór i odgadnij tajną zasadę przeciwnika jako pierwszy.", help: ["Obaj gracze widzą wspólną kategorię, ale każdy zapisuje własną tajną zasadę.", "Na zmianę podawajcie przykłady i zatwierdzajcie ręcznie, czy pasują do Waszej zasady.", "Możesz zgadywać zasadę według ustawionego harmonogramu albo wtedy, gdy jesteś gotowy.", "Wygrywa osoba, której zgadywanie zostanie zaakceptowane."], allowReports: true, players: "2 osoby", minPlayers: 2, maxPlayers: 2, supportsLobby: true, supportsSolo: false, symbol: "🧠", art: "secret-rule", audience: "everyone", badges: ["new", "tiktok"], render: renderSecretRuleGame, defaultSettings: secretRuleDefaults,
