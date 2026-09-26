@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.0.1",
+      date: "2026-09-26",
+      title: "Pewniejsze odtwarzanie piosenek",
+      changes: [
+        "Naprawiono nakładanie się previewów po pominięciu utworu w trybie Kto ma więcej?.",
+        "Dodano widoczny przycisk ręcznego odtwarzania, gdy przeglądarka blokuje start piosenki.",
+        "Ujednolicono sterowanie dźwiękiem między grami, żeby pauza i głośność działały tak samo w każdej przeglądarce.",
+      ],
+    },
+    {
       version: "v5.0.0",
       date: "2026-09-22",
       title: "Kalambury i Wisielec",

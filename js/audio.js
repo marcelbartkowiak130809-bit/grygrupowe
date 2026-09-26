@@ -431,6 +431,20 @@ export const Audio = {
     audio.load();
     this.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay });
   },
+  stopTrackAudio(audio, { clearPlayback = true } = {}) {
+    if (!audio) return;
+    const key = String(audio.dataset.trackKey || "");
+    audio.dataset.rerenderPause = "1";
+    try {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    } catch {}
+    delete audio.dataset.rerenderPause;
+    trackAudios.delete(audio);
+    if (clearPlayback && key) trackPlayback.delete(key);
+    if (activeTrackKey === key) activeTrackKey = "";
+  },
   stopAllTrackAudio({ clearPlayback = false } = {}) {
     [...trackAudios].forEach(audio => {
       if (!audio) return;

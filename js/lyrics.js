@@ -1,6 +1,6 @@
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
-import { Audio } from "./audio.js?v=20260902-1";
+import { Audio } from "./audio.js?v=20260926-1";
 
 export const lyricsDefaults = { rounds: 5, audioSeconds: 8, answerTime: 30, category: "all", region: "global" };
 const MIN_AUDIO_SECONDS = 4;

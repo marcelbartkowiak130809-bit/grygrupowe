@@ -1,6 +1,6 @@
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
-import { Audio } from "./audio.js?v=20260902-1";
+import { Audio } from "./audio.js?v=20260926-1";
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-2";
 import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
 import { SPOTIFY_MONTHLY_LISTENERS_AUDIT_DATE, spotifyMonthlyListenerSnapshots } from "./spotifyListenerSnapshots.js?v=20260904-1";
@@ -852,9 +852,7 @@ let popularityPreviewGeneration = 0;
 function stopPopularityPreview() {
   popularityPreviewGeneration += 1;
   if (!popularityPreviewAudio) return;
-  popularityPreviewAudio.dataset.rerenderPause = "1";
-  popularityPreviewAudio.pause();
-  delete popularityPreviewAudio.dataset.rerenderPause;
+  Audio.stopTrackAudio(popularityPreviewAudio);
   popularityPreviewAudio = null;
 }
 export function stopPopularityTimer() {
@@ -1023,23 +1021,54 @@ function updatePopularityPreview(root, query, media, metric, token, previewGener
   if (("isConnected" in root && !root.isConnected) || root.dataset.popularityArtToken !== token || previewGeneration !== popularityPreviewGeneration) return;
   const preview = root.querySelector("[data-popularity-preview]");
   if (!preview || preview.dataset.previewQuery !== query) return;
-  const audio = preview.querySelector("[data-popularity-preview-audio]"), status = preview.querySelector("[data-popularity-preview-status]"), spotify = preview.querySelector("[data-popularity-preview-spotify]");
+  const audio = preview.querySelector("[data-popularity-preview-audio]"), status = preview.querySelector("[data-popularity-preview-status]"), spotify = preview.querySelector("[data-popularity-preview-spotify]"), playButton = preview.querySelector("[data-popularity-preview-play]");
   if (spotify) spotify.href = `https://open.spotify.com/search/${encodeURIComponent(query)}`;
   if (!audio || !media.previewUrl) {
     if (audio) audio.hidden = true;
+    if (playButton) { playButton.disabled = true; playButton.textContent = "Preview niedostępny"; }
+    preview.querySelector("[data-track-volume-control]")?.setAttribute("hidden", "");
     if (status) status.textContent = "Brak dostępnego preview — otwórz utwór w Spotify.";
     preview.classList.add("is-unavailable");
     return;
   }
   audio.hidden = false;
-  // Nie używaj samego query jako klucza. Gdy gracz wcześniej ręcznie
-  // zatrzymał ten utwór, Audio mogłoby przywrócić stan "paused" zamiast
-  // automatycznie uruchomić nowy wynik rundy.
+  audio.preload = "auto";
+  if (playButton) { playButton.disabled = false; playButton.textContent = "▶ Odtwórz fragment"; }
+  if (status) status.textContent = "Przygotowuję fragment…";
+  const setPlayingUi = () => {
+    if (status) status.textContent = isArtistMetric(metric) ? "Fragment utworu artysty jest odtwarzany." : "Fragment zwycięskiej piosenki jest odtwarzany.";
+    if (playButton) playButton.textContent = "⏸ Wstrzymaj";
+    preview.classList.remove("autoplay-blocked");
+  };
+  const setPausedUi = text => {
+    if (status && text) status.textContent = text;
+    if (playButton) playButton.textContent = "▶ Odtwórz fragment";
+  };
+  const startPlayback = (manual = false) => {
+    if (!audio || !audio.isConnected) return;
+    let result;
+    try { result = audio.play(); } catch { result = Promise.reject(new Error("playback failed")); }
+    if (result?.then) result.then(setPlayingUi).catch(error => {
+      if (error?.name === "NotAllowedError" && !manual) {
+        preview.classList.add("autoplay-blocked");
+        setPausedUi("Przeglądarka blokuje autoodtwarzanie. Kliknij „Odtwórz fragment”.");
+      } else setPausedUi("Nie udało się uruchomić preview. Spróbuj ponownie albo otwórz utwór w Spotify.");
+    });
+  };
+  audio.addEventListener("play", setPlayingUi, { once:true });
+  audio.addEventListener("pause", () => { if (!audio.ended) setPausedUi("Odsłuch wstrzymany."); });
+  audio.addEventListener("ended", () => setPausedUi("Fragment się skończył — możesz odsłuchać go ponownie."));
+  audio.addEventListener("error", () => { preview.classList.add("is-unavailable"); playButton?.setAttribute("hidden", ""); preview.querySelector("[data-track-volume-control]")?.setAttribute("hidden", ""); setPausedUi("Nie udało się odtworzyć preview — otwórz utwór w Spotify."); });
+  audio.addEventListener("canplay", () => startPlayback(false), { once:true });
+  playButton?.addEventListener("click", () => {
+    if (audio.paused) startPlayback(true);
+    else audio.pause();
+  });
+  // Nie używaj samego query jako klucza: każdy reveal to świeże odtworzenie,
+  // a poprzednie naciśnięcie pauzy nie może blokować kolejnego preview.
   const playbackKey = `popularity:${query}:${previewGeneration}`;
-  Audio.setTrackAudioSource(audio, playbackKey, media.previewUrl, { autoplay:true });
+  Audio.setTrackAudioSource(audio, playbackKey, media.previewUrl, { autoplay:false });
   popularityPreviewAudio = audio;
-  audio.addEventListener("play", () => { if (status) status.textContent = isArtistMetric(metric) ? "Fragment utworu artysty jest odtwarzany." : "Fragment zwycięskiej piosenki jest odtwarzany."; }, { once:true });
-  audio.addEventListener("error", () => { preview.classList.add("autoplay-blocked"); if (status) status.textContent = "Nie udało się odtworzyć preview — otwórz utwór w Spotify."; }, { once:true });
 }
 function hydratePopularityArtwork(root, tracks, metric = "views") {
   const dataset = root.dataset || (root.dataset = {});
@@ -1067,7 +1096,7 @@ function hydratePopularityArtwork(root, tracks, metric = "views") {
 function popularityPreviewHtml(track, metric = "views") {
   if (!track) return `<section class="popularity-preview popularity-preview-tie"><span class="popularity-preview-icon">♫</span><div><b>Remis — bez zwycięskiego utworu</b><small>Oba numery mają tę samą wartość.</small></div></section>`;
   const artistMode = isArtistMetric(metric), song = artistMode ? track.topTrack : track, query = trackQuery(song), title = song?.title, subtitle = artistMode ? `${track.artist} · najpopularniejszy utwór` : song?.artist;
-  return `<section class="popularity-preview" data-popularity-preview data-preview-query="${escapeHtml(query)}"><span class="popularity-preview-icon">♫</span><div class="popularity-preview-copy"><p class="eyebrow">${artistMode ? "FRAGMENT PO ODPOWIEDZI" : "FRAGMENT ZWYCIĘSKIEJ PIOSENKI"}</p><b>${escapeHtml(title || "—")}</b><small>${escapeHtml(subtitle || "")}</small></div><audio data-popularity-preview-audio data-track-audio controls preload="none" hidden aria-label="${artistMode ? "Fragment utworu artysty" : "Fragment zwycięskiej piosenki"}"></audio>${Audio.trackVolumeControlHtml({ compact:true })}<p class="popularity-preview-status" data-popularity-preview-status>Ładuję publiczny preview…</p><a class="ghost popularity-preview-spotify" data-popularity-preview-spotify href="https://open.spotify.com/search/${encodeURIComponent(query)}" target="_blank" rel="noreferrer">Otwórz w Spotify</a></section>`;
+  return `<section class="popularity-preview" data-popularity-preview data-preview-query="${escapeHtml(query)}"><span class="popularity-preview-icon">♫</span><div class="popularity-preview-copy"><p class="eyebrow">${artistMode ? "FRAGMENT PO ODPOWIEDZI" : "FRAGMENT ZWYCIĘSKIEJ PIOSENKI"}</p><b>${escapeHtml(title || "—")}</b><small>${escapeHtml(subtitle || "")}</small></div><audio data-popularity-preview-audio data-track-audio preload="auto" playsinline hidden aria-label="${artistMode ? "Fragment utworu artysty" : "Fragment zwycięskiej piosenki"}"></audio><button type="button" class="ghost popularity-preview-play" data-popularity-preview-play disabled>Ładowanie…</button>${Audio.trackVolumeControlHtml({ compact:true })}<p class="popularity-preview-status" data-popularity-preview-status>Ładuję publiczny preview…</p><a class="ghost popularity-preview-spotify" data-popularity-preview-spotify href="https://open.spotify.com/search/${encodeURIComponent(query)}" target="_blank" rel="noreferrer">Otwórz w Spotify</a></section>`;
 }
 
 function popularityReadyPlayers(game, accounts, room) {

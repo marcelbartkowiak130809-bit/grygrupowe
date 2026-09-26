@@ -1,5 +1,5 @@
 import { musicCatalogForRegion, musicRegionOptions, musicRegionPicker } from "./music.js?v=20260903-9";
-import { Audio } from "./audio.js?v=20260902-2";
+import { Audio } from "./audio.js?v=20260926-1";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 
 export const songSpotDifficulties = [
