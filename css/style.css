@@ -1581,7 +1581,9 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
    whole route when the player types. */
 .songspot-answer-input-wrap{position:relative;display:block;flex:1;min-width:0}
 .songspot-answer-input-wrap>input{width:100%}
-.songspot-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;display:grid;gap:4px;max-height:280px;padding:6px;overflow:auto;border:1px solid rgba(103,232,249,.36);border-radius:13px;background:rgba(15,23,42,.98);box-shadow:0 18px 40px rgba(2,6,23,.42);text-align:left}
+.songspot-suggestions{position:absolute;bottom:calc(100% + 6px);left:0;right:0;z-index:30;display:grid;gap:4px;max-height:min(280px,40dvh);padding:6px;overflow:auto;overscroll-behavior:contain;border:1px solid rgba(103,232,249,.36);border-radius:13px;background:rgba(15,23,42,.98);box-shadow:0 18px 40px rgba(2,6,23,.42);text-align:left}
+.songspot-round>.songspot-answer-form:focus-within,.songspot-group-round>.songspot-group-answer-form:focus-within{position:relative;z-index:40}
+.songspot-suggestions{right:auto;width:max(100%,min(440px,calc(100vw - 56px)))}
 .songspot-suggestions:empty{display:none}
 .songspot-suggestion{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:7px;border:1px solid transparent;border-radius:9px;background:rgba(255,255,255,.045);color:var(--text);text-align:left;cursor:pointer}
 .songspot-suggestion:hover,.songspot-suggestion:focus-visible{border-color:rgba(103,232,249,.45);background:rgba(6,182,212,.12);outline:none}
