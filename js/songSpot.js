@@ -1,4 +1,4 @@
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261010-2";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261010-3";
 import { Audio } from "./audio.js?v=20260926-1";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 

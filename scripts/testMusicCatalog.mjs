@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chartMusicTracks, chartMusicUpdates } from '../js/chartMusic.js';
+import { artistExpansionTracks } from '../js/artistExpansionMusic.js';
 import { musicPreviewCatalog, musicCatalogForRegion } from '../js/music.js';
 
 test('chart additions have unique IDs, complete original media and valid regions', () => {
@@ -31,4 +32,20 @@ test('fresh Polish and international hits are available to shared game pools', (
   const polish = musicCatalogForRegion('polish'), global = musicCatalogForRegion('global');
   for (const title of ['NIENAWIDZĘ WARSZAWY', 'Mami', 'CYRK', 'SŁOWA BOLĄ']) assert.ok(polish.some(track => track.title === title && track.previewUrl));
   for (const title of ['Patient Zero', 'Nicole Kidman', 'Solar Eclipse', 'Babydoll']) assert.ok(global.some(track => track.title === title && track.previewUrl));
+});
+
+test('artist expansion supplies 109 distinct playable global songs', () => {
+  assert.equal(artistExpansionTracks.length, 109);
+  assert.equal(artistExpansionTracks.filter(track => track.artist === 'ADÉLA').length, 17);
+  assert.equal(artistExpansionTracks.filter(track => track.artist === 'Doja Cat').length, 12);
+  const pool = new Set(musicCatalogForRegion('global').map(track => track.id));
+  const norm = value => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\([^)]*\)|\[[^\]]*\]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
+  const identity = track => `${norm(track.title)}:${norm(track.artist.split(/,| & | feat\./i)[0])}`;
+  for (const track of artistExpansionTracks) {
+    assert.ok(pool.has(track.id));
+    assert.equal(track.region, 'global');
+    assert.match(track.previewUrl, /^https:\/\/audio-ssl\.itunes\.apple\.com\//);
+    assert.ok(track.coverUrl && track.externalUrl && track.title && track.artist);
+    assert.equal(musicPreviewCatalog.filter(item => identity(item) === identity(track)).length, 1, `Duplicate song: ${track.artist} — ${track.title}`);
+  }
 });

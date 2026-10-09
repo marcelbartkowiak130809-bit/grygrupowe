@@ -20,6 +20,15 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.0.4",
+      date: "2026-10-10",
+      title: "ADÉLA, Doja Cat i więcej rapu",
+      changes: [
+        "Dodano 17 kolejnych utworów ADÉLI oraz 12 Doja Cat.",
+        "Rozszerzono katalog o 80 utworów zagranicznych raperów i raperek z odsłuchem.",
+      ],
+    },
+    {
       version: "v5.0.3",
       date: "2026-10-10",
       title: "Więcej muzyki",
