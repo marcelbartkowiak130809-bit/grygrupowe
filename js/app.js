@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261010-3";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261010-7";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20260905-1";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20261010-6";
+import { gamesList, getGameMode } from "./games.js?v=20261010-7";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -40,7 +40,7 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261010-3";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260926-1";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261010-6";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261010-7";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
@@ -53,7 +53,7 @@ import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } 
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260922-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20260902-2";
+import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { scheduleBot } from "./botController.js?v=20260922-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
@@ -114,7 +114,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.0.4";
+const APP_VERSION = "v5.1.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -155,7 +155,7 @@ function readUrlRoute() {
   } catch { return { mode:"", room:"", invalidMode:false }; }
 }
 const initialUrlRoute = readUrlRoute();
-const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0, popularitySoloLeaderboardRegion:"global", popularitySoloLeaderboardMetric:"views", lyricsSoloLeaderboard:{}, lyricsSoloLeaderboardLoadedAt:0 };
+const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0, popularitySoloLeaderboardRegion:"global", popularitySoloLeaderboardMetric:"views", songSpotLeaderboard:{}, songSpotLeaderboardOnline:false, songSpotLeaderboardLoadedAt:0, lyricsSoloLeaderboard:{}, lyricsSoloLeaderboardLoadedAt:0 };
 window.__globalStats = state.globalStats;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
@@ -407,11 +407,34 @@ function saveAndRender() { saveAccounts(state.accounts); render(); }
 
 // SongSpot changes only its own route after a guess/skip. Rebuilding the app
 // shell here would briefly detach the audio element, top bar and scroll state.
+let songSpotBoardRequest = null;
+async function syncSongSpotRecord() {
+  const uid=getFirebaseSession()?.uid, user=profile();
+  if(!uid||!user||user.nickOnly||!hasOnlineBackend()) return;
+  const saved=await saveSongSpotLeaderboard(uid,SongSpotSoloEngine.get(uid).records,user);
+  if(saved) {state.songSpotLeaderboard[uid]=saved;state.songSpotLeaderboardOnline=true;}
+  else state.songSpotLeaderboardOnline=false;
+  if(Router.current==='solo'&&['songspot','songspot-solo'].includes(state.selectedGameMode)) repaintSongSpot();
+}
+function refreshSongSpotData() {
+  if(!hasOnlineBackend()||songSpotBoardRequest||Date.now()-state.songSpotLeaderboardLoadedAt<15000) return;
+  songSpotBoardRequest=loadSongSpotLeaderboard().then(board=>{
+    state.songSpotLeaderboardOnline=board!==null;
+    if(board!==null) state.songSpotLeaderboard=board;
+    state.songSpotLeaderboardLoadedAt=Date.now();
+    const uid=getFirebaseSession()?.uid;
+    if(board!==null && uid) {
+      const local=SongSpotSoloEngine.get(uid).records, remote=board[uid]?.records || {};
+      if(['global','polish'].some(region=>(local[region]||0)>(remote[region]||0))) syncSongSpotRecord();
+    }
+    if(Router.current==='solo'&&['songspot','songspot-solo'].includes(state.selectedGameMode)) repaintSongSpot();
+  }).finally(()=>{songSpotBoardRequest=null;});
+}
 function repaintSongSpot() {
   if (Router.current === "solo" && ["songspot", "songspot-solo"].includes(state.selectedGameMode)) {
     const route = root.querySelector(".route-solo");
     if (route?.isConnected) {
-        renderSongSpotSolo(route, { profile:profile(), playerId:songSpotPlayerId() }, actions, { quiet:true });
+        renderSongSpotSolo(route, { profile:profile(), playerId:songSpotPlayerId(), leaderboard:state.songSpotLeaderboard, online:state.songSpotLeaderboardOnline }, actions, { quiet:true });
       lastRenderedScreenSignature = currentScreenSignature();
       return;
     }
@@ -2837,8 +2860,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   songSpotStart(region="global"){Audio.stopAllTrackAudio({clearPlayback:true});SongSpotSoloEngine.start(songSpotPlayerId(),region);render({forceEnter:true});},
   songSpotStop(){SongSpotSoloEngine.stop(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
   songSpotDifficulty(difficulty){SongSpotSoloEngine.setDifficulty(songSpotPlayerId(),difficulty);repaintSongSpot();},
-  songSpotRegion(region){const playerId=songSpotPlayerId(),before=SongSpotSoloEngine.get(playerId),next=SongSpotSoloEngine.setRegion(playerId,region);if(before.region!==next.region&&before.status!=="idle") { Audio.stopAllTrackAudio({clearPlayback:true}); message("Zmieniono katalog utworów. Rozpocznij nową serię.","info"); } repaintSongSpot();},
-  songSpotGuess(text, expected={}){const playerId=songSpotPlayerId(),audio=root.querySelector("[data-songspot-audio]"),position=Number(audio?.currentTime);if(Number.isFinite(position))SongSpotSoloEngine.setPlaybackPosition(playerId,position);const before=SongSpotSoloEngine.get(playerId).status,result=SongSpotSoloEngine.guess(playerId,text,expected);if(before!=="playing"||result?.status==="playing")return;stopSongSpotTimer();if(result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
+  songSpotFilters(filters){const result=SongSpotSoloEngine.setFilters(songSpotPlayerId(),filters);if(result.error)return message(result.error,'info');Audio.stopAllTrackAudio({clearPlayback:true});stopSongSpotTimer();repaintSongSpot();},
+  songSpotRegion(region){const playerId=songSpotPlayerId(),before=SongSpotSoloEngine.get(playerId),changed=before.region!==region,active=before.status!=="idle";SongSpotSoloEngine.setRegion(playerId,region);if(changed) { Audio.stopAllTrackAudio({clearPlayback:true});stopSongSpotTimer();if(active)message("Zmieniono katalog utworów. Rozpocznij nową serię.","info"); } refreshSongSpotData();repaintSongSpot();},
+  songSpotGuess(text, expected={}){const playerId=songSpotPlayerId(),audio=root.querySelector("[data-songspot-audio]"),position=Number(audio?.currentTime);if(Number.isFinite(position))SongSpotSoloEngine.setPlaybackPosition(playerId,position);const before=SongSpotSoloEngine.get(playerId).status,result=SongSpotSoloEngine.guess(playerId,text,expected);if(before!=="playing"||result?.status==="playing")return;stopSongSpotTimer();if(result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();if(result.lastResult?.correct && result.rankedRun)syncSongSpotRecord();},
   songSpotSkip(expected={}){const audio=root.querySelector("[data-songspot-audio]"),result=SongSpotSoloEngine.skip(songSpotPlayerId(),expected);if(result?.status!=='playing')Audio.stopAllTrackAudio({clearPlayback:true});if(result?.lastResult)Effects.hit(false);repaintSongSpot();if(result?.status==='playing'&&audio?.isConnected&&audio.paused&&result.played){const playing=audio.play();if(playing?.catch)playing.catch(()=>{});}},
   songSpotNext(){SongSpotSoloEngine.next(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},
@@ -3178,7 +3202,7 @@ function renderNow(options = {}) {
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) return finish(renderSongSpotSolo(view,{profile:profile(),playerId:songSpotPlayerId()},actions)); return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {

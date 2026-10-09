@@ -34,7 +34,7 @@ import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261010-3";
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20260902-23";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
-import { renderSongSpotLobbySettings } from "./songSpot.js?v=20260902-15";
+import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261010-7";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 

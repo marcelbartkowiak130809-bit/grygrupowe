@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.1.0",
+      date: "2026-10-10",
+      title: "Twój miks w Zgadnij utwór",
+      changes: [
+        "Dodano zapętlane filtry dekad i gatunków oraz wybór artystów, również z featuringów.",
+        "Dodano osobne rankingi globalne i polskie. Liczą się tylko serie ze wszystkimi filtrami na All.",
+        "Uzupełniono metadane katalogu i dopasowano układ do telefonów.",
+      ],
+    },
+    {
       version: "v5.0.4",
       date: "2026-10-10",
       title: "ADÉLA, Doja Cat i więcej rapu",

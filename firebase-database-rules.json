@@ -181,6 +181,22 @@
         }
       }
     },
+    "songSpotSoloRecords": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid && newData.exists()",
+        ".validate": "newData.hasChildren(['nick', 'records', 'updatedAt'])",
+        "nick": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+        "updatedAt": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
+        "records": {
+          ".validate": "newData.hasChildren(['global', 'polish'])",
+          "global": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= 100000 && newData.val() >= (data.exists() ? data.val() : 0)" },
+          "polish": { ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= 100000 && newData.val() >= (data.exists() ? data.val() : 0)" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      }
+    },
     "lyricsSoloRecords": {
       ".read": "auth != null",
       "$uid": {

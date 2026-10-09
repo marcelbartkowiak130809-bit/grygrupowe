@@ -648,6 +648,21 @@ export async function saveLyricsSoloLeaderboard(uid, best = 0, profile = {}) {
     return sanitizeLyricsSoloRecord(uid, payload);
   } catch { return null; }
 }
+export async function loadSongSpotLeaderboard() {
+  if(!canUseRemote()) return null;
+  try { return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,'songSpotSoloRecords'))).val() || {}; } catch { return null; }
+}
+export async function saveSongSpotLeaderboard(uid, records = {}, profile = {}) {
+  if(!canUseRemote() || !uid || remoteAuth.currentUser.uid!==uid || profile.nickOnly) return null;
+  try {
+    const result=await firebaseDatabaseApi.runTransaction(firebaseDatabaseApi.ref(remoteDatabase,`songSpotSoloRecords/${uid}`), current=>({
+      nick:String(profile.nick || 'Gracz').slice(0,40),
+      records:Object.fromEntries(['global','polish'].map(region=>[region,Math.max(Number(current?.records?.[region])||0,Math.min(100000,Math.max(0,Math.floor(Number(records[region])||0))))])),
+      updatedAt:Math.floor(serverNow()),
+    }),{applyLocally:false});
+    return result.committed?result.snapshot.val():null;
+  } catch {return null;}
+}
 export async function updateRemoteProfileFields(uid, patch = {}) {
   if (!canUseRemote() || !uid || !Object.keys(patch).length) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }

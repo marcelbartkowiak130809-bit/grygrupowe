@@ -32,10 +32,10 @@ import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261010-3";
 import { LyricsEngine } from "./lyrics.js?v=20260902-23";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
-import { SongSpotEngine } from "./songSpot.js?v=20260902-15";
+import { SongSpotEngine } from "./songSpot.js?v=20261010-7";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
-import { serverNow } from "./firebase.js?v=20260902-2";
+import { serverNow } from "./firebase.js?v=20261010-7";
 import { gameMomentKey } from "./roomLifecycle.js";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});

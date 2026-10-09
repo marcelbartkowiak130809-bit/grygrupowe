@@ -1,6 +1,7 @@
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261010-3";
 import { Audio } from "./audio.js?v=20260926-1";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
+import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261010-7';
 
 export const songSpotDifficulties = [
   { id: "easy", label: "Łatwy", seconds: 0.1, accent: "#22c55e" },
@@ -91,6 +92,9 @@ function normalizeState(raw, playerId) {
     status,
     difficulty: safeDifficulty(source.difficulty),
     region: safeRegion(source.region),
+    filters: normalizeSongSpotFilters(source.filters),
+    rankedRun: Boolean(source.rankedRun && songSpotRanked(source.filters)),
+    records: {global:Math.max(0,Number(source.records?.global)||0),polish:Math.max(0,Number(source.records?.polish)||0)},
     enabledTimes,
     timeIndex: stageIndexFor({ ...source, enabledTimes }, enabledTimes),
     streak: status === "idle" ? 0 : streak,
@@ -119,8 +123,8 @@ function readState(playerId) {
   return songSpotState;
 }
 
-function chooseTrack(usedIds, region) {
-  const pool = trackPool(region);
+function chooseTrack(usedIds, region, filters) {
+  const pool = filterSongSpotTracks(trackPool(region), filters);
   if (!pool.length) return null;
   const used = new Set(usedIds);
   const fresh = pool.filter(track => !used.has(String(track.id)));
@@ -129,10 +133,10 @@ function chooseTrack(usedIds, region) {
 }
 
 function startRound(state) {
-  const track = chooseTrack(state.usedIds, state.region);
+  const track = chooseTrack(state.usedIds, state.region, state.filters);
   if (!track) {
     state.status = "idle";
-    state.lastError = "Brak dostępnych previewów dla tego katalogu.";
+    state.lastError = "Brak utworów dla tych filtrów. Zmień wybór.";
     state.trackId = "";
     return;
   }
@@ -259,6 +263,9 @@ export const SongSpotSoloEngine = {
       playerId: owner,
       status: "playing",
       region: safeRegion(region),
+      filters: normalizeSongSpotFilters(previous.filters),
+      rankedRun: songSpotRanked(previous.filters),
+      records: {...previous.records},
       enabledTimes: [...songSpotTimes],
       timeIndex: 0,
       streak: 0,
@@ -287,6 +294,16 @@ export const SongSpotSoloEngine = {
     saveStored(state);
     return state;
   },
+  setFilters(playerId, filters) {
+    const state = readState(playerId), selected = normalizeSongSpotFilters(filters);
+    if(selected.artists.length>0 && selected.artists.length<3) return {error:'Wybierz minimum 3 artystów.'};
+    if(JSON.stringify(selected)===JSON.stringify(state.filters)) return state;
+    this.stop(playerId);
+    state.filters=selected;
+    state.rankedRun=false;
+    saveStored(state);
+    return state;
+  },
   setRegion(playerId, region) {
     const state = readState(playerId);
     const nextRegion = safeRegion(region);
@@ -307,6 +324,8 @@ export const SongSpotSoloEngine = {
       state.lastResult = null;
     }
     state.region = nextRegion;
+    state.filters.artists = [];
+    state.rankedRun = false;
     saveStored(state);
     return state;
   },
@@ -375,6 +394,7 @@ export const SongSpotSoloEngine = {
     if (result.correct) {
       state.streak += 1;
       state.best = Math.max(state.best, state.streak);
+      if(state.rankedRun && songSpotRanked(state.filters)) state.records[state.region] = Math.max(state.records[state.region] || 0,state.streak);
       state.status = "reveal";
     } else {
       state.streak = 0;
@@ -503,6 +523,7 @@ function songSpotSoloViewKey(state) {
     state?.playbackDone ? 1 : 0,
     state?.streak,
     state?.best,
+    JSON.stringify(state.filters),
     result.trackId,
     result.correct ? 1 : 0,
     result.skipped ? 1 : 0,
@@ -533,11 +554,26 @@ function updateSongSpotSoloStageInPlace(page, state, viewKey, playerId) {
   return true;
 }
 
-export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false } = {}) {
+function carouselHtml(key, options, selected) {
+  const label=options.find(([id])=>id===selected)?.[1] || 'All';
+  return `<div class="songspot-filter-wheel"><button type="button" data-songspot-filter="${key}" data-direction="-1" aria-label="Poprzedni ${key==='era'?'okres':'gatunek'}">‹</button><b key="${escapeHtml(selected)}">${escapeHtml(label)}</b><button type="button" data-songspot-filter="${key}" data-direction="1" aria-label="Następny ${key==='era'?'okres':'gatunek'}">›</button></div>`;
+}
+function filtersHtml(state) {
+  const artists=songSpotArtistOptions(trackPool(state.region)), selected=new Set(state.filters.artists);
+  return `<aside class="songspot-filters"><h2>Twój miks</h2><label>Dekada</label>${carouselHtml('era',songSpotEras,state.filters.era)}<label>Gatunek</label>${carouselHtml('genre',songSpotGenres,state.filters.genre)}<details class="songspot-artist-picker"><summary>Artyści <b>${selected.size ? selected.size : 'All'}</b></summary><input type="search" data-songspot-artist-search placeholder="Szukaj artysty…" aria-label="Szukaj artysty"><label class="songspot-artist-all"><input type="checkbox" data-songspot-artists-all ${selected.size?'':'checked'}> All</label><div class="songspot-artist-list">${artists.map(([id,name])=>`<label data-artist-name="${escapeHtml(name.toLowerCase())}"><input type="checkbox" data-songspot-artist="${escapeHtml(id)}" ${selected.has(id)?'checked':''}>${escapeHtml(name)}</label>`).join('')}</div><small data-songspot-artists-hint>All lub minimum 3 artystów</small><button type="button" class="primary" data-songspot-artists-apply>Zastosuj</button></details><small class="songspot-ranked-note">${songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem'}</small></aside>`;
+}
+function leaderboardHtml(state, leaderboard, playerId, online) {
+  const rows=Object.entries(leaderboard || {}).map(([uid,row])=>({uid,...row,best:Number(row.records?.[state.region])||0})).filter(row=>row.best>0).sort((a,b)=>b.best-a.best||Number(a.updatedAt)-Number(b.updatedAt)||a.uid.localeCompare(b.uid));
+  const own=rows.findIndex(row=>row.uid===playerId), local=Math.max(state.records[state.region]||0,own>=0?rows[own].best:0);
+  return `<aside class="songspot-leaderboard"><h2>${state.region==='polish'?'🇵🇱 Polski ranking':'🌍 Globalny ranking'}</h2><small>Najdłuższa seria · wszystkie filtry All</small><ol>${rows.slice(0,10).map((row,index)=>`<li class="${row.uid===playerId?'is-me':''}"><span>${index+1}</span><b>${escapeHtml(row.nick || 'Gracz')}</b><strong>${row.best}</strong></li>`).join('')}</ol>${!rows.length?`<p class="muted">${online?'Brak wyników. Zdobądź pierwszy rekord!':'Ranking online niedostępny.'}</p>`:''}<div class="songspot-own-record"><span>Twój rekord</span><b>${local}</b>${own>=0?`<small>Miejsce #${own+1}</small>`:''}</div><small>${online?'Wyniki zalogowanych graczy':'Rekord zapisany na tym urządzeniu'}</small></aside>`;
+}
+export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = false }, actions, { quiet = false } = {}) {
   const state = SongSpotSoloEngine.get(playerId);
   const item = trackById(state.trackId);
   const viewKey = songSpotSoloViewKey(state);
   const currentPage = root.querySelector(".songspot-page");
+  const board=currentPage?.querySelector('.songspot-leaderboard');
+  if(board) { const markup=leaderboardHtml(state,leaderboard,playerId,online); if(board.outerHTML!==markup) board.outerHTML=markup; }
   if (currentPage?.dataset.songspotViewKey === viewKey) return;
   if (quiet && updateSongSpotSoloStageInPlace(currentPage, state, viewKey, playerId)) return;
 
@@ -551,7 +587,21 @@ export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false 
   else if (state.status === "playing" && item) content += activeHtml(state, item);
   else if (state.status === "playing") content += `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview. Przejdź do następnego czasu tego samego utworu.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
   else content += resultHtml(state);
-  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel">${content}${state.status === "idle" ? `<p class="songspot-note">Czasy są liczone łącznie od początku utworu.</p>` : ""}</section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel"><div class="songspot-layout">${filtersHtml(state)}<div class="songspot-center">${content}</div>${leaderboardHtml(state,leaderboard,playerId,online)}</div></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+  root.querySelectorAll('[data-songspot-filter]').forEach(button=>button.addEventListener('click',()=>{
+    const key=button.dataset.songspotFilter, options=key==='era'?songSpotEras:songSpotGenres, index=options.findIndex(([id])=>id===state.filters[key]);
+    const value=options[(index+Number(button.dataset.direction)+options.length)%options.length][0];
+    actions.songSpotFilters?.({...state.filters,[key]:value});
+  }));
+  const all=root.querySelector('[data-songspot-artists-all]'), artistInputs=[...root.querySelectorAll('[data-songspot-artist]')];
+  all?.addEventListener('change',()=>{ if(all.checked) artistInputs.forEach(input=>input.checked=false); else if(!artistInputs.some(input=>input.checked)) all.checked=true; });
+  artistInputs.forEach(input=>input.addEventListener('change',()=>{all.checked=!artistInputs.some(item=>item.checked);}));
+  root.querySelector('[data-songspot-artist-search]')?.addEventListener('input',event=>{ const query=event.target.value.toLowerCase(); root.querySelectorAll('[data-artist-name]').forEach(row=>{row.hidden=!row.dataset.artistName.includes(query);}); });
+  root.querySelector('[data-songspot-artists-apply]')?.addEventListener('click',()=>{
+    const artists=artistInputs.filter(input=>input.checked).map(input=>input.dataset.songspotArtist);
+    if(artists.length>0 && artists.length<3) {root.querySelector('[data-songspot-artists-hint]').textContent='Wybierz minimum 3 artystów.';return;}
+    actions.songSpotFilters?.({...state.filters,artists});
+  });
   // A threshold change is not a new playback session. Reattach the existing
   // media element so a user gesture can continue it without autoplay.
   const nextAudio = root.querySelector("[data-songspot-audio]");

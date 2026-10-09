@@ -1,4 +1,4 @@
-import { claimModeCategoryRelease, getRemotePollVotes, loadModeCategoryReleases, voteRemotePoll } from "./firebase.js?v=20260902-2";
+import { claimModeCategoryRelease, getRemotePollVotes, loadModeCategoryReleases, voteRemotePoll } from "./firebase.js?v=20261010-7";
 
 export const CATEGORY_VOTING_START_AT = "2026-09-01T20:00:00+02:00";
 export const CATEGORY_VOTE_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
