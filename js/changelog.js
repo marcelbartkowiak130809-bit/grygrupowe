@@ -20,6 +20,15 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.0.3",
+      date: "2026-10-10",
+      title: "Więcej muzyki",
+      changes: [
+        "Dodano 51 polskich i 81 globalnych utworów, w tym aktualne hity z list Apple Music.",
+        "Uzupełniono brakujące odsłuchy 5 istniejących utworów.",
+      ],
+    },
+    {
       version: "v5.0.2",
       date: "2026-10-10",
       title: "Płynniejsze Zgadnij utwór",
