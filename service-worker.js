@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.1.1-20261010-artists";
+const CACHE_NAME = "grygrupowe-shell-v5.1.1-20261010-hidden-scrollbar";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png"];
 
 self.addEventListener("install", event => {
