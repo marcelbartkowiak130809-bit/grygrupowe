@@ -523,7 +523,6 @@ function updateSongSpotSoloStageInPlace(page, state, viewKey, playerId) {
   round.querySelectorAll(".songspot-timeline-track>span").forEach((marker, index) => marker.classList.toggle("is-selected", index === stageIndex));
   const progress = round.querySelector("[data-songspot-solo-progress]");
   if (progress) progress.style.width = `${Math.min(100, (Math.max(0, Number(state.playbackPosition) || 0) / 15) * 100)}%`;
-  round.querySelector("[data-songspot-play]")?.setAttribute("aria-label", "Odtwórz fragment od początku");
   const submit = round.querySelector('[data-songspot-answer-form] button[type="submit"]'), input = round.querySelector("[data-songspot-answer-input]");
   if (submit) submit.disabled = false;
   if (input) input.disabled = false;
@@ -572,6 +571,18 @@ export function renderSongSpotSolo(root, { playerId }, actions, { quiet = false 
   if (state.status === "playing" && item) bindSongSpotAudio(root, state, playerId, actions);
 }
 
+export function bindSongSpotPlaybackButton(audio, button) {
+  const update = () => {
+    const playing = !audio.paused && !audio.ended && !audio.error;
+    button.classList.toggle("is-playing", playing);
+    button.innerHTML = playing ? '<span class="songspot-pause-icon" aria-hidden="true"></span>' : '▶';
+    button.setAttribute("aria-label", playing ? "Wstrzymaj fragment" : "Odtwórz fragment");
+    button.setAttribute("aria-pressed", String(playing));
+  };
+  for (const event of ["play", "playing", "pause", "ended", "error", "emptied"]) audio.addEventListener(event, update);
+  update();
+}
+
 function bindSongSpotAudio(root, state, playerId) {
   const audio = root.querySelector("[data-songspot-audio]"), button = root.querySelector("[data-songspot-play]"), status = root.querySelector("[data-songspot-audio-state]"), input = root.querySelector("[data-songspot-answer-form] input"), submit = root.querySelector('[data-songspot-answer-form] button[type="submit"]'), hint = root.querySelector("[data-songspot-answer-form] small");
   if (!audio || !button) return;
@@ -593,7 +604,6 @@ function bindSongSpotAudio(root, state, playerId) {
   audio.__songSpotBinding = binding;
   const updatePlayedUi = () => {
     binding.button.disabled = false;
-    binding.button.setAttribute("aria-label", "Odtwórz fragment ponownie");
     if (binding.input) binding.input.disabled = false;
     if (binding.submit) binding.submit.disabled = false;
   };
@@ -657,7 +667,9 @@ function bindSongSpotAudio(root, state, playerId) {
     scheduleFinish();
   };
   if (!binding.eventsBound) {
+    bindSongSpotPlaybackButton(audio, button);
     audio.addEventListener("play", started);
+    audio.addEventListener("pause", () => { if (audio.paused && songSpotTimerKey === binding.key) stopSongSpotTimer(); });
     audio.addEventListener("timeupdate", () => {
       if (songSpotTimerKey === binding.key && Number(audio.currentTime) >= binding.duration - 0.005) finish();
     });
@@ -679,6 +691,12 @@ function bindSongSpotAudio(root, state, playerId) {
     button.addEventListener("click", () => {
       const live = SongSpotSoloEngine.get(binding.playerId);
       if (live.status !== "playing") return;
+      if (!audio.paused) { audio.pause(); return; }
+      if (live.played && !live.playbackDone && Number(audio.currentTime) < binding.duration - 0.005) {
+        const playing = audio.play();
+        if (playing?.catch) playing.catch(() => { if (binding.status) binding.status.textContent = "Nie udało się wznowić fragmentu."; });
+        return;
+      }
       // Replay is always allowed and always starts at the beginning. Clear
       // the previous timer/position before asking the browser to play again.
       stopSongSpotTimer();
@@ -1052,10 +1070,9 @@ function bindSongSpotGameAudio(root, game) {
   if (!audio || !button || !game.track?.previewUrl) return;
   const key = audio.dataset.trackKey;
   const stageSeconds = groupCurrentSeconds(game);
+  bindSongSpotPlaybackButton(audio, button);
   const setPlaybackUi = () => {
     button.disabled = false;
-    const label = button.querySelector("span");
-    if (label) label.textContent = "Odtwórz od początku";
   };
   const playback = Audio.getTrackPlayback(key);
   const pauseAtEnd = () => { try { audio.pause(); } catch {} };
@@ -1074,8 +1091,15 @@ function bindSongSpotGameAudio(root, game) {
   Audio.bindTrackAudio(audio, key, { autoplay: shouldResume });
   audio.addEventListener("timeupdate", () => { if (!["preview", "answering"].includes(game.phase) || Number(audio.currentTime) >= stageSeconds || Date.now() >= Number(game.phaseEndsAt || 0)) pauseAtEnd(); });
   audio.addEventListener("play", () => { setPlaybackUi(); scheduleStageStop(); });
+  audio.addEventListener("pause", () => { if (audio.paused) window.clearTimeout(songSpotGameAudioTimer); });
   button.addEventListener("click", () => {
     if (!["preview", "answering"].includes(game.phase)) return;
+    if (!audio.paused) { audio.pause(); return; }
+    if (Number(audio.currentTime) > 0 && Number(audio.currentTime) < stageSeconds - 0.005) {
+      const playing = audio.play();
+      if (playing?.catch) playing.catch(() => { const status = root.querySelector('[data-songspot-group-audio-state]'); if (status) status.textContent = "Nie udało się wznowić fragmentu."; });
+      return;
+    }
     window.clearTimeout(songSpotGameAudioTimer);
     try { audio.pause(); } catch {}
     try { audio.currentTime = 0; } catch {}
@@ -1169,8 +1193,6 @@ export function renderSongSpotGame(root, { room, accounts, currentUser }, action
   const replayButton = root.querySelector("[data-songspot-group-play]");
   if (replayButton) {
     replayButton.disabled = false;
-    const label = replayButton.querySelector("span");
-    if (label) label.textContent = `Odtwórz ${formatSeconds(currentSeconds)}`;
   }
   Audio.bindTrackVolumeControls(root);
   bindSongSpotAnswerSuggestions(root, settings.region);

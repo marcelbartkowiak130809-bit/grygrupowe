@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.0.4-20261010-skip";
+const CACHE_NAME = "grygrupowe-shell-v5.0.4-20261010-playback";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png"];
 
 self.addEventListener("install", event => {

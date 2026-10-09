@@ -7,9 +7,33 @@ globalThis.localStorage = {
   getItem: key => saved.get(key) ?? null,
   setItem: (key, value) => { writes++; saved.set(key, value); },
 };
-const { SongSpotSoloEngine: engine } = await import('../js/songSpot.js');
+const { SongSpotSoloEngine: engine, bindSongSpotPlaybackButton } = await import('../js/songSpot.js');
 const { musicCatalogForRegion } = await import('../js/music.js?v=20260903-9');
 const trackFor = state => musicCatalogForRegion(state.region).find(track => String(track.id) === state.trackId);
+
+test('playback button follows actual play, pause, resume, end and error events', () => {
+  const audio = new EventTarget();
+  audio.paused = true; audio.ended = false; audio.error = null;
+  const attributes = new Map(), classes = new Set();
+  const button = { innerHTML:'', classList:{toggle(name, active){active ? classes.add(name) : classes.delete(name);}}, setAttribute(name, value){attributes.set(name, value);} };
+  bindSongSpotPlaybackButton(audio, button);
+  assert.equal(button.innerHTML, '▶');
+  for (const event of ['play', 'playing']) {
+    audio.paused = false; audio.dispatchEvent(new Event(event));
+    assert.ok(classes.has('is-playing'));
+    assert.match(button.innerHTML, /songspot-pause-icon/);
+    assert.equal(attributes.get('aria-label'), 'Wstrzymaj fragment');
+  }
+  audio.paused = true; audio.dispatchEvent(new Event('pause'));
+  assert.equal(button.innerHTML, '▶');
+  assert.equal(attributes.get('aria-pressed'), 'false');
+  audio.paused = false; audio.dispatchEvent(new Event('play'));
+  assert.ok(classes.has('is-playing'));
+  audio.ended = true; audio.dispatchEvent(new Event('ended'));
+  assert.equal(button.innerHTML, '▶');
+  audio.ended = false; audio.error = {}; audio.dispatchEvent(new Event('error'));
+  assert.equal(button.innerHTML, '▶');
+});
 
 test('an answer is accepted while the snippet is still playing, and is scored once', () => {
   const state = engine.start('during-playback');
