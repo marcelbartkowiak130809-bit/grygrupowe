@@ -20,6 +20,17 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.0.2",
+      date: "2026-10-10",
+      title: "Płynniejsze Zgadnij utwór",
+      changes: [
+        "Odpowiedź w solo można sprawdzić w dowolnym momencie, także podczas odtwarzania.",
+        "Ograniczono zapisy postępu podczas odsłuchu, żeby zmniejszyć przycięcia.",
+        "Uproszczono ekran: duży przycisk odtwarzania, pasek odsłuchu, odpowiedź i Skip.",
+        "Aktualizacje głosów i odpowiedzi innych graczy nie przeładowują już odsłuchu ani nie kasują wpisywanego tytułu.",
+      ],
+    },
+    {
       version: "v5.0.1",
       date: "2026-09-26",
       title: "Pewniejsze odtwarzanie piosenek",
