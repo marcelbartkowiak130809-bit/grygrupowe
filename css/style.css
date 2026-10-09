@@ -1581,7 +1581,9 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
    whole route when the player types. */
 .songspot-answer-input-wrap{position:relative;display:block;flex:1;min-width:0}
 .songspot-answer-input-wrap>input{width:100%}
-.songspot-suggestions{position:absolute;bottom:calc(100% + 6px);left:0;right:0;z-index:30;display:grid;gap:4px;max-height:min(280px,40dvh);padding:6px;overflow:auto;overscroll-behavior:contain;border:1px solid rgba(103,232,249,.36);border-radius:13px;background:rgba(15,23,42,.98);box-shadow:0 18px 40px rgba(2,6,23,.42);text-align:left}
+.songspot-suggestions{position:absolute;top:calc(100% + 6px);bottom:auto;left:0;right:0;z-index:50;display:grid;gap:4px;max-height:min(280px,40dvh);padding:6px;overflow:auto;overscroll-behavior:contain;border:1px solid rgba(103,232,249,.36);border-radius:13px;background:rgba(15,23,42,.98);box-shadow:0 18px 40px rgba(2,6,23,.42);text-align:left}
+.songspot-page .songspot-center,.songspot-group-page .songspot-group-round{position:relative;z-index:2}
+.songspot-page .songspot-panel,.songspot-group-page .songspot-group-panel{overflow:visible}
 .songspot-round>.songspot-answer-form:focus-within,.songspot-group-round>.songspot-group-answer-form:focus-within{position:relative;z-index:40}
 .songspot-suggestions{right:auto;width:max(100%,min(440px,calc(100vw - 56px)))}
 .songspot-suggestions:empty{display:none}
