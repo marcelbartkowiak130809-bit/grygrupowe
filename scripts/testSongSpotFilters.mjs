@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {musicPreviewCatalog} from '../js/music.js';
-import {filterSongSpotTracks, songSpotRanked, songSpotTrackMetadata, songSpotArtistOptions} from '../js/songSpotFilters.js';
+import {filterSongSpotTracks, songSpotRanked, songSpotTrackMetadata, songSpotArtistOptions, normalizeSongSpotFilters} from '../js/songSpotFilters.js';
 const stored=new Map();
 globalThis.localStorage={getItem:key=>stored.get(key)||null,setItem:(key,value)=>stored.set(key,value)};
 const {SongSpotSoloEngine:engine}=await import('../js/songSpot.js');
@@ -54,10 +54,19 @@ test('edition dates do not move original classics into modern decades',()=>{
 test('changing filters ends a run; empty combinations do not fall back to all tracks',()=>{
   const player='filter-empty-regression';
   engine.start(player,'global');
-  const state=engine.setFilters(player,{era:'classic',genre:'kpop',artists:['sza','doja cat','ariana grande']});
+  const state=engine.setFilters(player,{mode:'mix',era:'classic',genre:'kpop'});
   assert.equal(state.status,'idle');assert.equal(state.streak,0);
   const empty=engine.start(player,'global');
   assert.equal(empty.status,'idle');assert.equal(empty.trackId,'');assert.match(empty.lastError,/Brak utworów/);
   engine.setFilters(player,{});
   const ranked=engine.start(player,'global');assert.equal(ranked.rankedRun,true);assert.equal(ranked.streak,0);
+});
+
+test('artist filters and genre/decade filters are mutually exclusive',()=>{
+  const artists=normalizeSongSpotFilters({mode:'artists',era:'classic',genre:'hiphop',artists:['sza','doja cat','ariana grande']});
+  assert.equal(artists.era,'all');assert.equal(artists.genre,'all');assert.equal(artists.artists.length,3);
+  const mix=normalizeSongSpotFilters({...artists,mode:'mix',era:'2010s',genre:'pop'});
+  assert.deepEqual(mix.artists,[]);assert.equal(mix.era,'2010s');assert.equal(mix.genre,'pop');
+  assert.equal(songSpotRanked({mode:'artists',artists:[]}),true);
+  for(const [id,name,cover] of songSpotArtistOptions(musicPreviewCatalog.filter(t=>t.previewUrl))) assert.ok(cover,`${name}: album icon missing`);
 });

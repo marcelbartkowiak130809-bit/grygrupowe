@@ -1,7 +1,7 @@
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261010-3";
 import { Audio } from "./audio.js?v=20260926-1";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261010-7';
+import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261010-8';
 
 export const songSpotDifficulties = [
   { id: "easy", label: "Łatwy", seconds: 0.1, accent: "#22c55e" },
@@ -498,7 +498,7 @@ function header(state) {
 }
 
 function startHtml(state) {
-  return `<section class="songspot-start"><div class="songspot-icon">🎧</div><h2>Posłuchaj i zgadnij.</h2>${regionPicker(state)}${stageSequence()}<div class="songspot-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div>${state.lastError ? `<p class="songspot-error">⚠️ ${escapeHtml(state.lastError)}</p>` : ""}<button class="primary big" id="songspot-start">Zacznij serię</button></section>`;
+  return `<section class="songspot-start"><div class="songspot-icon">🎧</div><h2>Posłuchaj i zgadnij.</h2>${stageSequence()}<div class="songspot-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div>${state.lastError ? `<p class="songspot-error">⚠️ ${escapeHtml(state.lastError)}</p>` : ""}<button class="primary big" id="songspot-start">Zacznij serię</button></section>`;
 }
 
 function activeHtml(state, item) {
@@ -558,9 +558,88 @@ function carouselHtml(key, options, selected) {
   const label=options.find(([id])=>id===selected)?.[1] || 'All';
   return `<div class="songspot-filter-wheel"><button type="button" data-songspot-filter="${key}" data-direction="-1" aria-label="Poprzedni ${key==='era'?'okres':'gatunek'}">‹</button><b key="${escapeHtml(selected)}">${escapeHtml(label)}</b><button type="button" data-songspot-filter="${key}" data-direction="1" aria-label="Następny ${key==='era'?'okres':'gatunek'}">›</button></div>`;
 }
+function artistRowsHtml(state) {
+  const selected=new Set(state.filters.artists);
+  return songSpotArtistOptions(trackPool(state.region)).sort((a,b)=>Number(selected.has(b[0]))-Number(selected.has(a[0]))).map(([id,name,cover])=>`<label data-artist-name="${escapeHtml(name.toLowerCase())}"><input type="checkbox" data-songspot-artist="${escapeHtml(id)}" ${selected.has(id)?'checked':''}><span class="songspot-artist-avatar">${cover?`<img src="${escapeHtml(cover)}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true">`:''}<span aria-hidden="true">♫</span></span><span class="songspot-artist-name">${escapeHtml(name)}</span></label>`).join('');
+}
 function filtersHtml(state) {
-  const artists=songSpotArtistOptions(trackPool(state.region)), selected=new Set(state.filters.artists);
-  return `<aside class="songspot-filters"><h2>Twój miks</h2><label>Dekada</label>${carouselHtml('era',songSpotEras,state.filters.era)}<label>Gatunek</label>${carouselHtml('genre',songSpotGenres,state.filters.genre)}<details class="songspot-artist-picker"><summary>Artyści <b>${selected.size ? selected.size : 'All'}</b></summary><input type="search" data-songspot-artist-search placeholder="Szukaj artysty…" aria-label="Szukaj artysty"><label class="songspot-artist-all"><input type="checkbox" data-songspot-artists-all ${selected.size?'':'checked'}> All</label><div class="songspot-artist-list">${artists.map(([id,name])=>`<label data-artist-name="${escapeHtml(name.toLowerCase())}"><input type="checkbox" data-songspot-artist="${escapeHtml(id)}" ${selected.has(id)?'checked':''}>${escapeHtml(name)}</label>`).join('')}</div><small data-songspot-artists-hint>All lub minimum 3 artystów</small><button type="button" class="primary" data-songspot-artists-apply>Zastosuj</button></details><small class="songspot-ranked-note">${songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem'}</small></aside>`;
+  const count=state.filters.artists.length;
+  return `<aside class="songspot-filters" data-region="${state.region}" data-artists="${escapeHtml(JSON.stringify(state.filters.artists))}"><h2>Twój miks</h2><div class="songspot-filter-modes" aria-label="Sposób wyboru utworów"><button type="button" data-songspot-filter-mode="mix">Gatunek i dekada</button><button type="button" data-songspot-filter-mode="artists">Artyści</button></div><div class="songspot-mix-options"><label>Dekada</label>${carouselHtml('era',songSpotEras,state.filters.era)}<label>Gatunek</label>${carouselHtml('genre',songSpotGenres,state.filters.genre)}</div><details open class="songspot-artist-picker"><summary>Artyści <b>${count || 'All'}</b></summary><input type="search" data-songspot-artist-search placeholder="Szukaj artysty…" aria-label="Szukaj artysty"><label class="songspot-artist-all"><input type="checkbox" data-songspot-artists-all ${count?'':'checked'}> All</label><div class="songspot-artist-list">${artistRowsHtml(state)}</div><small data-songspot-artists-hint>All lub minimum 3 artystów</small><button type="button" class="primary" data-songspot-artists-apply>Zastosuj</button></details><small class="songspot-ranked-note">${songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem'}</small></aside>`;
+}
+
+function sortSelectedArtists(sidebar) {
+  const list=sidebar.querySelector('.songspot-artist-list'), scroll=list.scrollTop, focused=document.activeElement;
+  const rows=[...list.children].sort((a,b)=>Number(b.querySelector('input').checked)-Number(a.querySelector('input').checked)||a.dataset.artistName.localeCompare(b.dataset.artistName,'pl'));
+  rows.forEach((row,index)=>{if(list.children[index]!==row)list.insertBefore(row,list.children[index] || null);});
+  if(focused && list.contains(focused) && document.activeElement!==focused)focused.focus({preventScroll:true});
+  list.scrollTop=scroll;
+}
+
+function syncSongSpotFilters(sidebar,state,actions,playerId) {
+  if(!sidebar) return;
+  sidebar.__songSpotActions={actions,playerId};
+  const changedMode=sidebar.dataset.mode!==state.filters.mode;
+  sidebar.dataset.mode=state.filters.mode;
+  sidebar.querySelector('.songspot-mix-options').hidden=state.filters.mode==='artists';
+  sidebar.querySelector('.songspot-artist-picker').hidden=state.filters.mode!=='artists';
+  if(changedMode && state.filters.mode==='artists')sidebar.querySelector('.songspot-artist-picker').open=true;
+  sidebar.querySelectorAll('[data-songspot-filter-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.songspotFilterMode===state.filters.mode)));
+  const changedRegion=sidebar.dataset.region!==state.region;
+  if(changedRegion) {
+    sidebar.querySelector('.songspot-artist-list').innerHTML=artistRowsHtml(state);
+    sidebar.dataset.region=state.region;
+  }
+  const artistKey=JSON.stringify(state.filters.artists);
+  if(changedMode || changedRegion || sidebar.dataset.artists!==artistKey) {
+    const selected=new Set(state.filters.artists);
+    sidebar.querySelectorAll('[data-songspot-artist]').forEach(input=>input.checked=selected.has(input.dataset.songspotArtist));
+    sidebar.querySelector('[data-songspot-artists-all]').checked=!selected.size;
+    sidebar.querySelector('summary b').textContent=selected.size || 'All';
+    sidebar.dataset.artists=artistKey;
+    sidebar.querySelector('[data-songspot-artists-hint]').textContent='All lub minimum 3 artystów';
+    sortSelectedArtists(sidebar);
+  }
+  for(const [key,options] of [['era',songSpotEras],['genre',songSpotGenres]]) {
+    const label=sidebar.querySelector(`[data-songspot-filter="${key}"]`).parentElement.querySelector('b');
+    const value=options.find(([id])=>id===state.filters[key])?.[1] || 'All';
+    if(label.textContent!==value) {
+      label.textContent=value;
+      label.getAnimations?.().forEach(animation=>animation.cancel());
+      if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) label.animate?.([{opacity:0,transform:'translateX(8px)'},{opacity:1,transform:'translateX(0)'}],{duration:180,easing:'ease-out'});
+    }
+  }
+  sidebar.querySelector('.songspot-ranked-note').textContent=songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem';
+  const search=()=>{
+    const query=sidebar.querySelector('[data-songspot-artist-search]').value.toLowerCase();
+    sidebar.querySelectorAll('[data-artist-name]').forEach(row=>row.hidden=!row.dataset.artistName.includes(query));
+  };
+  if(changedRegion) search();
+  if(sidebar.__songSpotBound) return;
+  sidebar.__songSpotBound=true;
+  sidebar.addEventListener('input',event=>{if(event.target.matches('[data-songspot-artist-search]'))search();});
+  sidebar.addEventListener('change',event=>{
+    const all=sidebar.querySelector('[data-songspot-artists-all]'), inputs=[...sidebar.querySelectorAll('[data-songspot-artist]')];
+    if(event.target===all) {if(all.checked)inputs.forEach(input=>input.checked=false);else if(!inputs.some(input=>input.checked))all.checked=true;}
+    else if(event.target.matches('[data-songspot-artist]'))all.checked=!inputs.some(input=>input.checked);
+    else return;
+    sidebar.querySelector('summary b').textContent=inputs.filter(input=>input.checked).length || 'All';
+    sortSelectedArtists(sidebar);
+  });
+  sidebar.addEventListener('click',event=>{
+    const {actions,playerId}=sidebar.__songSpotActions, live=SongSpotSoloEngine.get(playerId);
+    const button=event.target.closest('[data-songspot-filter]');
+    const mode=event.target.closest('[data-songspot-filter-mode]');
+    if(mode) {
+      if(mode.dataset.songspotFilterMode!==live.filters.mode)actions.songSpotFilters?.({mode:mode.dataset.songspotFilterMode});
+    } else if(button) {
+      const key=button.dataset.songspotFilter, options=key==='era'?songSpotEras:songSpotGenres, index=options.findIndex(([id])=>id===live.filters[key]);
+      actions.songSpotFilters?.({...live.filters,[key]:options[(index+Number(button.dataset.direction)+options.length)%options.length][0]});
+    } else if(event.target.closest('[data-songspot-artists-apply]')) {
+      const artists=[...sidebar.querySelectorAll('[data-songspot-artist]:checked')].map(input=>input.dataset.songspotArtist);
+      if(artists.length>0 && artists.length<3) {sidebar.querySelector('[data-songspot-artists-hint]').textContent='Wybierz minimum 3 artystów.';return;}
+      actions.songSpotFilters?.({...live.filters,artists});
+    }
+  });
 }
 function leaderboardHtml(state, leaderboard, playerId, online) {
   const rows=Object.entries(leaderboard || {}).map(([uid,row])=>({uid,...row,best:Number(row.records?.[state.region])||0})).filter(row=>row.best>0).sort((a,b)=>b.best-a.best||Number(a.updatedAt)-Number(b.updatedAt)||a.uid.localeCompare(b.uid));
@@ -572,8 +651,9 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
   const item = trackById(state.trackId);
   const viewKey = songSpotSoloViewKey(state);
   const currentPage = root.querySelector(".songspot-page");
+  syncSongSpotFilters(currentPage?.querySelector('.songspot-filters'),state,actions,playerId);
   const board=currentPage?.querySelector('.songspot-leaderboard');
-  if(board) { const markup=leaderboardHtml(state,leaderboard,playerId,online); if(board.outerHTML!==markup) board.outerHTML=markup; }
+  if(board) { const markup=leaderboardHtml(state,leaderboard,playerId,online); if(board.outerHTML!==markup) board.innerHTML=markup.replace(/^<aside[^>]*>|<\/aside>$/g,''); }
   if (currentPage?.dataset.songspotViewKey === viewKey) return;
   if (quiet && updateSongSpotSoloStageInPlace(currentPage, state, viewKey, playerId)) return;
 
@@ -581,43 +661,50 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
   const previousAudio = root.querySelector("[data-songspot-audio]");
   const previousAudioKey = previousAudio?.dataset?.trackKey || "";
   const expected = { trackId: state.trackId };
-  let content = header(state);
-  if (state.status !== "idle") content += regionPicker(state);
-  if (state.status === "idle") content += startHtml(state);
-  else if (state.status === "playing" && item) content += activeHtml(state, item);
-  else if (state.status === "playing") content += `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview. Przejdź do następnego czasu tego samego utworu.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
-  else content += resultHtml(state);
-  root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel"><div class="songspot-layout">${filtersHtml(state)}<div class="songspot-center">${content}</div>${leaderboardHtml(state,leaderboard,playerId,online)}</div></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
-  root.querySelectorAll('[data-songspot-filter]').forEach(button=>button.addEventListener('click',()=>{
-    const key=button.dataset.songspotFilter, options=key==='era'?songSpotEras:songSpotGenres, index=options.findIndex(([id])=>id===state.filters[key]);
-    const value=options[(index+Number(button.dataset.direction)+options.length)%options.length][0];
-    actions.songSpotFilters?.({...state.filters,[key]:value});
-  }));
-  const all=root.querySelector('[data-songspot-artists-all]'), artistInputs=[...root.querySelectorAll('[data-songspot-artist]')];
-  all?.addEventListener('change',()=>{ if(all.checked) artistInputs.forEach(input=>input.checked=false); else if(!artistInputs.some(input=>input.checked)) all.checked=true; });
-  artistInputs.forEach(input=>input.addEventListener('change',()=>{all.checked=!artistInputs.some(item=>item.checked);}));
-  root.querySelector('[data-songspot-artist-search]')?.addEventListener('input',event=>{ const query=event.target.value.toLowerCase(); root.querySelectorAll('[data-artist-name]').forEach(row=>{row.hidden=!row.dataset.artistName.includes(query);}); });
-  root.querySelector('[data-songspot-artists-apply]')?.addEventListener('click',()=>{
-    const artists=artistInputs.filter(input=>input.checked).map(input=>input.dataset.songspotArtist);
-    if(artists.length>0 && artists.length<3) {root.querySelector('[data-songspot-artists-hint]').textContent='Wybierz minimum 3 artystów.';return;}
-    actions.songSpotFilters?.({...state.filters,artists});
-  });
+  let body;
+  if (state.status === "idle" && state.lastError) body = `<section class="songspot-empty"><span aria-hidden="true">♫</span><h2>Brak utworów</h2><p>${escapeHtml(state.lastError)}</p></section>`;
+  else if (state.status === "idle") body = startHtml(state);
+  else if (state.status === "playing" && item) body = activeHtml(state, item);
+  else if (state.status === "playing") body = `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
+  else body = resultHtml(state);
+  const bodyChanged=!currentPage || currentPage.__songSpotBodyMarkup!==body;
+  if(currentPage) {
+    // Retain the shell, filter nodes, their focus, search, scroll and disclosures.
+    // Only a genuinely new round/result replaces the game body.
+    const center=currentPage.querySelector('.songspot-center');
+    if(bodyChanged)center.querySelector('.songspot-solo-body').innerHTML=body;
+    const region=musicRegionOptions.find(([id])=>id===state.region);
+    center.querySelector('.eyebrow').textContent=`TRYB SOLO · ${region[1]} ${region[2]}`;
+    center.querySelector('.lyrics-solo-streak b').textContent=state.streak;
+    center.querySelectorAll('[data-songspot-region]').forEach(button=>{
+      const selected=button.dataset.songspotRegion===state.region;
+      button.classList.toggle('is-selected',selected);button.setAttribute('aria-pressed',String(selected));
+    });
+    currentPage.dataset.songspotViewKey=viewKey;
+    currentPage.dataset.songspotTrackId=state.trackId || '';
+  } else {
+    root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel"><div class="songspot-layout">${filtersHtml(state)}<div class="songspot-center">${header(state)}${regionPicker(state)}<div class="songspot-solo-body">${body}</div></div>${leaderboardHtml(state,leaderboard,playerId,online)}</div></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+    syncSongSpotFilters(root.querySelector('.songspot-filters'),state,actions,playerId);
+    root.querySelectorAll('[data-songspot-region]').forEach(button=>button.addEventListener('click',()=>actions.songSpotRegion?.(button.dataset.songspotRegion)));
+    root.querySelector('#songspot-home')?.addEventListener('click',actions.goMusicModes || actions.goPlatform);
+  }
+  root.querySelector('.songspot-page').__songSpotBodyMarkup=body;
   // A threshold change is not a new playback session. Reattach the existing
   // media element so a user gesture can continue it without autoplay.
   const nextAudio = root.querySelector("[data-songspot-audio]");
   if (previousAudio && nextAudio && previousAudioKey && previousAudioKey === nextAudio.dataset.trackKey) nextAudio.replaceWith(previousAudio);
-  root.querySelectorAll("[data-songspot-region]").forEach(button => button.addEventListener("click", () => actions.songSpotRegion?.(button.dataset.songspotRegion)));
-  root.querySelector("#songspot-start")?.addEventListener("click", () => actions.songSpotStart(state.region));
-  root.querySelector("#songspot-restart")?.addEventListener("click", () => actions.songSpotStart(state.region));
+  if(bodyChanged) {
+  root.querySelector("#songspot-start")?.addEventListener("click", () => actions.songSpotStart(SongSpotSoloEngine.get(playerId).region));
+  root.querySelector("#songspot-restart")?.addEventListener("click", () => actions.songSpotStart(SongSpotSoloEngine.get(playerId).region));
   root.querySelector("#songspot-next")?.addEventListener("click", actions.songSpotNext);
   root.querySelector("#songspot-stop")?.addEventListener("click", actions.songSpotStop);
   root.querySelector("#songspot-menu")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
-  root.querySelector("#songspot-home")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
   root.querySelector("#songspot-missing-skip")?.addEventListener("click", () => actions.songSpotSkip(expected));
   root.querySelector("[data-songspot-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.songSpotGuess(input?.value || "", expected); });
   root.querySelector("[data-songspot-skip]")?.addEventListener("click", () => actions.songSpotSkip(expected));
   Audio.bindTrackVolumeControls(root);
   bindSongSpotAnswerSuggestions(root, state.region);
+  }
   if (state.status === "playing" && item) bindSongSpotAudio(root, state, playerId, actions);
 }
 

@@ -37,7 +37,9 @@ export function songSpotTrackMetadata(track) {
   return metadata;
 }
 export function normalizeSongSpotFilters(raw = {}) {
-  return {era:songSpotEras.some(([id])=>id===raw.era)?raw.era:'all', genre:songSpotGenres.some(([id])=>id===raw.genre)?raw.genre:'all', artists:Array.isArray(raw.artists)?[...new Set(raw.artists.map(artistIdentity).filter(Boolean))].sort():[]};
+  const artists=Array.isArray(raw.artists)?[...new Set(raw.artists.map(artistIdentity).filter(Boolean))].sort():[];
+  const mode=raw.mode==='mix'?'mix':raw.mode==='artists'||artists.length?'artists':'mix';
+  return {mode,era:mode==='mix'&&songSpotEras.some(([id])=>id===raw.era)?raw.era:'all',genre:mode==='mix'&&songSpotGenres.some(([id])=>id===raw.genre)?raw.genre:'all',artists:mode==='artists'?artists:[]};
 }
 export function songSpotRanked(filters) {
   const selected = normalizeSongSpotFilters(filters);
@@ -54,6 +56,10 @@ export function filterSongSpotTracks(tracks, filters) {
 }
 export function songSpotArtistOptions(tracks) {
   const artists = new Map();
-  tracks.forEach(track=>songSpotTrackMetadata(track).artists.forEach(name=>artists.set(artistIdentity(name),name)));
-  return [...artists].sort((a,b)=>a[1].localeCompare(b[1],'pl'));
+  tracks.forEach(track=>songSpotTrackMetadata(track).artists.forEach(name=>{
+    const id=artistIdentity(name), current=artists.get(id), primary=artistIdentity(track.artist)===id;
+    if(!current || (!current.cover && track.coverUrl) || (!current.primary && primary && track.coverUrl))
+      artists.set(id,{name,cover:String(track.coverUrl || '').replace(/\d+x\d+bb/,'100x100bb'),primary});
+  }));
+  return [...artists].map(([id,item])=>[id,item.name,item.cover]).sort((a,b)=>a[1].localeCompare(b[1],'pl'));
 }

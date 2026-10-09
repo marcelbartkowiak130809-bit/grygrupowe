@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.1.1",
+      date: "2026-10-10",
+      title: "Artyści bez przeskakiwania ekranu",
+      changes: [
+        "Dodano okładki albumów przy artystach i wybrane osoby na górze listy.",
+        "Rozdzielono filtrowanie na gatunek z dekadą albo artystów.",
+        "Zmiany ustawień nie przebudowują już całego ekranu; lista zachowuje wyszukiwanie i przewijanie.",
+      ],
+    },
+    {
       version: "v5.1.0",
       date: "2026-10-10",
       title: "Twój miks w Zgadnij utwór",
