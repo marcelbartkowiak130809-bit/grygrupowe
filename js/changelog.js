@@ -20,6 +20,14 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.3.2",
+      date: "2026-10-12",
+      title: "Czytelne karty na telefonie",
+      changes: [
+        "Widok kompaktowy: pełne etykiety i nazwy, poprawne wysokości kart kategorii oraz wygodne przyciski Pokój i Solo.",
+      ],
+    },
+    {
       version: "v5.3.1",
       date: "2026-10-12",
       title: "Udostępnij zwycięski hit",

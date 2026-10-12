@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-4";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-5";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
@@ -115,7 +115,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.3.1";
+const APP_VERSION = "v5.3.2";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {

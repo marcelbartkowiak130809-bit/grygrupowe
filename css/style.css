@@ -1472,26 +1472,28 @@ body{background:radial-gradient(circle at 8% -8%,rgba(45,212,191,.16),transparen
   .section-intro>.mobile-game-layout-switch span{margin-right:auto}
   .game-discovery-tools>.mobile-game-layout-switch{align-self:flex-start}
   .mobile-games-compact .games-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
-  .mobile-games-compact .game-card{min-height:0;border-radius:15px}
+  .mobile-games-compact .game-card{height:auto;min-width:0;min-height:0;border-radius:15px;content-visibility:visible;contain-intrinsic-size:none}
   .mobile-games-compact .game-card:hover{transform:translateY(-2px)}
-  .mobile-games-compact .game-visual{height:78px}
+  .mobile-games-compact .game-visual{height:78px;flex-shrink:0}
   .mobile-games-compact .game-visual span{font-size:36px}
   .mobile-games-compact .game-visual span img,.mobile-games-compact .game-visual-pokemon-hub span img{width:54px!important;height:54px!important}
-  .mobile-games-compact .game-card-content{min-height:0;padding:10px}
-  .mobile-games-compact .game-card-top{min-height:17px;max-height:17px;overflow:hidden;flex-wrap:nowrap;gap:4px}
-  .mobile-games-compact .game-card-top .tag{min-width:0;overflow:hidden;padding:3px 5px;font-size:8px;letter-spacing:.04em;text-overflow:ellipsis;white-space:nowrap}
-  .mobile-games-compact .game-card-content h2{display:-webkit-box;min-height:34px;margin:7px 0 0;overflow:hidden;font-size:15px;line-height:1.1;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .mobile-games-compact .game-card-content{flex:1;min-width:0;min-height:0;padding:10px}
+  .mobile-games-compact .game-card-top{min-height:17px;max-height:none;overflow:visible;flex-wrap:wrap;gap:4px}
+  .mobile-games-compact .game-card-top .tag{flex:0 1 auto;min-width:0;max-width:100%;overflow:visible;padding:3px 5px;font-size:8px;line-height:1.3;letter-spacing:.04em;white-space:normal;overflow-wrap:anywhere}
+  .mobile-games-compact .game-card-content h2{display:block;min-height:34px;margin:8px 0 0;overflow:visible;font-size:15px;line-height:1.2;overflow-wrap:anywhere;-webkit-line-clamp:unset}
   .mobile-games-compact .game-card-content p{display:none}
   .mobile-games-compact .game-card-activity{display:none}
-  .mobile-games-compact .unlock-date{align-items:flex-start;gap:2px;margin:7px 0 0;padding:6px 7px;font-size:9px;line-height:1.15}
+  .mobile-games-compact .unlock-date{flex-direction:column;align-items:flex-start;gap:4px;margin:7px 0 0;padding:7px;font-size:9px;line-height:1.3;overflow-wrap:anywhere}
   .mobile-games-compact .unlock-date span{font-size:8px}
-  .mobile-games-compact .unlock-date b{text-align:left}
-  .mobile-games-compact .game-card-footer{display:grid;align-items:stretch;gap:7px;margin-top:9px}
+  .mobile-games-compact .unlock-date b{width:100%;min-width:0;text-align:left}
+  .mobile-games-compact .game-card-footer{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:7px;margin-top:auto;padding-top:10px}
   .mobile-games-compact .players-count{display:none}
   .mobile-games-compact .game-card-footer>button,.mobile-games-compact .game-card-play-options{width:100%}
-  .mobile-games-compact .game-card-footer>button{min-height:35px;padding:7px 5px;font-size:10px}
-  .mobile-games-compact .game-card-play-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:5px}
-  .mobile-games-compact .game-card-play-options button{min-width:0;min-height:34px;padding:6px 3px;font-size:10px;line-height:1.05}
+  .mobile-games-compact .game-card-footer>button{min-width:0;min-height:44px;padding:8px 5px;font-size:11px;line-height:1.2;white-space:nowrap}
+  .mobile-games-compact .game-card-play-options{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+  .mobile-games-compact .game-card-play-options button{width:100%;min-width:0;min-height:44px;padding:8px 5px;font-size:11px;line-height:1.2;white-space:nowrap}
+  .mobile-games-compact .game-card-footer button{display:flex;align-items:center;justify-content:center;gap:6px}
+  .mobile-games-compact .game-card-footer button svg{flex:none;width:15px;height:15px}
   .mobile-games-compact .coming-lock b{font-size:14px;letter-spacing:.1em}
   .mobile-games-compact .coming-lock svg{width:32px;height:32px}
 }
