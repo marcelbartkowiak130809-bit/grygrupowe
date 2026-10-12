@@ -20,6 +20,21 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.3.4",
+      date: "2026-10-12",
+      title: "Wygodny pasek mobilny",
+      changes: ["Logo, level, saldo i profil mieszczą się w jednym rzędzie; dodatkowe opcje są w rozwijanym menu zamiast ucinanego paska ikon."],
+    },
+    {
+      version: "v5.3.3",
+      date: "2026-10-12",
+      title: "Zgadnij utwór wygodniej na telefonie",
+      changes: [
+        "Gra trafia na górę ekranu. Twój miks i ranking są zwijanymi panelami pod odsłuchem.",
+        "Mniejsze odstępy i nagłówek, pełna szerokość odpowiedzi oraz wygodne przyciski Sprawdź i Skip.",
+      ],
+    },
+    {
       version: "v5.3.2",
       date: "2026-10-12",
       title: "Czytelne karty na telefonie",

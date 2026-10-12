@@ -710,11 +710,39 @@ function syncSongSpotLevels(page,state,actions,playerId) {
     actions.songSpotFilters?.({...live.filters,level:button.dataset.songspotLevel});
   });
 }
+export function songSpotMobileSummary(raw) {
+  const filters = normalizeSongSpotFilters(raw);
+  const ranked = songSpotRanked(filters) ? 'Ranking' : 'Trening';
+  if (filters.mode === 'playlist') return `Twoja playlista · ${ranked}`;
+  if (filters.mode === 'artists' && filters.artists.length) return `${filters.artists.length} artystów · ${ranked}`;
+  const era = songSpotEras.find(([id]) => id === filters.era)?.[1] || 'All';
+  const genre = songSpotGenres.find(([id]) => id === filters.genre)?.[1] || 'All';
+  const level = songSpotLevels.find(([id]) => id === filters.level)?.[1] || 'All';
+  const labels = [era, genre, level].filter(label => label !== 'All');
+  return `${labels.length ? labels.join(' · ') : 'All'} · ${ranked}`;
+}
+function mobilePanelHtml(id, title, content) {
+  return `<div class="songspot-mobile-panel"><button class="songspot-mobile-toggle" type="button" data-songspot-mobile-toggle="${id}" aria-expanded="false" aria-controls="songspot-mobile-${id}"><span><b>${title}</b><small data-songspot-mobile-note="${id}"></small></span><i aria-hidden="true">⌄</i></button><div class="songspot-mobile-panel-body" id="songspot-mobile-${id}">${content}</div></div>`;
+}
+function syncSongSpotMobilePanels(page, state) {
+  if (!page) return;
+  page.querySelector('[data-songspot-mobile-note="mix"]').textContent = songSpotMobileSummary(state.filters);
+  page.querySelector('[data-songspot-mobile-note="ranking"]').textContent = `${state.region === 'polish' ? 'Polski' : 'Globalny'} · rekord ${state.records[state.region] || 0}`;
+  if (page.__mobilePanelsBound) return;
+  page.__mobilePanelsBound = true;
+  page.addEventListener('click', event => {
+    const button = event.target.closest('[data-songspot-mobile-toggle]');
+    if (!button || !page.contains(button)) return;
+    const open = button.closest('.songspot-mobile-panel').classList.toggle('is-open');
+    button.setAttribute('aria-expanded', String(open));
+  });
+}
 export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = false }, actions, { quiet = false } = {}) {
   const state = SongSpotSoloEngine.get(playerId);
   const item = trackById(state.trackId);
   const viewKey = songSpotSoloViewKey(state);
   const currentPage = root.querySelector(".songspot-page");
+  syncSongSpotMobilePanels(currentPage, state);
   syncSongSpotLevels(currentPage,state,actions,playerId);
   syncSongSpotFilters(currentPage?.querySelector('.songspot-filters'),state,actions,playerId);
   const board=currentPage?.querySelector('.songspot-leaderboard');
@@ -748,9 +776,10 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
     currentPage.dataset.songspotViewKey=viewKey;
     currentPage.dataset.songspotTrackId=state.trackId || '';
   } else {
-    root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel"><div class="songspot-layout">${filtersHtml(state)}<div class="songspot-center">${header(state)}${regionPicker(state)}${levelPickerHtml(state)}<div class="songspot-solo-body">${body}</div></div>${leaderboardHtml(state,leaderboard,playerId,online)}</div></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
+    root.innerHTML = `<main class="page music-page songspot-page${quiet ? " songspot-quiet-update" : " enter"}" data-songspot-view-key="${escapeHtml(viewKey)}" data-songspot-track-id="${escapeHtml(state.trackId || "")}"><section class="panel music-panel songspot-panel"><div class="songspot-layout"><div class="songspot-center">${header(state)}${regionPicker(state)}${levelPickerHtml(state)}<div class="songspot-solo-body">${body}</div></div>${mobilePanelHtml("mix","Twój miks",filtersHtml(state))}${mobilePanelHtml("ranking","Ranking",leaderboardHtml(state,leaderboard,playerId,online))}</div></section><button id="songspot-home" class="ghost">Wróć do muzyki</button></main>`;
     syncSongSpotFilters(root.querySelector('.songspot-filters'),state,actions,playerId);
     syncSongSpotLevels(root.querySelector('.songspot-page'),state,actions,playerId);
+    syncSongSpotMobilePanels(root.querySelector('.songspot-page'),state);
     if(state.filters.mode==='playlist')root.querySelector('.songspot-center>.eyebrow').textContent='TRYB SOLO · ☷ Twoja playlista';
     root.querySelectorAll('[data-songspot-region]').forEach(button=>button.addEventListener('click',()=>actions.songSpotRegion?.(button.dataset.songspotRegion)));
     root.querySelector('#songspot-home')?.addEventListener('click',actions.goMusicModes || actions.goPlatform);

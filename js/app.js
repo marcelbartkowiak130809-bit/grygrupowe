@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-5";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-7";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20261012-4";
+import { gamesList, getGameMode } from "./games.js?v=20261012-6";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -40,8 +40,10 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261012-2";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260926-1";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261012-2";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261012-6";
 import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261012-4";
+import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
+let stopMobileHeader = () => {};
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
@@ -115,7 +117,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.3.2";
+const APP_VERSION = "v5.3.4";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -3169,6 +3171,7 @@ function setupRoundAdvance(view, room, actions) {
 }
 
 function renderNow(options = {}) {
+  stopMobileHeader();
   const cupView = Router.current === "solo" && state.selectedGameMode === "playlista-cup"
     ? root.querySelector(".playlist-cup-page")?.closest(".route-solo") : null;
   const preserveCup = cupView?.dataset.cupPlayer === String(popularitySoloPlayerId());
@@ -3192,6 +3195,7 @@ function renderNow(options = {}) {
   shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
   root.replaceChildren(...shell.content.childNodes);
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#install-app")?.addEventListener("click",requestPwaInstall); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
+  stopMobileHeader = bindMobileHeader(root.querySelector('.topbar'));
   const finish = result => {
     const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
     if(result?.then)return result.finally(after);
