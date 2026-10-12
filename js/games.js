@@ -29,6 +29,7 @@ import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusic
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260926-1";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261012-2";
+import { renderPlaylistTournament } from "./playlistTournament.js?v=20261012-3";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
@@ -386,6 +387,12 @@ export const gamesRegistry = {
   },
   songspot: {
     id: "songspot", name: "Zgadnij utwór", description: "Rozpoznajcie tę samą piosenkę po krótkim fragmencie i zdobądźcie punkty za szybkość.", help: ["W pokoju wszyscy słuchają tego samego utworu i wpisują własną odpowiedź.", "Każda runda zaczyna się od 0,1 s i ma stałą sekwencję: 0,5 s, 2 s, 8 s oraz 15 s.", "Przycisk Skip przechodzi do następnego czasu tego samego utworu; dopiero Skip po 15 s kończy odsłuch.", "Po ostatniej rundzie zobaczycie pełne wyniki oraz zapis każdej piosenki i odpowiedzi."], allowReports: false, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "songspot-solo", symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new", "tiktok"], render: renderSongSpotGame, defaultSettings: songSpotDefaults,
+  },
+  "playlista-cup": {
+    id: "playlista-cup", name: "Playlista Cup", description: "Twoja playlista w turnieju: odsłuchaj dwie piosenki i wybierz, która przechodzi dalej.",
+    help: ["Wklej listę Artysta — Tytuł, od 2 do 200 utworów.", "Najpierw leci 10 sekund piosenki A, potem 10 sekund piosenki B.", "Wybierz zwycięzcę każdej pary. Przy nieparzystej liczbie utworów jeden ma wolny los.", "Zwycięzcy przechodzą do kolejnych rund, aż zostanie jeden hit. Na końcu zobaczysz wszystkie wybory."],
+    allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true,
+    symbol: "🏆", art: "music-arena", audience: "music", badges: ["new"], render: renderPlaylistTournament, soloRender: renderPlaylistTournament, defaultSettings: {},
   },
   "songspot-solo": {
     id: "songspot-solo", name: "Zgadnij utwór · Solo", description: "Rozpoznaj piosenkę po krótkim preview i buduj streak.", help: ["Każdy utwór zaczyna się od 0,1 s, a potem możesz przechodzić do 0,5 s, 2 s, 8 s i 15 s.", "Każdy próg możesz odtwarzać wielokrotnie — Skip przechodzi do następnego czasu tego samego utworu.", "Skip na ostatnim progu albo błędna odpowiedź kończy serię, a trafienie prowadzi do następnej rundy.", "Dostępne są osobne katalogi globalny i polski."], allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true, symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new"], hiddenFromLibrary: true, render: renderSongSpotSolo, soloRender: renderSongSpotSolo, defaultSettings: songSpotDefaults,

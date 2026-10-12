@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.3.0",
+      date: "2026-10-12",
+      title: "Playlista Cup",
+      changes: [
+        "Nowy turniej solo z własnej playlisty: 10 sekund utworu A, 10 sekund B i wybór zwycięzcy.",
+        "Zwycięzcy par przechodzą do kolejnych rund aż do finału; nieparzyste rundy mają wolny los.",
+        "Animowane karty, pauza, powtórki odsłuchów i podsumowanie całej drogi do zwycięstwa.",
+      ],
+    },
+    {
       version: "v5.2.1",
       date: "2026-10-12",
       title: "Polskie klasyki",

@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-2";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-3";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20261012-2";
+import { gamesList, getGameMode } from "./games.js?v=20261012-3";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -41,6 +41,7 @@ import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaE
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260926-1";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261012-2";
+import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261012-3";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
@@ -114,7 +115,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.2.1";
+const APP_VERSION = "v5.3.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -3168,6 +3169,10 @@ function setupRoundAdvance(view, room, actions) {
 }
 
 function renderNow(options = {}) {
+  const cupView = Router.current === "solo" && state.selectedGameMode === "playlista-cup"
+    ? root.querySelector(".playlist-cup-page")?.closest(".route-solo") : null;
+  const preserveCup = cupView?.dataset.cupPlayer === String(popularitySoloPlayerId());
+  if (!preserveCup) stopPlaylistTournament();
   hideCommerceTooltip();
   updateDocumentTitle();
   const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
@@ -3180,7 +3185,7 @@ function renderNow(options = {}) {
   window.__activityStats=activityStats();
   lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
-  Audio.prepareTrackRerender();
+  if (!preserveCup) Audio.prepareTrackRerender();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopCharadesTimer(); stopHangmanTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   const shell = document.createElement("template");
@@ -3193,17 +3198,17 @@ function renderNow(options = {}) {
     after();
     return result;
   };
-  const view=document.createElement("div"); root.append(view); const screen=Router.current;
+  const view=preserveCup ? cupView : document.createElement("div"); root.append(view); const screen=Router.current;
   const activeMode = activeRoom()?.gameMode;
   const keepsTrackAudio = screen === "solo" || (screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode));
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
-  Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo"].includes(state.selectedGameMode)));
+  Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
   view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "playlista-cup" && preserveCup) return finish(); if(state.selectedGameMode === "playlista-cup") return finish(renderPlaylistTournament(view,{playerId:popularitySoloPlayerId()},actions)); if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {

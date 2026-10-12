@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20260922-1";
+import { getGameMode } from "./games.js?v=20261012-3";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
