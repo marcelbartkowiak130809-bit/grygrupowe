@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261010-8";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261012-1";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20261010-8";
+import { gamesList, getGameMode } from "./games.js?v=20261012-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20260903-9";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -40,7 +40,7 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261010-3";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20260926-1";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261010-8";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer } from "./songSpot.js?v=20261012-1";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
@@ -114,7 +114,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.1.1";
+const APP_VERSION = "v5.2.0";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -2862,7 +2862,8 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   songSpotDifficulty(difficulty){SongSpotSoloEngine.setDifficulty(songSpotPlayerId(),difficulty);repaintSongSpot();},
   songSpotFilters(filters){const playerId=songSpotPlayerId(),before=SongSpotSoloEngine.get(playerId),key=JSON.stringify(before.filters),active=before.status!=="idle"||Boolean(before.lastError),result=SongSpotSoloEngine.setFilters(playerId,filters);if(result.error)return message(result.error,'info');if(key===JSON.stringify(result.filters))return;Audio.stopAllTrackAudio({clearPlayback:true});stopSongSpotTimer();if(active)SongSpotSoloEngine.start(playerId,result.region);repaintSongSpot();},
   songSpotRegion(region){const playerId=songSpotPlayerId(),before=SongSpotSoloEngine.get(playerId),changed=before.region!==region,active=before.status!=="idle"||Boolean(before.lastError);if(!changed)return;SongSpotSoloEngine.setRegion(playerId,region);Audio.stopAllTrackAudio({clearPlayback:true});stopSongSpotTimer();if(active)SongSpotSoloEngine.start(playerId,region);refreshSongSpotData();repaintSongSpot();},
-  songSpotGuess(text, expected={}){const playerId=songSpotPlayerId(),audio=root.querySelector("[data-songspot-audio]"),position=Number(audio?.currentTime);if(Number.isFinite(position))SongSpotSoloEngine.setPlaybackPosition(playerId,position);const before=SongSpotSoloEngine.get(playerId).status,result=SongSpotSoloEngine.guess(playerId,text,expected);if(before!=="playing"||result?.status==="playing")return;stopSongSpotTimer();if(result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();if(result.lastResult?.correct && result.rankedRun)syncSongSpotRecord();},
+  songSpotGuess(text, expected={}){const playerId=songSpotPlayerId(),audio=root.querySelector("[data-songspot-audio]"),position=Number(audio?.currentTime);if(Number.isFinite(position))SongSpotSoloEngine.setPlaybackPosition(playerId,position);const live=SongSpotSoloEngine.get(playerId),before=live.status,index=live.timeIndex,result=SongSpotSoloEngine.guess(playerId,text,expected);if(before!=="playing")return;if(result.status==='playing'){if(index!==result.timeIndex){if(!result.played)SongSpotSoloEngine.markPlayed(playerId);repaintSongSpot();const input=root.querySelector('[data-songspot-answer-input]');if(input)input.value='';if(audio?.isConnected && audio.paused){const playing=audio.play();if(playing?.catch)playing.catch(()=>{});}}return;}stopSongSpotTimer();if(result?.lastResult)Effects.hit(Boolean(result.lastResult.correct));Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();if(result.lastResult?.correct && result.rankedRun)syncSongSpotRecord();},
+  songSpotPlaylist(data){const playerId=songSpotPlayerId();Audio.stopAllTrackAudio({clearPlayback:true});stopSongSpotTimer();SongSpotSoloEngine.setPlaylist(playerId,data);SongSpotSoloEngine.start(playerId,SongSpotSoloEngine.get(playerId).region);repaintSongSpot();},
   songSpotSkip(expected={}){const audio=root.querySelector("[data-songspot-audio]"),result=SongSpotSoloEngine.skip(songSpotPlayerId(),expected);if(result?.status!=='playing')Audio.stopAllTrackAudio({clearPlayback:true});if(result?.lastResult)Effects.hit(false);repaintSongSpot();if(result?.status==='playing'&&audio?.isConnected&&audio.paused&&result.played){const playing=audio.play();if(playing?.catch)playing.catch(()=>{});}},
   songSpotNext(){SongSpotSoloEngine.next(songSpotPlayerId());Audio.stopAllTrackAudio({clearPlayback:true});repaintSongSpot();},
   falseMessageTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="falszywa-wiadomosc")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";FalseMessageEngine.timeout(game,current.settings);},{sound:"roundEnd"});},

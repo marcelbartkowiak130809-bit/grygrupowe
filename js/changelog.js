@@ -20,6 +20,17 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.2.0",
+      date: "2026-10-12",
+      title: "Druga szansa i własna playlista",
+      changes: [
+        "Błędna odpowiedź w solo odsłania kolejny fragment; przegrywasz dopiero na ostatnim progu.",
+        "Podsumowanie odtwarza utwór, pokazuje czas odsłuchu i pozwala uruchomić pełny odtwarzacz Apple Music.",
+        "Dodano poziomy Easy, Medium, Hard, All i cykl; do rankingu liczy się wyłącznie All przy pełnej puli.",
+        "Artyści mają liczniki utworów. Własną playlistę można załadować z listy Artysta — Tytuł.",
+      ],
+    },
+    {
       version: "v5.1.1",
       date: "2026-10-10",
       title: "Artyści bez przeskakiwania ekranu",
