@@ -14,7 +14,7 @@ function splitArtists(value) {
 const cache = new Map();
 export function songSpotTrackMetadata(track) {
   if (cache.has(track.id)) return cache.get(track.id);
-  const source = researchedSongMetadata[track.id] || {};
+  const source = researchedSongMetadata[track.id] || {year:track.originalReleaseYear,genre:track.genre,artist:track.artist,title:track.title,source:track.originalReleaseSource || track.externalUrl};
   const names = [...splitArtists(source.artist || track.artist), ...splitArtists(track.artist)];
   for (const title of [source.title, track.title]) {
     for (const match of String(title || '').matchAll(/(?:\bfeat\.?|\bfeaturing|[\(\[]with)\s+([^\)\]]+)/gi)) names.push(...splitArtists(match[1]));

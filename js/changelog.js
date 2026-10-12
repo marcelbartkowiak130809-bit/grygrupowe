@@ -20,6 +20,15 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.2.1",
+      date: "2026-10-12",
+      title: "Polskie klasyki",
+      changes: [
+        "Dodano 74 znane polskie utwory sprzed 2000 roku, w tym 8 piosenek Maryli Rodowicz.",
+        "Klasyki mają odsłuchy, okładki i daty pierwotnych wydań, niezależne od dat reedycji.",
+      ],
+    },
+    {
       version: "v5.2.0",
       date: "2026-10-12",
       title: "Druga szansa i własna playlista",

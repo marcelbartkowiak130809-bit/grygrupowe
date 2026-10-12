@@ -31,10 +31,10 @@ import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
 import { adSenseBlock } from "./publicPages.js?v=20260901-7";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
-import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261010-3";
+import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261012-2";
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20260902-23";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
-import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261012-1";
+import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261012-2";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 

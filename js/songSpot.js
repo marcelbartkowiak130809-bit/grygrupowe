@@ -1,7 +1,7 @@
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261010-3";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261012-2";
 import { Audio } from "./audio.js?v=20260926-1";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261012-1';
+import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261012-2';
 import { songSpotLevels, songSpotTier, songSpotRoundTier, importSongSpotPlaylist, songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 
 export const songSpotDifficulties = [
