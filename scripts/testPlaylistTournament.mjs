@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentTracks} from '../js/playlistTournamentEngine.js';
+import {PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentTracks, tournamentDuration} from '../js/playlistTournamentEngine.js';
 const saved = new Map();
 globalThis.localStorage = {getItem:key => saved.get(key) || null, setItem:(key,value) => saved.set(key,value)};
 const tracks = count => Array.from({length:count}, (_,id) => ({id:`t-${id}`,title:`Song ${id}`,artist:`Artist ${id}`,previewUrl:`https://audio.example.com/${id}.m4a`,coverUrl:'https://cover.example.com/test.jpg'}));
@@ -53,4 +53,17 @@ test('bracket and imported media restore without relying on the built-in catalog
   const restored=await import('../js/playlistTournamentEngine.js?restore-test');
   assert.equal(restored.PlaylistTournamentEngine.get('restore').stage,'right');
   assert.deepEqual(restored.tournamentPair(restored.PlaylistTournamentEngine.get('restore')),tournamentPair(state));
+});
+test('duration freezes at the final choice, survives restoring and resets on a rematch', async () => {
+  engine.load('time',tracks(2));let state=engine.start('time',()=>0,1000), key=tournamentMatchKey(state);
+  assert.equal(tournamentDuration(state),null);
+  engine.finishPreview('time','left',key);engine.finishPreview('time','right',key);
+  engine.choose('time','left',key,62500);
+  assert.equal(tournamentDuration(state),61500);
+  assert.equal(engine.choose('time','right',key,200000),false);
+  assert.equal(tournamentDuration(state),61500);
+  const restored=await import('../js/playlistTournamentEngine.js?duration-restore');
+  assert.equal(tournamentDuration(restored.PlaylistTournamentEngine.get('time')),61500);
+  state=engine.start('time',()=>0,100000);assert.equal(state.finishedAt,0);assert.equal(tournamentDuration(state),null);
+  assert.equal(tournamentDuration({}),null);assert.equal(tournamentDuration({startedAt:0,finishedAt:0}),null);
 });

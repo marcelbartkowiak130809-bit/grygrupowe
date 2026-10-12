@@ -2,7 +2,8 @@ import { escapeHtml } from './utils.js?v=20260903-7';
 import { Audio } from './audio.js?v=20260926-1';
 import { musicPreviewCatalog } from './music.js?v=20261012-2';
 import { importSongSpotPlaylist, songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
-import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, TOURNAMENT_PREVIEW_SECONDS } from './playlistTournamentEngine.js?v=20261012-3';
+import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration, TOURNAMENT_PREVIEW_SECONDS } from './playlistTournamentEngine.js?v=20261012-4';
+import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261012-4';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
@@ -13,9 +14,9 @@ function card(track, side) {
 function summary(state) {
   const winner = state.tracks.find(t => t.id === state.winnerId), final = state.history.at(-1), runnerUp = state.tracks.find(t => t.id === final?.loserId);
   const links = songSpotTrackLinks(winner), wins = state.history.filter(m => m.winnerId === winner.id).length;
-  return `<section class="playlist-cup-result"><div class="playlist-cup-crown" aria-hidden="true">♛</div><p class="eyebrow">TWÓJ ZWYCIĘZCA</p>${art(winner)}<h2>${escapeHtml(winner.title)}</h2><p>${escapeHtml(winner.artist)}</p><div class="playlist-cup-stats"><span><b>${state.tracks.length}</b> utworów</span><span><b>${state.history.length}</b> pojedynków</span><span><b>${wins}</b> wygranych zwycięzcy</span></div><p class="muted">Finalista: ${escapeHtml(runnerUp?.artist || '')} — ${escapeHtml(runnerUp?.title || '')}</p><audio controls data-cup-result-audio preload="none" src="${escapeHtml(winner.previewUrl)}"></audio><div class="playlist-cup-result-links">${links.apple ? `<a class="ghost" href="${escapeHtml(links.apple)}" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>` : ''}<a class="ghost" href="${escapeHtml(links.spotify)}" target="_blank" rel="noopener noreferrer">Spotify ↗</a></div><div class="playlist-cup-result-actions"><button class="primary" data-cup-start>Rewanż · losuj od nowa</button><button class="ghost" data-cup-reset>Inna playlista</button></div></section><details class="playlist-cup-history" open><summary>Droga do finału · wszystkie wybory</summary>${[...new Set(state.history.map(m => m.round))].map(round => `<section><h3>${round === state.round ? 'Finał' : `Runda ${round}`}</h3>${state.history.filter(m => m.round === round).map(m => { const a = state.tracks.find(t => t.id === m.winnerId), b = state.tracks.find(t => t.id === m.loserId); return `<div class="playlist-cup-history-row"><span>✓ <b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.artist)}</small></span><span>× ${escapeHtml(b.title)}<small>${escapeHtml(b.artist)}</small></span></div>`; }).join('')}${state.byes.filter(m => m.round === round).map(m => `<p class="muted">Wolny los: ${escapeHtml(state.tracks.find(t => t.id === m.trackId)?.title)}</p>`).join('')}</section>`).join('')}</details>`;
+  return `<section class="playlist-cup-result"><div class="playlist-cup-crown" aria-hidden="true">♛</div><p class="eyebrow">TWÓJ ZWYCIĘZCA</p>${art(winner)}<h2>${escapeHtml(winner.title)}</h2><p>${escapeHtml(winner.artist)}</p><div class="playlist-cup-stats"><span><b>${state.tracks.length}</b> utworów</span><span><b>${state.history.length}</b> pojedynków</span><span><b>${wins}</b> wygranych zwycięzcy</span></div><p class="playlist-cup-duration">Czas turnieju: ${formatTournamentDuration(tournamentDuration(state))}</p><p class="muted">Finalista: ${escapeHtml(runnerUp?.artist || '')} — ${escapeHtml(runnerUp?.title || '')}</p><audio controls data-cup-result-audio preload="none" src="${escapeHtml(winner.previewUrl)}"></audio><div class="playlist-cup-result-links">${links.apple ? `<a class="ghost" href="${escapeHtml(links.apple)}" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>` : ''}<a class="ghost" href="${escapeHtml(links.spotify)}" target="_blank" rel="noopener noreferrer">Spotify ↗</a></div><div class="playlist-cup-result-actions"><button class="primary" data-cup-share>↗ Udostępnij wynik</button><button class="primary" data-cup-start>Rewanż · losuj od nowa</button><button class="ghost" data-cup-reset>Inna playlista</button></div></section><details class="playlist-cup-history" open><summary>Droga do finału · wszystkie wybory</summary>${[...new Set(state.history.map(m => m.round))].map(round => `<section><h3>${round === state.round ? 'Finał' : `Runda ${round}`}</h3>${state.history.filter(m => m.round === round).map(m => { const a = state.tracks.find(t => t.id === m.winnerId), b = state.tracks.find(t => t.id === m.loserId); return `<div class="playlist-cup-history-row"><span>✓ <b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.artist)}</small></span><span>× ${escapeHtml(b.title)}<small>${escapeHtml(b.artist)}</small></span></div>`; }).join('')}${state.byes.filter(m => m.round === round).map(m => `<p class="muted">Wolny los: ${escapeHtml(state.tracks.find(t => t.id === m.trackId)?.title)}</p>`).join('')}</section>`).join('')}</details>`;
 }
-export function renderPlaylistTournament(root, {playerId = 'guest'}, actions) {
+export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}, getProfile = () => profile}, actions) {
   stopPlaylistTournament();
   root.dataset.cupPlayer = String(playerId);
   const state = engine.get(playerId);
@@ -32,8 +33,9 @@ export function renderPlaylistTournament(root, {playerId = 'guest'}, actions) {
   const audio = root.querySelector('[data-cup-audio]'), resultAudio = root.querySelector('[data-cup-result-audio]');
   const matchKey = tournamentMatchKey(state);
   const alive = () => !stopped && root.isConnected;
-  cleanup = () => { stopped = true; controller?.abort(); clearTimeout(transitionTimer); cancelAnimationFrame(frame); if (audio) Audio.stopTrackAudio(audio); if (resultAudio) Audio.stopTrackAudio(resultAudio); };
-  const repaint = () => { if (alive()) renderPlaylistTournament(root, {playerId}, actions); };
+  const stopSharing = bindTournamentSharing(root, state, getProfile);
+  cleanup = () => { stopped = true; stopSharing(); controller?.abort(); clearTimeout(transitionTimer); cancelAnimationFrame(frame); if (audio) Audio.stopTrackAudio(audio); if (resultAudio) Audio.stopTrackAudio(resultAudio); };
+  const repaint = () => { if (alive()) renderPlaylistTournament(root, {playerId, profile, getProfile}, actions); };
   root.querySelector('[data-cup-home]').addEventListener('click', () => { stopPlaylistTournament(); (actions.goMusicModes || actions.goPlatform)(); });
   root.querySelectorAll('[data-cup-start]').forEach(button => button.addEventListener('click', () => { engine.start(playerId); repaint(); playFirst(); }));
   root.querySelectorAll('[data-cup-reset]').forEach(button => button.addEventListener('click', () => { engine.reset(playerId); repaint(); }));
@@ -101,7 +103,7 @@ export function renderPlaylistTournament(root, {playerId = 'guest'}, actions) {
   const tick = timestamp => {
     if (!alive()) return;
     if (activeSide && !audio.paused) {
-    engine.progress(playerId, activeSide, audio.currentTime, matchKey);
+      engine.progress(playerId, activeSide, audio.currentTime, matchKey);
       if (audio.currentTime >= 10) finish(); else if (timestamp - lastPaint >= 100) { lastPaint = timestamp; update(); }
     }
     frame = requestAnimationFrame(tick);

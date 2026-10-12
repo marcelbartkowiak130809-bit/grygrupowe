@@ -1,5 +1,5 @@
-const CACHE_NAME = "grygrupowe-shell-v5.3.0-20261012-playlista-cup";
-const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png"];
+const CACHE_NAME = "grygrupowe-shell-v5.3.1-20261012-share-poster";
+const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261012-4"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -14,7 +14,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
-    if (response.ok && (event.request.mode === "navigate" || url.pathname.endsWith(".js") || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/"))) {
+    if (response.ok && (event.request.mode === "navigate" || url.pathname.endsWith(".js") || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/") || url.pathname === "/assets/share/playlist-cup-base.svg")) {
       const copy = response.clone();
       event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => {}));
     }

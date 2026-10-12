@@ -20,6 +20,15 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.3.1",
+      date: "2026-10-12",
+      title: "Udostępnij zwycięski hit",
+      changes: [
+        "Podsumowanie Playlista Cup tworzy grafikę ze zwycięzcą, okładką, nickiem, profilowym i czasem turnieju.",
+        "Jeden wielorazowy szablon; podgląd, pobranie PNG i udostępnianie pliku na wspieranych urządzeniach.",
+      ],
+    },
+    {
       version: "v5.3.0",
       date: "2026-10-12",
       title: "Playlista Cup",

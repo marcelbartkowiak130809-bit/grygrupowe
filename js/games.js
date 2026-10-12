@@ -29,7 +29,7 @@ import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusic
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260926-1";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261012-2";
-import { renderPlaylistTournament } from "./playlistTournament.js?v=20261012-3";
+import { renderPlaylistTournament } from "./playlistTournament.js?v=20261012-4";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
