@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.3.6-20261013-random-cup";
+const CACHE_NAME = "grygrupowe-shell-v5.4.0-20261013-home-menu";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

@@ -1,4 +1,5 @@
 import { gamesList } from "./games.js?v=20261013-1";
+import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261013-2';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
 import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20260921-2";
@@ -379,7 +380,8 @@ export async function renderPlatform(root, actions, context = {}) {
   const mobileLayout = getMobileGameLayout();
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
-  root.innerHTML = `<main class="page platform-page enter">
+  root.innerHTML = `<main class="page platform-page home-menu-page enter">
+    ${homeMenuHtml(gamesList,isModeLocked)}
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY GRUPOWE</p>
@@ -437,6 +439,7 @@ export async function renderPlatform(root, actions, context = {}) {
     applyGameFilters();
   }));
   root.querySelector("#game-search-input")?.addEventListener("input", applyGameFilters);
+  bindHomeMenu(root, actions);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   root.querySelectorAll("[data-category-vote]").forEach(button => button.addEventListener("click", async () => {

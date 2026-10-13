@@ -1,0 +1,57 @@
+/* The new discovery stage is desktop-only; mobile keeps its compact library. */
+.home-hub{display:none}
+@media(min-width:901px){
+ .home-menu-page{display:flex;flex-direction:column;gap:24px;max-width:1320px;padding-top:36px}
+ .home-menu-page>*{order:3}.home-menu-page>.home-hub{order:0}.home-menu-page>.platform-hero{order:1}.home-menu-page>.games-section{order:2}
+ .home-hub{display:block;animation:home-rise .6s ease both}
+ .home-hub-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 28px}
+ .home-hub-heading .eyebrow{font-size:10px;letter-spacing:.22em;color:#a6a9c4;margin:0 0 14px}
+ .home-hub-heading h1{font-size:clamp(40px,4.5vw,66px);line-height:1.04;letter-spacing:-.055em;margin:0;font-weight:850}
+ .home-hub-heading h1 em{font-style:normal;color:#86f5cb}
+ .home-hub-heading>p{color:#9ca8bc;font-size:14px;line-height:1.7;margin:0 4px 5px}
+ .home-destinations{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);gap:18px}
+ .home-music-feature{position:relative;isolation:isolate;display:grid;grid-template-columns:1.1fr 1fr;min-height:352px;border:1px solid #b9a3ff40;border-radius:28px;overflow:hidden;background:radial-gradient(ellipse at 80% 80%,#4ab9c932,transparent 60%),linear-gradient(120deg,#27214c,#161e33);box-shadow:0 25px 65px #0002}
+ .home-music-feature:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(125deg,transparent 40%,#fff04 41%,transparent 70%);pointer-events:none}
+ .home-feature-copy{padding:32px 0 30px 34px;position:relative;z-index:2}
+ .home-live-label{display:flex;align-items:center;gap:8px;color:#c6b8f4;font-size:10px;letter-spacing:.18em;font-weight:800}
+ .home-live-label i{width:6px;height:6px;border-radius:50%;background:#88f5cb;box-shadow:0 0 12px #88f5cb66}
+ .home-feature-copy h2{font-size:clamp(30px,3.5vw,48px);letter-spacing:-.05em;line-height:1.08;margin:24px 0 16px}.home-feature-copy h2 span{color:#c4acff}
+ .home-feature-copy p{font-size:12px;line-height:1.8;color:#b1b9cd;margin:0 0 22px}
+ .home-feature-copy .primary{display:inline-flex;align-items:center;gap:26px;min-height:46px;padding:12px 20px;background:#bba2ff;color:#171229;border:0;box-shadow:0 6px 24px #a185ff25;font-weight:850;border-radius:13px;transition:transform .2s,background .2s}
+ .home-feature-copy .primary:hover{background:#d2c0ff;transform:translateY(-3px)}
+ .home-feature-copy>small{display:block;color:#8f9bb6;font-size:10px;margin-top:16px}
+ .home-record-scene{position:relative;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+ .home-record{position:relative;width:250px;aspect-ratio:1;flex-shrink:0;border-radius:50%;background:repeating-radial-gradient(circle,#0c101b 0 3px,#222632 4px,#10131c 5px 7px);border:2px solid #ffffff18;box-shadow:0 25px 35px #0005;animation:home-spin 28s linear infinite;will-change:transform}
+ .home-record:before{content:'';position:absolute;inset:7px;border-radius:50%;background:conic-gradient(transparent 10%,#ffffff0e 20%,transparent 30% 60%,#ffffff0e 70%,transparent 80%)}
+ .home-record-label{position:absolute;inset:32%;border-radius:50%;background:linear-gradient(135deg,#b69bf4,#84e6cc);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#21213c;font-size:30px;font-weight:950;letter-spacing:-.08em;box-shadow:0 0 0 10px #0c101b}
+ .home-record-label span{font-size:5px;letter-spacing:.12em;margin-top:5px}.home-record-label:after{content:'';position:absolute;bottom:12px;width:5px;height:5px;border-radius:50%;background:#141822}
+ .home-player-chip{position:absolute;bottom:40px;left:0;right:20px;display:flex;align-items:center;gap:10px;background:#151b2ee8;border:1px solid #ffffff1a;border-radius:16px;padding:14px;box-shadow:0 10px 30px #0004;transform:rotate(-5deg);animation:home-float 7s ease-in-out infinite}
+ .home-player-chip>span{display:grid;place-items:center;flex-shrink:0;width:34px;height:34px;background:#b69af025;border-radius:10px;font-size:20px;color:#c6b0ff}
+ .home-player-chip b,.home-player-chip small{display:block}.home-player-chip b{font-size:11px}.home-player-chip small{font-size:9px;color:#909eb5;margin-top:4px}
+ .home-equalizer{display:flex;align-items:center;gap:3px;height:22px;margin-left:auto}.home-equalizer i{width:3px;height:18px;background:#89e8c7;border-radius:3px;animation:home-beat 1.4s ease-in-out infinite;animation-delay:calc(var(--beat)*-.17s);transform-origin:center}
+ .home-note{position:absolute;font-size:35px;color:#c4abff}.home-note-a{right:26px;top:30px;transform:rotate(15deg)}.home-note-b{left:16px;top:52px;color:#8ae9cd;transform:rotate(-15deg)}
+ .home-category-stack{display:grid;gap:12px;grid-template-rows:repeat(4,1fr)}
+ .home-category-tile{display:flex;align-items:center;gap:16px;text-align:left;padding:17px 20px;min-width:0;border-radius:20px;border:1px solid #ffffff15;background:linear-gradient(120deg,#1b2237,#121725);transition:transform .2s,border-color .2s,background .2s;animation:home-rise .55s ease both;animation-delay:calc(var(--tile,3)*70ms)}
+ .home-category-tile:hover{transform:translateX(-5px);border-color:#bca4ff66;background:#24263e}.home-category-tile>span:nth-child(2){min-width:0}
+ .home-category-icon{font-size:26px;display:grid;place-items:center;width:46px;height:46px;border-radius:14px;flex-shrink:0;background:#bba2ff12}.home-category-tile b{display:block;font-size:16px;letter-spacing:-.02em}.home-category-tile small{display:block;font-size:10px;color:#8d9bb3;margin-top:6px}.home-category-arrow{font-size:20px;color:#77849d;margin-left:auto}
+ .home-category-pokemon .home-category-icon{background:#f2c76c12}.home-category-minecraft .home-category-icon{background:#7cedac12}
+ .home-quick-picks{display:flex;gap:10px;align-items:center;margin-top:18px}.home-quick-picks>span{color:#8d9bb3;font-size:11px;margin-right:10px}.home-quick-picks button{display:flex;align-items:center;gap:18px;background:#ffffff04;border:1px solid #ffffff14;border-radius:12px;padding:11px 15px;font-size:12px;min-height:44px;transition:background .2s,transform .2s}.home-quick-picks button:hover{background:#ffffff0b;transform:translateY(-2px)}.home-quick-picks button span{font-size:9px;color:#92a2ba}.home-quick-picks button:disabled{opacity:.4;cursor:not-allowed}
+ .home-menu-page .platform-hero{display:grid;grid-template-columns:1fr 165px;gap:18px;min-height:0;padding:20px 24px!important;margin:0;border-radius:22px;background:#111829;border-color:#ffffff14;animation:none;box-shadow:none}
+ .home-menu-page .platform-hero:after{display:none}.home-menu-page .platform-hero>div:first-child>h1,.home-menu-page .platform-hero>div:first-child>p{display:none}.home-menu-page .hero-stack{display:none}
+ .home-menu-page .platform-join{display:grid;grid-template-columns:190px minmax(90px,1fr) minmax(90px,1fr) auto;align-items:center;gap:10px;margin:0;padding:0;border:0;background:none;border-radius:0}.home-menu-page .platform-join .eyebrow{font-size:8px;margin:0 0 5px}.home-menu-page .platform-join strong{font-size:13px}.home-menu-page .platform-join input{font-size:12px;padding:12px;min-width:0}
+ .home-menu-page .random-room-button{font-size:10px;padding:0;min-height:30px;border:0;background:none;color:#96a7c0;display:inline-flex;margin:7px 0 0 200px}.home-menu-page .hero-side-actions{display:flex;align-items:center;justify-content:end}.home-menu-page .global-stats-trigger{font-size:11px;min-height:44px;padding:10px}
+ .home-menu-page>.games-section{margin:0;background:none;padding:12px 0;border:0;box-shadow:none;animation:none;scroll-margin-top:100px}.home-menu-page .section-intro h2{font-size:25px;letter-spacing:-.03em}.home-menu-page .section-intro .eyebrow{font-size:9px;color:#9b9eb8}
+ .home-menu-page .games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.home-menu-page .featured-game{grid-column:span 1}.home-menu-page .game-card{min-height:320px;border-radius:20px;background:#11182a;box-shadow:none}.home-menu-page .game-visual{height:110px}.home-menu-page .game-visual span{font-size:44px}.home-menu-page .game-card-content{padding:16px;min-height:240px}.home-menu-page .game-card h2{font-size:19px;letter-spacing:-.025em}.home-menu-page .game-card-content p{font-size:11px}.home-menu-page .game-card-footer{flex-wrap:wrap;gap:10px}.home-menu-page .players-count{font-size:10px}.home-menu-page .game-card-play-options{display:flex;gap:6px;flex-wrap:wrap}.home-menu-page .game-card-footer button{font-size:11px;min-height:40px;padding:9px 12px}
+ .home-menu-page .platform-share-panel{margin:0}.home-menu-page .category-vote-panel{margin:0}
+}
+@media(min-width:901px) and (max-width:1100px){.home-menu-page .games-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.home-record{width:210px}.home-feature-copy{padding-left:24px}.home-player-chip{right:12px;padding:10px}.home-quick-picks{flex-wrap:wrap}.home-menu-page .platform-hero{grid-template-columns:1fr}.home-menu-page .hero-side-actions{display:none}}
+@keyframes home-spin{to{transform:rotate(360deg)}}
+@keyframes home-float{50%{transform:translateY(-7px) rotate(-3deg)}}
+@keyframes home-beat{50%{transform:scaleY(.3)}}
+@keyframes home-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.home-menu-page .game-card{transition:transform .2s,border-color .2s}.home-menu-page .game-card:active{transform:scale(.985)}.home-menu-page .game-card button:active{transform:scale(.97)}.home-menu-page .game-card{animation:home-rise .35s ease both}}
+@media(prefers-reduced-motion:reduce){.home-menu-page *, .home-menu-page *:before,.home-menu-page *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.home-record{will-change:auto}}
+.light-theme .home-hub-heading h1 em{color:#04785a}
+.light-theme .home-category-tile,.light-theme .home-menu-page .platform-hero,.light-theme .home-menu-page .game-card{background:#f6f8ff;border-color:#d6ddec;color:#16223b}
+.light-theme .home-quick-picks button{background:#fff;border-color:#d6ddec;color:#16223b}
+.light-theme .home-music-feature h2{color:#f5f7ff}.light-theme .home-feature-copy p{color:#bec7de}.light-theme .home-hub-heading>p,.light-theme .home-category-tile small{color:#52627c}

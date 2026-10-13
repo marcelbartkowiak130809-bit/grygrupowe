@@ -20,6 +20,12 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.4.0",
+      date: "2026-10-13",
+      title: "Nowe główne menu",
+      changes: ["Nowa strefa odkrywania na komputerze: muzyka i kategorie na górze, animowana płyta i szybkie wejścia do gry.", "Czytelniejsza biblioteka oraz pasek dołączania do pokoju. Na telefonie zachowano układ kompaktowy i dodano lekkie animacje."],
+    },
+    {
       version: "v5.3.6",
       date: "2026-10-13",
       title: "Turniej losowych hitów",

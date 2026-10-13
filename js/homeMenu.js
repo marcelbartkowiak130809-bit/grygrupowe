@@ -1,0 +1,17 @@
+import { escapeHtml } from './utils.js?v=20260822-1';
+
+export function homeMenuHtml(games, isLocked) {
+  const music=games.filter(game=>game.audience==='music' && !game.hiddenFromLibrary);
+  const available=music.filter(game=>!isLocked(game.id)).length;
+  const categories=[['pokemon','Pokémon','⚡','Pokédex, typy i ewolucje'],['board','Planszówki','🎲','Klasyki przy jednym stole'],['minecraft','Minecraft','⛏️','Crafting, moby i quizy']];
+  return `<section class="home-hub" aria-label="Odkryj kategorie"><header class="home-hub-heading"><div><p class="eyebrow">WYBIERZ SWÓJ KLIMAT</p><h1>Dobry wieczór<br>zaczyna się <em>tutaj.</em></h1></div><p>Solo albo z ekipą.<br>Jedno kliknięcie i gracie.</p></header><div class="home-destinations"><article class="home-music-feature"><div class="home-feature-copy"><span class="home-live-label"><i></i> STREFA MUZYKI</span><h2>Włącz swój<br><span>tryb grania.</span></h2><p>Zgaduj hity. Wybieraj zwycięzców.<br>Sprawdź, jak dobrze znasz swoją muzykę.</p><button class="primary" data-home-category="music">Odkryj muzykę <span aria-hidden="true">↗</span></button><small>${available} dostępnych trybów · polskie i globalne hity</small></div><div class="home-record-scene" aria-hidden="true"><div class="home-record"><div class="home-record-label">GG<span>PLAY YOUR WAY</span></div></div><div class="home-player-chip"><span>♫</span><div><b>Twój następny hit</b><small>czeka na odkrycie</small></div><div class="home-equalizer">${[0,1,2,3,4].map(i=>`<i style="--beat:${i}"></i>`).join('')}</div></div><span class="home-note home-note-a">♪</span><span class="home-note home-note-b">♫</span></div></article><nav class="home-category-stack" aria-label="Kategorie gier">${categories.map(([id,name,symbol,description],index)=>`<button class="home-category-tile home-category-${id}" data-home-category="${id}" style="--tile:${index}"><span class="home-category-icon" aria-hidden="true">${symbol}</span><span><b>${escapeHtml(name)}</b><small>${description}</small></span><span class="home-category-arrow" aria-hidden="true">↗</span></button>`).join('')}<button class="home-category-tile home-category-party" data-home-filter="crew"><span class="home-category-icon" aria-hidden="true">🎭</span><span><b>Gry dla ekipy</b><small>Blef, pytania i wspólny śmiech</small></span><span class="home-category-arrow" aria-hidden="true">↓</span></button></nav></div><div class="home-quick-picks"><span>Na szybki start</span><button data-play-solo-mode="songspot-solo" ${isLocked('songspot-solo')?'disabled':''}>🎧 Zgadnij utwór <span>Solo ↗</span></button><button data-play-solo-mode="playlista-cup" ${isLocked('playlista-cup')?'disabled':''}>🏆 Turniej hitów <span>Solo ↗</span></button><button data-home-filter="all">Cała biblioteka <span>↓</span></button></div></section>`;
+}
+
+export function bindHomeMenu(root, actions) {
+  const categories={music:actions.goMusicModes,pokemon:actions.goPokemonModes,board:actions.goBoardModes,minecraft:actions.goMinecraftModes};
+  root.querySelectorAll('[data-home-category]').forEach(button=>button.addEventListener('click',()=>categories[button.dataset.homeCategory]?.()));
+  root.querySelectorAll('[data-home-filter]').forEach(button=>button.addEventListener('click',()=>{
+    root.querySelector(`[data-game-filter="${button.dataset.homeFilter}"]`)?.click();
+    root.querySelector('.games-section')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+  }));
+}
