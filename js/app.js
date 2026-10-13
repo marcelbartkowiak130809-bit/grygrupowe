@@ -1,14 +1,14 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-6";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-7";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261013-6";
-import { gamesList, getGameMode } from "./games.js?v=20261013-6";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261013-7";
+import { gamesList, getGameMode } from "./games.js?v=20261013-7";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261013-5";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261013-7";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260902-1";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260903-9";
@@ -39,7 +39,7 @@ import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from 
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260903-9";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260903-9";
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261012-2";
-import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261013-6";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261013-7";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing } from "./songSpot.js?v=20261013-1";
 import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261013-1";
@@ -47,19 +47,19 @@ import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261013-6";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261013-6";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261013-6";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261013-7";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261013-7";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261013-7";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261013-6";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261013-7";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261013-6";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261013-7";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20261013-6";
+import { scheduleBot } from "./botController.js?v=20261013-7";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -2497,7 +2497,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     const difficulty=BOT_DIFFICULTIES.some(item=>item.id===value)?value:"normal";const current=room.playerProfiles?.[botUid];if(!current)return;room.playerProfiles={...(room.playerProfiles||{}),[botUid]:{...current,botDifficulty:difficulty}};state.accounts[botUid]={...room.playerProfiles[botUid]};addRoomActivity(room, `Poziom bota ${current.nick || "Bot"} zmieniono na ${BOT_DIFFICULTIES.find(item=>item.id===difficulty)?.label || difficulty}.`);touchRoom(room);render();
   },
   setImpostorSetting(key,value) {
-    const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor")return;
+    const room=activeRoom(); if(!room||room.hostUid!==state.currentUser||room.gameMode!=="impostor"||room.status!=="lobby")return;
     room.settings=sanitizeImpostorSettings({...room.settings,[key]:value},room.players.length); touchRoom(room); animateHostSettingChange(value);
   },
   setModeSetting(key,value){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return;room.settings={...room.settings,[key]:["turnTime","rounds","targetScore","answerTime","discussionTime","voteTime","questionTime","testTime","assignTime","candyCount","poisonedPerPlayer","lives","budget","teamSize","selectTime","hearts","roundTime","questionCount","topSize","sequenceLength","boardSize","numberMax","repeatGap","minSeconds","maxSeconds","selectionTime","votingTime","choiceTime","pairs","audioSeconds"].includes(key)?Number(value):value};if(room.gameMode==="unique-answer")room.settings=sanitizeUniqueAnswerSettings(room.settings,room.players.length);if(room.gameMode==="bomba")room.settings=sanitizeBombSettings(room.settings);if(room.gameMode==="najblizej-prawdy")room.settings=sanitizeClosestTruthSettings(room.settings);if(room.gameMode==="ranking")room.settings=sanitizeRankingSettings(room.settings);if(room.gameMode==="5-sekund")room.settings=sanitizeFiveSecondsSettings(room.settings);if(room.gameMode==="zegar")room.settings=sanitizeClockSettings(room.settings);if(room.gameMode==="klamca")room.settings=sanitizeLiarSettings(room.settings);if(room.gameMode==="falszywa-wiadomosc")room.settings=sanitizeFalseMessageSettings(room.settings);if(room.gameMode==="popularnosc-hitow")room.settings={...room.settings,...sanitizePopularitySettings(room.settings)};if(room.gameMode==="dokoncz-tekst")room.settings=sanitizeLyricsSettings(room.settings);if(room.gameMode==="songspot")room.settings=sanitizeSongSpotSettings(room.settings);if(room.gameMode?.startsWith("board-"))room.settings=sanitizeBoardSettings(room.settings,room.gameMode);if(room.gameMode?.startsWith("minecraft-"))room.settings=sanitizeMinecraftSettings(room.settings,room.gameMode);touchRoom(room);animateHostSettingChange(value);if(room.gameMode==="number-mystery"&&key==="roundMode")render({preserveDrafts:true});if(key==="allowRepeats"){const gap=document.querySelector('[data-word-chain-setting="repeatGap"]');if(gap)gap.disabled=value!==true&&String(value)!=="true";}},

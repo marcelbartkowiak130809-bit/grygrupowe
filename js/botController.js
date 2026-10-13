@@ -2,7 +2,7 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20261013-5";
+import { ImpostorEngine } from "./impostor.js?v=20261013-7";
 import { IdentityEngine } from "./identity.js?v=20260831-4";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
 import { MostLikelyEngine } from "./mostLikely.js?v=20260612-1";
@@ -30,7 +30,7 @@ import { LiarEngine } from "./liar.js?v=20260831-4";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261012-2";
-import { LyricsEngine } from "./lyrics.js?v=20261013-6";
+import { LyricsEngine } from "./lyrics.js?v=20261013-7";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./songSpot.js?v=20261013-1";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";

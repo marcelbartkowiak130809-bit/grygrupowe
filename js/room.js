@@ -1,7 +1,7 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261013-6";
+import { getGameMode } from "./games.js?v=20261013-7";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { renderImpostorLobbySettings } from "./impostor.js?v=20261013-5";
+import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261013-7";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20260605-4";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20260612-1";
@@ -28,11 +28,11 @@ import { renderConnectLobbySettings } from "./connect.js?v=20260831-4";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
-import { adSenseBlock } from "./publicPages.js?v=20261013-6";
+import { adSenseBlock } from "./publicPages.js?v=20261013-7";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261012-2";
-import { renderLyricsLobbySettings } from "./lyrics.js?v=20261013-6";
+import { renderLyricsLobbySettings } from "./lyrics.js?v=20261013-7";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
 import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261013-1";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
@@ -99,7 +99,7 @@ function settingsHtml(mode, room, isHost, actions) {
 function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
   root.querySelectorAll("[data-room-rounds]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds))));
-  root.querySelectorAll("[data-impostor-setting]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting(input.dataset.impostorSetting, input.type === "checkbox" ? input.checked : input.value)));
+  bindImpostorLobbySettings(root, actions);
   root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
   root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
   root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));

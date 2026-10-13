@@ -164,6 +164,27 @@ export const ImpostorEngine = {
 };
 function mainWordIncluded(game,text){ const value=normalizeAnswer(text); return Boolean(game.mainWord && value.includes(normalizeAnswer(game.mainWord))); }
 
+export function bindImpostorLobbySettings(root, actions) {
+  root.querySelectorAll('[data-impostor-setting]').forEach(input => {
+    if (input.dataset.impostorSettingBound) return;
+    input.dataset.impostorSettingBound = 'true';
+    const updateValue = () => {
+      if (input.type !== 'range') return;
+      const output = input.closest('label')?.querySelector('[data-impostor-setting-value]');
+      if (output) output.textContent = `${input.value}s`;
+      input.setAttribute('aria-valuetext', `${input.value} sekund`);
+    };
+    input.addEventListener('input', updateValue);
+    input.addEventListener('change', () => {
+      if (input.disabled) return;
+      updateValue();
+      actions.setImpostorSetting(input.dataset.impostorSetting,
+        input.type === 'checkbox' ? input.checked : input.type === 'range' ? Number(input.value) : input.value);
+    });
+    updateValue();
+  });
+}
+
 export function renderImpostorLobbySettings(room,isHost) {
   const settings=sanitizeImpostorSettings(room.settings,room.players.length), max=maxSpecialRoles(room.players.length);
   const selected = new Set(settings.categories || []);
@@ -174,7 +195,7 @@ export function renderImpostorLobbySettings(room,isHost) {
     <label>Impostorzy <select data-impostor-setting="impostorCount" ${isHost?"":"disabled"}>${[1,2,3,4].map(n=>`<option value="${n}" ${settings.impostorCount===n?"selected":""}>${n}</option>`).join("")}</select></label>
     <label class="check"><input data-impostor-setting="whiteEnabled" type="checkbox" ${settings.whiteEnabled?"checked":""} ${isHost?"":"disabled"}> Pan Bialy</label>
     <label>Panowie Biali <select data-impostor-setting="whiteCount" ${isHost&&settings.whiteEnabled?"":"disabled"}>${[1,2,3,4].map(n=>`<option value="${n}" ${settings.whiteCount===n?"selected":""}>${n}</option>`).join("")}</select></label>
-    <label>Czas podpowiedzi <b>${settings.clueTime}s</b><input data-impostor-setting="clueTime" type="range" min="10" max="30" value="${settings.clueTime}" ${isHost?"":"disabled"}></label>
+    <label>Czas podpowiedzi <b data-impostor-setting-value>${settings.clueTime}s</b><input data-impostor-setting="clueTime" type="range" min="10" max="30" step="1" value="${settings.clueTime}" aria-label="Czas podpowiedzi" aria-valuetext="${settings.clueTime} sekund" ${isHost?"":"disabled"}></label>
     <label>Minimum kolejek <select data-impostor-setting="minRounds" ${isHost?"":"disabled"}>${[1,2,3,4,5].map(n=>`<option value="${n}" ${settings.minRounds===n?"selected":""}>${n}</option>`).join("")}</select></label>
     <label class="check"><input data-impostor-setting="chatEnabled" type="checkbox" ${settings.chatEnabled?"checked":""} ${isHost?"":"disabled"}> Czat w grze</label>
   </div>

@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-6";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-7";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,12 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version: "v5.4.5",
+      date: "2026-10-13",
+      title: "Działający podgląd czasu w Impostorze",
+      changes: ["Czas podpowiedzi zmienia się na żywo podczas przesuwania suwaka. Po puszczeniu zapisuje się dla pokoju, bez przeładowywania panelu."],
+    },
     {
       version: "v5.4.4",
       date: "2026-10-13",

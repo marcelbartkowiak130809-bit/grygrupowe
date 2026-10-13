@@ -1,5 +1,5 @@
-import { renderGame } from "./game.js?v=20261013-6";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261013-5";
+import { renderGame } from "./game.js?v=20261013-7";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261013-7";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260903-9";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260903-9";
@@ -26,7 +26,7 @@ import { liarDefaults, renderLiarGame } from "./liar.js?v=20260903-9";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260903-9";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260903-9";
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261012-2";
-import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261013-6";
+import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261013-7";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261013-1";
 import { renderPlaylistTournament } from "./playlistTournament.js?v=20261013-1";
