@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.4.1-20261013-impostor-words";
+const CACHE_NAME = "grygrupowe-shell-v5.4.2-20261013-marker-fix";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

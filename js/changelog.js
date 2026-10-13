@@ -20,6 +20,12 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.4.2",
+      date: "2026-10-13",
+      title: "Naprawiony Marker",
+      changes: ["Krzyżyk jest sprawdzany w obrębie wybranego pola, a nie całej planszy. Powiększone pole do rysowania, przyciski zapisu i czyszczenia oraz zachowanie szkicu przy odświeżeniach.", "Poprawiono powtarzające się liczby, zabezpieczenia tur i kończenie rozgrywki."],
+    },
+    {
       version: "v5.4.1",
       date: "2026-10-13",
       title: "Lepsze pary haseł w Impostorze",

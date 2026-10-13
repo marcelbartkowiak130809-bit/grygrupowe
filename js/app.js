@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-3";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-4";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20260903-9";
-import { gamesList, getGameMode } from "./games.js?v=20261013-3";
+import { gamesList, getGameMode } from "./games.js?v=20261013-4";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261013-3";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -25,7 +25,8 @@ import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260903-9";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260903-9";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20260903-9";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer } from "./marker.js?v=20261013-4";
+import { markerActionMatches } from './markerDrawing.js?v=20261013-4';
 import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20260903-9";
 import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20260903-9";
 import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20260903-9";
@@ -47,10 +48,10 @@ let stopMobileHeader = () => {};
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20260903-9";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261013-3";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261013-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20260903-9";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261013-3";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261013-4";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
@@ -58,7 +59,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20260922-1
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20261013-3";
+import { scheduleBot } from "./botController.js?v=20261013-4";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -117,7 +118,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.4.1";
+const APP_VERSION = "v5.4.2";
 const APP_VERSION_KEY = "grygrupowe-app-version";
 const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
 if (previousAppVersion !== APP_VERSION) {
@@ -2685,9 +2686,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   quizTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="quiz")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";QuizEngine.timeout(game,current.players,current.settings);},{sound:"roundEnd"});},
   mathematicsAnswer(value, expected={}){return mutateRoomGame((game,room)=>{const end=game.variant==="full-test"?game.testEndsAt:game.phaseEndsAt, expectedEnd=game.variant==="full-test"?expected.testEndsAt:expected.phaseEndsAt;if(game.phase!==expected.phase||Number(end)!==Number(expectedEnd))return "Faza gry już się zmieniła.";return MathematicsEngine.answer(game,state.currentUser,value,room.players);},{sound:"submit"});},
   mathematicsTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="mathematics")return;return mutateRoomGame((game,current)=>{const end=game.variant==="full-test"?game.testEndsAt:game.phaseEndsAt, expectedEnd=game.variant==="full-test"?expected.testEndsAt:expected.phaseEndsAt;if(game.phase!==expected.phase||Number(end)!==Number(expectedEnd))return "Faza gry już się zmieniła.";MathematicsEngine.timeout(game,current.players);},{sound:"roundEnd"});},
-  markerSelect(cell, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.select(game,state.currentUser,cell);},{sound:"choice"});},
-  markerCoverage(ratio, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.coverage(game,state.currentUser,ratio);},{sound:"submit"});},
-  markerFind(cell, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||game.selectedCell!==expected.selectedCell)return "Faza gry już się zmieniła.";return MarkerEngine.find(game,state.currentUser,cell);},{sound:"choice"});},
+  markerSelect(cell, expected={}){return mutateRoomGame((game)=>{if(!markerActionMatches(game,expected))return "Tura gry już się zmieniła.";return MarkerEngine.select(game,state.currentUser,cell);},{sound:"choice"});},
+  markerCoverage(ratio, expected={}){return mutateRoomGame((game)=>{if(!markerActionMatches(game,expected))return "Tura gry już się zmieniła.";return MarkerEngine.coverage(game,state.currentUser,ratio);},{sound:"submit"});},
+  markerFind(cell, expected={}){return mutateRoomGame((game)=>{if(!markerActionMatches(game,expected))return "Tura gry już się zmieniła.";return MarkerEngine.find(game,state.currentUser,cell);},{sound:"choice",after:settleAdditionalModeResult});},
   markerTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="marker")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return MarkerEngine.timeout(game);},{sound:"roundEnd"});},
   sequenceDraft(color, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.draft(game,state.currentUser,color);},{sound:"choice"});},
   sequenceClear(expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase)return "Faza gry już się zmieniła.";game.drafts??={};game.drafts[state.currentUser]??=[];return SequenceEngine.clearDraft(game,state.currentUser);},{sound:"turn"});},

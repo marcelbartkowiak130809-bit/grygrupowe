@@ -15,7 +15,7 @@ import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260903-9";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260903-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260903-9";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260903-9";
-import { markerDefaults, renderMarkerGame } from "./marker.js?v=20260903-9";
+import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261013-4";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260903-9";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260903-9";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260903-9";
@@ -308,7 +308,7 @@ export const gamesRegistry = {
     id: "mathematics", name: "Matematyka", description: "Rozwiązujcie proceduralnie generowane zadania i ścigajcie się o poprawne odpowiedzi.", help: ["Host wybiera liczbę pytań, czas, sposób odpowiedzi i typy zadań.", "Pytania rosną z poziomem trudności wraz z numerem pytania.", "Pierwsza poprawna odpowiedź daje punkt."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"∑", art:"mathematics", audience:"everyone", badges:["new"], render:renderMathematicsGame, defaultSettings:mathematicsDefaults,
   },
   marker: {
-    id: "marker", name: "Marker", description: "Znajdź liczby na wspólnej planszy i zakreśl je szybciej od przeciwnika.", help: ["Wybierz liczbę na wspólnej planszy.", "Przeciwnik szuka liczby, a Ty pokrywasz własne pole markerem.", "System sprawdza faktyczne pokrycie pola, więc samo kliknięcie nie wystarczy."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"✎", art:"marker", audience:"everyone", badges:["new"], render:renderMarkerGame, defaultSettings:markerDefaults,
+id: "marker", name: "Marker", description: "Znajdź liczby na wspólnej planszy i zakreśl je szybciej od przeciwnika.", help: ["Wybierz liczbę na wspólnej planszy.", "Narysuj krzyżyk w powiększonym polu i kliknij Zapisz krzyżyk.", "Po zapisaniu przeciwnik znajduje liczbę. Przy powtórzeniach może kliknąć dowolne wolne pole z tą liczbą. Potem zamieniacie się rolami."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"✎", art:"marker", audience:"everyone", badges:["new"], render:renderMarkerGame, defaultSettings:markerDefaults,
   },
   sequence: {
     id: "sequence", name: "Zgadnij sekwencję", description: "Twórzcie tajne sekwencje kolorów i łamcie kod przeciwnika.", help: ["Każdy gracz tworzy własną sekwencję dla przeciwnika.", "Po każdej próbie widzicie tylko liczbę kolorów na poprawnym miejscu.", "Nie pokazujemy, które pozycje są prawidłowe."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"◎", art:"sequence", audience:"everyone", badges:["new"], render:renderSequenceGame, defaultSettings:sequenceDefaults,

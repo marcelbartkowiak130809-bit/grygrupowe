@@ -1,0 +1,6 @@
+.marker-zoomed-sheet{width:min(100%,360px);text-align:center}
+.marker-zoomed-sheet .marker-sheet{width:100%;box-sizing:border-box;background-image:none;border:2px dashed #d8bf8d;touch-action:none;user-select:none}
+.marker-drawing-actions{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.marker-drawing-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;flex:1}
+.marker-status{display:grid;gap:8px}.marker-status span{font-size:13px;color:var(--muted,#9da7bb)}
+.marker-zoomed-sheet [role=status]{min-height:20px;font-size:12px;color:#e7be78}
