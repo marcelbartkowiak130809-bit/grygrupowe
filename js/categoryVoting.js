@@ -11,7 +11,10 @@ export const CATEGORY_CYCLE_DURATION_MS = CATEGORY_VOTE_DURATION_MS + CATEGORY_R
 const CATEGORY_RELEASES_KEY = "udowodnij.modeCategoryVoting.v1";
 const CATEGORY_VOTES_KEY = "udowodnij.modeCategoryVotes.v1";
 const HIDDEN_SOLO_VARIANTS = new Set(["popularnosc-solo"]);
-const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow", "dokoncz-tekst", "songspot"]);
+const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow", "songspot"]);
+// Retired releases must not reopen lyrics after its return to the voting pool.
+export const LYRICS_REVOTE_MIN_CYCLE = Math.floor((Date.parse('2026-10-13T20:00:00+02:00') - Date.parse(CATEGORY_VOTING_START_AT)) / CATEGORY_CYCLE_DURATION_MS);
+const modeEligibleInCycle = (modeId, cycleIndex) => modeId !== 'dokoncz-tekst' || cycleIndex >= LYRICS_REVOTE_MIN_CYCLE;
 const CATEGORY_MODE_IDS = {
   pokemon: ["pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type"],
   board: ["board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino"],
@@ -66,6 +69,7 @@ function normalizeRelease(value, cycleIndex) {
   const categoryId = String(value?.categoryId || "");
   const modeId = releaseModeId(String(value?.modeId || ""));
   const winningVotes = Number(value?.winningVotes);
+  if (!modeEligibleInCycle(modeId, Number(value?.cycle ?? cycleIndex))) return null;
   // A category mode is only available after that category actually won a poll.
   // Older records did not contain this proof and could have been generated when
   // nobody voted, so deliberately do not treat them as releases.
@@ -97,7 +101,7 @@ export function getCategoryReleases() {
 export function isCategoryModeReleased(modeId, releases = readLocalReleases()) {
   const normalizedModeId = releaseModeId(modeId);
   if (PERMANENT_MODE_IDS.has(normalizedModeId)) return true;
-  return Object.values(releases).some(release => releaseModeId(release?.modeId) === normalizedModeId);
+  return Object.entries(releases).some(([cycle,release]) => releaseModeId(release?.modeId) === normalizedModeId && (normalizedModeId !== 'dokoncz-tekst' || (release.categoryId === 'music' && Number(release.winningVotes) > 0 && modeEligibleInCycle(normalizedModeId,Number(release.cycle ?? cycle)))));
 }
 
 export function categoryModeProgress(categoryId, releases = readLocalReleases()) {
@@ -107,13 +111,12 @@ export function categoryModeProgress(categoryId, releases = readLocalReleases())
   }));
 }
 
-export function categoryModesRemaining(categoryId, releases = readLocalReleases()) {
-  const released = new Set(Object.values(releases).filter(release => release?.categoryId === categoryId).map(release => releaseModeId(release.modeId)));
-  return publicCategoryModes(categoryId).filter(mode => !released.has(mode.id));
+export function categoryModesRemaining(categoryId, releases = readLocalReleases(), cycleIndex = categoryVoteCycle().index) {
+  return publicCategoryModes(categoryId).filter(mode => modeEligibleInCycle(mode.id,cycleIndex) && !isCategoryModeReleased(mode.id,releases));
 }
 
-export function eligibleCategoryVotes(releases = readLocalReleases()) {
-  return categoryVoteCategories.filter(category => categoryModesRemaining(category.id, releases).length > 0);
+export function eligibleCategoryVotes(releases = readLocalReleases(), cycleIndex = categoryVoteCycle().index) {
+  return categoryVoteCategories.filter(category => categoryModesRemaining(category.id, releases, cycleIndex).length > 0);
 }
 
 function categoryPollId(cycleIndex) {
@@ -146,7 +149,7 @@ export function categoryVotePoll(cycleIndex, categories = eligibleCategoryVotes(
     question: "Która kategoria ma odblokować następny tryb?",
     startsAt: new Date(startAt).toISOString(),
     endsAt: new Date(startAt + CATEGORY_VOTE_DURATION_MS).toISOString(),
-    options: categories.map(category => ({ ...category, remaining: categoryModesRemaining(category.id, releases) })),
+    options: categories.map(category => ({ ...category, remaining: categoryModesRemaining(category.id, releases, cycleIndex) })),
   };
 }
 
@@ -181,14 +184,14 @@ function hashSeed(value) {
 }
 
 function chooseRelease(cycleIndex, poll, pollState, releases) {
-  const categories = poll.options.filter(option => categoryModesRemaining(option.id, releases).length > 0);
+  const categories = poll.options.filter(option => categoryModesRemaining(option.id, releases, cycleIndex).length > 0);
   if (!categories.length) return null;
   const highest = Math.max(...categories.map(option => Number(pollState?.totals?.[option.id]) || 0));
   // Do not unlock anything when the poll received no votes.
   if (highest < 1) return null;
   const tied = categories.filter(option => (Number(pollState?.totals?.[option.id]) || 0) === highest);
   const category = tied[hashSeed(`category:${cycleIndex}`) % tied.length];
-  const remaining = categoryModesRemaining(category.id, releases);
+  const remaining = categoryModesRemaining(category.id, releases, cycleIndex);
   if (!remaining.length) return null;
   const mode = remaining[hashSeed(`mode:${cycleIndex}:${category.id}`) % remaining.length];
   return { cycle: cycleIndex, categoryId: category.id, modeId: mode.id, pollId: poll.id, decidedAt: Date.now(), winningVotes: highest };
@@ -202,7 +205,7 @@ async function resolveMissingReleases(cycle, voterId, releases) {
     const cycleStart = new Date(CATEGORY_VOTING_START_AT).getTime() + index * CATEGORY_CYCLE_DURATION_MS;
     const resultStartsAt = cycleStart + CATEGORY_VOTE_DURATION_MS;
     if (Date.now() < resultStartsAt) break;
-    const categories = eligibleCategoryVotes(releases);
+    const categories = eligibleCategoryVotes(releases,index);
     if (!categories.length) break;
     const poll = categoryVotePoll(index, categories, releases);
     const local = localPollState(poll, voterId, Date.now());

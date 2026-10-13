@@ -1,6 +1,6 @@
 import { cosmeticPreview, cosmetics } from "./cosmetics.js?v=20260901-5";
 import { botTooltip } from "./bots.js?v=20260823-2";
-import { isModeLocked } from "./upcomingModes.js?v=20260922-1";
+import { isModeLocked } from "./upcomingModes.js?v=20261013-6";
 
 const reward = (level, type, value, label) => ({ level, type, value, label });
 

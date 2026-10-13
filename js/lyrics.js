@@ -2,6 +2,9 @@ import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260
 import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261012-2";
 import { Audio } from "./audio.js?v=20260926-1";
 
+import { lyricsPreviewSync } from '../content/lyricsPreviewSync.js?v=20261013-6';
+import { validLyricsSync, lyricsVisibleWordCount } from './lyricsSync.js?v=20261013-6';
+
 export const lyricsDefaults = { rounds: 5, audioSeconds: 8, answerTime: 30, category: "all", region: "global" };
 const MIN_AUDIO_SECONDS = 4;
 const MAX_AUDIO_SECONDS = 12;
@@ -286,7 +289,7 @@ const lyricPairs = {
   "lyrics-pl-nie-ma-fal": { previousLine: "Choćbyś szukał na mapie", answer: "Nie ma fal" },
 };
 
-const lyricBank = lyricSeeds.map(([id, trackId, line, categories]) => {
+const rawLyricBank = lyricSeeds.map(([id, trackId, line, categories]) => {
   const track = musicPreviewCatalog.find(item => item.id === trackId) || {};
   const pair = lyricPairs[id] || {};
   return {
@@ -305,8 +308,13 @@ const lyricBank = lyricSeeds.map(([id, trackId, line, categories]) => {
   };
 });
 
+const lyricBank = rawLyricBank.flatMap(item => {
+  const sync=lyricsPreviewSync[item.id];
+  return validLyricsSync(item.previewUrl,sync) ? [{...item,line:sync.previousLine,previousLine:sync.previousLine,contextLines:[sync.previousLine],answer:sync.answer,sync}] : [];
+});
+
 export const lyricsTracks = lyricBank.map(item => ({ ...item }));
-const lyricById = id => lyricBank.find(item => item.id === id) || lyricBank[0];
+const lyricById = id => lyricBank.find(item => item.id === id) || null;
 
 export function sanitizeLyricsSettings(settings = {}) {
   return {
@@ -360,13 +368,16 @@ function startLyricsRound(game, settings) {
   const item = pickLyric(usedIds, settings.category, settings.region);
   game.usedIds = [...new Set([...usedIds, item.id])].slice(-lyricBank.length);
   game.lyricId = item.id;
-  game.cutAt = cutPoint(lyricPromptLine(item));
-  game.audioSeconds = settings.audioSeconds;
-  game.revealStartedAt = Date.now();
+  game.cutAt = [...lyricPromptLine(item)].length;
+  game.audioSeconds = item.sync.stop-item.sync.start;
+  game.audioKey = `${Date.now()}-${Math.random()}`;
+  game.syncVersion = 1;
+  game.audioFinished = {};
+  game.revealStartedAt = 0;
   game.answers = {};
   game.roundResult = null;
   game.phase = "listening";
-  game.phaseEndsAt = deadline(settings.audioSeconds);
+  game.phaseEndsAt = 0;
 }
 
 function expectedAnswer(game) {
@@ -473,6 +484,12 @@ export function createLyricsGame(players, settings = {}) {
 }
 
 export const LyricsEngine = {
+  finishAudio(game,uid,settings={}) {
+    if(game.phase!=='listening'||!array(game.players).includes(uid))return 'Ta runda już się zmieniła.';
+    game.audioFinished=object(game.audioFinished);game.audioFinished[uid]=true;
+    const humans=array(game.players).filter(player=>!String(player).startsWith('bot:'));
+    if(humans.every(player=>game.audioFinished[player])) {game.phase='answering';game.phaseEndsAt=deadline(sanitizeLyricsSettings(settings).answerTime);}
+  },
   answer(game, uid, text, players, settings = {}) {
     const safe = sanitizeLyricsSettings(settings);
     if (game.phase !== "answering") return "Teraz nie można już wpisywać odpowiedzi.";
@@ -545,7 +562,7 @@ export const LyricsEngine = {
     if (game.region !== safe.region) { game.region = safe.region; changed = true; }
     const order = [...new Set(array(players).map(String).filter(Boolean))].slice(0, 8);
     if (JSON.stringify(game.players || []) !== JSON.stringify(order)) { game.players = order; changed = true; }
-    if (!game.lyricId || !lyricById(game.lyricId)) { startLyricsRound(game, safe); changed = true; }
+    if (!game.lyricId || !lyricById(game.lyricId) || game.syncVersion !== 1) { startLyricsRound(game, safe); changed = true; }
     if (!Number.isFinite(Number(game.cutAt)) || Number(game.cutAt) < 1) { game.cutAt = cutPoint(lyricPromptLine(lyricById(game.lyricId))); changed = true; }
     if (!Number.isFinite(Number(game.round)) || Number(game.round) < 1) { game.round = 1; changed = true; }
     if (!Number.isFinite(Number(game.totalRounds))) { game.totalRounds = safe.rounds; changed = true; }
@@ -646,32 +663,20 @@ function karaokeStage(item, revealCount, cutAt, phase = "listening", answer = ""
 }
 
 function revealedCount(game, now = Date.now(), audioTime = undefined) {
-  const line = lyricPromptLine(lyricById(game?.lyricId));
-  const cutAt = Math.max(1, Math.min([...line].length - 1, Number(game?.cutAt) || 1));
-  if ((game?.phase || game?.status) !== "listening") return cutAt;
-  const duration = Math.max(1, Number(game?.audioSeconds) || lyricsDefaults.audioSeconds) * 1000;
-  const elapsed = Number.isFinite(Number(audioTime))
-    ? Math.max(0, Math.min(duration, Number(audioTime) * 1000))
-    : !Number(game?.revealStartedAt)
-      ? 0
-      : Math.max(0, Math.min(duration, now - Number(game?.revealStartedAt || now)));
-  return Math.max(0, Math.min(cutAt, Math.floor((elapsed / duration) * cutAt)));
+  const item=lyricById(game?.lyricId);if(!item)return 0;
+  if((game.phase||game.status)!=='listening')return [...item.previousLine].length;
+  const words=lyricWords(item.previousLine),count=lyricsVisibleWordCount(item.sync,audioTime);
+  return count ? words[count-1].end : 0;
 }
-
-function updateLyricsKaraokeStage(root, game, phase = "listening", audioTime = undefined) {
-  if (!root || phase !== "listening") return;
-  const item = lyricById(game?.lyricId);
-  const promptLine = lyricPromptLine(item);
-  const chars = [...promptLine];
-  const cutAt = Math.max(1, Math.min(Math.max(1, chars.length - 1), Number(game?.cutAt) || 1));
-  const stage = root.querySelector("[data-lyrics-reveal]");
-  if (!stage) return;
-  const shown = revealedCount(game, Date.now(), audioTime);
-  const previousShown = Number(stage.dataset.lyricsRevealed);
-  const stableShown = Number.isFinite(previousShown) ? Math.max(previousShown, shown) : shown;
-  const previous = stage.querySelector("[data-lyrics-previous]");
-  if (previous) previous.innerHTML = promptWordsHtml(promptLine, stableShown / Math.max(1, cutAt), "listening");
-  stage.dataset.lyricsRevealed = String(stableShown);
+function updateLyricsKaraokeStage(root,game,phase='listening',audioTime=undefined) {
+  if(!root||phase!=='listening')return;
+  const item=lyricById(game.lyricId),stage=root.querySelector('[data-lyrics-reveal]');
+  if(!item||!stage)return;
+  const count=lyricsVisibleWordCount(item.sync,audioTime);
+  if(stage.dataset.lyricsWords===String(count))return;
+  stage.dataset.lyricsWords=String(count);
+  const previous=stage.querySelector('[data-lyrics-previous]');
+  if(previous)previous.innerHTML=lyricWords(item.previousLine).map((word,index)=>`<span class="lyrics-karaoke-word ${index<count?'lyrics-word-visible':'lyrics-word-blank'} ${index===count-1?'lyrics-karaoke-word-current':''}" aria-hidden="${index>=count}">${index<count?escapeHtml(word.text):''}</span>`).join(' ');
 }
 
 function trackHtml(item) {
@@ -749,9 +754,12 @@ let lyricsClockTimer = 0;
 let lyricsTimerKey = "";
 let lyricsAudioStopTimer = 0;
 let lyricsAudio = null;
+let lyricsAudioFrame = 0;
 const lockedAudioKeys = new Set();
+const retryAudioKeys = new Set();
 
 export function stopLyricsTimer() {
+  window.cancelAnimationFrame(lyricsAudioFrame);lyricsAudioFrame=0;
   window.clearTimeout(lyricsTimer);
   window.clearTimeout(lyricsClockTimer);
   window.clearTimeout(lyricsAudioStopTimer);
@@ -767,74 +775,48 @@ export function stopLyricsTimer() {
   lyricsAudio = null;
 }
 
-function bindLyricsAudio(root, game, namespace, onStarted = null) {
-  const audio = root.querySelector("[data-lyrics-audio]");
-  const button = root.querySelector("[data-lyrics-play]");
-  if (!audio) return;
-  const key = `lyrics:${namespace}:${Number(game.revealStartedAt || game.round || 1)}:${Number(game.round || 1)}:${game.lyricId}`;
-  audio.dataset.trackKey = key;
-  audio.dataset.trackPreviewLimit = String(Math.max(MIN_AUDIO_SECONDS, Number(game.audioSeconds) || lyricsDefaults.audioSeconds));
-  lyricsAudio = audio;
-  const locked = () => lockedAudioKeys.has(key);
-  const lock = () => {
-    if (locked()) return;
-    lockedAudioKeys.add(key);
-    audio.dataset.rerenderPause = "1";
-    try { audio.pause(); } catch {}
-    delete audio.dataset.rerenderPause;
-    if (button) { button.disabled = true; button.textContent = "Fragment zakończony"; }
-    const state = root.querySelector("[data-lyrics-audio-state]");
-    if (state) state.textContent = "Odsłuch zakończony — dokończ tekst.";
+function bindLyricsAudio(root,game,namespace,onStarted=null,onFinished=null) {
+  const audio=root.querySelector('[data-lyrics-audio]'),button=root.querySelector('[data-lyrics-play]'),item=lyricById(game.lyricId);
+  if(!audio||!item)return;
+  const key=`lyrics:${namespace}:${game.audioKey||game.round}:${game.lyricId}`,sync=item.sync;
+  audio.dataset.trackKey=key;audio.dataset.trackPreviewLimit=String(sync.stop);lyricsAudio=audio;
+  const feedback=root.querySelector('[data-lyrics-audio-state]');
+  let finished=lockedAudioKeys.has(key),lastPaint=0;
+  const notify=async()=>{try{const accepted=await onFinished?.();if(accepted===false){retryAudioKeys.add(key);if(button){button.disabled=false;button.textContent='Potwierdź odsłuch';}if(feedback)feedback.textContent='Nie zapisano zakończenia odsłuchu. Spróbuj potwierdzić ponownie.';}else retryAudioKeys.delete(key);}catch{retryAudioKeys.add(key);if(button){button.disabled=false;button.textContent='Potwierdź odsłuch';}}};
+  const position=()=>{if(audio.currentTime<sync.start)audio.currentTime=sync.start;};
+  const finish=()=>{
+    if(finished)return;finished=true;lockedAudioKeys.add(key);window.cancelAnimationFrame(lyricsAudioFrame);
+    audio.pause();updateLyricsKaraokeStage(root,game,'listening',sync.stop);
+    if(button){button.disabled=true;button.textContent='Fragment zakończony';}
+    if(feedback)feedback.textContent='Odsłuch zapisany — czekamy na pozostałych graczy.';
+    notify();
   };
-  const started = () => {
-    audio.dataset.lyricsSyncActive = "1";
-    updateLyricsKaraokeStage(root, game, "listening", audio.currentTime);
-    if (onStarted && audio.dataset.lyricsPlayStarted !== "1") {
-      audio.dataset.lyricsPlayStarted = "1";
-      // Pierwszy start solo zapisuje moment rozpoczęcia i może odświeżyć ekran.
-      // Po takim odświeżeniu powstaje nowy element <audio>, więc callback musi
-      // potwierdzić, że stan faktycznie zmienił się pierwszy raz. Bez tego
-      // przywrócone odtwarzanie uruchamiało nieskończoną pętlę renderów.
-      const accepted = onStarted();
-      if (accepted !== true) delete audio.dataset.lyricsPlayStarted;
-    }
-    const state = root.querySelector("[data-lyrics-audio-state]");
-    if (state) state.textContent = "Słuchaj uważnie — fragment zaraz się zatrzyma.";
+  const tick=timestamp=>{
+    if(!audio.isConnected||finished)return;
+    if(!audio.paused){if(audio.currentTime>=sync.stop){finish();return;}if(timestamp-lastPaint>70){lastPaint=timestamp;updateLyricsKaraokeStage(root,game,'listening',audio.currentTime);root.querySelectorAll('[data-lyrics-countdown]').forEach(node=>node.textContent=`${Math.max(0,sync.stop-audio.currentTime).toFixed(1)}s`);}}
+    lyricsAudioFrame=window.requestAnimationFrame(tick);
   };
-  audio.addEventListener("play", started);
-  audio.addEventListener("loadedmetadata", () => updateLyricsKaraokeStage(root, game, "listening", audio.currentTime));
-  audio.addEventListener("timeupdate", () => {
-    audio.dataset.lyricsSyncActive = "1";
-    updateLyricsKaraokeStage(root, game, "listening", audio.currentTime);
-    if (Number(audio.currentTime) >= Number(audio.dataset.trackPreviewLimit)) lock();
-  });
-  audio.addEventListener("ended", lock);
-  if (button) button.addEventListener("click", () => {
-    if (locked()) return;
-    Audio.bindTrackAudio(audio, key, { autoplay:false });
-    const playing = audio.play();
-    if (playing?.catch) playing.catch(() => {
-      const state = root.querySelector("[data-lyrics-audio-state]");
-      if (state) state.textContent = "Przeglądarka zablokowała dźwięk — kliknij ponownie.";
-    });
-  });
-  if (locked()) {
-    if (button) { button.disabled = true; button.textContent = "Fragment zakończony"; }
-  } else {
-    Audio.bindTrackAudio(audio, key, { autoplay:true });
-    if (Number(game.phaseEndsAt) > 0) lyricsAudioStopTimer = window.setTimeout(lock, Math.max(100, Number(game.phaseEndsAt) - Date.now() + 40));
-  }
+  audio.addEventListener('loadedmetadata',position);
+  audio.addEventListener('play',()=>{position();audio.dataset.lyricsSyncActive='1';onStarted?.();if(feedback)feedback.textContent='Słuchaj — odtwarzamy dopasowany fragment.';});
+  audio.addEventListener('timeupdate',()=>{if(audio.currentTime>=sync.stop)finish();});
+  audio.addEventListener('ended',finish);
+  audio.addEventListener('error',()=>{if(feedback)feedback.textContent='Nie udało się wczytać odsłuchu. Spróbuj ponownie.';});
+  button?.addEventListener('click',()=>{if(finished){if(retryAudioKeys.has(key))notify();return;}if(!audio.paused){audio.pause();button.textContent='▶ Wznów fragment';return;}Audio.bindTrackAudio(audio,key,{autoplay:false});position();audio.play()?.catch(()=>{if(feedback)feedback.textContent='Kliknij ponownie, aby uruchomić odsłuch.';});});
+  if(finished){updateLyricsKaraokeStage(root,game,'listening',sync.stop);if(button){button.disabled=!retryAudioKeys.has(key);button.textContent=retryAudioKeys.has(key)?'Potwierdź odsłuch':'Fragment zakończony';}if(feedback)feedback.textContent='Odsłuch zakończony — czekamy na pozostałych graczy.';return;}
+  window.cancelAnimationFrame(lyricsAudioFrame);lyricsAudioFrame=window.requestAnimationFrame(tick);
+  Audio.bindTrackAudio(audio,key,{autoplay:true});
 }
 
 export function renderLyricsGame(root, { room, accounts, currentUser }, actions) {
   const game = room.game;
   const item = itemForGame(game, game.roundResult);
-  const expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt };
+  if(!item){root.innerHTML='<section class="panel"><h1>Ta runda używa starego fragmentu.</h1><p>Wróć do lobby i rozpocznij nową grę po odblokowaniu trybu.</p></section>';return;}
+  const expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt, lyricId:game.lyricId, round:game.round };
   const timer = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - Date.now()) / 1000));
-  const namespace = room.roomId || "lyrics";
-  let content = `<p class="eyebrow">DOKOŃCZ TEKST · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><h1>Jaki jest następny wers?</h1><div class="lyrics-category-banner"><span>✍️</span><div><small>KATEGORIA</small><strong>${escapeHtml(categoryLabel(game.category))}</strong></div></div>`;
+  const namespace = `${room.roomId || 'lyrics'}:${currentUser}`;
+  let content = `<p class="eyebrow">DOKOŃCZ TEKST · RUNDA ${Math.min(Number(game.round || 1), Number(game.totalRounds || 1))}/${Number(game.totalRounds || 1)}</p><h1>Jakie słowa lecą dalej?</h1><div class="lyrics-category-banner"><span>✍️</span><div><small>KATEGORIA</small><strong>${escapeHtml(categoryLabel(game.category))}</strong></div></div>`;
   if (game.phase === "listening") {
-    content += `<section class="lyrics-challenge listening">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(game), game.cutAt, "listening", expectedAnswer(game))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Fragment włączy się automatycznie po wejściu." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się w rytmie odsłuchu. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
+    content += `<section class="lyrics-challenge listening">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(game), game.cutAt, "listening", expectedAnswer(game))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Fragment włączy się automatycznie po wejściu." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się w rytmie odsłuchu. Po zatrzymaniu zostaje usłyszane słowa, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">Odtwarzamy tylko fragmenty dopasowane do tekstu.</small></p></section>`;
   } else if (game.phase === "answering") {
     content += `<section class="lyrics-challenge answering">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, game.cutAt, game.cutAt, "answering", expectedAnswer(game))}</div>${answerForm(game, currentUser)}</section>`;
   } else if (game.phase === "roundResult") {
@@ -852,7 +834,7 @@ export function renderLyricsGame(root, { room, accounts, currentUser }, actions)
   root.querySelector("#lyrics-lobby")?.addEventListener("click", actions.returnToRoom);
   root.querySelector("#lyrics-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
   bindLyricsCoverFallbacks(root);
-  if (game.phase === "listening") bindLyricsAudio(root, game, namespace);
+  if (game.phase === "listening") bindLyricsAudio(root, game, namespace, null, () => actions.lyricsAudioFinished?.(expected));
   scheduleLyricsTimer(root, game, actions, expected);
 }
 
@@ -862,7 +844,9 @@ const SOLO_ANSWER_SECONDS = 30;
 
 function normalizeLyricsSoloState(raw, playerId) {
   const owner = String(playerId || raw?.playerId || "guest");
-  const source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const source = {...(raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {})};
+  if(source.lyricId && !lyricById(source.lyricId)){source.status="idle";source.lyricId="";source.lastResult=null;}
+  if(source.status!=='idle' && source.syncVersion!==1){source.status='idle';source.lyricId='';source.lastResult=null;}
   const status = ["idle", "listening", "answering", "reveal", "over"].includes(source.status) ? source.status : "idle";
   const best = Math.max(0, Number(source.best) || 0);
   return {
@@ -873,9 +857,11 @@ function normalizeLyricsSoloState(raw, playerId) {
     best: Math.max(best, status !== "idle" ? Number(source.streak) || 0 : 0),
     round: Math.max(0, Number(source.round) || 0),
     lyricId: String(source.lyricId || ""),
+    audioKey: String(source.audioKey || ""),
+    syncVersion: 1,
     cutAt: Math.max(1, Number(source.cutAt) || 1),
     usedIds: unique(source.usedIds),
-    audioSeconds: clamp(source.audioSeconds, MIN_AUDIO_SECONDS, MAX_AUDIO_SECONDS, SOLO_AUDIO_SECONDS),
+    audioSeconds: lyricById(source.lyricId)?.sync ? lyricById(source.lyricId).sync.stop-lyricById(source.lyricId).sync.start : SOLO_AUDIO_SECONDS,
     answerTime: clamp(source.answerTime, MIN_ANSWER_SECONDS, MAX_ANSWER_SECONDS, SOLO_ANSWER_SECONDS),
     revealStartedAt: Number(source.revealStartedAt) || 0,
     phaseEndsAt: Number(source.phaseEndsAt) || 0,
@@ -903,8 +889,10 @@ function startLyricsSoloRound(state) {
   const item = pickLyric(state.usedIds, "all", state.region);
   state.usedIds = [...new Set([...state.usedIds, item.id])].slice(-lyricBank.length);
   state.lyricId = item.id;
-  state.cutAt = cutPoint(lyricPromptLine(item));
-  state.audioSeconds = SOLO_AUDIO_SECONDS;
+  state.cutAt = [...lyricPromptLine(item)].length;
+  state.audioSeconds = item.sync.stop-item.sync.start;
+  state.audioKey = `${Date.now()}-${Math.random()}`;
+  state.syncVersion = 1;
   state.answerTime = SOLO_ANSWER_SECONDS;
   state.revealStartedAt = item.previewUrl ? 0 : Date.now();
   state.phaseEndsAt = item.previewUrl ? 0 : deadline(state.audioSeconds);
@@ -982,9 +970,9 @@ export const LyricsSoloEngine = {
   get(playerId) { return { ...readLyricsSoloState(playerId) }; },
   audioStarted(playerId) {
     const state = readLyricsSoloState(playerId);
-    if (state.status !== "listening" || Number(state.phaseEndsAt) > Date.now()) return false;
+    if (state.status !== "listening" || Number(state.revealStartedAt) > 0) return false;
     state.revealStartedAt = Date.now();
-    state.phaseEndsAt = deadline(state.audioSeconds);
+    state.phaseEndsAt = 0;
     saveLyricsSoloState(state);
     return true;
   },
@@ -1107,9 +1095,9 @@ export function renderLyricsSolo(root, { profile, playerId, accounts = {}, leade
   const expected = { phase:state.status, phaseEndsAt:state.phaseEndsAt };
   let content = lyricsSoloHeader(state);
   if (state.status === "idle") {
-    content += `<section class="lyrics-solo-start"><div class="lyrics-solo-icon">🎤</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile fragmentów trafisz z rzędu?</h2><p class="muted">Najpierw słuchasz krótkiego preview. Potem widzisz ostatnie zaśpiewane linie i wpisujesz kolejną.</p>${lyricsSoloRegionPicker(state)}<div class="lyrics-solo-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><p class="lyrics-beta-note">⚠️ BETA: synchronizacja tekstu z wokalem jest orientacyjna i może nie zawsze być dokładna.</p><button class="primary big" id="lyrics-solo-start">Zacznij serię</button></section>`;
+    content += `<section class="lyrics-solo-start"><div class="lyrics-solo-icon">🎤</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile fragmentów trafisz z rzędu?</h2><p class="muted">Najpierw słuchasz krótkiego preview. Potem widzisz usłyszany fragment i wpisujesz kolejną.</p>${lyricsSoloRegionPicker(state)}<div class="lyrics-solo-best"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><p class="lyrics-beta-note">Każdy fragment ma własne znaczniki czasu.</p><button class="primary big" id="lyrics-solo-start">Zacznij serię</button></section>`;
   } else if (state.status === "listening") {
-    content += `<section class="lyrics-challenge listening lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timerLabel}</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(state), state.cutAt, "listening", expectedAnswer(state))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Kliknij, jeśli przeglądarka zablokuje automatyczny dźwięk." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się razem z odsłuchem. Po zatrzymaniu zostaje ostatni zaśpiewany wers, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">⚠️ Synchronizacja jest orientacyjna — zależy od wybranego preview i nie zawsze pokrywa się idealnie z wokalem.</small></p></section>`;
+    content += `<section class="lyrics-challenge listening lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Odsłuch fragmentu</span><b data-lyrics-countdown>${timerLabel}</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, revealedCount(state), state.cutAt, "listening", expectedAnswer(state))}</div><div class="lyrics-audio-box"><audio data-lyrics-audio preload="auto" src="${escapeHtml(item.previewUrl || "")}"></audio><button class="ghost" type="button" data-lyrics-play ${item.previewUrl ? "" : "disabled"}>▶ Odtwórz fragment</button><span data-lyrics-audio-state>${item.previewUrl ? "Kliknij, jeśli przeglądarka zablokuje automatyczny dźwięk." : "Brak dostępnego preview tego utworu."}</span></div><p class="lyrics-hint">Tekst pojawia się razem z odsłuchem. Po zatrzymaniu zostaje usłyszane słowa, a niżej widzisz puste miejsca na dalszy tekst.<small class="lyrics-sync-warning">Odtwarzamy tylko fragmenty dopasowane do tekstu.</small></p></section>`;
   } else if (state.status === "answering") {
     content += `<section class="lyrics-challenge answering lyrics-solo-challenge">${trackHtml(item)}<div class="lyrics-progress"><span>Twoja odpowiedź</span><b data-lyrics-countdown>${timer}s</b></div><div class="lyrics-text-stage" data-lyrics-stage>${karaokeStage(item, state.cutAt, state.cutAt, "answering", expectedAnswer(state))}</div><form class="lyrics-answer-form" data-lyrics-solo-answer-form><label for="lyrics-solo-answer">Odpowiedź</label><div><input id="lyrics-solo-answer" name="answer" maxlength="180" autocomplete="off" placeholder="Wpisz słowa…" required><button class="primary" type="submit">Zatwierdź</button></div><div class="lyrics-answer-actions"><small>Jedno puste miejsce oznacza jedno słowo. Liczy się każda poprawna litera — interpunkcja nie ma znaczenia.</small><button class="ghost lyrics-surrender" type="button" data-lyrics-solo-surrender>Poddaję się</button></div></form></section>`;
   } else {
@@ -1126,19 +1114,12 @@ export function renderLyricsSolo(root, { profile, playerId, accounts = {}, leade
   root.querySelector("[data-lyrics-solo-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.lyricsSoloAnswer(input?.value || "", expected); });
   root.querySelector("[data-lyrics-solo-surrender]")?.addEventListener("click", () => actions.lyricsSoloSurrender?.(expected));
   bindLyricsCoverFallbacks(root);
-  if (state.status === "listening") bindLyricsAudio(root, state, `solo:${playerId}`, () => {
-    const started = actions.lyricsSoloAudioStarted?.();
-    if (started) {
-      const liveState = LyricsSoloEngine.get(playerId);
-      scheduleLyricsSoloTimer(root, liveState, actions, { phase: liveState.status, phaseEndsAt: liveState.phaseEndsAt });
-    }
-    return started;
-  });
+  if (state.status === "listening") bindLyricsAudio(root,state,`solo:${playerId}`,()=>actions.lyricsSoloAudioStarted?.(),()=>actions.lyricsSoloAudioFinished?.({phase:state.status,phaseEndsAt:state.phaseEndsAt,lyricId:state.lyricId,round:state.round}));
   scheduleLyricsSoloTimer(root, state, actions, expected);
 }
 
 export function renderLyricsLobbySettings(room, isHost) {
   const settings = sanitizeLyricsSettings(room.settings);
   const categoryOptions = musicCategories.map(([id, label, group]) => `<option value="${escapeHtml(id)}" ${settings.category === id ? "selected" : ""}>${escapeHtml(label)} · ${escapeHtml(group)}</option>`).join("");
-  return `<div class="music-settings lyrics-settings">${musicRegionPicker(settings.region, "region", isHost, "lyrics")}<label class="setting-row"><span>Liczba rund</span><select data-lyrics-setting="rounds" ${isHost ? "" : "disabled"}>${[3, 5, 7, 10, 15, 20].map(value => `<option value="${value}" ${settings.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Długość fragmentu</span><select data-lyrics-setting="audioSeconds" ${isHost ? "" : "disabled"}>${[5, 8, 10, 12].map(value => `<option value="${value}" ${settings.audioSeconds === value ? "selected" : ""}>${value} sekund</option>`).join("")}</select></label><label class="setting-row"><span>Czas na odpowiedź</span><select data-lyrics-setting="answerTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${settings.answerTime === value ? "selected" : ""}>${value} sekund</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span><select data-lyrics-setting="category" ${isHost ? "" : "disabled"}>${categoryOptions}</select></label><div class="lyrics-settings-note"><b>Jak to działa?</b><small>Najpierw słuchacie krótkiego preview. Po zatrzymaniu audio każdy wpisuje brakujący fragment. Wynik liczy się procentowo za poprawne litery.</small><small class="lyrics-beta-note">⚠️ Tryb beta: synchronizacja piosenka–tekst może być niedokładna.</small></div></div>`;
+  return `<div class="music-settings lyrics-settings">${musicRegionPicker(settings.region, "region", isHost, "lyrics")}<label class="setting-row"><span>Liczba rund</span><select data-lyrics-setting="rounds" ${isHost ? "" : "disabled"}>${[3, 5, 7, 10, 15, 20].map(value => `<option value="${value}" ${settings.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><p class="muted">Długość odsłuchu wynika z dopasowanego fragmentu — dźwięk zatrzyma się przed odpowiedzią.</p><label class="setting-row"><span>Czas na odpowiedź</span><select data-lyrics-setting="answerTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60].map(value => `<option value="${value}" ${settings.answerTime === value ? "selected" : ""}>${value} sekund</option>`).join("")}</select></label><label class="setting-row"><span>Kategoria</span><select data-lyrics-setting="category" ${isHost ? "" : "disabled"}>${categoryOptions}</select></label><div class="lyrics-settings-note"><b>Jak to działa?</b><small>Najpierw słuchacie krótkiego preview. Po zatrzymaniu audio każdy wpisuje brakujący fragment. Wynik liczy się procentowo za poprawne litery.</small><small class="lyrics-beta-note">Pula obejmuje tylko fragmenty dopasowane do odsłuchu.</small></div></div>`;
 }

@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20260922-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-6";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,12 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version: "v5.4.4",
+      date: "2026-10-13",
+      title: "Dokończ tekst wraca do głosowania",
+      changes: ["Tryb zablokowano i dodano do muzycznej puli głosowania; dawne odblokowania go nie otwierają.", "Zastąpiono sztuczny zegar tekstu znacznikami z analizy konkretnych odsłuchów. Na początek 5 dopasowanych fragmentów: 3 globalne i 2 polskie. Odpowiadanie zaczyna się po zakończeniu odsłuchu, nie w trakcie buforowania."],
+    },
     {
       version: "v5.4.3",
       date: "2026-10-13",
