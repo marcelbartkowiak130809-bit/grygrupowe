@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.4.6-20261013-impostor-voting";
+const CACHE_NAME = "grygrupowe-shell-v5.4.7-20261013-songspot-next";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

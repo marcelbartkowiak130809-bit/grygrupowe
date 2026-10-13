@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-7";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-9";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,12 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version: "v5.4.7",
+      date: "2026-10-13",
+      title: "Następny utwór bez przewijania",
+      changes: ["Przycisk następnego utworu w podsumowaniu Zgadnij utwór jest teraz na górze — po trafieniu, pominięciu i przegranej."],
+    },
     {
       version: "v5.4.6",
       date: "2026-10-13",
