@@ -7,6 +7,16 @@
 .playlist-cup-header>span{display:grid;place-items:center;font-size:42px;color:#f7c766;background:#f7c7660e;border:1px solid #f7c76633;border-radius:22px;width:78px;height:78px;transform:rotate(8deg)}
 .playlist-cup-import{max-width:620px;margin:auto;text-align:center}
 .playlist-cup-import-icon{font-size:56px;color:#43deef;text-shadow:0 0 45px #24d0f780}
+.playlist-cup-import select{width:100%;padding:12px;border-radius:12px;color:inherit;background:#161d32;border:1px solid #ffffff26;font:inherit;min-height:44px}
+.cup-size-options{border:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.cup-size-options legend{font-weight:700;margin-bottom:12px}
+.cup-size-options label{display:grid;grid-template-columns:20px 1fr;gap:6px 8px;padding:14px;border:1px solid #ffffff24;border-radius:14px;cursor:pointer;transition:border-color .2s,background .2s}
+.cup-size-options label:has(input:checked){background:#25cbd715;border-color:#43deef}
+.cup-size-options input{accent-color:#43deef;grid-row:1/4;align-self:center}
+.cup-size-options small,.cup-size-warning{grid-column:2;font-size:11px}
+.cup-size-warning{color:#f5cd77}.cup-size-warning.is-long{color:#f5a49a}
+.songspot-result>[data-songspot-share]{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin:16px auto 0;gap:8px}
+@media(max-width:360px){.cup-size-options{grid-template-columns:1fr}}
 .playlist-cup-import h2{font-size:26px;letter-spacing:-.03em;margin:10px 0}
 .playlist-cup-import form{text-align:left;display:grid;gap:10px;margin:26px 0}
 .playlist-cup-import form>label{font-weight:700;font-size:13px}

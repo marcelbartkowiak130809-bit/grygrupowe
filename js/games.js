@@ -28,8 +28,8 @@ import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=2026
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261012-2";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20260926-1";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261012-6";
-import { renderPlaylistTournament } from "./playlistTournament.js?v=20261012-4";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261013-1";
+import { renderPlaylistTournament } from "./playlistTournament.js?v=20261013-1";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
@@ -389,8 +389,8 @@ export const gamesRegistry = {
     id: "songspot", name: "Zgadnij utwór", description: "Rozpoznajcie tę samą piosenkę po krótkim fragmencie i zdobądźcie punkty za szybkość.", help: ["W pokoju wszyscy słuchają tego samego utworu i wpisują własną odpowiedź.", "Każda runda zaczyna się od 0,1 s i ma stałą sekwencję: 0,5 s, 2 s, 8 s oraz 15 s.", "Przycisk Skip przechodzi do następnego czasu tego samego utworu; dopiero Skip po 15 s kończy odsłuch.", "Po ostatniej rundzie zobaczycie pełne wyniki oraz zapis każdej piosenki i odpowiedzi."], allowReports: false, players: "2-8 osób", minPlayers: 2, maxPlayers: 8, supportsLobby: true, supportsSolo: true, soloModeId: "songspot-solo", symbol: "🎧", art: "music-songspot", audience: "music", badges: ["new", "tiktok"], render: renderSongSpotGame, defaultSettings: songSpotDefaults,
   },
   "playlista-cup": {
-    id: "playlista-cup", name: "Playlista Cup", description: "Twoja playlista w turnieju: odsłuchaj dwie piosenki i wybierz, która przechodzi dalej.",
-    help: ["Wklej listę Artysta — Tytuł, od 2 do 200 utworów.", "Najpierw leci 10 sekund piosenki A, potem 10 sekund piosenki B.", "Wybierz zwycięzcę każdej pary. Przy nieparzystej liczbie utworów jeden ma wolny los.", "Zwycięzcy przechodzą do kolejnych rund, aż zostanie jeden hit. Na końcu zobaczysz wszystkie wybory."],
+    id: "playlista-cup", name: "Turniej hitów", description: "Losuj 8–128 piosenek, odsłuchaj każdą parę i wybieraj zwycięzców aż do finału.",
+    help: ["Wybierz 8, 16, 32, 64 lub 128 losowych utworów i pulę polską, globalną albo mieszaną.", "Długość każdego odsłuchu możesz ustawić na 5, 10, 15, 20 lub 30 sekund.", "Przy każdym zestawie zobaczysz szacowany czas gry; duże turnieje mają ostrzeżenia.", "Wybieraj zwycięzców kolejnych par aż do finału. Podsumowanie pokazuje wszystkie wybory."],
     allowReports: false, players: "Tryb solo", minPlayers: 1, maxPlayers: 1, supportsLobby: false, supportsSolo: true,
     symbol: "🏆", art: "music-arena", audience: "music", badges: ["new"], render: renderPlaylistTournament, soloRender: renderPlaylistTournament, defaultSettings: {},
   },

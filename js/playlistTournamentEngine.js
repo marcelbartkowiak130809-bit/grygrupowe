@@ -1,7 +1,7 @@
 // A single-elimination bracket. Every track enters once; odd rounds get a bye.
 export const TOURNAMENT_PREVIEW_SECONDS = 10;
 const states = new Map();
-const storageKey = owner => `grygrupowe-playlist-tournament-v1:${owner}`;
+const storageKey = owner => `grygrupowe-random-music-tournament-v2:${owner}`;
 const https = value => { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; } };
 export function tournamentTracks(tracks) {
   const seen = new Set();
@@ -56,28 +56,29 @@ function beginPair(state) {
 }
 export const PlaylistTournamentEngine = {
   get,
-  load(owner, tracks) {
+  load(owner, tracks, options = {}) {
     const clean = tournamentTracks(tracks);
     if (clean.length < 2) throw new Error('Potrzebne są co najmniej 2 różne utwory z odsłuchem.');
-    const state = {...empty(), tracks:clean}; states.set(String(owner), state); save(owner, state); return state;
+    const previewSeconds = [5,10,15,20,30].includes(Number(options.previewSeconds)) ? Number(options.previewSeconds) : 10;
+    const state = {...empty(), tracks:clean, previewSeconds, settings:options.settings}; states.set(String(owner), state); save(owner, state); return state;
   },
   start(owner, random = Math.random, now = Date.now()) {
     const previous = get(owner);
     if (previous.tracks.length < 2) throw new Error('Najpierw załaduj playlistę.');
     const entrants = previous.tracks.map(t => t.id);
     for (let i = entrants.length - 1; i > 0; i--) { const j = Math.min(i, Math.max(0, Math.floor(random() * (i + 1)))); [entrants[i], entrants[j]] = [entrants[j], entrants[i]]; }
-    const state = {...empty(), tracks:previous.tracks, status:'playing', entrants, round:1, session:`${now}-${Math.random()}`, startedAt:now};
+    const state = {...empty(), tracks:previous.tracks, previewSeconds:previous.previewSeconds || 10, settings:previous.settings, status:'playing', entrants, round:1, session:`${now}-${Math.random()}`, startedAt:now};
     beginPair(state); states.set(String(owner), state); save(owner, state); return state;
   },
   progress(owner, side, seconds, expected) {
     const state = get(owner);
     if (state.status !== 'playing' || tournamentMatchKey(state) !== expected || !['left','right'].includes(side)) return false;
-    state.seconds[side] = Math.max(0, Math.min(TOURNAMENT_PREVIEW_SECONDS, Number(seconds) || 0)); return true;
+    state.seconds[side] = Math.max(0, Math.min(state.previewSeconds || 10, Number(seconds) || 0)); return true;
   },
   finishPreview(owner, side, expected) {
     const state = get(owner);
     if (state.status !== 'playing' || tournamentMatchKey(state) !== expected || state.stage !== side) return false;
-    state.seconds[side] = TOURNAMENT_PREVIEW_SECONDS; state.stage = side === 'left' ? 'right' : 'choice'; save(owner, state); return true;
+    state.seconds[side] = state.previewSeconds || 10; state.stage = side === 'left' ? 'right' : 'choice'; save(owner, state); return true;
   },
   choose(owner, side, expected, now = Date.now()) {
     const state = get(owner);
@@ -88,5 +89,5 @@ export const PlaylistTournamentEngine = {
     if (state.status === 'done') state.finishedAt = Math.max(state.startedAt, now);
     save(owner, state); return true;
   },
-  reset(owner) { const state = get(owner); const next = {...empty(), tracks:state.tracks}; states.set(String(owner), next); save(owner, next); return next; },
+  reset(owner) { const state = get(owner); const next = {...empty(), tracks:state.tracks, previewSeconds:state.previewSeconds || 10, settings:state.settings}; states.set(String(owner), next); save(owner, next); return next; },
 };

@@ -1,6 +1,6 @@
-import { tournamentDuration } from './playlistTournamentEngine.js?v=20261012-4';
+import { tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
 export const TOURNAMENT_SHARE_URL = 'https://grygrupowe.pages.dev/playlista-cup';
-const BASE_URL = new URL('../assets/share/playlist-cup-base.svg?v=20261012-4', import.meta.url).href;
+const BASE_URL = new URL('../assets/share/playlist-cup-base.svg?v=20261013-1', import.meta.url).href;
 
 export function formatTournamentDuration(ms) {
   if (ms === null || !Number.isFinite(Number(ms)) || Number(ms) < 0) return 'Brak pomiaru';
@@ -57,12 +57,15 @@ export function fitShareText(ctx, value, maxWidth, size, minSize, weight = 700) 
   return text;
 }
 export async function createTournamentPoster(data, {signal} = {}) {
-  const [base, cover, avatar] = await Promise.all([loadImage(BASE_URL, {signal,required:true}), loadImage(data.coverUrl,{signal}), loadImage(data.avatarImage,{signal})]);
+  const coverSource=String(data.coverUrl || '').replace(/\d+x\d+bb(?=\.)/,'600x600bb');
+  const [base, cover, avatar] = await Promise.all([loadImage(BASE_URL, {signal,required:true}), loadImage(coverSource,{signal}), loadImage(data.avatarImage,{signal})]);
   if (signal?.aborted) throw new DOMException('Anulowano.', 'AbortError');
   await document.fonts?.ready;
   const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1350;
   const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('Przeglądarka nie obsługuje zapisu grafiki.');
   ctx.drawImage(base,0,0);
+  ctx.textAlign='center'; ctx.fillStyle='#bca2ff';
+  ctx.fillText(fitShareText(ctx,data.modeLabel || 'TURNIEJ HITÓW · MÓJ ZWYCIĘZCA',900,20,16),540,270);
   if (cover) imageCover(ctx,cover,300,333,480,480,24);
   else {
     ctx.fillStyle = '#282342'; ctx.beginPath(); ctx.roundRect(300,333,480,480,24); ctx.fill();
@@ -77,10 +80,10 @@ export async function createTournamentPoster(data, {signal} = {}) {
     const gradient=ctx.createLinearGradient(115,1090,217,1192); gradient.addColorStop(0,'#8b5bf0'); gradient.addColorStop(1,'#2bcfe2');
     ctx.fillStyle=gradient; ctx.fillRect(115,1090,102,102); ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='700 42px Arial'; ctx.fillText(Array.from(data.nick)[0]?.toUpperCase() || '?',166,1156);
   }
-  ctx.restore(); ctx.textAlign='left'; ctx.fillStyle='#9aa9c2'; ctx.font='700 15px Arial'; ctx.fillText('WYBÓR GRACZA',248,1098);
+  ctx.restore(); ctx.textAlign='left'; ctx.fillStyle='#9aa9c2'; ctx.font='700 15px Arial'; ctx.fillText(data.playerLabel || 'WYBÓR GRACZA',248,1098);
   ctx.fillStyle='#f2f5ff'; const nick=fitShareText(ctx,data.nick,690,38,24); ctx.fillText(nick,248,1146);
-  ctx.fillStyle='#5edeee'; ctx.font='24px Arial'; ctx.fillText(`Czas turnieju: ${data.duration}`,248,1190);
-  ctx.textAlign='center'; ctx.fillStyle='#91a2bd'; ctx.font='22px Arial'; ctx.fillText(formatTournamentCounts(data.tracks,data.matches),540,1248);
+  ctx.fillStyle='#5edeee'; ctx.fillText(fitShareText(ctx,data.timeText || `Czas turnieju: ${data.duration}`,690,24,18,400),248,1190);
+  ctx.textAlign='center'; ctx.fillStyle='#91a2bd'; ctx.fillText(fitShareText(ctx,data.footer || formatTournamentCounts(data.tracks,data.matches),920,22,16,400),540,1248);
   const blob = await new Promise((resolve,reject) => { try { canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Nie udało się zapisać grafiki.')), 'image/png'); } catch { reject(new Error('Nie udało się zapisać okładki. Spróbuj ponownie.')); } });
   return {blob, missingCover:!cover, missingAvatar:!!data.avatarImage && !avatar};
 }
@@ -88,18 +91,24 @@ export function canShareTournamentFile(file, navigatorObject = navigator) {
   try { return Boolean(navigatorObject.share && navigatorObject.canShare?.({files:[file]})); } catch { return false; }
 }
 export function bindTournamentSharing(root, state, getProfile = () => ({})) {
-  const trigger = root.querySelector('[data-cup-share]'); if (!trigger) return () => {};
+  return bindResultSharing(root, {selector:'[data-cup-share]',getData:()=>tournamentShareData(state,getProfile() || {}),url:TOURNAMENT_SHARE_URL,fileName:'gry-grupowe-playlista-cup.png',heading:'Twój zwycięski hit',title:'Mój zwycięzca Playlista Cup',privacy:'Udostępniasz zwycięski utwór, nick, profilowe i czas turnieju. Lista playlisty nie trafia na grafikę.'});
+}
+export function bindResultSharing(root, options) {
+  const trigger = root.querySelector(options.selector); if (!trigger) return () => {};
   const dialog = document.createElement('dialog'); dialog.className = 'cup-share-dialog';
   dialog.setAttribute('aria-labelledby','cup-share-title');
   dialog.innerHTML = `<header><h2 id="cup-share-title">Twój zwycięski hit</h2><button class="ghost" data-share-close aria-label="Zamknij podgląd">×</button></header><p data-share-feedback role="status">Przygotowuję grafikę…</p><img data-share-preview alt="Grafika wyniku Playlista Cup" hidden><div class="cup-share-actions"><button class="primary" data-share-native hidden>Udostępnij grafikę</button><a class="primary" data-share-download hidden>Pobierz PNG</a><button class="ghost" data-share-link>Kopiuj link do trybu</button></div><small>Udostępniasz zwycięski utwór, nick, profilowe i czas turnieju. Lista playlisty nie trafia na grafikę.</small>`;
   root.append(dialog);
+  dialog.querySelector('h2').textContent=options.heading;
+  dialog.querySelector('small').textContent=options.privacy;
+  dialog.querySelector('img').alt=`Grafika wyniku: ${options.heading}`;
   let controller, url = '', file, cachedKey = '', disposed = false;
   const feedback = dialog.querySelector('[data-share-feedback]'), preview=dialog.querySelector('[data-share-preview]'), native=dialog.querySelector('[data-share-native]'), download=dialog.querySelector('[data-share-download]');
   const cancel = () => controller?.abort();
   dialog.querySelector('[data-share-close]').addEventListener('click',()=>dialog.close()); dialog.addEventListener('close',cancel);
   trigger.addEventListener('click',async()=>{
     dialog.showModal();
-    const data=tournamentShareData(state,getProfile() || {}), key=JSON.stringify(data);
+    const data=options.getData(), key=JSON.stringify(data);
     if (file && key===cachedKey) { feedback.textContent='Gotowe — możesz pobrać lub udostępnić grafikę.'; return; }
     cancel(); controller=new AbortController(); const active=controller;
     feedback.textContent='Przygotowuję grafikę…'; preview.hidden=download.hidden=native.hidden=true; file=null;
@@ -107,7 +116,7 @@ export function bindTournamentSharing(root, state, getProfile = () => ({})) {
       const result=await createTournamentPoster(data,{signal:active.signal});
       if(disposed || active.signal.aborted)return;
       if(url)URL.revokeObjectURL(url); url=URL.createObjectURL(result.blob); cachedKey=key;
-      file=new File([result.blob],'gry-grupowe-playlista-cup.png',{type:'image/png'});
+      file=new File([result.blob],options.fileName,{type:'image/png'});
       preview.src=url; preview.hidden=false; download.href=url; download.download=file.name; download.hidden=false;
       native.hidden=!canShareTournamentFile(file);
       feedback.textContent=result.missingCover || result.missingAvatar?'Grafika gotowa. Niedostępne zdjęcie zastąpiłem symbolem.':'Gotowe — możesz pobrać lub udostępnić grafikę.';
@@ -115,12 +124,12 @@ export function bindTournamentSharing(root, state, getProfile = () => ({})) {
   });
   native.addEventListener('click',async()=>{
     if(!file)return;
-    try { await navigator.share({files:[file],title:'Mój zwycięzca Playlista Cup',text:TOURNAMENT_SHARE_URL}); if(!disposed)feedback.textContent='Grafika przekazana do udostępnienia.'; }
+    try { await navigator.share({files:[file],title:options.title,text:options.url}); if(!disposed)feedback.textContent='Grafika przekazana do udostępnienia.'; }
     catch(error) { if(!disposed)feedback.textContent=error.name==='AbortError'?'Udostępnianie anulowane.':'Nie udało się udostępnić. Użyj „Pobierz PNG”.'; }
   });
   dialog.querySelector('[data-share-link]').addEventListener('click',async()=>{
-    try { await navigator.clipboard.writeText(TOURNAMENT_SHARE_URL); feedback.textContent='Link skopiowany!'; }
-    catch { feedback.textContent=`Link do trybu: ${TOURNAMENT_SHARE_URL}`; }
+    try { await navigator.clipboard.writeText(options.url); feedback.textContent='Link skopiowany!'; }
+    catch { feedback.textContent=`Link do trybu: ${options.url}`; }
   });
   return () => { disposed=true; cancel(); if(url)URL.revokeObjectURL(url); dialog.close(); dialog.remove(); };
 }

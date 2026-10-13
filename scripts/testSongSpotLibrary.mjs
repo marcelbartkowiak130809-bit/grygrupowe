@@ -40,10 +40,11 @@ test('playlist parsing, exact matching and imports report missing/ambiguous song
   const entry=musicPreviewCatalog.find(t=>t.previewUrl),text=`${entry.artist} — ${entry.title}\nUnknown Artist — Missing`;
   const result=await importSongSpotPlaylist(text,musicPreviewCatalog,{fetcher:async()=>({ok:true,json:async()=>({results:[]})}),pause:async()=>{}});
   assert.equal(result.tracks.length,1);assert.deepEqual(result.missing,['Unknown Artist — Missing']);
-  const player='playlist';engine.setPlaylist(player,result);const state=engine.start(player);assert.equal(state.trackId,entry.id);assert.equal(state.rankedRun,false);
+  assert.equal(engine.setPlaylist,undefined);
 });
-test('external playlist tracks remain guessable after restoring another player',()=>{
+test('retired personal playlists are reset on restore and external song links stay safe',()=>{
   const track={id:'playlist-itunes-qa',title:'Test song',artist:'Test artist',previewUrl:'https://audio-ssl.itunes.apple.com/preview.m4a',externalUrl:'https://music.apple.com/pl/song/123'};
-  engine.setPlaylist('imported',{tracks:[track],missing:[],total:1});let state=engine.start('imported');engine.get('other');state=engine.get('imported');engine.guess('imported','Test song');assert.equal(state.status,'reveal');assert.equal(state.lastResult.title,'Test song');
+  localStorage.setItem('grygrupowe-songspot-solo-v1:imported',JSON.stringify({status:'playing',filters:{mode:'playlist'},trackId:track.id,playlist:{tracks:[track]}}));
+  const state=engine.get('imported');assert.equal(state.status,'idle');assert.equal(state.filters.mode,'mix');assert.equal(state.playlist,undefined);
   const links=songSpotTrackLinks(track);assert.ok(links.embed.startsWith('https://embed.music.apple.com/'));assert.equal(songSpotTrackLinks({...track,externalUrl:'javascript:alert(1)'}).embed,'');
 });

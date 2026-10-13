@@ -1,8 +1,11 @@
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261012-2";
 import { Audio } from "./audio.js?v=20260926-1";
+import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
+let disposeSongSpotSharing = () => {};
+export function stopSongSpotSharing() { disposeSongSpotSharing(); disposeSongSpotSharing = () => {}; }
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261012-2';
-import { songSpotLevels, songSpotTier, songSpotRoundTier, importSongSpotPlaylist, songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
+import { songSpotLevels, songSpotTier, songSpotRoundTier, songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 
 export const songSpotDifficulties = [
   { id: "easy", label: "Łatwy", seconds: 0.1, accent: "#22c55e" },
@@ -84,7 +87,9 @@ function saveStored(state) {
 }
 
 function normalizeState(raw, playerId) {
-  const source = object(raw);
+  const source = {...object(raw)};
+  // Retired personal playlists cannot resume as a hidden custom pool.
+  if(source.filters?.mode==='playlist') { source.filters={...source.filters,mode:'mix',era:'all',genre:'all',artists:[]}; source.status='idle'; source.trackId=''; source.lastResult=null; source.rankedRun=false; }
   const status = ["idle", "playing", "reveal", "over"].includes(source.status) ? source.status : "idle";
   const streak = Math.max(0, Number(source.streak) || 0);
   const enabledTimes = availableSongSpotTimes(source.enabledTimes);
@@ -94,7 +99,6 @@ function normalizeState(raw, playerId) {
     difficulty: safeDifficulty(source.difficulty),
     region: safeRegion(source.region),
     filters: normalizeSongSpotFilters(source.filters),
-    playlist: {tracks:array(source.playlist?.tracks).filter(track=>track?.id && track.previewUrl && track.title && track.artist).slice(0,200),missing:array(source.playlist?.missing).map(String).slice(0,200),total:Number(source.playlist?.total)||0},
     currentTier:String(source.currentTier || 'all'),
     rankedRun: Boolean(source.rankedRun && songSpotRanked(source.filters)),
     records: {global:Math.max(0,Number(source.records?.global)||0),polish:Math.max(0,Number(source.records?.polish)||0)},
@@ -122,13 +126,12 @@ function readState(playerId) {
   const owner = String(playerId || "guest");
   if (songSpotOwner === owner && songSpotState) return songSpotState;
   songSpotState = normalizeState(readStored(owner), owner);
-  songSpotState.playlist.tracks.forEach(track=>tracksById.set(String(track.id),track));
   songSpotOwner = owner;
   return songSpotState;
 }
 
-function chooseTrack(usedIds, region, filters, playlist=[], tier='all') {
-  const sourcePool=filters?.mode==='playlist'?playlist:trackPool(region);
+function chooseTrack(usedIds, region, filters, tier='all') {
+  const sourcePool=trackPool(region);
   const pool = filterSongSpotTracks(sourcePool, filters).filter(track=>tier==='all'||songSpotTier(track)===tier);
   if (!pool.length) return null;
   const used = new Set(usedIds);
@@ -139,11 +142,11 @@ function chooseTrack(usedIds, region, filters, playlist=[], tier='all') {
 
 function startRound(state) {
   state.currentTier=songSpotRoundTier(state.filters.level,state.round);
-  let track = chooseTrack(state.usedIds, state.region, state.filters,state.playlist.tracks,state.currentTier);
+  let track = chooseTrack(state.usedIds, state.region, state.filters,state.currentTier);
   if(!track && state.filters.level==='cycle') {
     for(let offset=1;offset<3 && !track;offset++) {
       state.currentTier=songSpotRoundTier('cycle',state.round+offset);
-      track=chooseTrack(state.usedIds,state.region,state.filters,state.playlist.tracks,state.currentTier);
+      track=chooseTrack(state.usedIds,state.region,state.filters,state.currentTier);
     }
   }
   if (!track) {
@@ -276,7 +279,6 @@ export const SongSpotSoloEngine = {
       status: "playing",
       region: safeRegion(region),
       filters: normalizeSongSpotFilters(previous.filters),
-      playlist:previous.playlist,
       rankedRun: songSpotRanked(previous.filters),
       records: {...previous.records},
       enabledTimes: [...songSpotTimes],
@@ -308,7 +310,7 @@ export const SongSpotSoloEngine = {
     return state;
   },
   setFilters(playerId, filters) {
-    const state = readState(playerId), selected = normalizeSongSpotFilters(filters);
+    const state = readState(playerId), selected = normalizeSongSpotFilters(filters?.mode === 'playlist' ? {...filters,mode:'mix',artists:[]} : filters);
     if(selected.artists.length>0 && selected.artists.length<3) return {error:'Wybierz minimum 3 artystów.'};
     if(JSON.stringify(selected)===JSON.stringify(state.filters)) return state;
     this.stop(playerId);
@@ -316,15 +318,6 @@ export const SongSpotSoloEngine = {
     state.rankedRun=false;
     saveStored(state);
     return state;
-  },
-  setPlaylist(playerId,playlist) {
-    const state=readState(playerId);
-    this.stop(playerId);
-    state.playlist={tracks:array(playlist.tracks).filter(track=>track.previewUrl).slice(0,200),missing:array(playlist.missing),total:Number(playlist.total)||0};
-    state.playlist.tracks.forEach(track=>tracksById.set(String(track.id),track));
-    state.filters=normalizeSongSpotFilters({...state.filters,mode:'playlist',level:'all'});
-    state.rankedRun=false;
-    saveStored(state);return state;
   },
   setRegion(playerId, region) {
     const state = readState(playerId);
@@ -515,7 +508,7 @@ function resultHtml(state) {
   const playback=result.previewUrl?`<audio controls preload="auto" data-songspot-result-audio data-track-key="songspot-result:${escapeHtml(state.playerId)}:${state.round}:${escapeHtml(result.trackId)}" src="${escapeHtml(result.previewUrl)}"></audio>`:'';
   const links=songSpotTrackLinks({...result,id:result.trackId});
   const full=`<div class="songspot-listen-actions">${links.embed?`<button type="button" class="primary" data-songspot-full-track data-embed="${escapeHtml(links.embed)}">♫ Pełny utwór tutaj</button><a class="ghost" href="${escapeHtml(links.apple)}" target="_blank" rel="noopener noreferrer">♫ Apple Music ↗</a>`:''}<a class="ghost" href="${escapeHtml(links.spotify)}" target="_blank" rel="noopener noreferrer">Wyszukaj w Spotify ↗</a></div><div data-songspot-full-player></div>${links.embed?'<small class="songspot-full-note">Pełne odtwarzanie wymaga zalogowania i abonamentu Apple Music.</small>':''}`;
-  return `<section class="songspot-result ${correct ? "is-correct" : "is-wrong"}"><div class="songspot-result-mark">${correct ? "✓" : "×"}</div><p class="eyebrow">${correct ? "TRAFIONO" : "KONIEC SERII"}</p><h2>Streak: ${Number(state.streak || 0)}</h2><div class="songspot-result-track">${coverHtml(result)}<div><small>POPRAWNA ODPOWIEDŹ</small><strong>${escapeHtml(result.title || "Nieznany utwór")}</strong><span>${escapeHtml(result.artist || "")}</span></div></div>${listen}${result.guess ? `<p class="songspot-result-guess">Twoja odpowiedź: <b>${escapeHtml(result.guess)}</b></p>` : `<p class="songspot-result-guess">Utwór został pominięty.</p>`}${playback}<small class="songspot-preview-note">Odsłuch utworu · do 30 s</small>${full}<div class="songspot-result-actions">${correct ? `<button class="primary big" id="songspot-next">Następny utwór</button><button class="ghost" id="songspot-stop">Przerwij serię</button>` : `<button class="primary big" id="songspot-restart">Zagraj jeszcze raz</button><button class="ghost" id="songspot-menu">Wróć do muzyki</button>`}</div></section>`;
+  return `<section class="songspot-result ${correct ? "is-correct" : "is-wrong"}"><div class="songspot-result-mark">${correct ? "✓" : "×"}</div><p class="eyebrow">${correct ? "TRAFIONO" : "KONIEC SERII"}</p><h2>Streak: ${Number(state.streak || 0)}</h2><div class="songspot-result-track">${coverHtml(result)}<div><small>POPRAWNA ODPOWIEDŹ</small><strong>${escapeHtml(result.title || "Nieznany utwór")}</strong><span>${escapeHtml(result.artist || "")}</span></div></div>${listen}${result.guess ? `<p class="songspot-result-guess">Twoja odpowiedź: <b>${escapeHtml(result.guess)}</b></p>` : `<p class="songspot-result-guess">Utwór został pominięty.</p>`}${playback}<small class="songspot-preview-note">Odsłuch utworu · do 30 s</small>${full}<button type="button" class="ghost" data-songspot-share>↗ Udostępnij wynik</button><div class="songspot-result-actions">${correct ? `<button class="primary big" id="songspot-next">Następny utwór</button><button class="ghost" id="songspot-stop">Przerwij serię</button>` : `<button class="primary big" id="songspot-restart">Zagraj jeszcze raz</button><button class="ghost" id="songspot-menu">Wróć do muzyki</button>`}</div></section>`;
 }
 
 function header(state) {
@@ -594,7 +587,7 @@ function levelPickerHtml(state) {
 }
 function filtersHtml(state) {
   const count=state.filters.artists.length;
-  return `<aside class="songspot-filters" data-region="${state.region}" data-artists="${escapeHtml(JSON.stringify(state.filters.artists))}"><h2>Twój miks</h2><div class="songspot-filter-modes" aria-label="Sposób wyboru utworów"><button type="button" data-songspot-filter-mode="mix">Gatunek i dekada</button><button type="button" data-songspot-filter-mode="artists">Artyści</button><button type="button" data-songspot-filter-mode="playlist">☷ Twoja playlista</button></div><div class="songspot-mix-options"><label>Dekada</label>${carouselHtml('era',songSpotEras,state.filters.era)}<label>Gatunek</label>${carouselHtml('genre',songSpotGenres,state.filters.genre)}</div><details open class="songspot-artist-picker"><summary>Artyści <b>${count || 'All'}</b></summary><input type="search" data-songspot-artist-search placeholder="Szukaj artysty…" aria-label="Szukaj artysty"><label class="songspot-artist-all"><input type="checkbox" data-songspot-artists-all ${count?'':'checked'}> All</label><div class="songspot-artist-list">${artistRowsHtml(state)}</div><small data-songspot-artists-hint>All lub minimum 3 artystów</small><button type="button" class="primary" data-songspot-artists-apply>Zastosuj</button></details><form class="songspot-playlist-form" data-songspot-playlist-form><label for="songspot-playlist-text">Artysta — Tytuł</label><textarea id="songspot-playlist-text" aria-label="Lista utworów" placeholder="Adele — Hello&#10;Doja Cat — Say So" maxlength="30000" rows="6"></textarea><small>Jeden utwór w wierszu · do 200 · bez łączenia kont. Brakujące odsłuchy wyszukamy w Apple Music.</small><button type="submit" class="primary">Załaduj playlistę</button><output data-songspot-playlist-status aria-live="polite"></output><details data-songspot-playlist-missing hidden></details></form><small class="songspot-ranked-note">${songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem'}</small></aside>`;
+  return `<aside class="songspot-filters" data-region="${state.region}" data-artists="${escapeHtml(JSON.stringify(state.filters.artists))}"><h2>Twój miks</h2><div class="songspot-filter-modes" aria-label="Sposób wyboru utworów"><button type="button" data-songspot-filter-mode="mix">Gatunek i dekada</button><button type="button" data-songspot-filter-mode="artists">Artyści</button></div><div class="songspot-mix-options"><label>Dekada</label>${carouselHtml('era',songSpotEras,state.filters.era)}<label>Gatunek</label>${carouselHtml('genre',songSpotGenres,state.filters.genre)}</div><details open class="songspot-artist-picker"><summary>Artyści <b>${count || 'All'}</b></summary><input type="search" data-songspot-artist-search placeholder="Szukaj artysty…" aria-label="Szukaj artysty"><label class="songspot-artist-all"><input type="checkbox" data-songspot-artists-all ${count?'':'checked'}> All</label><div class="songspot-artist-list">${artistRowsHtml(state)}</div><small data-songspot-artists-hint>All lub minimum 3 artystów</small><button type="button" class="primary" data-songspot-artists-apply>Zastosuj</button></details><small class="songspot-ranked-note">${songSpotRanked(state.filters)?'◆ Gra rankingowa':'◇ Trening · poza rankingiem'}</small></aside>`;
 }
 
 function sortSelectedArtists(sidebar) {
@@ -612,8 +605,6 @@ function syncSongSpotFilters(sidebar,state,actions,playerId) {
   sidebar.dataset.mode=state.filters.mode;
   sidebar.querySelector('.songspot-mix-options').hidden=state.filters.mode!=='mix';
   sidebar.querySelector('.songspot-artist-picker').hidden=state.filters.mode!=='artists';
-  sidebar.querySelector('.songspot-playlist-form').hidden=state.filters.mode!=='playlist';
-  if(changedMode)sidebar.__playlistImport?.abort();
   if(changedMode && state.filters.mode==='artists')sidebar.querySelector('.songspot-artist-picker').open=true;
   sidebar.querySelectorAll('[data-songspot-filter-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.songspotFilterMode===state.filters.mode)));
   const changedRegion=sidebar.dataset.region!==state.region;
@@ -648,24 +639,6 @@ function syncSongSpotFilters(sidebar,state,actions,playerId) {
   if(changedRegion) search();
   if(sidebar.__songSpotBound) return;
   sidebar.__songSpotBound=true;
-  sidebar.addEventListener('submit',async event=>{
-    if(!event.target.matches('[data-songspot-playlist-form]'))return;
-    event.preventDefault();
-    if(sidebar.__playlistImport){sidebar.__playlistImport.abort();return;}
-    const controller=new AbortController();sidebar.__playlistImport=controller;
-    const output=sidebar.querySelector('[data-songspot-playlist-status]'),button=event.target.querySelector('button'),missing=sidebar.querySelector('[data-songspot-playlist-missing]');
-    button.textContent='Anuluj import';missing.hidden=true;
-    try {
-      const data=await importSongSpotPlaylist(event.target.querySelector('textarea').value,musicPreviewCatalog,{signal:controller.signal,onProgress:progress=>{if(!sidebar.isConnected){controller.abort();return;}output.textContent=`${progress.done}/${progress.total} · odsłuchy: ${progress.loaded}`;}});
-      if(controller.signal.aborted || !sidebar.isConnected)return;
-      if(!data.tracks.length)throw new Error('Nie udało się załadować odsłuchów. Sprawdź nazwy i połączenie z internetem.');
-      output.textContent=`Załadowano ${data.tracks.length}/${data.total} utworów`;
-      missing.hidden=!data.missing.length;
-      missing.innerHTML=`<summary>Nie załadowano: ${data.missing.length}</summary><ul>${data.missing.map(line=>`<li>${escapeHtml(line)}</li>`).join('')}</ul>`;
-      sidebar.__songSpotActions.actions.songSpotPlaylist?.(data);
-    } catch(error){output.textContent=controller.signal.aborted?'Import anulowany.':error.message;}
-    finally{if(sidebar.__playlistImport===controller)sidebar.__playlistImport=null;button.textContent='Załaduj playlistę';}
-  });
   sidebar.addEventListener('input',event=>{if(event.target.matches('[data-songspot-artist-search]'))search();});
   sidebar.addEventListener('change',event=>{
     const all=sidebar.querySelector('[data-songspot-artists-all]'), inputs=[...sidebar.querySelectorAll('[data-songspot-artist]')];
@@ -701,7 +674,7 @@ function syncSongSpotLevels(page,state,actions,playerId) {
   page.__songSpotLevelActions={actions,playerId};
   page.querySelectorAll('[data-songspot-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.songspotLevel===state.filters.level)));
   page.querySelector('[data-songspot-current-tier]').textContent=state.filters.level==='cycle'?`Easy → Medium → Hard · teraz: ${state.currentTier || 'easy'}`:'';
-  page.querySelector('.songspot-center>.songspot-region-picker').hidden=state.filters.mode==='playlist';
+  page.querySelector('.songspot-center>.songspot-region-picker').hidden=false;
   if(page.__songSpotLevelBound)return;
   page.__songSpotLevelBound=true;
   page.addEventListener('click',event=>{
@@ -713,7 +686,6 @@ function syncSongSpotLevels(page,state,actions,playerId) {
 export function songSpotMobileSummary(raw) {
   const filters = normalizeSongSpotFilters(raw);
   const ranked = songSpotRanked(filters) ? 'Ranking' : 'Trening';
-  if (filters.mode === 'playlist') return `Twoja playlista · ${ranked}`;
   if (filters.mode === 'artists' && filters.artists.length) return `${filters.artists.length} artystów · ${ranked}`;
   const era = songSpotEras.find(([id]) => id === filters.era)?.[1] || 'All';
   const genre = songSpotGenres.find(([id]) => id === filters.genre)?.[1] || 'All';
@@ -737,7 +709,7 @@ function syncSongSpotMobilePanels(page, state) {
     button.setAttribute('aria-expanded', String(open));
   });
 }
-export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = false }, actions, { quiet = false } = {}) {
+export function renderSongSpotSolo(root, { playerId, profile = {}, getProfile = () => profile, leaderboard = {}, online = false }, actions, { quiet = false } = {}) {
   const state = SongSpotSoloEngine.get(playerId);
   const item = trackById(state.trackId);
   const viewKey = songSpotSoloViewKey(state);
@@ -761,13 +733,14 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
   else if (state.status === "playing") body = `<section class="songspot-round"><p class="songspot-error">Nie udało się przygotować tego preview.</p><button class="primary" id="songspot-missing-skip">Skip</button></section>`;
   else body = resultHtml(state);
   const bodyChanged=!currentPage || currentPage.__songSpotBodyMarkup!==body;
+  if(bodyChanged) stopSongSpotSharing();
   if(currentPage) {
     // Retain the shell, filter nodes, their focus, search, scroll and disclosures.
     // Only a genuinely new round/result replaces the game body.
     const center=currentPage.querySelector('.songspot-center');
     if(bodyChanged)center.querySelector('.songspot-solo-body').innerHTML=body;
     const region=musicRegionOptions.find(([id])=>id===state.region);
-    center.querySelector('.eyebrow').textContent=state.filters.mode==='playlist'?'TRYB SOLO · ☷ Twoja playlista':`TRYB SOLO · ${region[1]} ${region[2]}`;
+    center.querySelector('.eyebrow').textContent=`TRYB SOLO · ${region[1]} ${region[2]}`;
     center.querySelector('.lyrics-solo-streak b').textContent=state.streak;
     center.querySelectorAll('[data-songspot-region]').forEach(button=>{
       const selected=button.dataset.songspotRegion===state.region;
@@ -780,7 +753,6 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
     syncSongSpotFilters(root.querySelector('.songspot-filters'),state,actions,playerId);
     syncSongSpotLevels(root.querySelector('.songspot-page'),state,actions,playerId);
     syncSongSpotMobilePanels(root.querySelector('.songspot-page'),state);
-    if(state.filters.mode==='playlist')root.querySelector('.songspot-center>.eyebrow').textContent='TRYB SOLO · ☷ Twoja playlista';
     root.querySelectorAll('[data-songspot-region]').forEach(button=>button.addEventListener('click',()=>actions.songSpotRegion?.(button.dataset.songspotRegion)));
     root.querySelector('#songspot-home')?.addEventListener('click',actions.goMusicModes || actions.goPlatform);
   }
@@ -790,6 +762,7 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
   const nextAudio = root.querySelector("[data-songspot-audio]");
   if (previousAudio && nextAudio && previousAudioKey && previousAudioKey === nextAudio.dataset.trackKey) nextAudio.replaceWith(previousAudio);
   if(bodyChanged) {
+  disposeSongSpotSharing = bindSongSpotSharing(root, state, getProfile);
   root.querySelector('[data-songspot-full-track]')?.addEventListener('click',event=>{
     const button=event.currentTarget,container=root.querySelector('[data-songspot-full-player]');
     if(container.querySelector('iframe'))return;
@@ -806,7 +779,7 @@ export function renderSongSpotSolo(root, { playerId, leaderboard = {}, online = 
   root.querySelector("[data-songspot-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.querySelector("input"); actions.songSpotGuess(input?.value || "", expected); });
   root.querySelector("[data-songspot-skip]")?.addEventListener("click", () => actions.songSpotSkip(expected));
   Audio.bindTrackVolumeControls(root);
-  bindSongSpotAnswerSuggestions(root, state.region,state.filters.mode==='playlist'?state.playlist.tracks:undefined);
+  bindSongSpotAnswerSuggestions(root, state.region);
   const resultAudio=root.querySelector('[data-songspot-result-audio]');
   if(resultAudio){Audio.bindTrackAudio(resultAudio,resultAudio.dataset.trackKey,{autoplay:false});const playing=resultAudio.play();if(playing?.catch)playing.catch(()=>{});}
   }

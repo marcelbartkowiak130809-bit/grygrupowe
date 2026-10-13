@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261012-6";
+import { getGameMode } from "./games.js?v=20261013-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings } from "./impostor.js?v=20260831-4";
 import { renderIdentityLobbySettings } from "./identity.js?v=20260831-4";
@@ -34,7 +34,7 @@ import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261012-2";
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20260902-23";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
-import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261012-6";
+import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261013-1";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20260901-10";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 

@@ -8,7 +8,7 @@ test('collapsed settings show the actual mix and ranked/training status',()=>{
   assert.equal(songSpotMobileSummary({}),'All · Ranking');
   assert.equal(songSpotMobileSummary({era:'classic'}),'< 2000s · Trening');
   assert.equal(songSpotMobileSummary({mode:'artists',artists:['adele','doja cat','sia']}),'3 artystów · Trening');
-  assert.equal(songSpotMobileSummary({mode:'playlist'}),'Twoja playlista · Trening');
+  assert.equal(songSpotMobileSummary({mode:'playlist'}),'All · Trening');
   assert.match(songSpotMobileSummary({level:'cycle'}),/Cykl.*Trening/);
 });
 test('desktop retains sidebars, mobile puts gameplay before collapsed panels',()=>{

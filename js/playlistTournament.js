@@ -1,9 +1,11 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
 import { Audio } from './audio.js?v=20260926-1';
-import { musicPreviewCatalog } from './music.js?v=20261012-2';
-import { importSongSpotPlaylist, songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
-import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration, TOURNAMENT_PREVIEW_SECONDS } from './playlistTournamentEngine.js?v=20261012-4';
-import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261012-4';
+import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261012-2';
+import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
+import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
+import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261013-1';
+
+import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
@@ -14,21 +16,22 @@ function card(track, side) {
 function summary(state) {
   const winner = state.tracks.find(t => t.id === state.winnerId), final = state.history.at(-1), runnerUp = state.tracks.find(t => t.id === final?.loserId);
   const links = songSpotTrackLinks(winner), wins = state.history.filter(m => m.winnerId === winner.id).length;
-  return `<section class="playlist-cup-result"><div class="playlist-cup-crown" aria-hidden="true">♛</div><p class="eyebrow">TWÓJ ZWYCIĘZCA</p>${art(winner)}<h2>${escapeHtml(winner.title)}</h2><p>${escapeHtml(winner.artist)}</p><div class="playlist-cup-stats"><span><b>${state.tracks.length}</b> utworów</span><span><b>${state.history.length}</b> pojedynków</span><span><b>${wins}</b> wygranych zwycięzcy</span></div><p class="playlist-cup-duration">Czas turnieju: ${formatTournamentDuration(tournamentDuration(state))}</p><p class="muted">Finalista: ${escapeHtml(runnerUp?.artist || '')} — ${escapeHtml(runnerUp?.title || '')}</p><audio controls data-cup-result-audio preload="none" src="${escapeHtml(winner.previewUrl)}"></audio><div class="playlist-cup-result-links">${links.apple ? `<a class="ghost" href="${escapeHtml(links.apple)}" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>` : ''}<a class="ghost" href="${escapeHtml(links.spotify)}" target="_blank" rel="noopener noreferrer">Spotify ↗</a></div><div class="playlist-cup-result-actions"><button class="primary" data-cup-share>↗ Udostępnij wynik</button><button class="primary" data-cup-start>Rewanż · losuj od nowa</button><button class="ghost" data-cup-reset>Inna playlista</button></div></section><details class="playlist-cup-history" open><summary>Droga do finału · wszystkie wybory</summary>${[...new Set(state.history.map(m => m.round))].map(round => `<section><h3>${round === state.round ? 'Finał' : `Runda ${round}`}</h3>${state.history.filter(m => m.round === round).map(m => { const a = state.tracks.find(t => t.id === m.winnerId), b = state.tracks.find(t => t.id === m.loserId); return `<div class="playlist-cup-history-row"><span>✓ <b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.artist)}</small></span><span>× ${escapeHtml(b.title)}<small>${escapeHtml(b.artist)}</small></span></div>`; }).join('')}${state.byes.filter(m => m.round === round).map(m => `<p class="muted">Wolny los: ${escapeHtml(state.tracks.find(t => t.id === m.trackId)?.title)}</p>`).join('')}</section>`).join('')}</details>`;
+  return `<section class="playlist-cup-result"><div class="playlist-cup-crown" aria-hidden="true">♛</div><p class="eyebrow">TWÓJ ZWYCIĘZCA</p>${art(winner)}<h2>${escapeHtml(winner.title)}</h2><p>${escapeHtml(winner.artist)}</p><div class="playlist-cup-stats"><span><b>${state.tracks.length}</b> utworów</span><span><b>${state.history.length}</b> pojedynków</span><span><b>${wins}</b> wygranych zwycięzcy</span></div><p class="playlist-cup-duration">Czas turnieju: ${formatTournamentDuration(tournamentDuration(state))}</p><p class="muted">Finalista: ${escapeHtml(runnerUp?.artist || '')} — ${escapeHtml(runnerUp?.title || '')}</p><audio controls data-cup-result-audio preload="none" src="${escapeHtml(winner.previewUrl)}"></audio><div class="playlist-cup-result-links">${links.apple ? `<a class="ghost" href="${escapeHtml(links.apple)}" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>` : ''}<a class="ghost" href="${escapeHtml(links.spotify)}" target="_blank" rel="noopener noreferrer">Spotify ↗</a></div><div class="playlist-cup-result-actions"><button class="primary" data-cup-share>↗ Udostępnij wynik</button><button class="primary" data-cup-start>Rewanż · losuj od nowa</button><button class="ghost" data-cup-reset>Nowy zestaw</button></div></section><details class="playlist-cup-history" open><summary>Droga do finału · wszystkie wybory</summary>${[...new Set(state.history.map(m => m.round))].map(round => `<section><h3>${round === state.round ? 'Finał' : `Runda ${round}`}</h3>${state.history.filter(m => m.round === round).map(m => { const a = state.tracks.find(t => t.id === m.winnerId), b = state.tracks.find(t => t.id === m.loserId); return `<div class="playlist-cup-history-row"><span>✓ <b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.artist)}</small></span><span>× ${escapeHtml(b.title)}<small>${escapeHtml(b.artist)}</small></span></div>`; }).join('')}${state.byes.filter(m => m.round === round).map(m => `<p class="muted">Wolny los: ${escapeHtml(state.tracks.find(t => t.id === m.trackId)?.title)}</p>`).join('')}</section>`).join('')}</details>`;
 }
 export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}, getProfile = () => profile}, actions) {
   stopPlaylistTournament();
   root.dataset.cupPlayer = String(playerId);
   const state = engine.get(playerId);
+  const settings=cupSettings(state.settings), previewSeconds=state.previewSeconds || settings.previewSeconds;
   let content;
   if (state.status === 'setup') {
-    content = `<section class="playlist-cup-import"><div class="playlist-cup-import-icon" aria-hidden="true">♫</div><h2>Twoja playlista. Jeden zwycięzca.</h2><p class="muted">10 sekund A → 10 sekund B → wybierz hit, który przechodzi dalej.</p><form data-cup-import><label for="cup-playlist">Wklej listę utworów</label><textarea id="cup-playlist" name="playlist" rows="7" maxlength="30000" placeholder="Adele — Hello&#10;Maryla Rodowicz — Małgośka&#10;Doja Cat — Say So" required></textarea><small>Artysta — Tytuł · 2–200 utworów · bez łączenia kont</small><small>Brakujące odsłuchy wyszukamy w Apple Music. Linki do playlist nie są obsługiwane.</small><div class="playlist-cup-import-actions"><button class="primary" type="submit">Załaduj playlistę</button><button class="ghost" type="button" data-cup-demo>Wypróbuj na 8 hitach</button></div><output data-cup-import-status aria-live="polite"></output><details data-cup-missing hidden></details></form>${state.tracks.length ? `<div class="playlist-cup-loaded"><span>Gotowe: <b>${state.tracks.length}</b> utworów · <b>${state.tracks.length - 1}</b> wyborów</span><button class="primary big" data-cup-start>Rozpocznij turniej →</button><details><summary>Pokaż załadowane utwory</summary><ol>${state.tracks.map(t => `<li>${escapeHtml(t.artist)} — ${escapeHtml(t.title)}</li>`).join('')}</ol></details></div>` : ''}</section>`;
+    content = `<section class="playlist-cup-import"><div class="playlist-cup-import-icon" aria-hidden="true">♫</div><h2>Losowe hity. Jeden zwycięzca.</h2><p class="muted">Posłuchaj A i B. Wybierz, który utwór przechodzi dalej.</p><form data-cup-setup><label for="cup-region">Pula piosenek</label><select id="cup-region" name="region">${[['all','Wszystkie'],['global','Globalne'],['polish','Polskie']].map(([id,label])=>`<option value="${id}" ${settings.region===id?'selected':''}>${label}</option>`).join('')}</select><label for="cup-seconds">Długość każdego odsłuchu</label><select id="cup-seconds" name="previewSeconds">${cupPreviewTimes.map(time=>`<option value="${time}" ${settings.previewSeconds===time?'selected':''}>${time} sekund</option>`).join('')}</select><fieldset class="cup-size-options"><legend>Liczba piosenek</legend>${cupSizes.map(size=>`<label><input type="radio" name="size" value="${size}" ${settings.size===size?'checked':''}><b>${size} utworów</b><small data-cup-estimate="${size}"></small>${size>=64?`<span class="cup-size-warning ${size===128?'is-long':''}">${size===128?'⚠ Bardzo długa gra':'Dłuższy turniej'}</span>`:''}</label>`).join('')}</fieldset><p class="muted">Szacunek: oba odsłuchy + 3–8 s na wybór. Pauzy i powtórki wydłużą grę.</p><button class="primary big" type="submit">Losuj zestaw i graj →</button><output data-cup-import-status role="status"></output></form></section>`;
   } else if (state.status === 'done') content = summary(state);
   else {
     const [left, right] = tournamentPair(state), final = state.entrants.length === 2;
     content = `<section class="playlist-cup-round"><div class="playlist-cup-round-heading"><span class="badge">${final ? '♛ FINAŁ' : `RUNDA ${state.round}`}</span><span>${Math.floor(state.index / 2) + 1}/${Math.floor(state.entrants.length / 2)} · ${state.entrants.length} w grze</span></div><div class="playlist-cup-duel">${card(left, 'left')}<div class="playlist-cup-versus" aria-hidden="true">VS</div>${card(right, 'right')}</div><div class="playlist-cup-listen-status" data-cup-status role="status"></div><div class="playlist-cup-controls"><button class="ghost" data-cup-play>▶ Odtwórz A</button><button class="ghost" data-cup-skip>Pomiń odsłuch A →</button></div>${Audio.trackVolumeControlHtml({compact:true})}<audio data-cup-audio preload="auto"></audio><div class="playlist-cup-total-progress"><i style="width:${state.history.length / (state.tracks.length - 1) * 100}%"></i></div><small class="playlist-cup-total-label">${state.history.length}/${state.tracks.length - 1} wyborów · ${state.tracks.length - state.history.length} pozostałych</small>${state.entrants.length % 2 ? `<p class="playlist-cup-bye">Wolny los w tej rundzie: ${escapeHtml(state.tracks.find(t => t.id === state.entrants.at(-1))?.title)}</p>` : ''}<button class="ghost playlist-cup-exit" data-cup-reset>Przerwij turniej</button></section>`;
   }
-  root.innerHTML = `<main class="page playlist-cup-page"><section class="panel playlist-cup-panel"><header class="playlist-cup-header"><div><p class="eyebrow">TWOJA PLAYLISTA · TURNIEJ SOLO</p><h1>Playlista Cup</h1></div><span aria-hidden="true">♛</span></header>${content}</section><button class="ghost" data-cup-home>← Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page playlist-cup-page"><section class="panel playlist-cup-panel"><header class="playlist-cup-header"><div><p class="eyebrow">LOSOWE HITY · TURNIEJ SOLO</p><h1>Turniej hitów</h1></div><span aria-hidden="true">♛</span></header>${content}</section><button class="ghost" data-cup-home>← Wróć do muzyki</button></main>`;
   let controller, transitionTimer, frame, lastPaint = 0, stopped = false, activeSide = '', error = '';
   const audio = root.querySelector('[data-cup-audio]'), resultAudio = root.querySelector('[data-cup-result-audio]');
   const matchKey = tournamentMatchKey(state);
@@ -37,25 +40,21 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   cleanup = () => { stopped = true; stopSharing(); controller?.abort(); clearTimeout(transitionTimer); cancelAnimationFrame(frame); if (audio) Audio.stopTrackAudio(audio); if (resultAudio) Audio.stopTrackAudio(resultAudio); };
   const repaint = () => { if (alive()) renderPlaylistTournament(root, {playerId, profile, getProfile}, actions); };
   root.querySelector('[data-cup-home]').addEventListener('click', () => { stopPlaylistTournament(); (actions.goMusicModes || actions.goPlatform)(); });
-  root.querySelectorAll('[data-cup-start]').forEach(button => button.addEventListener('click', () => { engine.start(playerId); repaint(); playFirst(); }));
+  root.querySelectorAll('[data-cup-start]').forEach(button => button.addEventListener('click', () => { startRandom(); }));
   root.querySelectorAll('[data-cup-reset]').forEach(button => button.addEventListener('click', () => { engine.reset(playerId); repaint(); }));
-  root.querySelector('[data-cup-demo]')?.addEventListener('click', () => { engine.load(playerId, musicPreviewCatalog.filter(t => t.previewUrl).slice(0, 8)); repaint(); });
-  root.querySelector('[data-cup-import]')?.addEventListener('submit', async event => {
-    event.preventDefault();
-    if (controller) { controller.abort(); return; }
-    controller = new AbortController();
-    const output = root.querySelector('[data-cup-import-status]'), button = event.target.querySelector('button[type="submit"]'), missing = root.querySelector('[data-cup-missing]');
-    button.textContent = 'Anuluj import'; missing.hidden = true;
+  function startRandom(raw=settings) {
     try {
-      const data = await importSongSpotPlaylist(event.target.querySelector('textarea').value, musicPreviewCatalog, {signal:controller.signal, onProgress:p => { if (!alive()) controller.abort(); else output.textContent = `${p.done}/${p.total} · znalezione: ${p.loaded}`; }});
-      if (!alive() || controller.signal.aborted) return;
-      engine.load(playerId, data.tracks); repaint();
-      root.querySelector('[data-cup-import-status]').textContent = `Załadowano ${engine.get(playerId).tracks.length}/${data.total} utworów.`;
-      const missingOutput = root.querySelector('[data-cup-missing]'); missingOutput.hidden = !data.missing.length;
-      missingOutput.innerHTML = `<summary>Nie załadowano: ${data.missing.length}</summary><ul>${data.missing.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`;
-    } catch (err) { if (alive()) { output.textContent = controller.signal.aborted ? 'Import anulowany.' : err.message; if (err.message.includes('co najmniej 2')) { missing.hidden = false; missing.innerHTML = '<summary>Sprawdź nazwy utworów lub dodaj kolejne.</summary>'; } } }
-    finally { if (alive()) { controller = null; button.textContent = 'Załaduj playlistę'; } }
-  });
+      const selected=cupSettings(raw), pool=selected.region==='all'?musicPreviewCatalog:musicCatalogForRegion(selected.region);
+      engine.load(playerId,randomCupTracks(pool,selected.size),{previewSeconds:selected.previewSeconds,settings:selected});
+      engine.start(playerId); repaint(); root.__cupPlayFirst?.();
+    } catch(error) { const output=root.querySelector('[data-cup-import-status]'); if(output)output.textContent=error.message; }
+  }
+  const setup=root.querySelector('[data-cup-setup]');
+  if(setup) {
+    const estimates=()=>{const seconds=Number(setup.elements.previewSeconds.value);root.querySelectorAll('[data-cup-estimate]').forEach(label=>{const estimate=cupEstimate(Number(label.dataset.cupEstimate),seconds);label.textContent=`~${estimate.min}–${estimate.max} min · ${estimate.matches} pojedynków`;});};
+    setup.addEventListener('change',estimates); estimates();
+    setup.addEventListener('submit',event=>{event.preventDefault();startRandom({size:Number(setup.elements.size.value),previewSeconds:Number(setup.elements.previewSeconds.value),region:setup.elements.region.value});});
+  }
   if (resultAudio) { Audio.bindTrackAudio(resultAudio, `cup-winner:${playerId}:${state.session}`); return; }
   if (!audio) return;
   Audio.bindTrackVolumeControls(root);
@@ -73,11 +72,11 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
     root.querySelectorAll('[data-cup-choice]').forEach(button => button.disabled = !ready);
     root.querySelectorAll('[data-cup-replay]').forEach(button => { const isActive = button.dataset.cupReplay === activeSide && playing; button.textContent = isActive ? 'Ⅱ Pauza' : '▶ Odsłuch'; button.disabled = current.stage !== 'choice' && button.dataset.cupReplay !== current.stage; });
     const elapsed = Number(audio.currentTime) || 0;
-    for (const which of ['left','right']) root.querySelector(`[data-cup-progress="${which}"]`).style.width = `${Math.min(100, (which === activeSide ? elapsed : current.seconds[which]) / TOURNAMENT_PREVIEW_SECONDS * 100)}%`;
+    for (const which of ['left','right']) root.querySelector(`[data-cup-progress="${which}"]`).style.width = `${Math.min(100, (which === activeSide ? elapsed : current.seconds[which]) / previewSeconds * 100)}%`;
     controls.textContent = playing ? `Ⅱ Pauza ${label}` : `▶ ${activeSide ? 'Wznów' : 'Odtwórz'} ${label}`;
     controls.hidden = ready && !activeSide; skip.hidden = ready;
     skip.textContent = `Pomiń odsłuch ${current.stage === 'left' ? 'A' : 'B'} →`;
-    root.querySelector('[data-cup-status]').textContent = error || (ready ? 'Który utwór przechodzi dalej?' : playing ? `Słuchasz ${label} · ${Math.max(0, Math.ceil(10 - elapsed))} s` : `Odsłuch ${current.stage === 'left' ? 'A' : 'B'} · kliknij ▶`);
+    root.querySelector('[data-cup-status]').textContent = error || (ready ? 'Który utwór przechodzi dalej?' : playing ? `Słuchasz ${label} · ${Math.max(0, Math.ceil(previewSeconds - elapsed))} s` : `Odsłuch ${current.stage === 'left' ? 'A' : 'B'} · kliknij ▶`);
   }
   function play(side, replay = false) {
     if (!alive()) return;
@@ -104,12 +103,12 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
     if (!alive()) return;
     if (activeSide && !audio.paused) {
       engine.progress(playerId, activeSide, audio.currentTime, matchKey);
-      if (audio.currentTime >= 10) finish(); else if (timestamp - lastPaint >= 100) { lastPaint = timestamp; update(); }
+      if (audio.currentTime >= previewSeconds) finish(); else if (timestamp - lastPaint >= 100) { lastPaint = timestamp; update(); }
     }
     frame = requestAnimationFrame(tick);
   };
   audio.addEventListener('ended', finish);
-  audio.addEventListener('timeupdate', () => { if (activeSide && audio.currentTime >= 10) finish(); });
+  audio.addEventListener('timeupdate', () => { if (activeSide && audio.currentTime >= previewSeconds) finish(); });
   audio.addEventListener('play', update); audio.addEventListener('pause', update);
   audio.addEventListener('error', () => { if (alive()) { error = 'Odsłuch niedostępny. Spróbuj ponownie lub pomiń go.'; update(); } });
   controls.addEventListener('click', () => { if (!audio.paused) audio.pause(); else play(activeSide || engine.get(playerId).stage); });

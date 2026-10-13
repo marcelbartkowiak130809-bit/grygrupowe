@@ -20,6 +20,18 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.3.6",
+      date: "2026-10-13",
+      title: "Turniej losowych hitów",
+      changes: ["Zestawy 8, 16, 32, 64 i 128 piosenek z puli polskiej, globalnej albo mieszanej, wybór długości odsłuchu i szacunki czasu gry.", "Usunięto własne playlisty ze Zgadnij utwór. Zostają filtry oraz udostępnianie grafiki wyniku."],
+    },
+    {
+      version: "v5.3.5",
+      date: "2026-10-12",
+      title: "Udostępnij wynik Zgadnij utwór",
+      changes: ["Grafika wyniku z okładką, artystą, nickiem, profilowym i dokładnym czasem odsłuchu. Podgląd, pobieranie PNG oraz udostępnianie na obsługiwanych urządzeniach."],
+    },
+    {
       version: "v5.3.4",
       date: "2026-10-12",
       title: "Wygodny pasek mobilny",
