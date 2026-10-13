@@ -20,6 +20,12 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.4.1",
+      date: "2026-10-13",
+      title: "Lepsze pary haseł w Impostorze",
+      changes: ["Poprawiono zbyt podobne hasła i synonimy. Pary zachowują wspólne skojarzenie, ale mają wyraźniejsze różnice, np. krokodyl — hipopotam."],
+    },
+    {
       version: "v5.4.0",
       date: "2026-10-13",
       title: "Nowe główne menu",
