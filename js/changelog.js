@@ -20,6 +20,12 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.4.3",
+      date: "2026-10-13",
+      title: "Szersze skojarzenia w Impostorze",
+      changes: ["Dalsze dopracowanie par: popularne hasła z tej samej szerszej grupy zamiast najbliższych odpowiedników, np. gitara — pianino i papuga — pingwin. Krokodyl — hipopotam pozostaje."],
+    },
+    {
       version: "v5.4.2",
       date: "2026-10-13",
       title: "Naprawiony Marker",

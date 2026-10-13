@@ -12,9 +12,14 @@ test('catalog has unique, distinct pairs and every category stays populated',()=
 test('near-identical animals, synonyms, subtypes and aliases cannot return',()=>{
   const removed=[['krokodyl','aligator'],['żaba','ropucha'],['cytryna','limonka'],['brzoskwinia','nektarynka'],['excel','arkusz kalkulacyjny'],['PLS DONATE','Please Donate'],['perkusja','bębny'],['słuchawki','airpodsy'],['piłka nożna','futsal'],['cola','pepsi'],['lody','sorbet'],['gitara','ukulele']];
   const keys=new Set(impostorWords.map(p=>pairKey(p.main,p.impostor)));for(const [a,b] of removed)assert.ok(!keys.has(pairKey(a,b)),a+' / '+b);
-  for(const [main,impostor] of [['krokodyl','hipopotam'],['żaba','żółw'],['gitara','skrzypce'],['cola','lemoniada'],['excel','PowerPoint']])assert.ok(impostorWords.some(p=>normalize(p.main)===normalize(main)&&normalize(p.impostor)===normalize(impostor)));
+  for(const [main,impostor] of [['krokodyl','hipopotam'],['żaba','żółw'],['gitara','pianino'],['cola','lemoniada'],['excel','PowerPoint']])assert.ok(impostorWords.some(p=>normalize(p.main)===normalize(main)&&normalize(p.impostor)===normalize(impostor)));
   // Keep useful existing middle-distance pairs instead of broad random pairings.
   for(const [main,impostor] of [['burger','kebab'],['rekin','delfin'],['koszykówka','siatkówka']])assert.ok(impostorWords.some(p=>pairKey(p.main,p.impostor)===pairKey(main,impostor)));
+});
+test('broader familiar associations replace closest substitutes without changing the accepted animal pair',()=>{
+  const keys=new Set(impostorWords.map(p=>pairKey(p.main,p.impostor)));
+  for(const pair of [['gitara','skrzypce'],['fortepian','akordeon'],['perkusja','tamburyn'],['perkusja','marakasy'],['mandarynka','pomarańcza'],['mango','papaja'],['papuga','kanarek'],['ładowarka','powerbank'],['krzesło','taboret']])assert.ok(!keys.has(pairKey(...pair)),pair.join(' / '));
+  for(const pair of [['gitara','pianino'],['fortepian','perkusja'],['papuga','pingwin'],['lampka','świeca'],['krokodyl','hipopotam']])assert.ok(keys.has(pairKey(...pair)),pair.join(' / '));
 });
 test('new rounds assign both words from one curated pair with the configured special roles',()=>{
   for(let i=0;i<300;i++){
