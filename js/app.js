@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20260926-1";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-7";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261013-8";
 import { Effects } from "./effects.js";
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
@@ -3390,6 +3390,9 @@ async function checkFriendNotifications(bucket = null) {
 }
 function startFriendWatcher() { stopFriendRequestsSubscription(); clearInterval(friendPollTimer); stopFriendRequestsSubscription=subscribeFriendRequests(state.currentUser, bucket => checkFriendNotifications(bucket)); friendPollTimer=setInterval(checkFriendNotifications,5000); checkFriendNotifications(); }
 function clickedRoomPlayerUid(target) {
+  // Voting cards contain avatars and nicknames, but the entire card casts a vote.
+  // Do not intercept their clicks in the capture-phase profile listener.
+  if (target?.closest?.("[data-vote-player]")) return "";
   const room=activeRoom(), mini=target?.closest?.(".mini-player");
   if (!room || !mini || target.closest?.(".account-button")) return "";
   const tagged=mini.closest("[data-player-uid]")?.dataset.playerUid;

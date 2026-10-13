@@ -20,6 +20,12 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.4.6",
+      date: "2026-10-13",
+      title: "Głosowanie bez otwierania profilu",
+      changes: ["Kliknięcie avatara, nicku lub dowolnego miejsca na karcie głosowania oddaje głos zamiast otwierać profil gracza."],
+    },
+    {
       version: "v5.4.5",
       date: "2026-10-13",
       title: "Działający podgląd czasu w Impostorze",
