@@ -1,4 +1,5 @@
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261012-2";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261014-4";
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-4';
 import { Audio } from "./audio.js?v=20260926-1";
 import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
 let disposeSongSpotSharing = () => {};
@@ -498,7 +499,7 @@ function stageSequence() {
 
 function coverHtml(result) {
   if (!result?.coverUrl) return `<div class="songspot-result-cover songspot-cover-placeholder">♫</div>`;
-  return `<div class="songspot-result-cover"><img src="${escapeHtml(result.coverUrl)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.closest('.songspot-result-cover').classList.add('songspot-cover-placeholder');this.closest('.songspot-result-cover').innerHTML='♫'"> </div>`;
+  return `<div class="songspot-result-cover"><img src="${escapeHtml(musicArtworkUrl(result.coverUrl))}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.closest('.songspot-result-cover').classList.add('songspot-cover-placeholder');this.closest('.songspot-result-cover').innerHTML='♫'"> </div>`;
 }
 
 function resultHtml(state) {

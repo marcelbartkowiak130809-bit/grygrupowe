@@ -1,15 +1,16 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
 import { Audio } from './audio.js?v=20260926-1';
-import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261012-2';
+import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-4';
 import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
 import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261013-1';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-4';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
-const art = track => `<div class="playlist-cup-art"><span aria-hidden="true">♫</span>${track.coverUrl ? `<img src="${escapeHtml(track.coverUrl)}" alt="Okładka: ${escapeHtml(track.title)}" decoding="async" onerror="this.hidden=true">` : ''}</div>`;
+const art = track => `<div class="playlist-cup-art"><span aria-hidden="true">♫</span>${track.coverUrl ? `<img src="${escapeHtml(musicArtworkUrl(track.coverUrl))}" alt="Okładka: ${escapeHtml(track.title)}" decoding="async" onerror="this.hidden=true">` : ''}</div>`;
 function card(track, side) {
   return `<article class="playlist-cup-card" data-cup-card="${side}">${art(track)}<div class="playlist-cup-track"><small>${side === 'left' ? 'A' : 'B'}</small><h2>${escapeHtml(track.title)}</h2><p>${escapeHtml(track.artist)}</p></div><div class="playlist-cup-wave" aria-hidden="true">${Array.from({length:12}, (_, i) => `<i style="--wave:${i % 5}"></i>`).join('')}</div><div class="playlist-cup-progress"><i data-cup-progress="${side}"></i></div><div class="playlist-cup-card-actions"><button class="ghost" data-cup-replay="${side}">▶ Odsłuch</button><button class="primary" data-cup-choice="${side}" disabled>Wybieram ${side === 'left' ? 'A' : 'B'} <span>→</span></button></div></article>`;
 }

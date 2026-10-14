@@ -1,4 +1,5 @@
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-4';
 import { Audio } from "./audio.js?v=20260926-1";
 import { polishTrackData } from "./polishMusic.js?v=20260903-1";
 import { extendedGlobalMusicTracks } from "./extendedMusic.js?v=20260902-1";
@@ -300,7 +301,10 @@ const globalMusicPreviewCatalog = fallbackTrackNames.map(([title, artist], index
   const [coverUrl = "", previewUrl = ""] = fallbackTrackAssets[index] || [];
   return { id:`fallback-${index}`, title, artist, region:"global", coverUrl, previewUrl, externalUrl:`https://open.spotify.com/search/${encodeURIComponent(`${artist} ${title}`)}`, provider:"preview" };
 });
-export const musicPreviewCatalog = [...globalMusicPreviewCatalog, ...extendedGlobalMusicTracks, ...extendedGlobalMusicTracks2, ...curatedArtistMusicTracks, ...selenaGomezMusicTracks, ...polishTrackData, ...chartMusicTracks, ...artistExpansionTracks, ...polishClassicMusicTracks].map(track => chartMusicUpdates[track.id] ? { ...track, ...chartMusicUpdates[track.id] } : track);
+export const musicPreviewCatalog = [...globalMusicPreviewCatalog, ...extendedGlobalMusicTracks, ...extendedGlobalMusicTracks2, ...curatedArtistMusicTracks, ...selenaGomezMusicTracks, ...polishTrackData, ...chartMusicTracks, ...artistExpansionTracks, ...polishClassicMusicTracks].map(track => {
+  const item=chartMusicUpdates[track.id]?{...track,...chartMusicUpdates[track.id]}:track;
+  return {...item,coverUrl:musicArtworkUrl(item.coverUrl)};
+});
 const fallbackTracks = musicPreviewCatalog;
 
 const polishArtistNames = new Set(polishTrackData.map(track => clean(track.artist, 100).toLocaleLowerCase("pl-PL")));
@@ -327,7 +331,7 @@ function normalizeTrack(track) {
     artist,
     region: trackRegion({ ...track, title, artist, region:track.region || fallback.region }),
     album: clean(track.album || track.collectionName || fallback.album, 100),
-    coverUrl: clean(track.coverUrl || track.artworkUrl100 || fallback.coverUrl, 500),
+    coverUrl: musicArtworkUrl(clean(track.coverUrl || track.artworkUrl100 || fallback.coverUrl, 500)),
     previewUrl: clean(track.previewUrl || fallback.previewUrl, 500),
     externalUrl: clean(track.externalUrl || track.trackViewUrl || fallback.externalUrl || `https://open.spotify.com/search/${query}`, 500),
     spotifyUrl: clean(track.spotifyUrl || `https://open.spotify.com/search/${query}`, 500),
