@@ -1,12 +1,12 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
 import { Audio } from './audio.js?v=20260926-1';
-import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-4';
+import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-5';
 import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
 import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261013-1';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261014-4';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-5';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
@@ -30,9 +30,9 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   } else if (state.status === 'done') content = summary(state);
   else {
     const [left, right] = tournamentPair(state), final = state.entrants.length === 2;
-    content = `<section class="playlist-cup-round"><div class="playlist-cup-round-heading"><span class="badge">${final ? '♛ FINAŁ' : `RUNDA ${state.round}`}</span><span>${Math.floor(state.index / 2) + 1}/${Math.floor(state.entrants.length / 2)} · ${state.entrants.length} w grze</span></div><div class="playlist-cup-duel">${card(left, 'left')}<div class="playlist-cup-versus" aria-hidden="true">VS</div>${card(right, 'right')}</div><div class="playlist-cup-listen-status" data-cup-status role="status"></div><div class="playlist-cup-controls"><button class="ghost" data-cup-play>▶ Odtwórz A</button><button class="ghost" data-cup-skip>Pomiń odsłuch A →</button></div>${Audio.trackVolumeControlHtml({compact:true})}<audio data-cup-audio preload="auto"></audio><div class="playlist-cup-total-progress"><i style="width:${state.history.length / (state.tracks.length - 1) * 100}%"></i></div><small class="playlist-cup-total-label">${state.history.length}/${state.tracks.length - 1} wyborów · ${state.tracks.length - state.history.length} pozostałych</small>${state.entrants.length % 2 ? `<p class="playlist-cup-bye">Wolny los w tej rundzie: ${escapeHtml(state.tracks.find(t => t.id === state.entrants.at(-1))?.title)}</p>` : ''}<button class="ghost playlist-cup-exit" data-cup-reset>Przerwij turniej</button></section>`;
+    content = `<section class="playlist-cup-round"><div class="playlist-cup-round-heading"><span class="badge">${final ? '♛ FINAŁ' : `RUNDA ${state.round}`}</span><span>${Math.floor(state.index / 2) + 1}/${Math.floor(state.entrants.length / 2)} · ${state.entrants.length} w grze</span></div><div class="playlist-cup-duel">${card(left, 'left')}<div class="playlist-cup-versus" aria-hidden="true">VS</div>${card(right, 'right')}</div><div class="playlist-cup-toolbar"><div class="playlist-cup-listen-status" data-cup-status role="status"></div><div class="playlist-cup-controls"><button class="ghost" data-cup-play>▶ Odtwórz A</button><button class="ghost" data-cup-skip>Pomiń odsłuch A →</button></div><button class="ghost playlist-cup-exit" data-cup-reset>Przerwij turniej</button></div>${Audio.trackVolumeControlHtml({compact:true})}<audio data-cup-audio preload="auto"></audio><div class="playlist-cup-total-progress"><i style="width:${state.history.length / (state.tracks.length - 1) * 100}%"></i></div><small class="playlist-cup-total-label">${state.history.length}/${state.tracks.length - 1} wyborów · ${state.tracks.length - state.history.length} pozostałych</small>${state.entrants.length % 2 ? `<p class="playlist-cup-bye">Wolny los w tej rundzie: ${escapeHtml(state.tracks.find(t => t.id === state.entrants.at(-1))?.title)}</p>` : ''}</section>`;
   }
-  root.innerHTML = `<main class="page playlist-cup-page"><section class="panel playlist-cup-panel"><header class="playlist-cup-header"><div><p class="eyebrow">LOSOWE HITY · TURNIEJ SOLO</p><h1>Turniej hitów</h1></div><span aria-hidden="true">♛</span></header>${content}</section><button class="ghost" data-cup-home>← Wróć do muzyki</button></main>`;
+  root.innerHTML = `<main class="page playlist-cup-page${state.status === 'playing' ? ' is-playing' : ''}"><section class="panel playlist-cup-panel"><header class="playlist-cup-header"><div><p class="eyebrow">LOSOWE HITY · TURNIEJ SOLO</p><h1>Turniej hitów</h1></div><span aria-hidden="true">♛</span></header>${content}</section><button class="ghost" data-cup-home>← Wróć do muzyki</button></main>`;
   let controller, transitionTimer, frame, lastPaint = 0, stopped = false, activeSide = '', error = '';
   const audio = root.querySelector('[data-cup-audio]'), resultAudio = root.querySelector('[data-cup-result-audio]');
   const matchKey = tournamentMatchKey(state);
@@ -59,6 +59,8 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   if (resultAudio) { Audio.bindTrackAudio(resultAudio, `cup-winner:${playerId}:${state.session}`); return; }
   if (!audio) return;
   Audio.bindTrackVolumeControls(root);
+  const volumeInput=root.querySelector('[data-track-volume]');
+  volumeInput?.setAttribute('aria-label','Głośność piosenek');
   const controls = root.querySelector('[data-cup-play]'), skip = root.querySelector('[data-cup-skip]');
   function update() {
     if (!alive()) return;

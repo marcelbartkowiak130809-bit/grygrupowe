@@ -105,3 +105,32 @@
 .cup-share-dialog>small{display:block;color:#8e9fb9;font-size:10px;line-height:1.6;text-align:center}
 .light-theme .cup-share-dialog{background:#f2f6ff;color:#17213b;border-color:#b6c8e5}
 .light-theme .cup-share-dialog [data-share-feedback]{color:#485b79}
+.playlist-cup-toolbar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
+.playlist-cup-toolbar .playlist-cup-listen-status,.playlist-cup-toolbar .playlist-cup-controls,.playlist-cup-toolbar .playlist-cup-exit{margin:0}
+@media(min-width:701px){
+  .playlist-cup-page.is-playing{position:relative;margin:8px auto 0;padding-bottom:6px}
+  .playlist-cup-page.is-playing .playlist-cup-panel{padding:12px 24px}
+  .is-playing .playlist-cup-header{margin-bottom:8px;min-height:44px;padding-right:150px}
+  .is-playing .playlist-cup-header h1{font-size:32px}
+  .is-playing .playlist-cup-header .eyebrow{display:none}
+  .is-playing .playlist-cup-header>span{display:none}
+  .playlist-cup-page.is-playing>[data-cup-home]{position:absolute;top:12px;right:44px;margin:0;font-size:11px}
+  .is-playing .playlist-cup-round{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:6px 18px}
+  .is-playing .playlist-cup-round-heading{grid-column:1/-1;margin:0}
+  .is-playing .playlist-cup-duel{grid-column:1;grid-row:2;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:12px}
+  .is-playing .playlist-cup-card{padding:12px;gap:8px}
+  .is-playing .playlist-cup-art{width:min(100%,clamp(240px,calc(100dvh - 480px),270px));max-width:270px}
+  .is-playing .playlist-cup-track{min-height:44px}
+  .is-playing .playlist-cup-track h2{font-size:22px;margin-bottom:5px}
+  .is-playing .playlist-cup-wave{height:14px}
+  .is-playing .playlist-cup-round>.music-track-volume{grid-column:2;grid-row:2;align-self:center;margin:0;max-width:none;width:56px;box-sizing:border-box;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .is-playing .music-track-volume-label{font-size:18px}
+  .is-playing .music-track-volume-label b{display:none}
+  .is-playing [data-track-volume]{writing-mode:vertical-lr;direction:rtl;width:28px!important;height:190px!important;min-width:0;flex:none}
+  .is-playing [data-track-volume-value]{font-size:11px}
+  .is-playing .playlist-cup-toolbar{grid-column:1/-1;margin:0;justify-content:space-between;gap:8px}
+  .is-playing .playlist-cup-listen-status{font-size:12px;min-height:0}
+  .is-playing .playlist-cup-controls{gap:8px}
+  .is-playing .playlist-cup-controls button,.is-playing .playlist-cup-exit{font-size:11px;padding:8px 12px}
+  .is-playing .playlist-cup-total-progress,.is-playing .playlist-cup-total-label,.is-playing .playlist-cup-bye{grid-column:1/-1;margin:0}
+}
