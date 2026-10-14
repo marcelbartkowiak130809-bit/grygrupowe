@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {musicPreviewCatalog} from '../js/music.js';
+import {tournamentMusicCatalog as musicPreviewCatalog} from '../js/tournamentMusic.js';
 import {filterSongSpotTracks, songSpotRanked, songSpotTrackMetadata, songSpotArtistOptions, normalizeSongSpotFilters} from '../js/songSpotFilters.js';
 const stored=new Map();
 globalThis.localStorage={getItem:key=>stored.get(key)||null,setItem:(key,value)=>stored.set(key,value)};

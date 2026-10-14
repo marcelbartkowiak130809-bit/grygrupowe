@@ -1,6 +1,6 @@
 import { researchedSongMetadata } from './songMetadataResearch.js?v=20261010-7';
 import { songMetadataOverrides } from './songMetadataOverrides.js?v=20261010-7';
-import { songSpotLevels } from './songSpotLibrary.js?v=20261012-1';
+import { songSpotLevels } from './songSpotLibrary.js?v=20261014-8';
 
 export const songSpotEras = [['all','All'],['classic','< 2000s'],['2000s','2000s'],['2010s','2010s'],['2020s','2020s']];
 export const songSpotGenres = [['all','All'],['pop','Pop'],['hiphop','Hip-Hop'],['rock','Rock / Alternative'],['rnb','R&B'],['country','Country / Folk'],['kpop','K-Pop'],['dance','Dance / Electronic'],['latin','Latin'],['other','Pozostałe']];

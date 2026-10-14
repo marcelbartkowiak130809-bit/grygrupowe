@@ -18,7 +18,7 @@ const metricKey=value=>String(value).toLowerCase().normalize('NFKD').replace(/[\
 export function songSpotTier(track) {
   const views=popularityViewSnapshots.get(metricKey(`${track.title} ${track.artist}`));
   const easy=track.region==='polish'?50000000:1000000000, medium=track.region==='polish'?10000000:100000000;
-  return Number(views)>=easy?'easy':Number(views)>=medium || (!Number.isFinite(views) && chartIds.has(track.id))?'medium':'hard';
+  return Number(views)>=easy?'easy':Number(views)>=medium || (!Number.isFinite(views) && (chartIds.has(track.id) || track.chartHit))?'medium':'hard';
 }
 export function songSpotRoundTier(level,round=1){return level==='cycle'?['easy','medium','hard'][(Math.max(1,round)-1)%3]:level;}
 

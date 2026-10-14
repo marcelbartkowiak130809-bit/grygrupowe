@@ -52,7 +52,7 @@ function beginPair(state) {
     }
     state.entrants = state.survivors; state.survivors = []; state.index = 0; state.round++;
   }
-  state.match++; state.stage = 'left'; state.seconds = {left:0,right:0};
+  state.match++; state.stage = 'left'; state.seconds = {left:0,right:0};state.heard={left:0,right:0};
 }
 export const PlaylistTournamentEngine = {
   get,
@@ -73,7 +73,12 @@ export const PlaylistTournamentEngine = {
   progress(owner, side, seconds, expected) {
     const state = get(owner);
     if (state.status !== 'playing' || tournamentMatchKey(state) !== expected || !['left','right'].includes(side)) return false;
-    state.seconds[side] = Math.max(0, Math.min(state.previewSeconds || 10, Number(seconds) || 0)); return true;
+    const elapsed=Math.max(0,Math.min(state.previewSeconds||10,Number(seconds)||0));
+    state.heard ||= {left:0,right:0};
+    const previous=Number(state.heard[side])||0;
+    state.listenedSeconds=(Number(state.listenedSeconds)||0)+Math.max(0,elapsed-previous);
+    state.heard[side]=Math.max(previous,elapsed);
+    state.seconds[side]=elapsed;return true;
   },
   finishPreview(owner, side, expected) {
     const state = get(owner);

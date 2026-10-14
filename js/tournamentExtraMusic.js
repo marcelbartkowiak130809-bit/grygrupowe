@@ -1,4 +1,4 @@
-// Tournament-only expansion. Apple catalog media; research provenance is in docs.
+// Expanded music library. Apple catalog media; research provenance is in docs.
 export const tournamentExtraTracks = [
   {
     "id": "itunes-1693891139",

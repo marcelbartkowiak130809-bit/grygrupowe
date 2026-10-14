@@ -6,7 +6,7 @@ import {tournamentExtraTracks} from '../js/tournamentExtraMusic.js';
 import {tournamentMusicCatalog,tournamentCatalogForRegion} from '../js/tournamentMusic.js';
 import {cupTrackKey} from '../js/tournamentMusicKey.js';
 import {randomCupTracks} from '../js/musicCupSettings.js';
-test('tournament has 1200 unique playable songs; quiz catalog is unchanged',()=>{
+test('shared tournament and quiz pool has 1200 songs; other music modes keep the base catalog',()=>{
  assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200);
  const baseIds=new Set(musicPreviewCatalog.map(t=>String(t.id))),baseKeys=new Set(musicPreviewCatalog.map(cupTrackKey));
  for(const track of tournamentExtraTracks){assert.ok(!baseIds.has(track.id),track.title);assert.ok(!baseKeys.has(cupTrackKey(track)),track.title);}
@@ -28,5 +28,6 @@ test('research documents 60 real monthly samples, distinct from monthly aggregat
  for(const source of report.sources){assert.ok(!source.error);assert.ok(source.rows>=100);assert.match(source.url,/^https:\/\/www.billboard.com\/charts\/billboard-global-200\//);}
  assert.equal(report.trackResearch.length,367);assert.ok(report.trackResearch.filter(t=>t.method==='billboard-monthly-snapshot').length>300);
  const playlist=readFileSync(new URL('../js/playlistTournament.js',import.meta.url),'utf8');assert.ok(playlist.includes('tournamentCatalogForRegion(selected.region)'));
- for(const file of ['songSpot.js','songSpotLibrary.js','popularity.js','lyrics.js'])assert.ok(!readFileSync(new URL('../js/'+file,import.meta.url),'utf8').includes('tournamentMusic.js'));
+ assert.ok(readFileSync(new URL('../js/songSpot.js',import.meta.url),'utf8').includes('tournamentMusic.js'));
+ for(const file of ['songSpotLibrary.js','popularity.js','lyrics.js'])assert.ok(!readFileSync(new URL('../js/'+file,import.meta.url),'utf8').includes('tournamentMusic.js'));
 });

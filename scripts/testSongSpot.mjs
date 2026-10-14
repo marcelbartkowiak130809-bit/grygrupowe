@@ -8,7 +8,7 @@ globalThis.localStorage = {
   setItem: (key, value) => { writes++; saved.set(key, value); },
 };
 const { SongSpotSoloEngine: engine, bindSongSpotPlaybackButton } = await import('../js/songSpot.js');
-const { musicCatalogForRegion } = await import('../js/music.js?v=20260903-9');
+const { tournamentCatalogForRegion: musicCatalogForRegion } = await import('../js/tournamentMusic.js');
 const trackFor = state => musicCatalogForRegion(state.region).find(track => String(track.id) === state.trackId);
 
 test('playback button follows actual play, pause, resume, end and error events', () => {
