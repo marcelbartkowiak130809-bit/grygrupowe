@@ -1,0 +1,4 @@
+import {tournamentExtraTracks} from '../js/tournamentExtraMusic.js';
+const checked=[];let next=0;
+async function worker(){while(next<tournamentExtraTracks.length){const i=next++,track=tournamentExtraTracks[i];const result={id:track.id};for(const [key,url] of [['preview',track.previewUrl],['cover',track.coverUrl]]){try{const r=await fetch(url,{method:'HEAD',signal:AbortSignal.timeout(20000)});result[key]={status:r.status,type:r.headers.get('content-type')};}catch(e){result[key]={error:e.message};}}checked[i]=result;if((i+1)%40===0)console.error(`Media ${i+1}/${tournamentExtraTracks.length}`);}}
+await Promise.all(Array.from({length:4},worker));const failed=checked.filter(t=>t.preview.status!==200||t.cover.status!==200);console.log(JSON.stringify({total:checked.length,passed:checked.length-failed.length,failed}));

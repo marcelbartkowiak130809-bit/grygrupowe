@@ -1,0 +1,4492 @@
+{
+  "created": "2026-10-14",
+  "mediaValidation": {"checked":367,"passed":367,"failed":0,"method":"HEAD requests to each original Apple preview and 600px artwork URL"},
+  "basePlayable": 836,
+  "baseUnique": 833,
+  "target": 1200,
+  "added": 367,
+  "totalUnique": 1200,
+  "chartMethod": "Top 100 from the last weekly Global 200 chart in each month, 2021–2025; not monthly aggregated rankings.",
+  "sources": [
+    {
+      "date": "2021-01-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/",
+      "rows": 200
+    },
+    {
+      "date": "2021-02-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-02-27/",
+      "rows": 200
+    },
+    {
+      "date": "2021-03-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-03-27/",
+      "rows": 200
+    },
+    {
+      "date": "2021-06-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/",
+      "rows": 200
+    },
+    {
+      "date": "2021-04-24",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/",
+      "rows": 200
+    },
+    {
+      "date": "2021-05-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-05-29/",
+      "rows": 200
+    },
+    {
+      "date": "2021-08-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/",
+      "rows": 200
+    },
+    {
+      "date": "2021-09-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-09-25/",
+      "rows": 200
+    },
+    {
+      "date": "2021-07-31",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-07-31/",
+      "rows": 200
+    },
+    {
+      "date": "2021-12-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/",
+      "rows": 200
+    },
+    {
+      "date": "2021-11-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/",
+      "rows": 200
+    },
+    {
+      "date": "2021-10-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/",
+      "rows": 200
+    },
+    {
+      "date": "2022-01-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/",
+      "rows": 200
+    },
+    {
+      "date": "2022-02-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-02-26/",
+      "rows": 200
+    },
+    {
+      "date": "2022-03-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-03-26/",
+      "rows": 200
+    },
+    {
+      "date": "2022-06-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/",
+      "rows": 200
+    },
+    {
+      "date": "2022-05-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/",
+      "rows": 200
+    },
+    {
+      "date": "2022-04-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-04-30/",
+      "rows": 200
+    },
+    {
+      "date": "2022-08-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/",
+      "rows": 200
+    },
+    {
+      "date": "2022-07-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-07-30/",
+      "rows": 200
+    },
+    {
+      "date": "2022-09-24",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-09-24/",
+      "rows": 200
+    },
+    {
+      "date": "2022-12-31",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/",
+      "rows": 200
+    },
+    {
+      "date": "2022-11-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/",
+      "rows": 200
+    },
+    {
+      "date": "2022-10-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2022-10-29/",
+      "rows": 200
+    },
+    {
+      "date": "2023-03-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/",
+      "rows": 200
+    },
+    {
+      "date": "2023-02-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-02-25/",
+      "rows": 200
+    },
+    {
+      "date": "2023-01-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-01-28/",
+      "rows": 200
+    },
+    {
+      "date": "2023-04-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/",
+      "rows": 200
+    },
+    {
+      "date": "2023-06-24",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/",
+      "rows": 200
+    },
+    {
+      "date": "2023-05-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-05-27/",
+      "rows": 200
+    },
+    {
+      "date": "2023-08-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/",
+      "rows": 200
+    },
+    {
+      "date": "2023-09-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/",
+      "rows": 200
+    },
+    {
+      "date": "2023-07-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-07-29/",
+      "rows": 200
+    },
+    {
+      "date": "2023-10-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-10-28/",
+      "rows": 200
+    },
+    {
+      "date": "2023-11-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/",
+      "rows": 200
+    },
+    {
+      "date": "2023-12-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2023-12-30/",
+      "rows": 200
+    },
+    {
+      "date": "2024-01-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-01-27/",
+      "rows": 200
+    },
+    {
+      "date": "2024-03-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/",
+      "rows": 200
+    },
+    {
+      "date": "2024-02-24",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-02-24/",
+      "rows": 200
+    },
+    {
+      "date": "2024-05-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/",
+      "rows": 200
+    },
+    {
+      "date": "2024-04-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-04-27/",
+      "rows": 200
+    },
+    {
+      "date": "2024-06-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/",
+      "rows": 200
+    },
+    {
+      "date": "2024-09-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/",
+      "rows": 200
+    },
+    {
+      "date": "2024-07-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-07-27/",
+      "rows": 200
+    },
+    {
+      "date": "2024-08-31",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-08-31/",
+      "rows": 200
+    },
+    {
+      "date": "2024-12-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-12-28/",
+      "rows": 200
+    },
+    {
+      "date": "2024-11-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/",
+      "rows": 200
+    },
+    {
+      "date": "2024-10-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2024-10-26/",
+      "rows": 200
+    },
+    {
+      "date": "2025-01-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/",
+      "rows": 200
+    },
+    {
+      "date": "2025-03-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-03-29/",
+      "rows": 200
+    },
+    {
+      "date": "2025-02-22",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-02-22/",
+      "rows": 200
+    },
+    {
+      "date": "2025-06-28",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/",
+      "rows": 200
+    },
+    {
+      "date": "2025-04-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-04-26/",
+      "rows": 200
+    },
+    {
+      "date": "2025-05-31",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/",
+      "rows": 200
+    },
+    {
+      "date": "2025-08-30",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-08-30/",
+      "rows": 200
+    },
+    {
+      "date": "2025-07-26",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/",
+      "rows": 200
+    },
+    {
+      "date": "2025-09-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/",
+      "rows": 200
+    },
+    {
+      "date": "2025-10-25",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-10-25/",
+      "rows": 200
+    },
+    {
+      "date": "2025-11-29",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-11-29/",
+      "rows": 200
+    },
+    {
+      "date": "2025-12-27",
+      "url": "https://www.billboard.com/charts/billboard-global-200/2025-12-27/",
+      "rows": 200
+    }
+  ],
+  "catalogSources": [
+    {
+      "artist": "The Weeknd",
+      "url": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Bad Bunny",
+      "url": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 186
+    },
+    {
+      "artist": "Taylor Swift",
+      "url": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 197
+    },
+    {
+      "artist": "Ed Sheeran",
+      "url": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Billie Eilish",
+      "url": "https://itunes.apple.com/search?term=Billie%20Eilish&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 191
+    },
+    {
+      "artist": "Sabrina Carpenter",
+      "url": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Olivia Rodrigo",
+      "url": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 172
+    },
+    {
+      "artist": "Morgan Wallen",
+      "url": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Dua Lipa",
+      "url": "https://itunes.apple.com/search?term=Dua%20Lipa&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 197
+    },
+    {
+      "artist": "Doja Cat",
+      "url": "https://itunes.apple.com/search?term=Doja%20Cat&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Kendrick Lamar",
+      "url": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Drake",
+      "url": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "SZA",
+      "url": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Post Malone",
+      "url": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "KAROL G",
+      "url": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 177
+    },
+    {
+      "artist": "Justin Bieber",
+      "url": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Harry Styles",
+      "url": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Teddy Swims",
+      "url": "https://itunes.apple.com/search?term=Teddy%20Swims&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 198
+    },
+    {
+      "artist": "Ariana Grande",
+      "url": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "BTS",
+      "url": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Tate McRae",
+      "url": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 190
+    },
+    {
+      "artist": "Zach Bryan",
+      "url": "https://itunes.apple.com/search?term=Zach%20Bryan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 195
+    },
+    {
+      "artist": "Chappell Roan",
+      "url": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 86
+    },
+    {
+      "artist": "The Neighbourhood",
+      "url": "https://itunes.apple.com/search?term=The%20Neighbourhood&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 195
+    },
+    {
+      "artist": "Glass Animals",
+      "url": "https://itunes.apple.com/search?term=Glass%20Animals&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 195
+    },
+    {
+      "artist": "Benson Boone",
+      "url": "https://itunes.apple.com/search?term=Benson%20Boone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 100
+    },
+    {
+      "artist": "Coldplay",
+      "url": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Lady Gaga",
+      "url": "https://itunes.apple.com/search?term=Lady%20Gaga&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Miley Cyrus",
+      "url": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Imagine Dragons",
+      "url": "https://itunes.apple.com/search?term=Imagine%20Dragons&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Lewis Capaldi",
+      "url": "https://itunes.apple.com/search?term=Lewis%20Capaldi&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 183
+    },
+    {
+      "artist": "David Guetta",
+      "url": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Jung Kook",
+      "url": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 75
+    },
+    {
+      "artist": "Travis Scott",
+      "url": "https://itunes.apple.com/search?term=Travis%20Scott&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "NewJeans",
+      "url": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "OneRepublic",
+      "url": "https://itunes.apple.com/search?term=OneRepublic&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Eminem",
+      "url": "https://itunes.apple.com/search?term=Eminem&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Adele",
+      "url": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 198
+    },
+    {
+      "artist": "Gracie Abrams",
+      "url": "https://itunes.apple.com/search?term=Gracie%20Abrams&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 198
+    },
+    {
+      "artist": "Rema",
+      "url": "https://itunes.apple.com/search?term=Rema&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "sombr",
+      "url": "https://itunes.apple.com/search?term=sombr&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 196
+    },
+    {
+      "artist": "Future",
+      "url": "https://itunes.apple.com/search?term=Future&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Shaboozey",
+      "url": "https://itunes.apple.com/search?term=Shaboozey&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 159
+    },
+    {
+      "artist": "ROSÉ",
+      "url": "https://itunes.apple.com/search?term=ROS%C3%89&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Beyoncé",
+      "url": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "LINKIN PARK",
+      "url": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Metro Boomin",
+      "url": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Hozier",
+      "url": "https://itunes.apple.com/search?term=Hozier&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 200
+    },
+    {
+      "artist": "Luke Combs",
+      "url": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 199
+    },
+    {
+      "artist": "Tones And I",
+      "url": "https://itunes.apple.com/search?term=Tones%20And%20I&entity=song&attribute=artistTerm&limit=200&country=us",
+      "results": 117
+    },
+    {
+      "artist": "Calvin Harris",
+      "url": "https://itunes.apple.com/search?term=Calvin%20Harris&entity=song&attribute=artistTerm&limit=200&country=us",
+      "reason": "popular singles filling duplicate rereleases"
+    }
+  ],
+  "deduplicatedRereleases": 3,
+  "trackResearch": [
+    {
+      "id": "itunes-1693891139",
+      "title": "One Of The Girls",
+      "artist": "The Weeknd, JENNIE & Lily Rose Depp",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 12,
+      "sampledMonths": 25,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/"
+    },
+    {
+      "id": "itunes-1581087034",
+      "title": "Shivers",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 4,
+      "sampledMonths": 23,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-09-25/"
+    },
+    {
+      "id": "itunes-1621817894",
+      "title": "I Ain't Worried",
+      "artist": "OneRepublic",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=OneRepublic&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 5,
+      "sampledMonths": 23,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1642788728",
+      "title": "I'm Good (Blue)",
+      "artist": "David Guetta & Bebe Rexha",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 11,
+      "peak": 2,
+      "sampledMonths": 22,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-09-24/"
+    },
+    {
+      "id": "itunes-1571330212",
+      "title": "Bad Habits",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 2,
+      "sampledMonths": 20,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/"
+    },
+    {
+      "id": "itunes-1770393194",
+      "title": "Timeless",
+      "artist": "The Weeknd & Playboi Carti",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 128,
+      "peak": 10,
+      "sampledMonths": 15,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-12-28/"
+    },
+    {
+      "id": "itunes-1691699849",
+      "title": "The Door",
+      "artist": "Teddy Swims",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Teddy%20Swims&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 34,
+      "sampledMonths": 17,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1752031539",
+      "title": "Si Antes Te Hubiera Conocido",
+      "artist": "KAROL G",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 7,
+      "sampledMonths": 14,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1703217516",
+      "title": "I Remember Everything (feat. Kacey Musgraves)",
+      "artist": "Zach Bryan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Zach%20Bryan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 8,
+      "sampledMonths": 14,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1556170101",
+      "title": "Peaches (feat. Daniel Caesar & GIVĒON)",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 89,
+      "peak": 2,
+      "sampledMonths": 13,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1590036021",
+      "title": "Easy On Me",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 2,
+      "sampledMonths": 13,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1795513492",
+      "title": "Please Please Please",
+      "artist": "Sabrina Carpenter & Dolly Parton",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 9,
+      "peak": 3,
+      "sampledMonths": 12,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1622045962",
+      "title": "Ojitos Lindos",
+      "artist": "Bad Bunny & Bomba Estéreo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 6,
+      "sampledMonths": 12,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1675173768",
+      "title": "Pink Pony Club",
+      "artist": "Chappell Roan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 16,
+      "sampledMonths": 13,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1588044258",
+      "title": "Ghost",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 19,
+      "peak": 17,
+      "sampledMonths": 12,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1765799904",
+      "title": "Bad Dreams",
+      "artist": "Teddy Swims",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Teddy%20Swims&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 27,
+      "sampledMonths": 13,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1560735421",
+      "title": "traitor",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 13,
+      "sampledMonths": 11,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1787022572",
+      "title": "NUEVAYoL",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 5,
+      "sampledMonths": 10,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1484636829",
+      "title": "Don't Start Now",
+      "artist": "Dua Lipa",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Dua%20Lipa&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 30,
+      "sampledMonths": 12,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1636790292",
+      "title": "CUFF IT",
+      "artist": "Beyoncé",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 132,
+      "peak": 12,
+      "sampledMonths": 10,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/"
+    },
+    {
+      "id": "itunes-1619425410",
+      "title": "PROVENZA",
+      "artist": "KAROL G",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 14,
+      "peak": 13,
+      "sampledMonths": 9,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1612321591",
+      "title": "Bones",
+      "artist": "Imagine Dragons",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Imagine%20Dragons&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 34,
+      "sampledMonths": 11,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-03-26/"
+    },
+    {
+      "id": "itunes-1560735847",
+      "title": "deja vu",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 13,
+      "peak": 9,
+      "sampledMonths": 8,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1819377511",
+      "title": "Manchild",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 2,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1770861177",
+      "title": "I Love You, I'm Sorry",
+      "artist": "Gracie Abrams",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Gracie%20Abrams&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 41,
+      "peak": 14,
+      "sampledMonths": 8,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1802084938",
+      "title": "undressed",
+      "artist": "sombr",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=sombr&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 19,
+      "sampledMonths": 8,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1537486672",
+      "title": "34+35",
+      "artist": "Ariana Grande",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 66,
+      "peak": 2,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1709554997",
+      "title": "Standing Next to You",
+      "artist": "Jung Kook",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 2,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/"
+    },
+    {
+      "id": "itunes-1779319634",
+      "title": "Sports car",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 21,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-03-29/"
+    },
+    {
+      "id": "itunes-1622045948",
+      "title": "Neverita",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 24,
+      "peak": 23,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1795513143",
+      "title": "Bed Chem",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 15,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1699799570",
+      "title": "Chemical",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 94,
+      "peak": 16,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/"
+    },
+    {
+      "id": "itunes-1440935808",
+      "title": "Blank Space",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 25,
+      "peak": 38,
+      "sampledMonths": 8,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/"
+    },
+    {
+      "id": "itunes-1546390013",
+      "title": "Good Days",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 17,
+      "peak": 8,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-6814098030",
+      "title": "NOKIA",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 122,
+      "peak": 9,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-03-29/"
+    },
+    {
+      "id": "itunes-1736051616",
+      "title": "Slow It Down",
+      "artist": "Benson Boone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Benson%20Boone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 29,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1657231962",
+      "title": "Ditto",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 10,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1579408008",
+      "title": "Take My Breath",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 42,
+      "peak": 13,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/"
+    },
+    {
+      "id": "itunes-1630221907",
+      "title": "Jimmy Cooks (feat. 21 Savage)",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 108,
+      "peak": 13,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/"
+    },
+    {
+      "id": "itunes-1698723221",
+      "title": "HOT TO GO!",
+      "artist": "Chappell Roan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 23,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1803412611",
+      "title": "Azizam",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 73,
+      "peak": 24,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1807490820",
+      "title": "Mystical Magical",
+      "artist": "Benson Boone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Benson%20Boone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 25,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1425131554",
+      "title": "Mockingbird",
+      "artist": "Eminem",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Eminem&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 7,
+      "peak": 46,
+      "sampledMonths": 8,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1747842759",
+      "title": "Pink Skies",
+      "artist": "Zach Bryan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Zach%20Bryan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 17,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1732348414",
+      "title": "Saturn",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1,
+      "peak": 18,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/"
+    },
+    {
+      "id": "itunes-1709528228",
+      "title": "3D",
+      "artist": "Jung Kook & Jack Harlow",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 65,
+      "peak": 8,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-10-28/"
+    },
+    {
+      "id": "itunes-1622045626",
+      "title": "Después de la Playa",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 19,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1542103215",
+      "title": "LA NOCHE DE ANOCHE",
+      "artist": "Bad Bunny & ROSALÍA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 19,
+      "peak": 20,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1597450885",
+      "title": "Merry Christmas",
+      "artist": "Ed Sheeran & Elton John",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 42,
+      "peak": 20,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1811175544",
+      "title": "Sapphire",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 86,
+      "peak": 10,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1544839502",
+      "title": "Anyone",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 41,
+      "peak": 10,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1440640717",
+      "title": "Mistletoe",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 26,
+      "peak": 21,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1677892279",
+      "title": "Feather",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 31,
+      "peak": 43,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-01-27/"
+    },
+    {
+      "id": "itunes-1699662669",
+      "title": "MI EX TENÍA RAZÓN",
+      "artist": "KAROL G",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 11,
+      "peak": 13,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1584449211",
+      "title": "Way 2 Sexy (feat. Future & Young Thug)",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 140,
+      "peak": 4,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-09-25/"
+    },
+    {
+      "id": "itunes-1737218564",
+      "title": "I Don't Wanna Wait",
+      "artist": "David Guetta & OneRepublic",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 34,
+      "sampledMonths": 6,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1468058173",
+      "title": "Lover",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 16,
+      "peak": 46,
+      "sampledMonths": 7,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1657583932",
+      "title": "Superhero (Heroes & Villains)",
+      "artist": "Metro Boomin, Future & Chris Brown",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 19,
+      "peak": 26,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1865854732",
+      "title": "Tears",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 7,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1694768030",
+      "title": "bad idea right?",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 47,
+      "peak": 7,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1588044254",
+      "title": "Hold On",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 35,
+      "peak": 20,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-03-27/"
+    },
+    {
+      "id": "itunes-1754189283",
+      "title": "Lies Lies Lies",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 57,
+      "peak": 21,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1551179678",
+      "title": "We're Good",
+      "artist": "Dua Lipa",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Dua%20Lipa&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 16,
+      "peak": 21,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-02-27/"
+    },
+    {
+      "id": "itunes-1590036031",
+      "title": "Oh My God",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 21,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1626194607",
+      "title": "N95",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 118,
+      "peak": 2,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1681127431",
+      "title": "Search & Rescue",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 157,
+      "peak": 13,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/"
+    },
+    {
+      "id": "itunes-1630005854",
+      "title": "BREAK MY SOUL",
+      "artist": "Beyoncé",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 16,
+      "peak": 13,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/"
+    },
+    {
+      "id": "itunes-1838810952",
+      "title": "Elizabeth Taylor",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 182,
+      "peak": 4,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-10-25/"
+    },
+    {
+      "id": "itunes-1825994651",
+      "title": "YUKON",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 14,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-08-30/"
+    },
+    {
+      "id": "itunes-1593056951",
+      "title": "One Right Now",
+      "artist": "Post Malone & The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 48,
+      "peak": 15,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1737320968",
+      "title": "Type Shit",
+      "artist": "Future, Metro Boomin, Travis Scott & Playboi Carti",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Future&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 187,
+      "peak": 17,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1560735859",
+      "title": "happier",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 27,
+      "peak": 18,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1603164243",
+      "title": "Sacrifice",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 155,
+      "peak": 9,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1802103972",
+      "title": "I Got Better",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 29,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1773342229",
+      "title": "Love Somebody",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 35,
+      "peak": 39,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1556658001",
+      "title": "What's Next",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 105,
+      "peak": 9,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-03-27/"
+    },
+    {
+      "id": "itunes-1769725224",
+      "title": "It's ok I'm ok",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 23,
+      "peak": 19,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1440935812",
+      "title": "Style",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 40,
+      "peak": 41,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/"
+    },
+    {
+      "id": "itunes-1787022993",
+      "title": "WELTiTA",
+      "artist": "Bad Bunny & Chuwi",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 46,
+      "peak": 12,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1582277657",
+      "title": "favorite crime",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 7,
+      "peak": 22,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1627575774",
+      "title": "Yet To Come",
+      "artist": "BTS",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 85,
+      "peak": 2,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1771105929",
+      "title": "toxic till the end",
+      "artist": "ROSÉ",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=ROS%C3%89&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 23,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-12-28/"
+    },
+    {
+      "id": "itunes-1545341251",
+      "title": "Afterglow",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 51,
+      "peak": 24,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1734980444",
+      "title": "Illusion",
+      "artist": "Dua Lipa",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Dua%20Lipa&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 17,
+      "peak": 15,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1831372120",
+      "title": "The Subway",
+      "artist": "Chappell Roan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 41,
+      "peak": 16,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-08-30/"
+    },
+    {
+      "id": "itunes-1544268298",
+      "title": "willow",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 133,
+      "peak": 27,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1626194615",
+      "title": "Die Hard",
+      "artist": "Kendrick Lamar, Blxst & Amanda Reifer",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 129,
+      "peak": 7,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1658650801",
+      "title": "I Hate U",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 47,
+      "peak": 27,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1590368456",
+      "title": "All Too Well (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 28,
+      "peak": 28,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-12-25/"
+    },
+    {
+      "id": "itunes-1626194604",
+      "title": "United In Grief",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 158,
+      "peak": 9,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1608894952",
+      "title": "The Joker And The Queen (feat. Taylor Swift)",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 91,
+      "peak": 10,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-02-26/"
+    },
+    {
+      "id": "itunes-1631579019",
+      "title": "Nonsense",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 40,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-01-28/"
+    },
+    {
+      "id": "itunes-1801197851",
+      "title": "The Giver",
+      "artist": "Chappell Roan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 10,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-03-29/"
+    },
+    {
+      "id": "itunes-1575618128",
+      "title": "Motley Crew",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 176,
+      "peak": 21,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/"
+    },
+    {
+      "id": "itunes-1673804556",
+      "title": "Eyes Closed",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 45,
+      "peak": 32,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/"
+    },
+    {
+      "id": "itunes-1825994653",
+      "title": "GO BABY",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 90,
+      "peak": 12,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1627575780",
+      "title": "Run BTS",
+      "artist": "BTS",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 12,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1440857734",
+      "title": "Bloody Mary",
+      "artist": "Lady Gaga",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Lady%20Gaga&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 37,
+      "peak": 32,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1590368453",
+      "title": "Red (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 115,
+      "peak": 13,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1626195220",
+      "title": "Father Time (feat. Sampha)",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 168,
+      "peak": 13,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1653012567",
+      "title": "Major Distribution",
+      "artist": "Drake & 21 Savage",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 191,
+      "peak": 13,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1531508507",
+      "title": "Holy (feat. Chance the Rapper)",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 28,
+      "peak": 43,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1837298858",
+      "title": "The Dead Dance",
+      "artist": "Lady Gaga",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Lady%20Gaga&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 26,
+      "peak": 23,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1679958206",
+      "title": "Baby Don't Hurt Me",
+      "artist": "David Guetta, Anne-Marie & Coi Leray",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 43,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/"
+    },
+    {
+      "id": "itunes-1865855014",
+      "title": "When Did You Get Hot?",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 18,
+      "peak": 24,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1818431686",
+      "title": "Don't Think Jesus",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 101,
+      "peak": 14,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-04-30/"
+    },
+    {
+      "id": "itunes-1536966412",
+      "title": "Prisoner (feat. Dua Lipa)",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 17,
+      "peak": 34,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1626195236",
+      "title": "Silent Hill",
+      "artist": "Kendrick Lamar & Kodak Black",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 142,
+      "peak": 15,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1819829902",
+      "title": "28",
+      "artist": "Zach Bryan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Zach%20Bryan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 35,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1695951900",
+      "title": "ETA",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 25,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1801842332",
+      "title": "Heavy Is the Crown",
+      "artist": "LINKIN PARK",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 16,
+      "peak": 25,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1650841730",
+      "title": "Midnight Rain",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 121,
+      "peak": 16,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1694768053",
+      "title": "get him back!",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 58,
+      "peak": 16,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1626195226",
+      "title": "Rich Spirit",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 154,
+      "peak": 16,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1560071629",
+      "title": "EL MAKINÓN",
+      "artist": "KAROL G & Mariah Angeliq",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 46,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1825994648",
+      "title": "ALL I CAN TAKE",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 112,
+      "peak": 16,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1702907026",
+      "title": "River",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 51,
+      "peak": 16,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1752531909",
+      "title": "Pour Me A Drink (feat. Blake Shelton)",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 27,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-07-27/"
+    },
+    {
+      "id": "itunes-1626194612",
+      "title": "Worldwide Steppers",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 174,
+      "peak": 18,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1744448416",
+      "title": "How Sweet",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 9,
+      "peak": 28,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1668488811",
+      "title": "Lost",
+      "artist": "LINKIN PARK",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 39,
+      "peak": 18,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-02-25/"
+    },
+    {
+      "id": "itunes-1552792305",
+      "title": "Mr. Perfectly Fine (Taylor’s Version) [From The Vault]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 92,
+      "peak": 19,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1623258528",
+      "title": "Cooped Up (feat. Roddy Ricch)",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 117,
+      "peak": 29,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1854871778",
+      "title": "TIT FOR TAT",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 79,
+      "peak": 29,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-10-25/"
+    },
+    {
+      "id": "itunes-1742058100",
+      "title": "Who’s Afraid of Little Old Me?",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 36,
+      "peak": 20,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1626195227",
+      "title": "We Cry Together",
+      "artist": "Kendrick Lamar & Taylour Paige",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 195,
+      "peak": 20,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1560735471",
+      "title": "brutal",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 48,
+      "peak": 31,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1626195230",
+      "title": "Count Me Out",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 156,
+      "peak": 21,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1641737869",
+      "title": "GATÚBELA",
+      "artist": "KAROL G & Maldy",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 18,
+      "peak": 31,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-09-24/"
+    },
+    {
+      "id": "itunes-1618442302",
+      "title": "2step (feat. Lil Baby)",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 30,
+      "peak": 42,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1619408877",
+      "title": "The Kind of Love We Make",
+      "artist": "Luke Combs",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 52,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/"
+    },
+    {
+      "id": "itunes-1793702597",
+      "title": "Cry For Me",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 129,
+      "peak": 23,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-02-22/"
+    },
+    {
+      "id": "itunes-1650841735",
+      "title": "Bejeweled",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 116,
+      "peak": 23,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1590368455",
+      "title": "I Knew You Were Trouble (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 139,
+      "peak": 23,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1713846523",
+      "title": "Now That We Don't Talk (Taylor's Version) [From The Vault]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 142,
+      "peak": 23,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/"
+    },
+    {
+      "id": "itunes-1606052735",
+      "title": "she's all i wanna be",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 9,
+      "peak": 53,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-02-26/"
+    },
+    {
+      "id": "itunes-1787023670",
+      "title": "TURiSTA",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 52,
+      "peak": 24,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1590368892",
+      "title": "Run (Taylor's Version) [From The Vault] [feat. Ed Sheeran]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 194,
+      "peak": 24,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1560735561",
+      "title": "jealousy, jealousy",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 19,
+      "peak": 44,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1626195228",
+      "title": "Purple Hearts",
+      "artist": "Kendrick Lamar, Summer Walker & Ghostface Killah",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 183,
+      "peak": 24,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1653012573",
+      "title": "Spin Bout U",
+      "artist": "Drake & 21 Savage",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 133,
+      "peak": 24,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1752531955",
+      "title": "Guy For That (feat. Luke Combs)",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 24,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-08-31/"
+    },
+    {
+      "id": "itunes-1690841071",
+      "title": "I Can See You (Taylor's Version) (From The Vault)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 113,
+      "peak": 25,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-07-29/"
+    },
+    {
+      "id": "itunes-1626195241",
+      "title": "Savior",
+      "artist": "Kendrick Lamar, Baby Keem & Sam Dew",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 167,
+      "peak": 26,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1796270481",
+      "title": "BMF",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 70,
+      "peak": 36,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1122782281",
+      "title": "Sparks",
+      "artist": "Coldplay",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 66,
+      "sampledMonths": 5,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-06-28/"
+    },
+    {
+      "id": "itunes-1836002472",
+      "title": "Nobody’s Son",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 133,
+      "peak": 27,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1825994656",
+      "title": "WAY IT IS",
+      "artist": "Justin Bieber & Gunna",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 99,
+      "peak": 27,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1801831569",
+      "title": "Revolving door",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 62,
+      "peak": 47,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-03-29/"
+    },
+    {
+      "id": "itunes-1621817905",
+      "title": "Hold My Hand",
+      "artist": "Lady Gaga",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Lady%20Gaga&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 63,
+      "peak": 37,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1658650791",
+      "title": "Nobody Gets Me",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 21,
+      "peak": 38,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1825994654",
+      "title": "THINGS YOU DO",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 123,
+      "peak": 28,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1557745423",
+      "title": "Gone",
+      "artist": "ROSÉ",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=ROS%C3%89&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 136,
+      "peak": 29,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-03-27/"
+    },
+    {
+      "id": "itunes-1766137063",
+      "title": "Two Faced",
+      "artist": "LINKIN PARK",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 24,
+      "peak": 29,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1742058097",
+      "title": "Guilty as Sin?",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 65,
+      "peak": 30,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1590368457",
+      "title": "22 (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 176,
+      "peak": 30,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1736994856",
+      "title": "all-american bitch",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 98,
+      "peak": 30,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1802103973",
+      "title": "Superman",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 42,
+      "peak": 30,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1627577723",
+      "title": "For Youth",
+      "artist": "BTS",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 153,
+      "peak": 30,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1787023682",
+      "title": "CAFé CON RON",
+      "artist": "Bad Bunny & Los Pleneros de la Cresta",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 31,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1689131956",
+      "title": "You're On Your Own, Kid",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 58,
+      "peak": 31,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1742058083",
+      "title": "So Long, London",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 64,
+      "peak": 31,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1535542271",
+      "title": "Lonely",
+      "artist": "Justin Bieber & benny blanco",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 161,
+      "peak": 41,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1666738582",
+      "title": "Love You Anyway",
+      "artist": "Luke Combs",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 31,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-02-25/"
+    },
+    {
+      "id": "itunes-1801831918",
+      "title": "2 hands",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 114,
+      "peak": 32,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1576350162",
+      "title": "Let Somebody Go",
+      "artist": "Coldplay X Selena Gomez",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 54,
+      "peak": 32,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1485384412",
+      "title": "Before You Go",
+      "artist": "Lewis Capaldi",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Lewis%20Capaldi&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 52,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1590368762",
+      "title": "Nothing New (Taylor's Version) [From The Vault] [feat. Phoebe Bridgers]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 170,
+      "peak": 33,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1699662670",
+      "title": "S91",
+      "artist": "KAROL G",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 27,
+      "peak": 43,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1725877947",
+      "title": "bye",
+      "artist": "Ariana Grande",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 62,
+      "peak": 33,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/"
+    },
+    {
+      "id": "itunes-1622046237",
+      "title": "Me Fui de Vacaciones",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 37,
+      "peak": 44,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1742058079",
+      "title": "My Boy Only Breaks His Favorite Toys",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 54,
+      "peak": 34,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1752215160",
+      "title": "Juno",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 54,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1658650799",
+      "title": "Shirt",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 50,
+      "peak": 54,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1825994655",
+      "title": "BUTTERFLIES",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 142,
+      "peak": 34,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1800580280",
+      "title": "twilight zone",
+      "artist": "Ariana Grande",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 59,
+      "peak": 34,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-04-26/"
+    },
+    {
+      "id": "itunes-1787023693",
+      "title": "PIToRRO DE COCO",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 54,
+      "peak": 35,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1658650491",
+      "title": "Low",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 71,
+      "peak": 55,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1690685353",
+      "title": "Am I Dreaming",
+      "artist": "Metro Boomin, A$AP Rocky & Roisee",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 35,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/"
+    },
+    {
+      "id": "itunes-1692686265",
+      "title": "New Jeans",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 47,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1544494407",
+      "title": "When We Were Young",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 7,
+      "peak": 37,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1752214913",
+      "title": "Good Graces",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 29,
+      "peak": 48,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1710694559",
+      "title": "Virginia Beach",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 149,
+      "peak": 38,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-10-28/"
+    },
+    {
+      "id": "itunes-1615585001",
+      "title": "Music For a Sushi Restaurant",
+      "artist": "Harry Styles",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 11,
+      "peak": 38,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1637088297",
+      "title": "Forget Me",
+      "artist": "Lewis Capaldi",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Lewis%20Capaldi&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 48,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-09-24/"
+    },
+    {
+      "id": "itunes-1785714732",
+      "title": "Smile",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 59,
+      "peak": 39,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1538004007",
+      "title": "Love Again",
+      "artist": "Dua Lipa",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Dua%20Lipa&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 59,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/"
+    },
+    {
+      "id": "itunes-1781316956",
+      "title": "peekaboo (feat. AZ Chike)",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 39,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-02-22/"
+    },
+    {
+      "id": "itunes-1603171870",
+      "title": "Out of Time",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 19,
+      "peak": 40,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1778726413",
+      "title": "+57 (feat. Ovy On the Drums, J Balvin, Maluma, Ryan Castro & Blessd)",
+      "artist": "KAROL G, Feid & DFZM",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 138,
+      "peak": 40,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1725877964",
+      "title": "eternal sunshine",
+      "artist": "Ariana Grande",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 58,
+      "peak": 40,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/"
+    },
+    {
+      "id": "itunes-1590368461",
+      "title": "We Are Never Ever Getting Back Together (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 27,
+      "peak": 41,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1552791766",
+      "title": "Forever & Always (Taylor’s Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 190,
+      "peak": 41,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1626195738",
+      "title": "Mr. Morale",
+      "artist": "Kendrick Lamar & Tanna Leone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 186,
+      "peak": 41,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1739659149",
+      "title": "L’AMOUR DE MA VIE",
+      "artist": "Billie Eilish",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Billie%20Eilish&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 42,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1819861170",
+      "title": "House Tour",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 42,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1626195233",
+      "title": "Crown",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 199,
+      "peak": 42,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1787023918",
+      "title": "LO QUE LE PASÓ A HAWAii",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 56,
+      "peak": 43,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1716470299",
+      "title": "exes",
+      "artist": "Tate McRae",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Tate%20McRae&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 14,
+      "peak": 73,
+      "sampledMonths": 4,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-12-30/"
+    },
+    {
+      "id": "itunes-1603171893",
+      "title": "Is There Someone Else?",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 52,
+      "peak": 44,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1694768209",
+      "title": "the grudge",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 85,
+      "peak": 44,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1536966421",
+      "title": "Midnight Sky",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 23,
+      "peak": 54,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1674691587",
+      "title": "Jaded",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 63,
+      "peak": 44,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1630230657",
+      "title": "Massive",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 26,
+      "peak": 45,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-07-30/"
+    },
+    {
+      "id": "itunes-1670245863",
+      "title": "MIENTRAS ME CURO DEL CORA",
+      "artist": "KAROL G",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 36,
+      "peak": 55,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1440532753",
+      "title": "Softcore",
+      "artist": "The Neighbourhood",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Neighbourhood&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 65,
+      "sampledMonths": 3,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1698529041",
+      "title": "K-POP",
+      "artist": "Travis Scott, Bad Bunny & The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Travis%20Scott&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 109,
+      "peak": 45,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1746560129",
+      "title": "Ain't No Love In Oklahoma",
+      "artist": "Luke Combs",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 8,
+      "peak": 55,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1590368754",
+      "title": "Better Man (Taylor's Version) [From The Vault]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 147,
+      "peak": 46,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1635469694",
+      "title": "Attention",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 56,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-08-27/"
+    },
+    {
+      "id": "itunes-1708274801",
+      "title": "TELEKINESIS (feat. SZA & Future)",
+      "artist": "Travis Scott",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Travis%20Scott&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 123,
+      "peak": 48,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1739659278",
+      "title": "BLUE",
+      "artist": "Billie Eilish",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Billie%20Eilish&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 38,
+      "peak": 49,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1527579780",
+      "title": "Laugh Now Cry Later (feat. Lil Durk)",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 63,
+      "peak": 59,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1590368886",
+      "title": "Message In A Bottle (Taylor's Version) [From The Vault]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 180,
+      "peak": 50,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1818431859",
+      "title": "Thought You Should Know",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 60,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1552791558",
+      "title": "You Belong With Me (Taylor’s Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 73,
+      "peak": 51,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1797895104",
+      "title": "Sorry I'm Here For Someone Else",
+      "artist": "Benson Boone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Benson%20Boone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 61,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-04-26/"
+    },
+    {
+      "id": "itunes-1752531960",
+      "title": "Losers (feat. Jelly Roll)",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 52,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-08-31/"
+    },
+    {
+      "id": "itunes-1552791228",
+      "title": "Fearless (Taylor’s Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 95,
+      "peak": 53,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1658650496",
+      "title": "Blind",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 65,
+      "peak": 63,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1560265511",
+      "title": "Film out",
+      "artist": "BTS",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 129,
+      "peak": 54,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1702906876",
+      "title": "Used To Be Young",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 54,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1750576834",
+      "title": "Supernatural",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 54,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-07-27/"
+    },
+    {
+      "id": "itunes-1544494731",
+      "title": "Love in the Dark",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 54,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1440920614",
+      "title": "Enchanted",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 78,
+      "peak": 55,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1560735555",
+      "title": "enough for you",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 55,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1688022215",
+      "title": "Overdrive",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 87,
+      "peak": 55,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-07-29/"
+    },
+    {
+      "id": "itunes-1615585012",
+      "title": "Matilda",
+      "artist": "Harry Styles",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 55,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1564099110",
+      "title": "Higher Power",
+      "artist": "Coldplay",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 31,
+      "peak": 65,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1524801944",
+      "title": "august",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 23,
+      "peak": 56,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1581087534",
+      "title": "Overpass Graffiti",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 38,
+      "peak": 56,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1617910031",
+      "title": "Follow You",
+      "artist": "Imagine Dragons",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Imagine%20Dragons&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 66,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-03-27/"
+    },
+    {
+      "id": "itunes-1730408582",
+      "title": "16 CARRIAGES",
+      "artist": "Beyoncé",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 47,
+      "peak": 56,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-02-24/"
+    },
+    {
+      "id": "itunes-1818431763",
+      "title": "One Thing At A Time",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 25,
+      "peak": 57,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1502298674",
+      "title": "Run",
+      "artist": "OneRepublic",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=OneRepublic&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 67,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-08-28/"
+    },
+    {
+      "id": "itunes-1818469743",
+      "title": "Somebody’s Problem",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 31,
+      "peak": 58,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1725878238",
+      "title": "true story",
+      "artist": "Ariana Grande",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 83,
+      "peak": 58,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/"
+    },
+    {
+      "id": "itunes-1527782455",
+      "title": "Forever After All",
+      "artist": "Luke Combs",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 7,
+      "peak": 68,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1802104202",
+      "title": "20 Cigarettes",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 15,
+      "peak": 60,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1603171529",
+      "title": "Gasoline",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 60,
+      "peak": 61,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1825994906",
+      "title": "DEVOTION",
+      "artist": "Justin Bieber & Dijon",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 94,
+      "peak": 61,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1818469728",
+      "title": "Sand In My Boots",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 44,
+      "peak": 62,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1626195747",
+      "title": "Mirror",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 190,
+      "peak": 63,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1499386363",
+      "title": "In Your Eyes",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 136,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-02-27/"
+    },
+    {
+      "id": "itunes-1622046222",
+      "title": "Otro Atardecer",
+      "artist": "Bad Bunny & The Marías",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 27,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1560735846",
+      "title": "1 step forward, 3 steps back",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 49,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-06-26/"
+    },
+    {
+      "id": "itunes-1818469926",
+      "title": "7 Summers",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1802103919",
+      "title": "Eyes Are Closed",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 167,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1544491988",
+      "title": "Set Fire to the Rain",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 64,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1707413097",
+      "title": "Red Wine Supernova",
+      "artist": "Chappell Roan",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Chappell%20Roan&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 30,
+      "peak": 75,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-09-28/"
+    },
+    {
+      "id": "itunes-1615585009",
+      "title": "Daylight",
+      "artist": "Harry Styles",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 17,
+      "peak": 66,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1802104163",
+      "title": "Kick Myself",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 171,
+      "peak": 67,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1630221827",
+      "title": "Sticky",
+      "artist": "Drake",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 79,
+      "peak": 67,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-07-30/"
+    },
+    {
+      "id": "itunes-1590368893",
+      "title": "The Very First Night (Taylor's Version) [From The Vault]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 148,
+      "peak": 68,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-11-27/"
+    },
+    {
+      "id": "itunes-1802104192",
+      "title": "Falling Apart",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 87,
+      "peak": 68,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1766137055",
+      "title": "Over Each Other",
+      "artist": "LINKIN PARK",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 30,
+      "peak": 68,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1825994657",
+      "title": "FIRST PLACE",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 158,
+      "peak": 69,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-07-26/"
+    },
+    {
+      "id": "itunes-1603171970",
+      "title": "Less Than Zero",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 54,
+      "peak": 70,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1536976359",
+      "title": "Angels Like You",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 31,
+      "peak": 80,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/"
+    },
+    {
+      "id": "itunes-1622046238",
+      "title": "Un Verano Sin Ti",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 32,
+      "peak": 71,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1742058269",
+      "title": "So High School",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 59,
+      "peak": 71,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1694386831",
+      "title": "lacy",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 23,
+      "peak": 71,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1694386835",
+      "title": "making the bed",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 30,
+      "peak": 72,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1771105923",
+      "title": "number one girl",
+      "artist": "ROSÉ",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=ROS%C3%89&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 72,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-12-28/"
+    },
+    {
+      "id": "itunes-1650841746",
+      "title": "Mastermind",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 145,
+      "peak": 73,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1818409043",
+      "title": "Ain’t That Some",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 180,
+      "peak": 73,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1657584149",
+      "title": "Trance",
+      "artist": "Metro Boomin, Travis Scott & Young Thug",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 40,
+      "peak": 84,
+      "sampledMonths": 2,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1622045961",
+      "title": "Enséñame a Bailar",
+      "artist": "Bad Bunny",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Bad%20Bunny&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 33,
+      "peak": 75,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1837754140",
+      "title": "Camera",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 115,
+      "peak": 75,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1694768054",
+      "title": "love is embarrassing",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 104,
+      "peak": 76,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1818432470",
+      "title": "More Than My Hometown",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 30,
+      "peak": 76,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1836002628",
+      "title": "Go Go Juice",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 152,
+      "peak": 77,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1736995395",
+      "title": "ballad of a homeschooled girl",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 33,
+      "peak": 77,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1802103918",
+      "title": "Skoal, Chevy, and Browning",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 196,
+      "peak": 77,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1738363902",
+      "title": "II MOST WANTED",
+      "artist": "Beyoncé & Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 48,
+      "peak": 77,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-04-27/"
+    },
+    {
+      "id": "itunes-1440936016",
+      "title": "Shake It Off",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6,
+      "peak": 78,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1709555002",
+      "title": "Yes or No",
+      "artist": "Jung Kook",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 78,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/"
+    },
+    {
+      "id": "itunes-1836002455",
+      "title": "My Man on Willpower",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 157,
+      "peak": 79,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1694386840",
+      "title": "logical",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 22,
+      "peak": 79,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-09-30/"
+    },
+    {
+      "id": "itunes-1544494394",
+      "title": "Send My Love (To Your New Lover)",
+      "artist": "Adele",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Adele&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 11,
+      "peak": 79,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1742058106",
+      "title": "The Alchemy",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 74,
+      "peak": 80,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1766137052",
+      "title": "Cut the Bridge",
+      "artist": "LINKIN PARK",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 88,
+      "peak": 80,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-11-30/"
+    },
+    {
+      "id": "itunes-1650841737",
+      "title": "Labyrinth",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 191,
+      "peak": 81,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1818424374",
+      "title": "Everything I Love",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 32,
+      "peak": 81,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1621221910",
+      "title": "In The Stars",
+      "artist": "Benson Boone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Benson%20Boone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 4,
+      "peak": 81,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1603171530",
+      "title": "How Do I Make You Love Me?",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 44,
+      "peak": 82,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-01-29/"
+    },
+    {
+      "id": "itunes-1836002632",
+      "title": "Goodbye",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 146,
+      "peak": 82,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1804974563",
+      "title": "End of the World",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 52,
+      "peak": 82,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-04-26/"
+    },
+    {
+      "id": "itunes-1552792302",
+      "title": "You All Over Me (Taylor’s Version) [From The Vault] [feat. Maren Morris]",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 167,
+      "peak": 83,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1524793745",
+      "title": "cardigan",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 31,
+      "peak": 84,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-08-26/"
+    },
+    {
+      "id": "itunes-1552791240",
+      "title": "Fifteen (Taylor’s Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 105,
+      "peak": 84,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1690840121",
+      "title": "Back To December (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 67,
+      "peak": 85,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-07-29/"
+    },
+    {
+      "id": "itunes-1658650495",
+      "title": "Love Language",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 72,
+      "peak": 85,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1744448549",
+      "title": "Bubble Gum",
+      "artist": "NewJeans",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=NewJeans&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 20,
+      "peak": 85,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1742058092",
+      "title": "Fresh Out The Slammer",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 89,
+      "peak": 87,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-05-25/"
+    },
+    {
+      "id": "itunes-1762472267",
+      "title": "What Don't Belong To Me",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 28,
+      "peak": 87,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-08-31/"
+    },
+    {
+      "id": "itunes-1650841742",
+      "title": "Sweet Nothing",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 193,
+      "peak": 88,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-11-26/"
+    },
+    {
+      "id": "itunes-1596532189",
+      "title": "Life Goes On",
+      "artist": "BTS",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 12,
+      "peak": 88,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1802104206",
+      "title": "TN",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 58,
+      "peak": 89,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1623073963",
+      "title": "The Heart Part 5",
+      "artist": "Kendrick Lamar",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Kendrick%20Lamar&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 103,
+      "peak": 89,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-05-28/"
+    },
+    {
+      "id": "itunes-1641565456",
+      "title": "Celestial",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 70,
+      "peak": 90,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-10-29/"
+    },
+    {
+      "id": "itunes-1736995329",
+      "title": "obsessed",
+      "artist": "Olivia Rodrigo",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Olivia%20Rodrigo&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 40,
+      "peak": 90,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-04-27/"
+    },
+    {
+      "id": "itunes-1771020952",
+      "title": "Are You Even Real",
+      "artist": "Teddy Swims & GIVĒON",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Teddy%20Swims&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 5,
+      "peak": 91,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-01-25/"
+    },
+    {
+      "id": "itunes-1702906884",
+      "title": "Thousand Miles (feat. Brandi Carlile)",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 43,
+      "peak": 92,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1552791761",
+      "title": "The Way I Loved You (Taylor’s Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 47,
+      "peak": 93,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1676967259",
+      "title": "All Of The Girls You Loved Before",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 166,
+      "peak": 93,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-04-29/"
+    },
+    {
+      "id": "itunes-1440881181",
+      "title": "Bored",
+      "artist": "Billie Eilish",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Billie%20Eilish&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 32,
+      "peak": 93,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-10-30/"
+    },
+    {
+      "id": "itunes-1836002457",
+      "title": "Sugar Talking",
+      "artist": "Sabrina Carpenter",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Sabrina%20Carpenter&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 160,
+      "peak": 93,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-09-27/"
+    },
+    {
+      "id": "itunes-1818424648",
+      "title": "I Wrote The Book",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 38,
+      "peak": 93,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1802104211",
+      "title": "Where'd That Girl Go",
+      "artist": "Morgan Wallen",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Morgan%20Wallen&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 84,
+      "peak": 94,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-05-31/"
+    },
+    {
+      "id": "itunes-1743054994",
+      "title": "Close To You",
+      "artist": "Gracie Abrams",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Gracie%20Abrams&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2,
+      "peak": 94,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1793654358",
+      "title": "Open Hearts",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 75,
+      "peak": 95,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-02-22/"
+    },
+    {
+      "id": "itunes-1687005657",
+      "title": "Life Goes On (feat. Luke Combs)",
+      "artist": "Ed Sheeran",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 9,
+      "peak": 95,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-05-27/"
+    },
+    {
+      "id": "itunes-1556175649",
+      "title": "As I Am (feat. Khalid)",
+      "artist": "Justin Bieber",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 73,
+      "peak": 95,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-04-24/"
+    },
+    {
+      "id": "itunes-1615585011",
+      "title": "Little Freak",
+      "artist": "Harry Styles",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 26,
+      "peak": 95,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-06-25/"
+    },
+    {
+      "id": "itunes-1748194068",
+      "title": "Never Let Go",
+      "artist": "Jung Kook",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 10,
+      "peak": 95,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-06-29/"
+    },
+    {
+      "id": "itunes-1674691589",
+      "title": "Rose Colored Lenses",
+      "artist": "Miley Cyrus",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 49,
+      "peak": 96,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-03-25/"
+    },
+    {
+      "id": "itunes-1614270485",
+      "title": "Crazy What Love Can Do",
+      "artist": "David Guetta, Becky Hill & Ella Henderson",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 22,
+      "peak": 96,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-07-30/"
+    },
+    {
+      "id": "itunes-1657583940",
+      "title": "Too Many Nights (feat. Don Toliver)",
+      "artist": "Metro Boomin & Future",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 36,
+      "peak": 96,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-06-24/"
+    },
+    {
+      "id": "itunes-1729939966",
+      "title": "CONTIGO",
+      "artist": "KAROL G & Tiësto",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=KAROL%20G&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 28,
+      "peak": 97,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-03-30/"
+    },
+    {
+      "id": "itunes-1693711264",
+      "title": "Still With You",
+      "artist": "Jung Kook",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Jung%20Kook&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3,
+      "peak": 98,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-07-29/"
+    },
+    {
+      "id": "itunes-1793654357",
+      "title": "Baptized In Fear",
+      "artist": "The Weeknd",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 64,
+      "peak": 99,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2025-02-22/"
+    },
+    {
+      "id": "itunes-1762472250",
+      "title": "Finer Things (feat. Hank Williams, Jr.)",
+      "artist": "Post Malone",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 35,
+      "peak": 99,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-08-31/"
+    },
+    {
+      "id": "itunes-1485802966",
+      "title": "Golden",
+      "artist": "Harry Styles",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Harry%20Styles&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 9,
+      "peak": 99,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2021-01-30/"
+    },
+    {
+      "id": "itunes-1708309186",
+      "title": "Wildest Dreams (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 68,
+      "peak": 100,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-11-25/"
+    },
+    {
+      "id": "itunes-1718576584",
+      "title": "You’re Losing Me (From The Vault)",
+      "artist": "Taylor Swift",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Taylor%20Swift&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 154,
+      "peak": 100,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2023-12-30/"
+    },
+    {
+      "id": "itunes-1658650490",
+      "title": "Seek & Destroy",
+      "artist": "SZA",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 94,
+      "peak": 100,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2022-12-31/"
+    },
+    {
+      "id": "itunes-1751728805",
+      "title": "WE PRAY",
+      "artist": "Coldplay, Little Simz, Burna Boy, Elyanna & TINI",
+      "method": "billboard-monthly-snapshot",
+      "artistSearch": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 67,
+      "peak": 100,
+      "sampledMonths": 1,
+      "chartSource": "https://www.billboard.com/charts/billboard-global-200/2024-10-26/"
+    },
+    {
+      "id": "itunes-1406109901",
+      "title": "In My Feelings",
+      "artist": "Drake",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1363310482",
+      "title": "Call Out My Name",
+      "artist": "The Weeknd",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Weeknd&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1440843974",
+      "title": "Hotline Bling",
+      "artist": "Drake",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1440852992",
+      "title": "Love Me Harder",
+      "artist": "Ariana Grande & The Weeknd",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1862634805",
+      "title": "Be By You",
+      "artist": "Luke Combs",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Luke%20Combs&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1440661545",
+      "title": "Baby (feat. Ludacris)",
+      "artist": "Justin Bieber",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Justin%20Bieber&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1444113373",
+      "title": "Party In the U.S.A.",
+      "artist": "Miley Cyrus",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-693226002",
+      "title": "Without You (feat. Usher)",
+      "artist": "David Guetta",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1411629089",
+      "title": "Thunder",
+      "artist": "Imagine Dragons",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Imagine%20Dragons&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-6766750846",
+      "title": "Hit the Wall",
+      "artist": "Gracie Abrams",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Gracie%20Abrams&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1790699154",
+      "title": "Baby (Is It A Crime)",
+      "artist": "Rema",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Rema&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1775307497",
+      "title": "Good News",
+      "artist": "Shaboozey",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Shaboozey&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-6787303156",
+      "title": "MORNING DEW (DONK)",
+      "artist": "Beyoncé",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1441385311",
+      "title": "Space Cadet (feat. Gunna)",
+      "artist": "Metro Boomin",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Metro%20Boomin&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-900672609",
+      "title": "Take Me to Church",
+      "artist": "Hozier",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Hozier&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 1
+    },
+    {
+      "id": "itunes-1418213392",
+      "title": "Finesse",
+      "artist": "Drake",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Drake&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1596529071",
+      "title": "Pied Piper",
+      "artist": "BTS",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1050204631",
+      "title": "Thinking Out Loud",
+      "artist": "Ed Sheeran",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Ed%20Sheeran&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1440861225",
+      "title": "The Way (feat. Mac Miller)",
+      "artist": "Ariana Grande",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Ariana%20Grande&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1460315065",
+      "title": "We Can't Stop",
+      "artist": "Miley Cyrus",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Miley%20Cyrus&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-590423282",
+      "title": "Somewhere I Belong",
+      "artist": "LINKIN PARK",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=LINKIN%20PARK&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1440817896",
+      "title": "Gooey",
+      "artist": "Glass Animals",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Glass%20Animals&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1471704329",
+      "title": "I Lived",
+      "artist": "OneRepublic",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=OneRepublic&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1834131998",
+      "title": "FUN",
+      "artist": "Rema",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Rema&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1807395909",
+      "title": "Amen",
+      "artist": "Shaboozey & Jelly Roll",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Shaboozey&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-626205222",
+      "title": "Dance For You",
+      "artist": "Beyoncé",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Beyonc%C3%A9&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-900672691",
+      "title": "Work Song",
+      "artist": "Hozier",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Hozier&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1575203363",
+      "title": "Fly Away",
+      "artist": "Tones And I",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Tones%20And%20I&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 2
+    },
+    {
+      "id": "itunes-1598660938",
+      "title": "FAKE LOVE",
+      "artist": "BTS",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=BTS&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1657869546",
+      "title": "Open Arms (feat. Travis Scott)",
+      "artist": "SZA",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=SZA&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1477880568",
+      "title": "Take What You Want (feat. Ozzy Osbourne & Travis Scott)",
+      "artist": "Post Malone",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Post%20Malone&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-829910927",
+      "title": "A Sky Full of Stars",
+      "artist": "Coldplay",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Coldplay&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-693226000",
+      "title": "Turn Me On (feat. Nicki Minaj)",
+      "artist": "David Guetta",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=David%20Guetta&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1440532773",
+      "title": "Reflections",
+      "artist": "The Neighbourhood",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=The%20Neighbourhood&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1738436214",
+      "title": "A Tear in Space (Airlock)",
+      "artist": "Glass Animals",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Glass%20Animals&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1440873126",
+      "title": "Radioactive",
+      "artist": "Imagine Dragons",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Imagine%20Dragons&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-1713469232",
+      "title": "Sweet Nothing (feat. Florence Welch)",
+      "artist": "Calvin Harris",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Calvin%20Harris&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 3
+    },
+    {
+      "id": "itunes-922876187",
+      "title": "Outside (feat. Ellie Goulding)",
+      "artist": "Calvin Harris",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Calvin%20Harris&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 6
+    },
+    {
+      "id": "itunes-1713469230",
+      "title": "I Need Your Love (feat. Ellie Goulding)",
+      "artist": "Calvin Harris",
+      "method": "existing-artist-catalog",
+      "artistSearch": "https://itunes.apple.com/search?term=Calvin%20Harris&entity=song&attribute=artistTerm&limit=200&country=us",
+      "searchRank": 7
+    }
+  ]
+}

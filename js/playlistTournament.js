@@ -1,12 +1,12 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
-import { Audio } from './audio.js?v=20261014-6';
-import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-6';
+import { Audio } from './audio.js?v=20261014-7';
+import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261014-7';
 import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
 import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261013-1';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261014-6';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-7';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
@@ -26,7 +26,7 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   const settings=cupSettings(state.settings), previewSeconds=state.previewSeconds || settings.previewSeconds;
   let content;
   if (state.status === 'setup') {
-    content = `<section class="playlist-cup-import"><div class="playlist-cup-import-icon" aria-hidden="true">♫</div><h2>Losowe hity. Jeden zwycięzca.</h2><p class="muted">Posłuchaj A i B. Wybierz, który utwór przechodzi dalej.</p><form data-cup-setup><label for="cup-region">Pula piosenek</label><select id="cup-region" name="region">${[['all','Wszystkie'],['global','Globalne'],['polish','Polskie']].map(([id,label])=>`<option value="${id}" ${settings.region===id?'selected':''}>${label}</option>`).join('')}</select><label for="cup-seconds">Długość każdego odsłuchu</label><select id="cup-seconds" name="previewSeconds">${cupPreviewTimes.map(time=>`<option value="${time}" ${settings.previewSeconds===time?'selected':''}>${time} sekund</option>`).join('')}</select><fieldset class="cup-size-options"><legend>Liczba piosenek</legend>${cupSizes.map(size=>`<label><input type="radio" name="size" value="${size}" ${settings.size===size?'checked':''}><b>${size} utworów</b><small data-cup-estimate="${size}"></small>${size>=64?`<span class="cup-size-warning ${size===128?'is-long':''}">${size===128?'⚠ Bardzo długa gra':'Dłuższy turniej'}</span>`:''}</label>`).join('')}</fieldset><p class="muted">Szacunek: oba odsłuchy + 3–8 s na wybór. Pauzy i powtórki wydłużą grę.</p><button class="primary big" type="submit">Losuj zestaw i graj →</button><output data-cup-import-status role="status"></output></form></section>`;
+    content = `<section class="playlist-cup-import"><div class="playlist-cup-import-icon" aria-hidden="true">♫</div><h2>Losowe hity. Jeden zwycięzca.</h2><p class="muted">Posłuchaj A i B. Wybierz, który utwór przechodzi dalej.</p><p class="tiny">${tournamentMusicCatalog.length} utworów · rozszerzona biblioteka tylko dla turnieju</p><form data-cup-setup><label for="cup-region">Pula piosenek</label><select id="cup-region" name="region">${[['all','Wszystkie'],['global','Globalne'],['polish','Polskie']].map(([id,label])=>`<option value="${id}" ${settings.region===id?'selected':''}>${label}</option>`).join('')}</select><label for="cup-seconds">Długość każdego odsłuchu</label><select id="cup-seconds" name="previewSeconds">${cupPreviewTimes.map(time=>`<option value="${time}" ${settings.previewSeconds===time?'selected':''}>${time} sekund</option>`).join('')}</select><fieldset class="cup-size-options"><legend>Liczba piosenek</legend>${cupSizes.map(size=>`<label><input type="radio" name="size" value="${size}" ${settings.size===size?'checked':''}><b>${size} utworów</b><small data-cup-estimate="${size}"></small>${size>=64?`<span class="cup-size-warning ${size===128?'is-long':''}">${size===128?'⚠ Bardzo długa gra':'Dłuższy turniej'}</span>`:''}</label>`).join('')}</fieldset><p class="muted">Szacunek: oba odsłuchy + 3–8 s na wybór. Pauzy i powtórki wydłużą grę.</p><button class="primary big" type="submit">Losuj zestaw i graj →</button><output data-cup-import-status role="status"></output></form></section>`;
   } else if (state.status === 'done') content = summary(state);
   else {
     const [left, right] = tournamentPair(state), final = state.entrants.length === 2;
@@ -45,7 +45,7 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   root.querySelectorAll('[data-cup-reset]').forEach(button => button.addEventListener('click', () => { engine.reset(playerId); repaint(); }));
   function startRandom(raw=settings) {
     try {
-      const selected=cupSettings(raw), pool=selected.region==='all'?musicPreviewCatalog:musicCatalogForRegion(selected.region);
+      const selected=cupSettings(raw), pool=selected.region==='all'?tournamentMusicCatalog:tournamentCatalogForRegion(selected.region);
       engine.load(playerId,randomCupTracks(pool,selected.size),{previewSeconds:selected.previewSeconds,settings:selected});
       engine.start(playerId); repaint(); root.__cupPlayFirst?.();
     } catch(error) { const output=root.querySelector('[data-cup-import-status]'); if(output)output.textContent=error.message; }

@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261014-6";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261014-7";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -38,6 +38,7 @@ function buildChangelogEntries(now = Date.now()) {
       changes: [
         "Dodano turniej solo: słuchasz dwóch piosenek i wybierasz tę, która przechodzi dalej, aż do zwycięzcy finału.",
         "Możesz losować zestawy 8, 16, 32, 64 lub 128 utworów z puli polskiej, globalnej albo mieszanej.",
+        "Turniej ma osobną bibliotekę 1200 unikalnych utworów z odsłuchem, rozszerzoną o hity z archiwalnych list Billboard i dyskografie obecnych artystów. Pula Zgadnij utwór pozostaje bez zmian.",
         "Dodano wybór długości odsłuchu, szacowany czas gry, pauzę, powtórki, animowane karty i podsumowanie drogi zwycięskiego utworu.",
         "Wyniki turnieju i Zgadnij utwór można udostępnić jako grafikę z okładką, nazwą piosenki, artystą, nickiem, zdjęciem gracza i czasem gry.",
       ],
