@@ -1,6 +1,6 @@
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261014-5";
-import { musicArtworkUrl } from './musicArtwork.js?v=20261014-5';
-import { Audio } from "./audio.js?v=20260926-1";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261014-6";
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-6';
+import { Audio } from "./audio.js?v=20261014-6";
 import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
 let disposeSongSpotSharing = () => {};
 export function stopSongSpotSharing() { disposeSongSpotSharing(); disposeSongSpotSharing = () => {}; }

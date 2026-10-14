@@ -1,7 +1,7 @@
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
-import { Audio } from "./audio.js?v=20260926-1";
-import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261014-5";
+import { Audio } from "./audio.js?v=20261014-6";
+import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261014-6";
 import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
 import { SPOTIFY_MONTHLY_LISTENERS_AUDIT_DATE, spotifyMonthlyListenerSnapshots } from "./spotifyListenerSnapshots.js?v=20260904-1";
 

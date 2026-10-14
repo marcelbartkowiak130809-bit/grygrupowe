@@ -1,12 +1,12 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
-import { Audio } from './audio.js?v=20260926-1';
-import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-5';
+import { Audio } from './audio.js?v=20261014-6';
+import { musicPreviewCatalog, musicCatalogForRegion } from './music.js?v=20261014-6';
 import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261012-1';
 import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261013-1';
 import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261013-1';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261014-5';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261014-6';
 
 let cleanup = () => {};
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
@@ -88,7 +88,7 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
     error = '';
     if (activeSide !== side || replay) {
       activeSide = side;
-      Audio.setTrackAudioSource(audio, `cup:${playerId}:${matchKey}:${side}`, tournamentPair(current)[side === 'left' ? 0 : 1].previewUrl, {autoplay:false});
+      Audio.setTrackAudioSource(audio, `cup:${playerId}:${matchKey}:${side}`, tournamentPair(current)[side === 'left' ? 0 : 1].previewUrl, {autoplay:false,restart:true});
       audio.currentTime = 0;
     }
     const promise = audio.play();

@@ -226,6 +226,7 @@ function restoreTrackAudio(audio, autoplay) {
   audio.__trackRestoreKey = key;
   const saved = trackPlayback.get(key);
   const restore = () => {
+    if (audio.dataset.trackKey !== key || audio.__trackRestoreKey !== key) return;
     if (audio.__trackRestored === key) return;
     audio.__trackRestored = key;
     const limit = trackPreviewLimit(audio);
@@ -420,13 +421,14 @@ export const Audio = {
     updateTrackAudioVolumes();
     restoreTrackAudio(audio, autoplay);
   },
-  setTrackAudioSource(audio, key, source, { autoplay = true } = {}) {
+  setTrackAudioSource(audio, key, source, { autoplay = true, restart = false } = {}) {
     if (!audio || !source) return;
     rememberTrackAudio(audio, false);
     audio.pause();
     audio.__trackRestoreKey = "";
     audio.__trackRestored = "";
     audio.dataset.trackKey = String(key || source);
+    if (restart) trackPlayback.delete(audio.dataset.trackKey);
     audio.src = source;
     audio.load();
     this.bindTrackAudio(audio, audio.dataset.trackKey, { autoplay });
