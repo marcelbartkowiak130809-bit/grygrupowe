@@ -19,6 +19,18 @@ test('invalid roles, cells, dots, parallel lines and duplicate crosses cannot sc
  for(const lines of [[],[cross[0]], [cross[0],cross[0]], [[[.1,.1],[.2,.2]],cross[1]], [[[.1,.5],[.9,.5]],cross[1]],[[[.1,.1],[.9,.1],[.9,.9]],cross[1]]]){assert.equal(markerCrossValid(lines),false);assert.ok(engine.coverage(g,'a',0,lines));}
  assert.equal(engine.coverage(g,'a',0,cross),undefined);assert.ok(engine.coverage(g,'a',0,cross));assert.equal(Object.keys(g.coverage.a).length,1);
 });
+test('small, uneven, curved and slightly unfinished X shapes count without reaching corners',()=>{
+ const examples=[
+  [[[.35,.35],[.65,.65]],[[.65,.35],[.35,.65]]],
+  [[[.25,.28],[.42,.55],[.68,.76]],[[.7,.22],[.5,.44],[.3,.65]]],
+  [[[.2,.15],[.44,.38]],[[.46,.16],[.22,.4]]],
+  [[[.2,.2],[.6,.6]],[[.79,.53],[.53,.79]]],
+  [[[.18,.28],[.75,.57]],[[.64,.2],[.37,.78]]],
+ ];
+ for(const strokes of examples){assert.equal(markerCrossValid(strokes),true,JSON.stringify(strokes));const g=start();assert.equal(engine.coverage(g,'a',5,strokes),undefined);assert.equal(g.coverage.a[5],true);}
+ // Still reject dots, detached diagonals and strokes that never form an X.
+ for(const strokes of [[[[.45,.45],[.55,.55]],[[.55,.45],[.45,.55]]],[[[.1,.1],[.35,.35]],[[.85,.6],[.6,.85]]]])assert.equal(markerCrossValid(strokes),false);
+});
 test('first player to fill their own grid wins while opponent is still searching, every board size',()=>{
  for(const boardSize of [8,10,12]){let g=createMarkerGame(['a','b'],{boardSize});engine.select(g,g.turnUid,0);const drawer=g.drawerUid;
  for(let c=0;c<boardSize*boardSize;c++){assert.equal(engine.coverage(g,drawer,c,cross),undefined);g=JSON.parse(JSON.stringify(g));}

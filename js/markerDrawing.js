@@ -5,8 +5,9 @@ export function markerCrossValid(strokes) {
     if (!Array.isArray(points) || points.length < 2 || points.length > 256) return null;
     if (!points.every(p => Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && n >= 0 && n <= 1))) return null;
     const a=points[0], b=points.at(-1), dx=b[0]-a[0], dy=b[1]-a[1];
-    if (Math.abs(dx)<.5 || Math.abs(dy)<.5 || Math.abs(dx/dy)<.5 || Math.abs(dx/dy)>2) return null;
-    if (!points.every(p => Math.abs(dx*(p[1]-a[1])-dy*(p[0]-a[0]))/Math.hypot(dx,dy)<.18)) return null;
+    // A recognisable X can be small, uneven and hand-drawn, not corner-to-corner.
+    if (Math.abs(dx)<.22 || Math.abs(dy)<.22 || Math.abs(dx/dy)<.25 || Math.abs(dx/dy)>4) return null;
+    if (!points.every(p => Math.abs(dx*(p[1]-a[1])-dy*(p[0]-a[0]))/Math.hypot(dx,dy)<.23)) return null;
     return {a,dx,dy};
   });
   if (lines.some(line=>!line)) return false;
@@ -16,7 +17,8 @@ export function markerCrossValid(strokes) {
   const t=((v.a[0]-u.a[0])*v.dy-(v.a[1]-u.a[1])*v.dx)/det;
   const s=((v.a[0]-u.a[0])*u.dy-(v.a[1]-u.a[1])*u.dx)/det;
   const x=u.a[0]+t*u.dx, y=u.a[1]+t*u.dy;
-  return t>0&&t<1&&s>0&&s<1&&x>.2&&x<.8&&y>.2&&y<.8;
+  // Allow a small gap between the ends and an off-centre intersection.
+  return t>=-.18&&t<=1.18&&s>=-.18&&s<=1.18&&x>.08&&x<.92&&y>.08&&y<.92;
 }
 export function markerInkCoverage(imageData) {
   let ink=0;

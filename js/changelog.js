@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261014-1";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261014-2";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,7 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {version:"v5.4.9",date:"2026-10-14",title:"Łatwiejsze rysowanie w Markerze",changes:["Mniejsze, krzywe i mniej dokładne iksy są zaliczane. Nie trzeba rysować od rogu do rogu pola."]},
     {version:"v5.4.8",date:"2026-10-14",title:"Marker — wyścig krzyżyków",changes:["Szukanie liczby i rysowanie odbywają się jednocześnie. Dwa osobne pola, automatyczne liczenie krzyżyków, zamiana po znalezieniu liczby i zwycięstwo za zapełnienie własnej planszy."]},
     {
       version: "v5.4.7",
