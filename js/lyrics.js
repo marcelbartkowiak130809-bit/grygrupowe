@@ -2,8 +2,8 @@ import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260
 import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261012-2";
 import { Audio } from "./audio.js?v=20260926-1";
 
-import { lyricsPreviewSync } from '../content/lyricsPreviewSync.js?v=20261013-9';
-import { validLyricsSync, lyricsVisibleWordCount } from './lyricsSync.js?v=20261013-9';
+import { lyricsPreviewSync } from '../content/lyricsPreviewSync.js?v=20261014-1';
+import { validLyricsSync, lyricsVisibleWordCount } from './lyricsSync.js?v=20261014-1';
 
 export const lyricsDefaults = { rounds: 5, audioSeconds: 8, answerTime: 30, category: "all", region: "global" };
 const MIN_AUDIO_SECONDS = 4;

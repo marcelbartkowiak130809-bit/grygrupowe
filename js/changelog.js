@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261013-9";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261014-1";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,7 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {version:"v5.4.8",date:"2026-10-14",title:"Marker — wyścig krzyżyków",changes:["Szukanie liczby i rysowanie odbywają się jednocześnie. Dwa osobne pola, automatyczne liczenie krzyżyków, zamiana po znalezieniu liczby i zwycięstwo za zapełnienie własnej planszy."]},
     {
       version: "v5.4.7",
       date: "2026-10-13",

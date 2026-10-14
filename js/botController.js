@@ -2,7 +2,7 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20261013-9";
+import { ImpostorEngine } from "./impostor.js?v=20261014-1";
 import { IdentityEngine } from "./identity.js?v=20260831-4";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
 import { MostLikelyEngine } from "./mostLikely.js?v=20260612-1";
@@ -17,7 +17,7 @@ import { PokemonEngine } from "./pokemon.js?v=20260831-11";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
-import { MarkerEngine } from "./marker.js?v=20261013-4";
+import { MarkerEngine } from "./marker.js?v=20261014-1";
 import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
@@ -30,9 +30,9 @@ import { LiarEngine } from "./liar.js?v=20260831-4";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
 import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261012-2";
-import { LyricsEngine } from "./lyrics.js?v=20261013-9";
+import { LyricsEngine } from "./lyrics.js?v=20261014-1";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
-import { SongSpotEngine } from "./songSpot.js?v=20261013-9";
+import { SongSpotEngine } from "./songSpot.js?v=20261014-1";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
 import { serverNow } from "./firebase.js?v=20261010-7";
@@ -64,6 +64,10 @@ export function botActor(room) {
   const game = room?.game;
   const bots = botsOf(room);
   if (!game || !bots.length) return "";
+  if (room.gameMode === 'marker') {
+    const uid=game.phase==='select'?game.turnUid:bots.includes(game.drawerUid)?game.drawerUid:game.seekerUid;
+    return bots.includes(uid)?uid:'';
+  }
   if (room.gameMode === "udowodnij") {
     const active = game.phase === "initialBid" ? game.starter : game.phase === "bidding" ? game.decisionPlayer : game.phase === "answering" ? game.currentBidder : "";
     return isBotId(active) && bots.includes(active) ? active : "";
@@ -471,7 +475,7 @@ export function botMutation(room) {
         break;
       case "marker":
         if (game.phase === "select" && game.turnUid === bot) return g => { const numbers=Array.isArray(g.numbers)?g.numbers:[]; const marked=g.marked&&typeof g.marked==="object"?g.marked:{}; const cell=numbers.findIndex((value,index)=>value!=null&&!marked[index]); return cell>=0 ? MarkerEngine.select(g,bot,cell) : MarkerEngine.timeout(g); };
-        if (game.phase === "draw" && game.drawerUid === bot && !game.coverage?.[bot]?.[game.selectedCell]) return g => MarkerEngine.coverage(g, bot, correct() ? .9 : .2);
+        if (game.phase === "draw" && game.drawerUid === bot) return g => { const cell=Array.from({length:g.size*g.size},(_,i)=>i).find(i=>!g.coverage?.[bot]?.[i]); return MarkerEngine.coverage(g,bot,cell,[[[.15,.15],[.85,.85]],[[.85,.15],[.15,.85]]]); };
         if (game.phase === "draw" && game.seekerUid === bot) return g => MarkerEngine.find(g, bot, g.selectedCell);
         break;
       case "sequence":
@@ -612,7 +616,9 @@ export function scheduleBot(room, { mutate, onDone }) {
   const mutation = botMutation(room);
   if (!mutation) return false;
   const actor = botActor(room) || botsOf(room)[0];
-  const key = `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
+  const key = room.gameMode==='marker'
+    ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${actor}:${room.game.phaseEndsAt||0}:${actor===room.game.drawerUid?Object.keys(room.game.coverage?.[actor]||{}).length:0}`
+    : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const delay = expired(room.game) ? 80 : botDelay(room, "answer", actor);
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.4.7-20261013-songspot-next";
+const CACHE_NAME = "grygrupowe-shell-v5.4.8-20261014-marker-race";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {
