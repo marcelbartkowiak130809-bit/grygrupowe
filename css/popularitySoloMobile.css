@@ -1,0 +1,58 @@
+/* Solo-only phone layout: keep both choices together, without changing desktop. */
+@media(max-width:720px){
+  .popularity-page.popularity-solo-page{width:100%;padding:0 10px;margin:10px auto;box-sizing:border-box}
+  .popularity-solo-page .popularity-panel{padding:12px 10px;border-radius:20px}
+  .popularity-solo-page .popularity-heading{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .popularity-solo-page .popularity-heading>div:first-child{min-width:0;flex:1}
+  .popularity-solo-page .popularity-heading .eyebrow{font-size:9px;letter-spacing:.08em;margin:0 0 5px}
+  .popularity-solo-page .popularity-heading h1{font-size:clamp(21px,5.7vw,28px);line-height:1.08;margin:0;overflow-wrap:anywhere}
+  .popularity-solo-page .popularity-heading .muted,.popularity-solo-page .popularity-key-hint{display:none}
+  .popularity-solo-page .popularity-round-badge{flex:none;min-width:54px;padding:8px 7px;border-radius:13px}
+  .popularity-solo-page .popularity-round-badge b{font-size:8px}
+  .popularity-solo-page .popularity-round-badge strong{font-size:25px;line-height:1.1}
+  .popularity-solo-page .popularity-question{margin:10px 0;padding:8px;gap:8px}
+  .popularity-solo-page .popularity-question>span{width:28px;height:28px;font-size:17px;flex:none}
+  .popularity-solo-page .popularity-question b{font-size:12px}
+  .popularity-solo-page .popularity-question small{font-size:9px}
+  .popularity-solo-page .popularity-duel-stage{position:relative;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:10px 0}
+  .popularity-solo-page .popularity-choice{display:flex;flex-direction:column;gap:7px;padding:8px;min-width:0;border-radius:15px}
+  .popularity-solo-page .popularity-side-label{width:25px;height:25px;font-size:11px;border-radius:8px}
+  .popularity-solo-page .popularity-art{width:100%;min-height:clamp(100px,29vw,175px);padding:8px;border-radius:11px;box-sizing:border-box}
+  .popularity-solo-page .popularity-art-note{font-size:32px}
+  .popularity-solo-page .popularity-art small{font-size:8px;letter-spacing:0}
+  .popularity-solo-page .popularity-track-copy{width:100%;gap:4px}
+  .popularity-solo-page .popularity-track-copy b{font-size:13px;line-height:1.2;overflow-wrap:anywhere}
+  .popularity-solo-page .popularity-track-copy small{font-size:10px;line-height:1.25;overflow-wrap:anywhere}
+  .popularity-solo-page .popularity-value{font-size:clamp(11px,3.3vw,17px)}
+  .popularity-solo-page .popularity-vs{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:2;display:block;pointer-events:none}
+  .popularity-solo-page .popularity-vs span{width:25px;height:25px;font-size:8px;animation:none;background:#252039}
+  .popularity-solo-page .popularity-vs i{display:none}
+  .popularity-solo-page .popularity-streak-bar{margin:8px 0;gap:8px}
+  .popularity-solo-page .popularity-streak-bar strong{font-size:24px}
+  .popularity-solo-page .popularity-streak-bar small{font-size:10px}
+  .popularity-solo-page .popularity-solo-controls{gap:8px}
+  .popularity-solo-page .popularity-metric-switch{gap:5px;margin:10px 0}
+  .popularity-solo-page .popularity-metric-switch button{flex:1;min-width:0;min-height:44px;padding:7px 5px;font-size:10px;line-height:1.2}
+  .popularity-solo-page .popularity-region-switch{gap:6px;margin:10px 0}
+  .popularity-solo-page .music-region-option{padding:8px;gap:6px;min-height:44px}
+  .popularity-solo-page .music-region-option-icon{width:28px;height:28px;font-size:17px}
+  .popularity-solo-page .music-region-option b{font-size:11px}
+  .popularity-solo-page .music-region-option small{display:none}
+  .popularity-solo-page .popularity-solo-start,.popularity-solo-page .popularity-solo-over{padding:12px 10px;margin:10px 0}
+  .popularity-solo-page .popularity-solo-over{display:flex;flex-direction:column}
+  .popularity-solo-page .popularity-solo-over-actions{order:-1;margin:0 0 10px}
+  .popularity-solo-page .popularity-solo-icon,.popularity-solo-page .popularity-over-icon{display:none}
+  .popularity-solo-page .popularity-solo-start>.eyebrow{display:none}
+  .popularity-solo-page .popularity-solo-start h2,.popularity-solo-page .popularity-solo-over h2{font-size:20px;margin:4px 0}
+  .popularity-solo-page .popularity-solo-start>.muted,.popularity-solo-page .popularity-solo-over>.muted{font-size:11px;line-height:1.4;margin:6px 0}
+  .popularity-solo-page .popularity-best-card{padding:8px;margin:10px 0}
+  .popularity-solo-page .popularity-solo-over-actions{gap:7px}
+  .popularity-solo-page .popularity-solo-over-actions>*{min-height:44px;padding:10px;font-size:13px}
+  .popularity-solo-page .popularity-reveal-mark{top:7px;right:7px;width:25px;height:25px;font-size:17px}
+  .popularity-solo-page .popularity-solo-reveal-note{font-size:10px;margin:6px 0}
+  .popularity-solo-page .popularity-snapshot-note{font-size:9px;margin-top:10px}
+  .popularity-solo-page .popularity-preview{width:100%;box-sizing:border-box;margin-top:10px;padding:9px;gap:7px}
+  .popularity-solo-page .popularity-preview-icon{display:none}
+  .popularity-solo-page .popularity-preview-copy{grid-column:1 / -1}
+  .popularity-solo-page .popularity-preview .music-track-volume{padding:7px;gap:6px}
+}
