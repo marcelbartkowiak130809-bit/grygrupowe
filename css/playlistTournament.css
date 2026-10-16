@@ -107,6 +107,63 @@
 .light-theme .cup-share-dialog [data-share-feedback]{color:#485b79}
 .playlist-cup-toolbar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
 .playlist-cup-toolbar .playlist-cup-listen-status,.playlist-cup-toolbar .playlist-cup-controls,.playlist-cup-toolbar .playlist-cup-exit{margin:0}
+/* The result has its own visual hierarchy; gameplay and setup stay unchanged. */
+.playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header{margin-bottom:22px}
+.playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header h1{font-size:24px;letter-spacing:-.03em}
+.playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header .eyebrow,.playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header>span{display:none}
+.cup-winner-hero{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr);align-items:center;gap:38px;text-align:left;padding:28px;border:1px solid #f7c76640;border-radius:24px;background:radial-gradient(ellipse at 10% 0%,#f7c76616,transparent 65%),linear-gradient(130deg,#ffffff05,#ffffff02);position:relative}
+.cup-winner-cover{position:relative;min-width:0;padding:0 0 18px;isolation:isolate}
+.playlist-cup-result .cup-winner-cover>.playlist-cup-art{max-width:300px;width:100%;margin:0 auto;transform:rotate(-3deg);box-shadow:0 18px 45px #0005,0 0 60px #f7c76618}
+.cup-winner-medal{display:grid;place-items:center;position:absolute;top:-16px;right:-8px;width:55px;height:55px;border-radius:18px;background:linear-gradient(135deg,#ffe7a0,#dca547);border:3px solid #171b30;color:#332108;font-size:33px;box-shadow:0 8px 24px #0004;transform:rotate(9deg);animation:cup-crown 4s ease-in-out infinite}
+.cup-winner-rank{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);white-space:nowrap;border:1px solid #f7c76666;border-radius:30px;background:#202239;color:#ffe1a0;padding:9px 15px;font-size:10px;font-weight:900;letter-spacing:.12em}
+.cup-winner-copy{min-width:0}
+.cup-winner-copy>.eyebrow{color:#f7d489;font-size:9px;letter-spacing:.16em;margin:0 0 10px}
+.playlist-cup-result .cup-winner-copy h2{margin:0;font-size:clamp(28px,3.5vw,44px);line-height:1.08;overflow-wrap:anywhere}
+.cup-winner-artist{font-size:16px;color:#b9c6df;margin:10px 0 22px;overflow-wrap:anywhere}
+.cup-winner-player>small{display:block;font-size:9px;color:#98a9c4;letter-spacing:.12em;margin-bottom:8px}
+.playlist-cup-result .cup-winner-player audio{display:block;width:100%;margin:0;height:40px;color-scheme:dark}
+.cup-winner-copy .playlist-cup-result-links{justify-content:flex-start;gap:7px;margin:10px 0 20px}
+.cup-winner-copy .playlist-cup-result-links a{font-size:11px;padding:8px 11px;min-height:36px;display:inline-flex;align-items:center;text-decoration:none;border:1px solid #ffffff1c;border-radius:11px}
+.cup-winner-copy .playlist-cup-result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+.cup-winner-copy .playlist-cup-result-actions>button{min-width:0;min-height:44px;font-size:12px;padding:11px 8px;display:flex;align-items:center;justify-content:center}
+.cup-winner-copy .playlist-cup-result-actions>[data-cup-share]{grid-column:1/-1}
+.playlist-cup-result .playlist-cup-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.playlist-cup-result .playlist-cup-stats>span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:#080e1c44;border:1px solid #ffffff12;border-radius:15px;padding:15px 8px;font-size:10px;min-width:0}
+.playlist-cup-result .playlist-cup-stats b{font-size:26px;margin:0;line-height:1.2}
+.playlist-cup-result .playlist-cup-stats .cup-result-time{font-size:17px;overflow-wrap:anywhere}
+.cup-finalist{display:flex;align-items:center;gap:14px;text-align:left;padding:13px 18px;background:#ffffff03;border:1px solid #ffffff18;border-radius:16px}
+.cup-finalist-place{font-size:21px;font-weight:900;color:#8c9bb5}
+.playlist-cup-result .cup-finalist>.playlist-cup-art{width:52px;max-width:52px;flex:none;border:0;border-radius:10px;box-shadow:none;margin:0}
+.cup-finalist>div:not(.playlist-cup-art){display:grid;gap:3px;min-width:0}
+.cup-finalist small{font-size:8px;letter-spacing:.12em;color:#a1aec6}
+.cup-finalist b{font-size:14px;overflow-wrap:anywhere}
+.cup-finalist div>span{color:#97a8c4;font-size:11px;overflow-wrap:anywhere}
+.cup-finalist-badge{margin-left:auto;color:#8c9bb5;font-size:8px;letter-spacing:.12em;white-space:nowrap}
+.playlist-cup-result+.playlist-cup-history{margin-top:20px;padding-top:18px}
+.playlist-cup-history summary>span{color:#8c9bb5;font-size:11px;font-weight:400}
+.light-theme .cup-winner-hero{background:linear-gradient(120deg,#ffedc980,#fff8);border-color:#d5ad5c80}
+.light-theme .cup-winner-artist,.light-theme .cup-winner-player>small,.light-theme .cup-finalist div>span{color:#4a5874}
+.light-theme .cup-winner-copy>.eyebrow{color:#805d19}
+.light-theme .playlist-cup-result .playlist-cup-stats>span,.light-theme .cup-finalist{background:#fff9;border-color:#b6c8e5;color:#4a5874}
+@media(max-width:700px){
+ .playlist-cup-panel:has(.playlist-cup-result){padding:18px 12px}
+ .playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header{margin-bottom:14px}
+ .playlist-cup-panel:has(.playlist-cup-result)>.playlist-cup-header h1{font-size:20px}
+ .cup-winner-hero{grid-template-columns:minmax(0,1fr);gap:20px;padding:22px 15px 16px;text-align:center;border-radius:18px}
+ .cup-winner-cover{width:min(62%,220px);margin:auto}
+ .cup-winner-medal{width:44px;height:44px;font-size:27px;right:-16px;top:-12px;border-radius:14px}
+ .cup-winner-rank{font-size:8px;padding:7px 11px}
+ .playlist-cup-result .cup-winner-copy h2{font-size:28px}
+ .cup-winner-artist{font-size:14px;margin:7px 0 16px}
+ .cup-winner-copy .playlist-cup-result-links{justify-content:center;margin-bottom:14px}
+ .playlist-cup-result .playlist-cup-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+ .playlist-cup-result .playlist-cup-stats>span{padding:11px 6px}
+ .playlist-cup-result .playlist-cup-stats b{font-size:22px}
+ .playlist-cup-result .playlist-cup-stats .cup-result-time{font-size:16px}
+ .cup-finalist{gap:10px;padding:11px}
+ .cup-finalist-badge{display:none}
+ .playlist-cup-history summary{font-size:12px}
+}
 @media(min-width:701px){
   .playlist-cup-page.is-playing{position:relative;margin:8px auto 0;padding-bottom:6px}
   .playlist-cup-page.is-playing .playlist-cup-panel{padding:12px 24px}

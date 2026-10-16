@@ -43,7 +43,7 @@ import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaE
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261014-8";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
 import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing } from "./songSpot.js?v=20261014-8";
-import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261014-8";
+import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261016-1";
 import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
