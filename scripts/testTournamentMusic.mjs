@@ -6,12 +6,13 @@ import {tournamentExtraTracks} from '../js/tournamentExtraMusic.js';
 import {tournamentMusicCatalog,tournamentCatalogForRegion} from '../js/tournamentMusic.js';
 import {cupTrackKey} from '../js/tournamentMusicKey.js';
 import {randomCupTracks} from '../js/musicCupSettings.js';
-test('shared tournament and quiz pool has 1200 songs; other music modes keep the base catalog',()=>{
- assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200);
+import {userPlaylistTracks} from '../js/userPlaylistMusic.js';
+test('shared tournament and quiz pool retains the original 1200 and adds user playlist songs',()=>{
+ assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200+userPlaylistTracks.length);
  const baseIds=new Set(musicPreviewCatalog.map(t=>String(t.id))),baseKeys=new Set(musicPreviewCatalog.map(cupTrackKey));
  for(const track of tournamentExtraTracks){assert.ok(!baseIds.has(track.id),track.title);assert.ok(!baseKeys.has(cupTrackKey(track)),track.title);}
- assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,1200);
- assert.equal(new Set(tournamentMusicCatalog.map(t=>t.id)).size,1200);
+ assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,tournamentMusicCatalog.length);
+ assert.equal(new Set(tournamentMusicCatalog.map(t=>t.id)).size,tournamentMusicCatalog.length);
  for(const pool of [tournamentMusicCatalog,tournamentCatalogForRegion('polish'),tournamentCatalogForRegion('global')])assert.equal(randomCupTracks(pool,128).length,128);
 });
 test('new additions belong to existing artists and contain genuine Apple previews and high-resolution artwork',()=>{

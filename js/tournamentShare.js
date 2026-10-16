@@ -1,4 +1,4 @@
-import { tournamentDuration } from './playlistTournamentEngine.js?v=20261014-8';
+import { tournamentDuration } from './playlistTournamentEngine.js?v=20261016-2';
 export const TOURNAMENT_SHARE_URL = 'https://grygrupowe.pages.dev/playlista-cup';
 const BASE_URL = new URL('../assets/share/playlist-cup-base.svg?v=20261013-1', import.meta.url).href;
 

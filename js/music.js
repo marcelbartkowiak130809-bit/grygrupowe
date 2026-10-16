@@ -1,6 +1,6 @@
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { musicArtworkUrl } from './musicArtwork.js?v=20261014-8';
-import { Audio } from "./audio.js?v=20261014-8";
+import { musicArtworkUrl } from './musicArtwork.js?v=20261016-2';
+import { Audio } from "./audio.js?v=20261016-2";
 import { polishTrackData } from "./polishMusic.js?v=20260903-1";
 import { extendedGlobalMusicTracks } from "./extendedMusic.js?v=20260902-1";
 import { extendedGlobalMusicTracks2 } from "./extendedGlobalMusic2.js?v=20260902-4";
