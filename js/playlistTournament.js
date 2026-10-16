@@ -1,14 +1,17 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
-import { Audio } from './audio.js?v=20261016-2';
-import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261016-2';
-import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261016-2';
-import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261016-2';
-import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261016-2';
+import { Audio } from './audio.js?v=20261016-3';
+import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261016-3';
+import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261016-3';
+import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261016-3';
+import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261016-3';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261016-2';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261016-3';
 
 let cleanup = () => {};
+export function confirmTournamentExit(state, ask = message => window.confirm(message)) {
+  return state.status !== 'playing' || ask('Czy na pewno chcesz zakończyć turniej? Postęp obecnego turnieju zostanie utracony.');
+}
 export function stopPlaylistTournament() { cleanup(); cleanup = () => {}; }
 const art = track => `<div class="playlist-cup-art"><span aria-hidden="true">♫</span>${track.coverUrl ? `<img src="${escapeHtml(musicArtworkUrl(track.coverUrl))}" alt="Okładka: ${escapeHtml(track.title)}" decoding="async" onerror="this.hidden=true">` : ''}</div>`;
 function card(track, side) {
@@ -53,7 +56,7 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   const repaint = () => { if (alive()) renderPlaylistTournament(root, {playerId, profile, getProfile}, actions); };
   root.querySelector('[data-cup-home]').addEventListener('click', () => { stopPlaylistTournament(); (actions.goMusicModes || actions.goPlatform)(); });
   root.querySelectorAll('[data-cup-start]').forEach(button => button.addEventListener('click', () => { startRandom(); }));
-  root.querySelectorAll('[data-cup-reset]').forEach(button => button.addEventListener('click', () => { engine.reset(playerId); repaint(); }));
+  root.querySelectorAll('[data-cup-reset]').forEach(button => button.addEventListener('click', () => { if (!confirmTournamentExit(engine.get(playerId))) return; engine.reset(playerId); repaint(); }));
   function startRandom(raw=settings) {
     try {
       const selected=cupSettings(raw), pool=selected.region==='all'?tournamentMusicCatalog:tournamentCatalogForRegion(selected.region);
