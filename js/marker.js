@@ -1,5 +1,5 @@
 import { escapeHtml, resultPlayerMiniHtml } from './utils.js?v=20260903-7';
-import { markerCrossValid, markerCellAt } from './markerDrawing.js?v=20261016-3';
+import { markerCrossValid, markerCellAt } from './markerDrawing.js?v=20261019-1';
 export const markerDefaults={boardSize:8,numberMax:50,markerSkin:'defaultMarker'};
 const sizes=[8,10,12],ranges=[20,30,40,50,60,70,80,90,100];
 const skins={defaultMarker:'#171923',redMarker:'#ef476f',blueMarker:'#3b82f6',neonMarker:'#35f5ff',rainbowMarker:'#d946ef',premiumSpectrumMarker:'#c084fc'};

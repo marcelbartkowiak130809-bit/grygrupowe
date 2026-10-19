@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.4.18-20261016-cup-exit-confirmation";
+const CACHE_NAME = "grygrupowe-shell-v5.4.19-20261019-tate-playlist";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

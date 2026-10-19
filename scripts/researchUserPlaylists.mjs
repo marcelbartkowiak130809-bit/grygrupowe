@@ -21,9 +21,10 @@ const urls=[
 ];
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function json(url){for(let attempt=0;attempt<4;attempt++){try{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error(`HTTP ${r.status}`);return await r.json();}catch(e){if(attempt===3)throw e;await pause(4000*(attempt+1));}}}
-const report={date:'2026-10-16',sources:[],supplements:[],unavailable:[]},rows=new Map();
+const customUrl=process.argv.find(arg=>arg.startsWith('https://music.apple.com/'));
+const report={date:customUrl?'2026-10-19':'2026-10-16',sources:[],supplements:[],unavailable:[]},rows=new Map();
 const additional=process.argv.includes('--additional');
-for(const url of additional?urls.slice(-3):urls){
+for(const url of customUrl?[customUrl]:additional?urls.slice(-3):urls){
  try{
   const r=await fetch(url,{signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error(`HTTP ${r.status}`);
   const html=await r.text(),match=html.match(/<script type="application\/json" id="serialized-server-data">([\s\S]*?)<\/script>/);if(!match)throw Error('No public track data');
@@ -35,7 +36,7 @@ for(const url of additional?urls.slice(-3):urls){
  }catch(e){report.sources.push({url,error:e.message});}
 }
 // Explicitly requested missing evergreen hits, rather than entire artist discographies.
-for(const [artist,title] of additional?[]:[['Ellie Goulding','Love Me Like You Do'],['Ellie Goulding','Burn'],['Ellie Goulding','Lights'],['Ellie Goulding','Anything Could Happen'],['Ellie Goulding','On My Mind'],['Ellie Goulding','Your Song'],['Ellie Goulding','Still Falling For You'],['Ricky Martin',"Livin' la Vida Loca"]]){
+for(const [artist,title] of additional||customUrl?[]:[['Ellie Goulding','Love Me Like You Do'],['Ellie Goulding','Burn'],['Ellie Goulding','Lights'],['Ellie Goulding','Anything Could Happen'],['Ellie Goulding','On My Mind'],['Ellie Goulding','Your Song'],['Ellie Goulding','Still Falling For You'],['Ricky Martin',"Livin' la Vida Loca"]]){
  const url=`https://itunes.apple.com/search?term=${encodeURIComponent(artist+' '+title)}&entity=song&limit=15&country=pl`;
  try{const data=await json(url),key=cupTrackKey({artist,title});const t=data.results.find(t=>t.previewUrl&&cupTrackKey({artist:t.artistName,title:t.trackName})===key);if(!t)throw Error('No exact catalog match');const id=String(t.trackId);if(!rows.has(id))rows.set(id,{id,title:t.trackName,artist:t.artistName,sources:[url]});report.supplements.push({artist,title,id,url});}catch(e){report.supplements.push({artist,title,url,error:e.message});}await pause(3200);
 }

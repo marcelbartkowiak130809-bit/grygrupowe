@@ -3500,5 +3500,48 @@ export const userPlaylistTracks = [
     "genre": "Pop",
     "originalReleaseSource": "https://music.apple.com/pl/album/still-falling-for-you-from-bridget-joness-baby/1445048369?i=1445048372&uo=4"
   }
+,
+{
+  "id": "itunes-6822497774",
+  "title": "Housewife",
+  "artist": "Tate McRae",
+  "album": "Housewife - Single",
+  "region": "global",
+  "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2b/96/2b/2b962b77-3a04-5650-aefd-37ecfce04b03/196874840146.jpg/600x600bb.jpg",
+  "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/05/27/d4/0527d4f3-f6af-1ef8-6a32-25477b7b00ba/mzaf_18270786579537755861.plus.aac.p.m4a",
+  "externalUrl": "https://music.apple.com/pl/album/housewife/6822497770?i=6822497774&uo=4",
+  "provider": "preview",
+  "originalReleaseYear": 2026,
+  "genre": "Pop",
+  "originalReleaseSource": "https://music.apple.com/pl/album/housewife/6822497770?i=6822497774&uo=4"
+},
+{
+  "id": "itunes-1716103128",
+  "title": "run for the hills",
+  "artist": "Tate McRae",
+  "album": "THINK LATER",
+  "region": "global",
+  "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/1b/9a/d3/1b9ad377-0346-7c99-bbdd-6dbbaf0d1107/196871542654.jpg/600x600bb.jpg",
+  "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/aa/26/3e/aa263e8c-cee8-1ef7-3ad8-f02534641bc3/mzaf_6227127211792705200.plus.aac.p.m4a",
+  "externalUrl": "https://music.apple.com/pl/album/run-for-the-hills/1716102849?i=1716103128&uo=4",
+  "provider": "preview",
+  "originalReleaseYear": 2023,
+  "genre": "Pop",
+  "originalReleaseSource": "https://music.apple.com/pl/album/run-for-the-hills/1716102849?i=1716103128&uo=4"
+},
+{
+  "id": "itunes-1507810181",
+  "title": "you broke me first",
+  "artist": "Tate McRae",
+  "album": "you broke me first - Single",
+  "region": "global",
+  "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/7f/04/79/7f0479b4-baff-3eba-cd3c-17deb446b8e0/886448361923.jpg/600x600bb.jpg",
+  "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1a/e6/2f/1ae62fd4-675d-6172-75a9-2a763b2bb32a/mzaf_14391329899020181142.plus.aac.p.m4a",
+  "externalUrl": "https://music.apple.com/pl/album/you-broke-me-first/1507809903?i=1507810181&uo=4",
+  "provider": "preview",
+  "originalReleaseYear": 2020,
+  "genre": "Pop",
+  "originalReleaseSource": "https://music.apple.com/pl/album/you-broke-me-first/1507809903?i=1507810181&uo=4"
+}
 ];
 
