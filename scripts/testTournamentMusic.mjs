@@ -7,8 +7,9 @@ import {tournamentMusicCatalog,tournamentCatalogForRegion} from '../js/tournamen
 import {cupTrackKey} from '../js/tournamentMusicKey.js';
 import {randomCupTracks} from '../js/musicCupSettings.js';
 import {userPlaylistTracks} from '../js/userPlaylistMusic.js';
+import {octoberChartTracks} from '../js/octoberChartMusic.js';
 test('shared tournament and quiz pool retains the original 1200 and adds user playlist songs',()=>{
- assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200+userPlaylistTracks.length);
+ assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200+userPlaylistTracks.length+octoberChartTracks.length);
  const baseIds=new Set(musicPreviewCatalog.map(t=>String(t.id))),baseKeys=new Set(musicPreviewCatalog.map(cupTrackKey));
  for(const track of tournamentExtraTracks){assert.ok(!baseIds.has(track.id),track.title);assert.ok(!baseKeys.has(cupTrackKey(track)),track.title);}
  assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,tournamentMusicCatalog.length);

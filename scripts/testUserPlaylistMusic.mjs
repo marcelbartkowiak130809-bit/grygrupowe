@@ -14,9 +14,9 @@ test('all 16 supplied public Apple sources were completely read and every song i
  }
 });
 test('playlist tracks are additive, unique and use high-resolution artwork',()=>{
- assert.equal(userPlaylistTracks.length,253);assert.equal(tournamentMusicCatalog.length,1453);
- assert.equal(new Set(tournamentMusicCatalog.map(t=>t.id)).size,1453);
- assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,1453);
+ assert.equal(userPlaylistTracks.length,253);assert.ok(tournamentMusicCatalog.length>=1453);
+ assert.equal(new Set(tournamentMusicCatalog.map(t=>t.id)).size,tournamentMusicCatalog.length);
+ assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,tournamentMusicCatalog.length);
  assert.equal(report.trackResearch.length,250);
  for(const t of userPlaylistTracks){assert.ok(tournamentMusicCatalog.some(s=>s.id===t.id));assert.match(t.coverUrl,/\/600x600bb/);assert.match(t.previewUrl,/^https:\/\/audio-ssl\.itunes\.apple\.com\//);assert.match(t.externalUrl,/^https:\/\/music\.apple\.com\//);const meta=songSpotTrackMetadata(t);assert.ok(meta.year>=1970&&meta.year<=2026);assert.ok(meta.artists.length&&meta.genres.length&&meta.source);}
 });

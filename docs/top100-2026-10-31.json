@@ -1,0 +1,2125 @@
+{
+  "date": "2026-10-31",
+  "mediaVerification": {"date":"2026-10-31","previewsPassed":32,"coversPassed":32,"method":"HTTP HEAD 200 and audio/image content-type checks"},
+  "previousTotal": 1453,
+  "added": 32,
+  "total": 1485,
+  "sources": [
+    {
+      "url": "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31",
+      "title": "Top 100: Global",
+      "advertisedTracks": 100,
+      "tracks": 100,
+      "trackIds": [
+        "6822497774",
+        "6796864754",
+        "6807192825",
+        "1844932150",
+        "6820428730",
+        "6822944296",
+        "269573303",
+        "6818209989",
+        "6769568596",
+        "1889992115",
+        "1889992123",
+        "6792676860",
+        "6792884101",
+        "1817609509",
+        "6795697687",
+        "6814997425",
+        "6818511627",
+        "6818209990",
+        "1714599822",
+        "1440650961",
+        "6769552411",
+        "6763656876",
+        "1558942272",
+        "1621119447",
+        "6812477290",
+        "1440929293",
+        "6793871667",
+        "1648587330",
+        "6817260751",
+        "1440662595",
+        "6818209992",
+        "1657869492",
+        "6822390426",
+        "1418213269",
+        "1526194192",
+        "6763091996",
+        "1453336216",
+        "1869436845",
+        "1833328840",
+        "1621803969",
+        "1570323056",
+        "1545270163",
+        "6826470420",
+        "1781353929",
+        "1443008970",
+        "1870984045",
+        "1484413134",
+        "273598914",
+        "1884403093",
+        "6803148739",
+        "1793663645",
+        "1802103970",
+        "1762656732",
+        "1820264150",
+        "6812477298",
+        "1137966332",
+        "6810716062",
+        "1488408568",
+        "1560735548",
+        "1450330685",
+        "1440891494",
+        "1506297772",
+        "1682584224",
+        "1818424212",
+        "895127012",
+        "1813021660",
+        "1440642743",
+        "6790569133",
+        "1529510489",
+        "1889992113",
+        "6762757958",
+        "1450330686",
+        "1621207921",
+        "1109658204",
+        "1796270267",
+        "1556670532",
+        "1817609507",
+        "1097862231",
+        "1744439049",
+        "1621119426",
+        "1193701392",
+        "1802104400",
+        "1842957386",
+        "1709307257",
+        "1802103975",
+        "1534816484",
+        "1440873033",
+        "6769551476",
+        "1768635695",
+        "1440873538",
+        "1440899467",
+        "1438765134",
+        "1239976610",
+        "1887194026",
+        "1249168253",
+        "1891779776",
+        "1150135924",
+        "1017055092",
+        "1739659144",
+        "1193701400"
+      ]
+    },
+    {
+      "url": "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf",
+      "title": "Top 100: Poland",
+      "advertisedTracks": 100,
+      "tracks": 100,
+      "trackIds": [
+        "6814768754",
+        "6822497774",
+        "6812310454",
+        "6807192825",
+        "6820073602",
+        "6822045617",
+        "6826293461",
+        "6819265759",
+        "6825306499",
+        "6792884101",
+        "6820128815",
+        "6795483323",
+        "1893020735",
+        "1633289330",
+        "1842957386",
+        "6795697687",
+        "6769070199",
+        "1574525856",
+        "6812310461",
+        "6823346775",
+        "1867178514",
+        "1545270163",
+        "1889992123",
+        "548656753",
+        "6822577864",
+        "1678486911",
+        "6819802968",
+        "6822390426",
+        "6798685454",
+        "663097965",
+        "1727526894",
+        "6763160733",
+        "1810796703",
+        "1658597096",
+        "6796864754",
+        "1832474332",
+        "6803799831",
+        "6817398932",
+        "1877803360",
+        "6814997425",
+        "1889992115",
+        "1440783625",
+        "6792724995",
+        "1536801071",
+        "6768469976",
+        "1883059814",
+        "1228739609",
+        "1894224409",
+        "6823346773",
+        "6781010655",
+        "1513895322",
+        "6812310462",
+        "1883220838",
+        "6786358334",
+        "1544324124",
+        "1803124593",
+        "6806387826",
+        "273598914",
+        "1686911971",
+        "6815156545",
+        "590431785",
+        "6794333576",
+        "1484081273",
+        "1511556424",
+        "1193701392",
+        "1440650961",
+        "1694538205",
+        "1488408568",
+        "1890018672",
+        "6763656876",
+        "6791220385",
+        "6762762139",
+        "1771054258",
+        "1768684070",
+        "1844822345",
+        "1553769716",
+        "6825260424",
+        "1833328840",
+        "1715687117",
+        "1830987251",
+        "1450330685",
+        "1077911583",
+        "1706381103",
+        "1861792903",
+        "1476727675",
+        "1739659144",
+        "1749940410",
+        "1741994579",
+        "6823346926",
+        "1739659141",
+        "1476727861",
+        "1648264111",
+        "1440899467",
+        "594511862",
+        "1440826383",
+        "1440895995",
+        "6812413621",
+        "1693789318",
+        "576949282",
+        "1527144907"
+      ]
+    }
+  ],
+  "unavailable": [],
+  "excludedEquivalent": [
+    {
+      "id": "itunes-1558942272",
+      "existingId": "itunes-1714908987",
+      "reason": "Wicked Games (Original) is an alternate release of the existing Wicked Games"
+    }
+  ],
+  "chartRows": [
+    {
+      "id": "itunes-6820428730",
+      "title": "NEON",
+      "artist": "A2O & A2O LITE",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822944296",
+      "title": "Lies (feat. Lana Del Rey)",
+      "artist": "Zach Bryan & Lana Del Rey",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6818511627",
+      "title": "You’re Under Arrest",
+      "artist": "ILLIT",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1714599822",
+      "title": "Shiwaawase",
+      "artist": "VAUNDY",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1558942272",
+      "title": "Wicked Games (Original)",
+      "artist": "The Weeknd",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6793871667",
+      "title": "Yes! Tokyo (feat. SUPER★DRAGON, Sakurashimeji, ONE N' ONLY, BUDDiiS, ICEx & Lienel)",
+      "artist": "EBiDAN Ebisu Gakuen Boys Club, chotokkyu, M!LK & GNJB",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6817260751",
+      "title": "musubi",
+      "artist": "Ayumu Imazu",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1440662595",
+      "title": "This Is Halloween",
+      "artist": "The Citizens of Halloween",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822390426",
+      "title": "expectations",
+      "artist": "Olivia Rodrigo & Chappell Roan",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6826470420",
+      "title": "Thin Ice",
+      "artist": "Megan Thee Stallion",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1870984045",
+      "title": "Coming Up Roses",
+      "artist": "Harry Styles",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1484413134",
+      "title": "Ghostbusters",
+      "artist": "Ray Parker Jr.",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6803148739",
+      "title": "For Okinawa (feat. Awich, CHICO CARLITO, ONE OK ROCK & Paledusk)",
+      "artist": "YAO",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6812477298",
+      "title": "Suzuki",
+      "artist": "Fuerza Regida",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1709307257",
+      "title": "Monster Mash",
+      "artist": "Bobby \"Boris\" Pickett & Bobby \"Boris\" Pickett & The Crypt-Kickers",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6822497774",
+      "title": "Housewife",
+      "artist": "Tate McRae",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6796864754",
+      "title": "BbY WOW",
+      "artist": "KAROL G, Judeline & rusowsky",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6807192825",
+      "title": "Nicole Kidman",
+      "artist": "ADÉLA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1844932150",
+      "title": "Choosin' Texas",
+      "artist": "Ella Langley",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "269573303",
+      "title": "Thriller",
+      "artist": "Michael Jackson",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6818209989",
+      "title": "Solar Eclipse",
+      "artist": "Drake & Don Toliver",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6769568596",
+      "title": "Janice STFU",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1889992115",
+      "title": "stupid song",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1889992123",
+      "title": "the cure",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6792676860",
+      "title": "Been By Now",
+      "artist": "Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6792884101",
+      "title": "Ain't In LA",
+      "artist": "ADÉLA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1817609509",
+      "title": "Man I Need",
+      "artist": "Olivia Dean",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6795697687",
+      "title": "Stop The Wedding!",
+      "artist": "Ashe",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6814997425",
+      "title": "Patient Zero",
+      "artist": "Taylor Swift",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6818209990",
+      "title": "Quebec",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440650961",
+      "title": "Beauty and a Beat (feat. Nicki Minaj)",
+      "artist": "Justin Bieber",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6769552411",
+      "title": "Great Expectation",
+      "artist": "SIENNA SPIRO",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6763656876",
+      "title": "hate that i made you love me",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1621119447",
+      "title": "WAIT FOR U (feat. Drake & Tems)",
+      "artist": "Future",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6812477290",
+      "title": "Last Thing You Need",
+      "artist": "Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440929293",
+      "title": "Freestyle",
+      "artist": "Lil Baby",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1648587330",
+      "title": "In A Minute",
+      "artist": "Lil Baby",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6818209992",
+      "title": "Cold Shoulder",
+      "artist": "Drake, Don Toliver & Yebba",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1657869492",
+      "title": "Snooze",
+      "artist": "SZA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1418213269",
+      "title": "God's Plan",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1526194192",
+      "title": "Mr. Brightside",
+      "artist": "The Killers",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6763091996",
+      "title": "I Can't Love You Anymore",
+      "artist": "Ella Langley & Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1453336216",
+      "title": "Best I Ever Had",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1869436845",
+      "title": "Be Her",
+      "artist": "Ella Langley",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1833328840",
+      "title": "The Fate of Ophelia",
+      "artist": "Taylor Swift",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1621803969",
+      "title": "LIKE ME (feat. 42 Dugg & Lil Baby)",
+      "artist": "Future",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1570323056",
+      "title": "Yonaguni",
+      "artist": "Bad Bunny",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1545270163",
+      "title": "Into You",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1781353929",
+      "title": "Not Like Us",
+      "artist": "Kendrick Lamar",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1443008970",
+      "title": "Baby (feat. Ludacris)",
+      "artist": "Justin Bieber",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "273598914",
+      "title": "Billie Jean (Single Version)",
+      "artist": "Michael Jackson",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1884403093",
+      "title": "Boston",
+      "artist": "STELLA LEFTY",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1793663645",
+      "title": "Ordinary",
+      "artist": "Alex Warren",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1802103970",
+      "title": "I'm The Problem",
+      "artist": "Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1762656732",
+      "title": "Die With A Smile",
+      "artist": "Lady Gaga & Bruno Mars",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1820264150",
+      "title": "Golden",
+      "artist": "HUNTR/X, EJAE, AUDREY NUNA, REI AMI & KPop Demon Hunters Cast",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1137966332",
+      "title": "Cinderella (feat. Ty Dolla $ign)",
+      "artist": "Mac Miller",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6810716062",
+      "title": "So Good (feat. Kendrick Lamar)",
+      "artist": "Jhené Aiko",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1488408568",
+      "title": "Blinding Lights",
+      "artist": "The Weeknd",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1560735548",
+      "title": "deja vu",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1450330685",
+      "title": "7 rings",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440891494",
+      "title": "Passionfruit",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1506297772",
+      "title": "March Madness",
+      "artist": "Future",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1682584224",
+      "title": "Sweater Weather",
+      "artist": "The Neighbourhood",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1818424212",
+      "title": "Last Night",
+      "artist": "Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "895127012",
+      "title": "Wonderwall (Remastered)",
+      "artist": "Oasis",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1813021660",
+      "title": "Broken Window Serenade",
+      "artist": "Whiskey Myers",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440642743",
+      "title": "Marvins Room",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6790569133",
+      "title": "Dead Fresh",
+      "artist": "Lil Baby",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1529510489",
+      "title": "Power Trip (feat. Miguel)",
+      "artist": "J. Cole",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1889992113",
+      "title": "drop dead",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6762757958",
+      "title": "Orbiter",
+      "artist": "Noah Kahan",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1450330686",
+      "title": "thank u, next",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1621207921",
+      "title": "Frozen",
+      "artist": "Lil Baby",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1109658204",
+      "title": "Iris",
+      "artist": "The Goo Goo Dolls",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1796270267",
+      "title": "30 For 30 (with Kendrick Lamar)",
+      "artist": "SZA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1556670532",
+      "title": "Wants and Needs (feat. Lil Baby)",
+      "artist": "Drake",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1817609507",
+      "title": "So Easy (To Fall In Love)",
+      "artist": "Olivia Dean",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1097862231",
+      "title": "Creep",
+      "artist": "Radiohead",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1744439049",
+      "title": "I Had Some Help (feat. Morgan Wallen)",
+      "artist": "Post Malone",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1621119426",
+      "title": "I'M DAT N***A",
+      "artist": "Future",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1193701392",
+      "title": "Shape of You",
+      "artist": "Ed Sheeran",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1802104400",
+      "title": "Don't We",
+      "artist": "Morgan Wallen",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1842957386",
+      "title": "Loser",
+      "artist": "Tame Impala",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1802103975",
+      "title": "What I Want",
+      "artist": "Morgan Wallen & Tate McRae",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1534816484",
+      "title": "Sum 2 Prove",
+      "artist": "Lil Baby",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440873033",
+      "title": "Hold On, We're Going Home",
+      "artist": "Drake & Majid Jordan",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "6769551476",
+      "title": "I’m Spent",
+      "artist": "Drake & Loe Shimmy",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1768635695",
+      "title": "Dancing In The Flames",
+      "artist": "The Weeknd",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440873538",
+      "title": "Money Trees (feat. Jay Rock)",
+      "artist": "Kendrick Lamar",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1440899467",
+      "title": "ocean eyes",
+      "artist": "Billie Eilish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1438765134",
+      "title": "Girls Need Love",
+      "artist": "Summer Walker",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1239976610",
+      "title": "Broken Clocks",
+      "artist": "SZA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1887194026",
+      "title": "It's Me",
+      "artist": "ILLIT",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1249168253",
+      "title": "Wild Thoughts (feat. Rihanna & Bryson Tiller)",
+      "artist": "DJ Khaled",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1891779776",
+      "title": "Animal",
+      "artist": "KATSEYE",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1150135924",
+      "title": "goosebumps",
+      "artist": "Travis Scott",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1017055092",
+      "title": "Stick Talk",
+      "artist": "Future",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1739659144",
+      "title": "WILDFLOWER",
+      "artist": "Billie Eilish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "1193701400",
+      "title": "Perfect",
+      "artist": "Ed Sheeran",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822045617",
+      "title": "WAVY (LEJ MI BBY)",
+      "artist": "Tax Free, Malik Montana, Kazior, Maja Janowska, CUZCO$ & YEEGOR",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6826293461",
+      "title": "Powiedz To",
+      "artist": "wane",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6825306499",
+      "title": "bravo!",
+      "artist": "OKI & bvdy47",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346775",
+      "title": "VIS A VIS",
+      "artist": "bambi",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6822577864",
+      "title": "BALETY",
+      "artist": "Stynu",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6819802968",
+      "title": "Flower In A Hurricane [from GTAVI]",
+      "artist": "Justice, Tame Impala, SZA & King Gizzard & The Lizard Wizard",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6822390426",
+      "title": "expectations",
+      "artist": "Olivia Rodrigo & Chappell Roan",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6798685454",
+      "title": "GORSET",
+      "artist": "bambi",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1658597096",
+      "title": "Michael Kors",
+      "artist": "Tede, Sir Mich & Abel",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6817398932",
+      "title": "LEJ MI BBY",
+      "artist": "Maja & Young Leosia",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346773",
+      "title": "AFTER",
+      "artist": "bambi & Guzior",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1883220838",
+      "title": "LET IT B",
+      "artist": "bambi",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6786358334",
+      "title": "WASTED",
+      "artist": "Naarly & Major League DJz",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6815156545",
+      "title": "Shotta's.",
+      "artist": "Season 25",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6825260424",
+      "title": "Kto ile jest wart",
+      "artist": "Malik Montana, CUZCO$ & Szamz",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346926",
+      "title": "WARTO KŁAMAĆ",
+      "artist": "bambi",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-594511862",
+      "title": "Another Love",
+      "artist": "Tom Odell",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1693789318",
+      "title": "Chaczapuri",
+      "artist": "Kaz Bałagane",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-576949282",
+      "title": "Just Give Me a Reason (feat. Nate Ruess)",
+      "artist": "P!nk",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6814768754",
+      "title": "Mami",
+      "artist": "730 Huncho, Malik Montana, Wiktor & CrackHouse",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6822497774",
+      "title": "Housewife",
+      "artist": "Tate McRae",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6812310454",
+      "title": "NIENAWIDZĘ WARSZAWY",
+      "artist": "Otsochodzi & lohleq",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6807192825",
+      "title": "Nicole Kidman",
+      "artist": "ADÉLA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6820073602",
+      "title": "Mimo najlepszych chęci",
+      "artist": "Vito Bambino",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6819265759",
+      "title": "3K (KRESKA KROPKA KRESKA)",
+      "artist": "OG ENZO, Malik Montana & CUZCO$",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6792884101",
+      "title": "Ain't In LA",
+      "artist": "ADÉLA",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6820128815",
+      "title": "CYRK",
+      "artist": "bambi & Bedoes 2115",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6795483323",
+      "title": "WIĘCEJ NIEBA",
+      "artist": "Otsochodzi, OKI & lohleq",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1893020735",
+      "title": "Nareszcie",
+      "artist": "Męskie Granie Orkiestra, Igor Herbut, Zalia & Vito Bambino",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1633289330",
+      "title": "BUBBLETEA",
+      "artist": "Quebonafide, Duit & Daria Zawiałow",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1842957386",
+      "title": "Loser",
+      "artist": "Tame Impala",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6795697687",
+      "title": "Stop The Wedding!",
+      "artist": "Ashe",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6769070199",
+      "title": "Movin' To The Sun",
+      "artist": "HUGEL, Imael Angel & Ultra Naté",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1574525856",
+      "title": "I Ciebie też, bardzo (feat. Daria Zawiałow, Dawid Podsiadło & Vito Bambino)",
+      "artist": "Męskie Granie Orkiestra",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6812310461",
+      "title": "SŁOWA BOLĄ",
+      "artist": "Otsochodzi, AG & lohleq",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1867178514",
+      "title": "After",
+      "artist": "Tax Free, Malik Montana, Kazior & CUZCO$",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1545270163",
+      "title": "Into You",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1889992123",
+      "title": "the cure",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "548656753",
+      "title": "Sweater Weather",
+      "artist": "The Neighbourhood",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1678486911",
+      "title": "Molly",
+      "artist": "PRO8L3M",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "663097965",
+      "title": "Do I Wanna Know?",
+      "artist": "Arctic Monkeys",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1727526894",
+      "title": "Training Season",
+      "artist": "Dua Lipa",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6763160733",
+      "title": "Saudi",
+      "artist": "Tax Free, Malik Montana, Kazior, TYK & CUZCO$",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1810796703",
+      "title": "Just Keep Watching",
+      "artist": "Tate McRae",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6796864754",
+      "title": "BbY WOW",
+      "artist": "KAROL G, Judeline & rusowsky",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1832474332",
+      "title": "Zabiore Cię Tam",
+      "artist": "Fukaj & Vito Bambino",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6803799831",
+      "title": "GIŃ ZA MNIE",
+      "artist": "Otsochodzi & lohleq",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1877803360",
+      "title": "Self Aware",
+      "artist": "Temper City",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6814997425",
+      "title": "Patient Zero",
+      "artist": "Taylor Swift",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1889992115",
+      "title": "stupid song",
+      "artist": "Olivia Rodrigo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1440783625",
+      "title": "Smells Like Teen Spirit",
+      "artist": "Nirvana",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6792724995",
+      "title": "DELI SUPREME",
+      "artist": "MJ Deli",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1536801071",
+      "title": "Jungle Boyz",
+      "artist": "Malik Montana",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6768469976",
+      "title": "Dai Dai",
+      "artist": "Shakira & Burna Boy",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1883059814",
+      "title": "fantazje",
+      "artist": "MIÜ, Pezet & Bedoes 2115",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1228739609",
+      "title": "New Rules",
+      "artist": "Dua Lipa",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1894224409",
+      "title": "BAD TIMES",
+      "artist": "Imael Angel",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6781010655",
+      "title": "Latamy",
+      "artist": "Tax Free, Malik Montana, Kazior, 730 Huncho & CUZCO$",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1513895322",
+      "title": "Rundki (feat. Diho, Alberto & Bibič)",
+      "artist": "Malik Montana",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6812310462",
+      "title": "HALO? (feat. Sem0r & Wini)",
+      "artist": "Otsochodzi, Taco Hemingway, lohleq & Hanz",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1544324124",
+      "title": "no tears left to cry",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1803124593",
+      "title": "Bez Strachu",
+      "artist": "Paluch",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6806387826",
+      "title": "Cicho sza",
+      "artist": "sanah",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "273598914",
+      "title": "Billie Jean (Single Version)",
+      "artist": "Michael Jackson",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1686911971",
+      "title": "Supermoce (feat. IGO, Mrozu & Vito Bambino)",
+      "artist": "Męskie Granie Orkiestra",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "590431785",
+      "title": "In the End",
+      "artist": "LINKIN PARK",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6794333576",
+      "title": "STRAIGHT OUTTA CRACKHOUSE",
+      "artist": "CrackHouse, Divix, Macias, Amar, Bandura & Isiah Hilt",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1484081273",
+      "title": "Kryzysowa narzeczona",
+      "artist": "Lady Pank",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1511556424",
+      "title": "Dlugość dźwięku samotności",
+      "artist": "Myslovitz",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1193701392",
+      "title": "Shape of You",
+      "artist": "Ed Sheeran",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1440650961",
+      "title": "Beauty and a Beat (feat. Nicki Minaj)",
+      "artist": "Justin Bieber",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1694538205",
+      "title": "Czempion (feat. Malik Montana)",
+      "artist": "Kizo",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1488408568",
+      "title": "Blinding Lights",
+      "artist": "The Weeknd",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1890018672",
+      "title": "STORM II",
+      "artist": "GENER8ION & Yung Lean",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6763656876",
+      "title": "hate that i made you love me",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6791220385",
+      "title": "Miasto",
+      "artist": "Tax Free, Malik Montana, Kazior & CUZCO$",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6762762139",
+      "title": "Stan Deweloperski",
+      "artist": "Sequento, Cypis & Balanga",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1771054258",
+      "title": "Nie / nie",
+      "artist": "Otsochodzi",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1768684070",
+      "title": "Lloret de Mar",
+      "artist": "Mata",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1844822345",
+      "title": "Kwadrat",
+      "artist": "Majki & Major SPZ",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1553769716",
+      "title": "Miniówa",
+      "artist": "Kukon",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1833328840",
+      "title": "The Fate of Ophelia",
+      "artist": "Taylor Swift",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1715687117",
+      "title": "Sexy Bitch (feat. Akon)",
+      "artist": "David Guetta",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1830987251",
+      "title": "dopóki się nie znüdzisz",
+      "artist": "MIÜ, Zalia, Leon Krześniak & Koder",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1450330685",
+      "title": "7 rings",
+      "artist": "Ariana Grande",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1077911583",
+      "title": "W Głowie",
+      "artist": "Ania Dąbrowska",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1706381103",
+      "title": "greedy",
+      "artist": "Tate McRae",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1861792903",
+      "title": "ZAKOCHAŁEM SIĘ POD APTEKĄ (feat. Livka)",
+      "artist": "Taco Hemingway & Rumak",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1476727675",
+      "title": "Telephone (feat. Beyoncé)",
+      "artist": "Lady Gaga",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1739659144",
+      "title": "WILDFLOWER",
+      "artist": "Billie Eilish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1749940410",
+      "title": "Miłość jest ślepa",
+      "artist": "sanah",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1741994579",
+      "title": "Szum",
+      "artist": "Kaśka Sochacka",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1739659141",
+      "title": "CHIHIRO",
+      "artist": "Billie Eilish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1476727861",
+      "title": "Just Dance (feat. Colby O'Donis)",
+      "artist": "Lady Gaga",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1648264111",
+      "title": "mori",
+      "artist": "Dawid Podsiadło",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1440899467",
+      "title": "ocean eyes",
+      "artist": "Billie Eilish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1440826383",
+      "title": "The Hills",
+      "artist": "The Weeknd",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1440895995",
+      "title": "S&M",
+      "artist": "Rihanna",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "6812413621",
+      "title": "Styl Życia Haram",
+      "artist": "Tax Free, Malik Montana, Kazior, CUZCO$ & Lot808",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "1527144907",
+      "title": "Flashing Lights (feat. Dwele)",
+      "artist": "Kanye West",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    }
+  ],
+  "addedTracks": [
+    {
+      "id": "itunes-6820428730",
+      "title": "NEON",
+      "artist": "A2O & A2O LITE",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822944296",
+      "title": "Lies (feat. Lana Del Rey)",
+      "artist": "Zach Bryan & Lana Del Rey",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6818511627",
+      "title": "You’re Under Arrest",
+      "artist": "ILLIT",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1714599822",
+      "title": "Shiwaawase",
+      "artist": "VAUNDY",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6793871667",
+      "title": "Yes! Tokyo (feat. SUPER★DRAGON, Sakurashimeji, ONE N' ONLY, BUDDiiS, ICEx & Lienel)",
+      "artist": "EBiDAN Ebisu Gakuen Boys Club, chotokkyu, M!LK & GNJB",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6817260751",
+      "title": "musubi",
+      "artist": "Ayumu Imazu",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1440662595",
+      "title": "This Is Halloween",
+      "artist": "The Citizens of Halloween",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822390426",
+      "title": "expectations",
+      "artist": "Olivia Rodrigo & Chappell Roan",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6826470420",
+      "title": "Thin Ice",
+      "artist": "Megan Thee Stallion",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1870984045",
+      "title": "Coming Up Roses",
+      "artist": "Harry Styles",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1484413134",
+      "title": "Ghostbusters",
+      "artist": "Ray Parker Jr.",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6803148739",
+      "title": "For Okinawa (feat. Awich, CHICO CARLITO, ONE OK ROCK & Paledusk)",
+      "artist": "YAO",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6812477298",
+      "title": "Suzuki",
+      "artist": "Fuerza Regida",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-1709307257",
+      "title": "Monster Mash",
+      "artist": "Bobby \"Boris\" Pickett & Bobby \"Boris\" Pickett & The Crypt-Kickers",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-global/pl.d25f5d1181894928af76c85c967f8f31"
+      ]
+    },
+    {
+      "id": "itunes-6822045617",
+      "title": "WAVY (LEJ MI BBY)",
+      "artist": "Tax Free, Malik Montana, Kazior, Maja Janowska, CUZCO$ & YEEGOR",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6826293461",
+      "title": "Powiedz To",
+      "artist": "wane",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6825306499",
+      "title": "bravo!",
+      "artist": "OKI & bvdy47",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346775",
+      "title": "VIS A VIS",
+      "artist": "bambi",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6822577864",
+      "title": "BALETY",
+      "artist": "Stynu",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6819802968",
+      "title": "Flower In A Hurricane [from GTAVI]",
+      "artist": "Justice, Tame Impala, SZA & King Gizzard & The Lizard Wizard",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6798685454",
+      "title": "GORSET",
+      "artist": "bambi",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1658597096",
+      "title": "Michael Kors",
+      "artist": "Tede, Sir Mich & Abel",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6817398932",
+      "title": "LEJ MI BBY",
+      "artist": "Maja & Young Leosia",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346773",
+      "title": "AFTER",
+      "artist": "bambi & Guzior",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1883220838",
+      "title": "LET IT B",
+      "artist": "bambi",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6786358334",
+      "title": "WASTED",
+      "artist": "Naarly & Major League DJz",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6815156545",
+      "title": "Shotta's.",
+      "artist": "Season 25",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6825260424",
+      "title": "Kto ile jest wart",
+      "artist": "Malik Montana, CUZCO$ & Szamz",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-6823346926",
+      "title": "WARTO KŁAMAĆ",
+      "artist": "bambi",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-594511862",
+      "title": "Another Love",
+      "artist": "Tom Odell",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-1693789318",
+      "title": "Chaczapuri",
+      "artist": "Kaz Bałagane",
+      "region": "polish",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    },
+    {
+      "id": "itunes-576949282",
+      "title": "Just Give Me a Reason (feat. Nate Ruess)",
+      "artist": "P!nk",
+      "region": "global",
+      "sources": [
+        "https://music.apple.com/pl/playlist/top-100-poland/pl.8c91cbb0ef4e48308dbbba4238135eaf"
+      ]
+    }
+  ]
+}

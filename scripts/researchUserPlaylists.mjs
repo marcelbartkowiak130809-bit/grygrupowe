@@ -22,7 +22,7 @@ const urls=[
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function json(url){for(let attempt=0;attempt<4;attempt++){try{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error(`HTTP ${r.status}`);return await r.json();}catch(e){if(attempt===3)throw e;await pause(4000*(attempt+1));}}}
 const customUrl=process.argv.find(arg=>arg.startsWith('https://music.apple.com/'));
-const report={date:customUrl?'2026-10-19':'2026-10-16',sources:[],supplements:[],unavailable:[]},rows=new Map();
+const report={date:process.argv.find(arg=>/^--date=/.test(arg))?.slice(7)||(customUrl?'2026-10-19':'2026-10-16'),sources:[],supplements:[],unavailable:[]},rows=new Map();
 const additional=process.argv.includes('--additional');
 for(const url of customUrl?[customUrl]:additional?urls.slice(-3):urls){
  try{
