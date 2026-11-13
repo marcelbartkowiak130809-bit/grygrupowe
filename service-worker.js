@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.4.20-20261031-top100";
+const CACHE_NAME = "grygrupowe-shell-v5.4.21-20261114-charts-and-trends";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {
