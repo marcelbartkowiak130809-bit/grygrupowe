@@ -384,13 +384,13 @@ export const Audio = {
       if (event.target.closest("button")) this.play("buttonClick");
     });
     document.addEventListener("pointerover", event => {
-      const button=event.target.closest("button");
-      if (button&&!button.contains(event.relatedTarget)) {
-        const now = Date.now();
-        if (now - lastHoverSoundAt < 120) return;
-        lastHoverSoundAt = now;
-        this.play("buttonHover");
-      }
+      const button = event.target.closest("button");
+      if (!button || button.contains(event.relatedTarget)) return;
+      if (button.matches(".backpack-page :is(.backpack-slot, .backpack-tile)")) return;
+      const now = Date.now();
+      if (now - lastHoverSoundAt < 120) return;
+      lastHoverSoundAt = now;
+      this.play("buttonHover");
     });
   },
   get settings() {
