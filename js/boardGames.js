@@ -1,6 +1,6 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261117-12";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261117-13";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
@@ -682,11 +682,18 @@ export function renderBoardGame(root,{room,accounts,currentUser},actions){
   if (room.gameMode === GUESS_PEOPLE_MODE) {
     renderGuessPeopleGame(root,{room,accounts,currentUser},actions);
     if (!game.finished) {
+      const turn = root.querySelector(".gp-turn");
+      const timer = turn.querySelector("[data-board-timer]");
+      const meter = turn.querySelector(".gp-timer-meter i");
+      const duration = sanitizeBoardSettings(room.settings, GUESS_PEOPLE_MODE).turnTime * 1000;
       const tick = () => {
-        const timer = root.querySelector("[data-board-timer]");
-        if (!timer || !root.isConnected) return stopBoardGameTimer();
-        const seconds = Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000));
-        timer.textContent = `${seconds}s`;
+        if (!timer.isConnected) return stopBoardGameTimer();
+        const remaining = Math.max(0, game.phaseEndsAt - Date.now());
+        const seconds = Math.ceil(remaining / 1000);
+        const label = `${seconds}s`;
+        if (timer.textContent !== label) timer.textContent = label;
+        meter.style.transform = `scaleX(${Math.min(1, remaining / duration)})`;
+        turn.classList.toggle("gp-time-low", seconds <= 10);
         if (!seconds) {
           stopBoardGameTimer();
           actions.boardAction("timeout","",expected);

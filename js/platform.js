@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20261117-12";
+import { gamesList } from "./games.js?v=20261117-13";
 import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-10';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";

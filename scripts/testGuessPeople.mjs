@@ -56,9 +56,11 @@ test("only the assigned player answers, a missed guess ends the turn, and a corr
   assert.ok(actions(game,"a","guess-people-try",game.secrets.b));
   assert.equal(actions(game,"b","guess-people-answer","Nie widać"), undefined);
   assert.equal(game.history[0].answer, "Nie widać");
+  assert.deepEqual(game.lastEvent, {kind:"answer",turn:1});
   assert.equal(game.currentUid,"b");
   assert.equal(actions(game,"b","guess-people-try",wrong),undefined);
   assert.deepEqual(game.wrongGuesses["b:c"],[wrong]);
+  assert.deepEqual(game.lastEvent, {kind:"miss",turn:2,player:"b"});
   assert.equal(game.currentUid,"c");
   assert.equal(actions(game,"c","guess-people-try",game.secrets.d),undefined);
   assert.equal(game.phase,"result");
@@ -80,6 +82,7 @@ test("timeout advances and a departure safely replaces the missing target", () =
   game.phaseEndsAt = 0;
   BoardEngine.action(game,"c","timeout","",["a","c"]);
   assert.equal(game.currentUid,"c");
+  assert.deepEqual(game.lastEvent, {kind:"timeout",turn:2,player:"a"});
   BoardEngine.action(game,"c","timeout","",["c"]);
   assert.equal(game.winner,"c");
 });

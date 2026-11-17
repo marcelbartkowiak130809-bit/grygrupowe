@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.7.1-guess-people";
+const CACHE_NAME = "grygrupowe-shell-v5.7.2-guess-people";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

@@ -87,6 +87,7 @@ export function guessPeopleAction(game, uid, action, value, settings) {
   const advance = () => openTurn(game, game.turnIndex + 1, settings);
   if (action === "timeout") {
     if (!expired) return "Ta tura jeszcze trwa.";
+    game.lastEvent = {kind:"timeout", turn:game.turnNumber, player:game.question ? target : game.currentUid};
     advance();
     return;
   }
@@ -96,6 +97,7 @@ export function guessPeopleAction(game, uid, action, value, settings) {
     game.history = [...(game.history || []).slice(-79), {
       from:game.currentUid, to:target, question:game.question, answer:value,
     }];
+    game.lastEvent = {kind:"answer", turn:game.turnNumber};
     advance();
     return;
   }
@@ -117,6 +119,7 @@ export function guessPeopleAction(game, uid, action, value, settings) {
     const wrong = game.wrongGuesses[key] || [];
     if (wrong.includes(value)) return "Ta osoba była już sprawdzana.";
     game.wrongGuesses[key] = [...wrong, value];
+    game.lastEvent = {kind:"miss", turn:game.turnNumber, player:uid};
     advance();
     return;
   }
@@ -132,7 +135,7 @@ function localBoard(game, uid, target) {
   const key = JSON.stringify([game.matchId, uid, target]);
   if (!localBoards.has(key)) {
     if (localBoards.size >= 48) localBoards.delete(localBoards.keys().next().value);
-    localBoards.set(key, { flipped:new Set(), seenMisses:new Set() });
+    localBoards.set(key, { flipped:new Set(), seenMisses:new Set(), turnKey:"", eventKey:"" });
   }
   return localBoards.get(key);
 }
@@ -142,14 +145,44 @@ function renderCredits(card) {
   return `<a href="${escapeHtml(card[3])}" target="_blank" rel="noopener">Zdjęcie w Wikimedia Commons</a> · ${escapeHtml(card[4])} · ${license} · zmieniono rozmiar`;
 }
 
+function tableSeats(game, accounts, currentUser) {
+  const receiver = game.targets[game.currentUid];
+  return `<ol class="gp-seats" style="--seats:${game.players.length}" aria-label="Gracze i ich cele">
+    ${game.players.map((uid, seat) => {
+      const active = game.currentUid === uid;
+      const answering = Boolean(game.question) && receiver === uid;
+      const status = answering ? "Odpowiada" : active ? (game.question ? "Czeka na odpowiedź" : "Zadaje pytanie") : "";
+      return `<li class="gp-seat ${active ? "is-active" : ""} ${answering ? "is-answering" : ""}" data-seat="${seat}">
+        <span class="gp-seat-icon" aria-hidden="true">${seat + 1}</span>
+        <span class="gp-seat-copy"><strong>${nameOf(accounts, uid)}${uid === currentUser ? ' <small>Ty</small>' : ""}</strong>
+          <span class="gp-seat-target" title="Cel gracza">→ ${nameOf(accounts, game.targets[uid])}</span></span>
+        ${status ? `<span class="gp-seat-status">${status}</span>` : ""}
+      </li>`;
+    }).join("")}</ol>`;
+}
+
+function tableEvent(game, accounts) {
+  const event = game.lastEvent;
+  if (!event || event.turn !== game.turnNumber - 1) return "";
+  if (event.kind === "miss") return `<strong>${nameOf(accounts, event.player)}</strong> nie trafił(a).`;
+  if (event.kind === "timeout") return `Minął czas gracza <strong>${nameOf(accounts, event.player)}</strong>.`;
+  const row = game.history?.at(-1);
+  return row ? `<div class="gp-event-pair">${nameOf(accounts, row.from)} → ${nameOf(accounts, row.to)}</div><span>${escapeHtml(row.question)}</span> <strong class="gp-answer-chip" data-answer="${escapeHtml(row.answer)}">${escapeHtml(row.answer)}</strong>` : "";
+}
+
 function renderResult(root, game, room, accounts, currentUser, actions) {
+  const guessedUid = game.finishReason === "guess" ? game.targets[game.winner] : "";
+  const result = localBoard(game, currentUser, "result");
+  const animate = !result.shown;
+  result.shown = true;
   root.innerHTML = `<main class="page gp-page"><section class="gp-panel gp-result">
     <p class="eyebrow">ZGADNIJ KTO? · KONIEC MECZU</p>
+    ${guessedUid ? `<div class="gp-trophy ${animate ? "gp-arrive" : ""}" aria-hidden="true">✦</div>` : ""}
     <h1>${game.winner ? `Wygrywa ${nameOf(accounts, game.winner)}!` : "Koniec gry"}</h1>
     ${game.finishReason === "departure" ? "<p>Przeciwnik opuścił rozgrywkę.</p>" : ""}
-    <div class="gp-reveal">${game.players.map(uid => {
+    <div class="gp-reveal ${animate ? "gp-deal" : ""}">${game.players.map((uid, i) => {
       const card = cards.get(game.secrets[uid]);
-      return card ? `<article>${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><span>Karta gracza ${nameOf(accounts, uid)}</span><details><summary>Źródło zdjęcia</summary>${renderCredits(card)}</details></article>` : "";
+      return card ? `<article class="${uid === guessedUid ? "gp-solved-card" : ""}" style="--i:${i}">${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><span>Karta gracza ${nameOf(accounts, uid)}</span>${uid === guessedUid ? "<b>Odgadnięta karta</b>" : ""}<details><summary>Źródło zdjęcia</summary>${renderCredits(card)}</details></article>` : "";
     }).join("")}</div>
     <div class="gp-actions">${room.hostUid === currentUser ? '<button class="primary" data-gp-restart>Zagraj ponownie</button>' : ""}<button class="ghost" data-gp-lobby>Wróć do lobby</button><button class="ghost" data-gp-leave>Wyjdź z pokoju</button></div>
     </section></main>`;
@@ -166,6 +199,15 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
   const canPlay = game.currentUid === currentUser && !game.question;
   const ownCard = cards.get(game.secrets[currentUser]);
   const board = localBoard(game, currentUser, target);
+  const firstDeal = !board.turnKey;
+  const turnKey = `${game.turnNumber}:${game.question ? "answer" : "ask"}`;
+  const turnChanged = board.turnKey !== turnKey;
+  if (turnChanged) board.guess = false;
+  board.turnKey = turnKey;
+  const event = tableEvent(game, accounts);
+  const eventKey = event ? game.lastEvent.turn : "";
+  const newEvent = eventKey !== board.eventKey;
+  board.eventKey = eventKey;
   const wrong = new Set(game.wrongGuesses?.[`${currentUser}:${target}`] || []);
   for (const id of wrong) {
     if (board.seenMisses.has(id)) continue;
@@ -174,19 +216,26 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
   }
   const history = (game.history || []).filter(row => row.from === currentUser && row.to === target).reverse();
   const expected = {phase:game.phase,phaseEndsAt:game.phaseEndsAt};
-  const send = (action, value) => actions.boardAction(action, value, expected);
+  let sending = false;
+  const send = async (action, value) => {
+    if (sending) return;
+    sending = true;
+    try { await actions.boardAction(action, value, expected); }
+    finally { sending = false; }
+  };
   root.innerHTML = `<main class="page gp-page">
     <header class="gp-heading"><div><p class="eyebrow">PLANSZÓWKI</p><h1>Zgadnij kto?</h1></div><button class="ghost" data-gp-leave>Wyjdź</button></header>
-    <div class="gp-layout"><section class="gp-panel gp-table">
+    ${tableSeats(game, accounts, currentUser)}
+    <div class="gp-layout"><section class="gp-panel gp-table ${board.guess ? "gp-guessing" : ""}">
       <div class="gp-toolbar"><div><h2>Zgadujesz kartę gracza ${nameOf(accounts, target)}</h2>
-        <div class="gp-count" data-gp-count></div></div>
-        <label class="gp-toggle"><input type="checkbox" data-gp-guess ${canPlay ? "" : "disabled"}> Wskaż odpowiedź</label></div>
-      <p class="gp-help" data-gp-help>Kliknij kartę, by ją odwrócić. Kliknij ponownie, by ją przywrócić.</p>
-      <div class="gp-grid ${game.deck.length === 40 ? "gp-grid-large" : ""}">
-        ${game.deck.map(id => {
+        <div class="gp-count" data-gp-count></div><div class="gp-candidates" aria-hidden="true"><i></i></div></div>
+        <label class="gp-toggle"><input type="checkbox" data-gp-guess ${board.guess ? "checked" : ""} ${canPlay ? "" : "disabled"}> Wskaż odpowiedź</label></div>
+      <p class="gp-help" data-gp-help>${board.guess ? "Wybierz osobę i potwierdź typ. Pomyłka kończy turę." : "Kliknij kartę, by ją odwrócić lub przywrócić."}</p>
+      <div class="gp-grid ${game.deck.length === 40 ? "gp-grid-large" : ""} ${firstDeal ? "gp-deal" : ""}">
+        ${game.deck.map((id, i) => {
           const card = cards.get(id);
           const face = `${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><small>${escapeHtml(card[2])}</small>`;
-          return `<article class="gp-card">
+          return `<article class="gp-card" style="--i:${i}">
             <button type="button" class="gp-face ${board.flipped.has(id) ? "gp-flipped" : ""}" data-gp-card="${id}" aria-label="${escapeHtml(card[1])}" aria-pressed="${board.flipped.has(id)}">
               <span class="gp-card-front" aria-hidden="true">${face}</span>
               <span class="gp-card-back" aria-hidden="true">${face}</span>
@@ -196,12 +245,14 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
         }).join("")}
       </div>
     </section><aside class="gp-side">
-      <section class="gp-panel gp-turn"><div class="gp-turn-top"><h2>${responding ? "Odpowiedz na pytanie" : canPlay ? "Twój ruch" : `Ruch gracza ${nameOf(accounts, game.currentUid)}`}</h2><strong data-board-timer></strong></div>
-      ${game.question ? `<p>${nameOf(accounts, game.currentUid)} → ${nameOf(accounts, game.targets[game.currentUid])}</p><blockquote>${escapeHtml(game.question)}</blockquote>` : ""}
+      <section class="gp-panel gp-turn ${canPlay || responding ? "gp-turn-mine" : ""} ${turnChanged ? "gp-arrive" : ""}"><div class="gp-turn-top"><h2>${responding ? "Odpowiedz na pytanie" : canPlay ? "Twój ruch" : game.question ? `Czekamy na odpowiedź` : `Ruch gracza ${nameOf(accounts, game.currentUid)}`}</h2><strong data-board-timer></strong></div>
+      <div class="gp-timer-meter" aria-hidden="true"><i></i></div>
+      ${game.question ? `<p class="gp-question-pair">${nameOf(accounts, game.currentUid)} → ${nameOf(accounts, game.targets[game.currentUid])}</p><blockquote>${escapeHtml(game.question)}</blockquote>` : ""}
       ${responding ? '<div class="gp-actions">' + ["Tak","Nie","Nie widać"].map(answer => `<button class="ghost" data-gp-answer="${answer}">${answer}</button>`).join("") + '</div>' : ""}
       ${canPlay ? `<form data-gp-form><label for="gp-question">Pytanie o zdjęcie</label><textarea id="gp-question" minlength="3" maxlength="160" required placeholder="Czy ma okulary?"></textarea>
         <div class="gp-prompts">${prompts.map((prompt, i) => `<button type="button" class="ghost" data-gp-prompt="${i}">${prompt}</button>`).join("")}</div>
         <button class="primary" type="submit">Zadaj pytanie</button></form>` : ""}
+      ${event && !game.question ? `<div class="gp-event ${newEvent ? "gp-arrive" : ""}" role="status">${event}</div>` : ""}
       </section>
       ${ownCard ? `<section class="gp-panel gp-secret"><h2>Twoja tajna karta</h2><button class="ghost" data-gp-photo="${ownCard[0]}">${cardPhoto(ownCard)}<span>${escapeHtml(ownCard[1])}</span></button></section>` : ""}
       <details class="gp-panel gp-history" ${history.length ? "open" : ""}><summary>Twoje pytania (${history.length})</summary>
@@ -220,13 +271,15 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
     });
     const remaining = game.deck.length - board.flipped.size;
     root.querySelector("[data-gp-count]").textContent = `${remaining} z ${game.deck.length} odkrytych kart`;
+    root.querySelector(".gp-candidates i").style.transform = `scaleX(${remaining / game.deck.length})`;
   };
   const toggle = root.querySelector("[data-gp-guess]");
   update();
   toggle.onchange = () => {
+    board.guess = toggle.checked;
     root.querySelector("[data-gp-help]").textContent = toggle.checked
       ? "Wybierz osobę i potwierdź typ. Pomyłka kończy turę."
-      : "Kliknij kartę, by ją odwrócić. Kliknij ponownie, by ją przywrócić.";
+      : "Kliknij kartę, by ją odwrócić lub przywrócić.";
     root.querySelector(".gp-table").classList.toggle("gp-guessing", toggle.checked);
     update();
   };
