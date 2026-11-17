@@ -1,4 +1,4 @@
-import { bindResultSharing } from './tournamentShare.js?v=20261117-2';
+import { bindResultSharing } from './tournamentShare.js?v=20261117-3';
 
 export const SONGSPOT_SHARE_URL = 'https://grygrupowe.pages.dev/songspot-solo';
 export function songSpotShareData(state, profile = {}) {

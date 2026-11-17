@@ -1,12 +1,12 @@
-import { gamesList } from "./games.js?v=20261117-2";
-import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-2';
+import { gamesList } from "./games.js?v=20261117-3";
+import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-3';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-2";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-2";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-3";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-3";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-2";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-2";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-3";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-3";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [

@@ -16,6 +16,11 @@ const craft=(a,b)=>{item(a);slot(0);if(b){item(b);slot(3);}click('[data-bp-craft
 render();
 const original=root.querySelector('.backpack-world');item('oak_log');assert.equal(root.querySelector('.backpack-world'),original,'select does not replace the board');
 const originalTile=root.querySelector('[data-bp-tile="0"]'),originalInventory=root.querySelector('[data-bp-item="cobblestone"]');
+// A wooden bridge has an explicit visible texture, not only a CSS variable.
+slot(0);click('[data-bp-craft]');tile(18);
+assert.ok(root.querySelector('[data-bp-tile="18"] img.backpack-block-surface[src$="oak_planks.png"]'));
+assert.ok(!root.querySelector('[data-bp-tile="18"]').classList.contains('lava-tile'));
+click('[data-bp-undo]');assert.equal(root.querySelector('[data-bp-tile="18"] img.backpack-block-surface'),null);
 // Native drag and drop path, without selecting the dragged resource first.
 let dragged;const start=new window.Event('dragstart');start.dataTransfer={setData:(type,value)=>dragged=value};root.querySelector('[data-bp-item="cobblestone"]').dispatchEvent(start);
 assert.equal(dragged,'cobblestone');const drop=new window.Event('drop',{cancelable:true});drop.dataTransfer={getData:()=>dragged};root.querySelector('[data-bp-tile="18"]').dispatchEvent(drop);

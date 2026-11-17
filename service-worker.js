@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.5.1-20261117-backpack-juice";
+const CACHE_NAME = "grygrupowe-shell-v5.5.2-20261117-bridge-textures";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {
