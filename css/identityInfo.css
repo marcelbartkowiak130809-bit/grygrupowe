@@ -1,0 +1,41 @@
+.identity-card-word, .identity-history-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.identity-history-word { justify-content: flex-start; }
+.identity-card-word .identity-info, .identity-history-word .identity-info {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  flex: none;
+  border: 1px solid #bea8f17a;
+  border-radius: 50%;
+  background: #322546;
+  color: #f1e7ff;
+  font: 700 15px/1 Georgia, serif;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+.identity-info:hover { filter: brightness(1.25); }
+.identity-info:focus-visible { outline: 2px solid #aee7ff; outline-offset: 2px; }
+.identity-info-dialog {
+  width: min(390px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  border: 1px solid #bda8ee80;
+  border-radius: 18px;
+  background: #19192c;
+  color: #f5efff;
+  padding: 18px;
+}
+.identity-info-dialog::backdrop { background: #080612be; }
+.identity-info-dialog form { display: flex; justify-content: flex-end; }
+.identity-info-dialog h2 { margin: 4px 0 8px; font-size: 22px; }
+.identity-info-dialog p { color: #e1dcef; margin: 0; line-height: 1.55; }

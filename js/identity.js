@@ -4,6 +4,7 @@ import { levelBadgeHtml } from "./progression.js";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
+import { identityInfoButton, bindIdentityInfo } from "./identityInfo.js?v=20261117-15";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));
@@ -358,11 +359,12 @@ const timer = g => g.phaseEndsAt ? `<div class="timer-box"><b id="identity-timer
 function identityBoard(game, accounts, currentUser, active, settings) {
   return `<section class="identity-board">${game.order.map(uid => {
     const done = scoreDone(game, uid, settings);
+    const visibleWord = uid !== currentUser || game.phase === "results" ? game.words[uid] : "";
     return `<article class="identity-player-card ${uid === active ? "active-identity-card" : ""} ${uid === currentUser ? "own-identity-card" : ""} ${done ? "identity-card-done" : ""}">
       <span class="identity-card-pin"></span>
       ${avatarHtml(accounts[uid], "identity-avatar")}
       <span class="identity-card-name"><span class="nick ${safeCosmeticClass(accounts[uid]?.selectedNickEffect) || "defaultNick"}">${escapeHtml(accounts[uid]?.nick || "Gracz")}</span>${levelBadgeHtml(accounts[uid])}</span>
-      <div class="identity-card-word">${uid === currentUser ? "???" : escapeHtml(game.words[uid] || "ukonczone")}</div>
+      <div class="identity-card-word">${escapeHtml(visibleWord || (uid === currentUser ? "???" : "ukonczone"))}${identityInfoButton(visibleWord, game.wordCategories?.[uid])}</div>
       <small>${done ? "ukonczone" : uid === currentUser ? `${game.scores[uid] || 0}/${settings.targetScore} pkt` : `${game.scores[uid] || 0} pkt`}</small>
     </article>`;
   }).join("")}</section>`;
@@ -383,7 +385,7 @@ function resultsHistory(game, accounts) {
       const start = Number(item.startRound) || 1;
       const end = Number(item.endRound) || Math.min(limit, Number(game.round) || limit);
       const label = start === end ? `runda ${start}` : `rundy ${start}-${end}`;
-      return `<p><b>${escapeHtml(item.word || "???")}</b><small>${label}</small></p>`;
+      return `<p><span class="identity-history-word"><b>${escapeHtml(item.word || "???")}</b>${identityInfoButton(item.word, item.category)}</span><small>${label}</small></p>`;
     }).join("") || '<p class="muted">Brak hasel.</p>'}</div></article>`;
   }).join("")}</div>`;
 }
@@ -451,6 +453,8 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 
+  root.querySelector(".identity-page").insertAdjacentHTML("beforeend", '<dialog class="identity-info-dialog" aria-labelledby="identity-info-title"><form method="dialog"><button class="ghost" aria-label="Zamknij">✕</button></form><h2 id="identity-info-title"></h2><p></p></dialog>');
+  bindIdentityInfo(root);
   $("#leave-room").addEventListener("click", actions.leaveRoom);
   $("#identity-again")?.addEventListener("click", actions.returnToRoom);
   $("#identity-voice-question")?.addEventListener("click", () => actions.identityVoiceQuestion());

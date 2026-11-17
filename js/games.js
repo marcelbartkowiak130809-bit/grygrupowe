@@ -1,6 +1,6 @@
 import { renderGame } from "./game.js?v=20261117-10";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260903-9";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261117-15";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260903-9";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260903-9";
