@@ -30,9 +30,10 @@ test('bridge accepts alternative routes, disconnected blocks do not win',()=>{
  const s=createBackpackState();for(const i of [2,3,4,5])action(s,{type:'place',index:i,item:'cobblestone'});assert.equal(s.solved,true);
  const t=createBackpackState();for(const i of [2,11,20,29])action(t,{type:'place',index:i,item:'cobblestone'});assert.equal(t.solved,false);
 });
-test('only new backpack mode is permanently released and counted outside voting',()=>{
+test('the two owner-released Minecraft adventures are counted outside voting',()=>{
  assert.ok(isCategoryModeReleased('minecraft-backpack',{}));
- assert.equal(categoryModeProgress('minecraft',{}).filter(t=>t.released).length,1);
+ assert.ok(isCategoryModeReleased('minecraft-journey',{}));
+ assert.equal(categoryModeProgress('minecraft',{}).filter(t=>t.released).length,2);
  assert.equal(categoryModesRemaining('minecraft',{}).length,6);
  assert.ok(!isCategoryModeReleased('minecraft-truth',{}));
 });

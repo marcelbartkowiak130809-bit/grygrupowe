@@ -1,12 +1,12 @@
-import { gamesList } from "./games.js?v=20261117-8";
-import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-8';
+import { gamesList } from "./games.js?v=20261117-9";
+import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-9';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-8";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-8";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-9";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-9";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-8";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-8";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-9";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-9";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [
@@ -76,7 +76,7 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
   const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Quizy, moby, biomy, crafting i redstone — wybierzcie własny poziom wyzwania.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Przygody z budowaniem, jeden świat i plecak pełen pomysłów. Wybierz swoją drogę.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
@@ -175,6 +175,7 @@ function badgeTag(type) {
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️", songspot:"🎧", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
+  if(mode.id==='minecraft-journey')return '<img class="mode-minecraft-symbol" src="./assets/minecraft/backpack/compass.png" alt="Droga do Alex" loading="lazy">';
   if(mode.id==='minecraft-backpack')return '<img class="mode-minecraft-symbol" src="./assets/minecraft/backpack/diamond.png" alt="Ostatni plecak" loading="lazy">';
   if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft" loading="lazy" decoding="async">`;
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
@@ -192,7 +193,7 @@ function boardHubCard() {
 }
 
 function minecraftHubCard() {
-  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Nowy Ostatni plecak: budowanie i crafting na planszy. Pozostałe quizy i wyzwania czekają na odblokowanie.</p><div class="game-card-activity"><span>7 trybów</span><span>OSTATNI PLECAK JUŻ DOSTĘPNY</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Droga do Alex: jedna wyprawa przez 10 scenerii. Ostatni plecak: 30 graficznych łamigłówek.</p><div class="game-card-activity"><span>8 trybów</span><span>2 PRZYGODY JUŻ DOSTĘPNE</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
 function musicHubCard() {
@@ -382,7 +383,7 @@ export async function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
-    <section class="backpack-release" aria-label="Pierwszy tryb Minecraft odblokowany"><img src="./assets/minecraft/backpack/diamond.png" alt="Diament Minecraft"><div><p class="eyebrow">PIERWSZY TRYB MINECRAFT ODBLOKOWANY</p><h2>Ostatni plecak</h2><p>Buduj, craftuj i pokonuj przeszkody. Przeciągaj prawdziwe minecraftowe przedmioty.</p></div><button class="primary" data-unlock-mode="minecraft-backpack">Zagraj teraz →</button></section>
+    <section class="backpack-release" aria-label="Nowa przygoda Minecraft"><img src="./assets/minecraft/backpack/compass.png" alt="Kompas Minecraft"><div><p class="eyebrow">NOWA PRZYGODA MINECRAFT</p><h2>Droga do Alex</h2><p>10 połączonych scenerii, jeden plecak i świat, który pamięta twoje kroki.</p></div><button class="primary" data-unlock-mode="minecraft-journey">Wyrusz w drogę →</button><button class="ghost" data-unlock-mode="minecraft-backpack">Ostatni plecak</button></section>
     ${homeMenuHtml(gamesList,isModeLocked)}
     <section class="platform-hero">
       <div>

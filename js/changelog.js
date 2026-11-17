@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-8";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-9";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,15 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version:"v5.6.0",date:"2026-11-17",title:"Droga do Alex — jedna minecraftowa wyprawa",
+      changes:[
+        "Nowy tryb solo: Steve wyrusza do Alex przez 10 połączonych scenerii — od polany i rzeki po kopalnię, wioskę i przełęcz.",
+        "Wspólny plecak, zbieranie surowców, crafting, piece i budowanie. Poprzednie miejsca, mosty oraz opróżnione skrzynie pozostają w świecie.",
+        "Płynne przejścia kamery, oryginalne skórki postaci i tekstury Minecrafta, cofanie czynności oraz zapis wyprawy na urządzeniu.",
+        "Dodatkowe poszukiwania dają zapasy na dalszą drogę, a jedzenie zwiększa wydajność wydobycia. Na telefonie jest szybki pasek plecaka."
+      ],
+    },
     {
       version:"v5.5.0",date:"2026-11-17",title:"Pierwszy Minecraft: Ostatni plecak",
       changes:[

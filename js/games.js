@@ -1,5 +1,5 @@
-import { renderGame } from "./game.js?v=20261117-8";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-8";
+import { renderGame } from "./game.js?v=20261117-9";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-9";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20260903-9";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
 import { renderWouldYouRather } from "./wouldYouRather.js?v=20260903-9";
@@ -15,7 +15,7 @@ import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20260903-9";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260903-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260903-9";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260903-9";
-import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261117-8";
+import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261117-9";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20260903-9";
 import { familyDefaults, renderFamilyGame } from "./family.js?v=20260903-9";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260903-9";
@@ -25,14 +25,15 @@ import { connectDefaults, renderConnectGame } from "./connect.js?v=20260903-9";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260903-9";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260903-9";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260903-9";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261117-8";
-import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261117-8";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261117-9";
+import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261117-9";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261117-8";
-import { renderPlaylistTournament } from "./playlistTournament.js?v=20261117-8";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261117-9";
+import { renderPlaylistTournament } from "./playlistTournament.js?v=20261117-9";
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
-import { renderLastBackpack } from './lastBackpack.js?v=20261117-8';
+import { renderLastBackpack } from './lastBackpack.js?v=20261117-9';
+import { renderAlexJourney } from './alexJourney.js?v=20261117-9';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20260922-1";
 
@@ -336,6 +337,11 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     id:"minecraft-backpack", name:"Ostatni plecak", description:"30 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
     help:["Wybierz przedmiot z plecaka i przeciągnij na planszę albo do craftingu 3×3.","Na telefonie możesz też dotknąć przedmiotu, a potem pola.","Zbuduj przejście, oświetl kopalnię i przywróć zasilanie. Błędne ruchy nie zużywają przedmiotów.","Składniki można odzyskać. Receptury znajdziesz pod warsztatem."],
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
+  },
+  "minecraft-journey": {
+    id:"minecraft-journey",name:"Droga do Alex",description:"Steve, jeden plecak i 10 połączonych scenerii. Zbieraj zasoby, buduj przejścia, odwiedź wioskę i dotrzyj do Alex.",
+    help:["Klikaj surowce na planszy. Wybrany przedmiot użyjesz kliknięciem w świat.","Zawartość plecaka i wszystkie zmiany świata zostają między sceneriami.","Craftuj narzędzia, buduj i rozwiązuj problemy. Możesz wracać do odkrytych miejsc.","Dodatkowe skrzynie, drewno i prowiant ułatwią dalszą podróż."],
+    players:"Przygoda solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-biome",audience:"minecraft",badges:["new"],render:renderAlexJourney,soloRender:renderAlexJourney,defaultSettings:{},
   },
   "minecraft-crafting": {
     id: "minecraft-crafting", name: "Crafting Rush", description: "Rozpoznaj recepturę albo składniki szybciej niż reszta ekipy.", help: ["Gra pokazuje przedmiot i pytanie o jego recepturę albo składniki.", "Wpisujesz krótką odpowiedź, a system akceptuje również popularne polskie i angielskie nazwy.", "Każdy poprawny crafting daje punkt."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🛠️", art: "minecraft-crafting", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-crafting"],

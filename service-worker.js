@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.5.7-20261117-backpack-quality";
+const CACHE_NAME = "grygrupowe-shell-v5.6.0-20261117-alex-journey";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

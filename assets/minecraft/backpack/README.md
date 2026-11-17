@@ -11,6 +11,10 @@ decorated_pot = entity/decorated_pot/decorated_pot_side;
 end_portal = entity/end_portal. These are the original, unmodified PNG bytes.
 Minecraft assets belong to Mojang / Microsoft. This is an unofficial fan-made
 browser minigame, not a Mojang product. No generated replacement artwork is used.
+The connected Alex adventure also uses original entity/player/wide/steve.png,
+entity/player/slim/alex.png and entity/pig/pig.png, stored as steve.png, alex.png
+and pig.png. Their unchanged PNG atlases are cropped into sprites by SVG viewBox.
+Food items and coal/redstone ores use their original item/ and block/ textures.
 The tall lava texture is Minecraft's original animated sprite sheet; CSS steps
 through its frames (static when reduced motion is enabled). Icons intentionally
 use pixelated rendering. Textures are served locally, not via runtime hotlinks.
