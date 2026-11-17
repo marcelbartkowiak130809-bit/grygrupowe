@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261117-15";
+import { getGameMode } from "./games.js?v=20261117-16";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261117-10";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261117-15";
@@ -28,13 +28,13 @@ import { renderConnectLobbySettings } from "./connect.js?v=20260831-4";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
-import { adSenseBlock } from "./publicPages.js?v=20261117-10";
+import { adSenseBlock } from "./publicPages.js?v=20261117-16";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261117-10";
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20261117-10";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
-import { renderSongSpotLobbySettings } from "./songSpot.js?v=20261117-10";
+import { renderSongSpotLobbySettings } from "./deferredMusicModes.js?v=20261117-16";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20261117-14";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20260901-8";
 

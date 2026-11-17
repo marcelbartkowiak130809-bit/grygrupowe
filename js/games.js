@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261117-10";
+import { renderGame } from "./game.js?v=20261117-16";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261117-15";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -28,8 +28,8 @@ import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=2026
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261117-10";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261117-10";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261117-10";
-import { renderPlaylistTournament } from "./playlistTournament.js?v=20261117-10";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261117-16";
+
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261117-14";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';

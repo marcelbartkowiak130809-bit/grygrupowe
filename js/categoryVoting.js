@@ -87,7 +87,7 @@ function normalizeRelease(value, cycleIndex) {
 
 function mergeReleases(local, remote) {
   const merged = { ...local };
-  Object.entries(remote?.releases || {}).forEach(([cycleIndex, release]) => {
+  Object.entries(remote?.releases || remote || {}).forEach(([cycleIndex, release]) => {
     const normalized = normalizeRelease(release, Number(cycleIndex));
     if (normalized) merged[String(cycleIndex)] = normalized;
   });
@@ -252,6 +252,25 @@ export async function loadCategoryVotingView(voterId = "anonymous", now = Date.n
     if (categoryViewPending?.promise === promise) categoryViewPending = null;
   });
   return promise;
+}
+
+export function categoryVotingSnapshot(voterId = "anonymous", now = Date.now()) {
+  const cycle = categoryVoteCycle(now);
+  const key = `${String(voterId)}:${cycle.index}:${cycle.phase}`;
+  if (categoryViewCache?.key === key) return categoryViewCache.view;
+  const releases = readLocalReleases();
+  const categories = eligibleCategoryVotes(releases);
+  if (!categories.length) return { phase:"complete", releases, categories };
+  const poll = categoryVotePoll(cycle.index, categories, releases);
+  const release = releases[String(cycle.index)];
+  return { phase:release || cycle.phase === "result" ? "result" : "voting", releases, categories,
+    poll, pollState:localPollState(poll, voterId, now), release, phaseEndsAt:cycle.phaseEndsAt };
+}
+
+export function invalidateCategoryVotingView() {
+  categoryViewRevision += 1;
+  categoryViewCache = null;
+  categoryViewPending = null;
 }
 
 export async function voteCategory(view, voterId, categoryId) {

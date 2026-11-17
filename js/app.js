@@ -1,16 +1,17 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261117-11";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261117-16";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
 import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
+import { invalidateCategoryVotingView } from "./categoryVoting.js?v=20261117-16";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261117-14";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261117-10";
-import { gamesList, getGameMode } from "./games.js?v=20261117-15";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261117-16";
+import { gamesList, getGameMode } from "./games.js?v=20261117-16";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261117-15";
@@ -45,25 +46,26 @@ import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, sec
 import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261117-10";
 import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261117-10";
 import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20260926-1";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing } from "./songSpot.js?v=20261117-10";
-import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261117-10";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing, renderPlaylistTournament, stopPlaylistTournament, loadMusicMode, musicModeReady } from "./deferredMusicModes.js?v=20261117-16";
+
 import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
+let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261117-14";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-15";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261117-15";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-10";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-16";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, refreshPlatformVote, syncCategoryCards, updatePlatformActivity } from "./platform.js?v=20261117-16";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-16";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-15";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-16";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261117-11";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261117-16";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20261117-10";
+import { scheduleBot } from "./botController.js?v=20261117-16";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -122,13 +124,6 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   if (root.isConnected) render({ preserveDrafts:true });
 });
-const APP_VERSION = "v5.4.4";
-const APP_VERSION_KEY = "grygrupowe-app-version";
-const previousAppVersion = localStorage.getItem(APP_VERSION_KEY);
-if (previousAppVersion !== APP_VERSION) {
-  localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
-  window.setTimeout(() => window.location.reload(), 0);
-}
 const THEME_STORAGE_KEY = "grygrupowe-theme";
 const POTION_INVENTORY_RESET_KEY = "grygrupowe-potion-inventory-reset-v2";
 function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
@@ -297,17 +292,16 @@ function activeRoomSignature(room = activeRoom()) {
   if (state.currentUser && rawPlayers.includes(state.currentUser) && !players.includes(state.currentUser)) {
     players.splice(Math.max(0, rawPlayers.indexOf(state.currentUser)), 0, state.currentUser);
   }
-  const revision = Number(room.updatedAt || room.createdAt || 0);
-  if (revision) return [room.roomId, revision, room.status, room.gameMode, room.hostUid || "", players.join(","), room.pendingRewards?.[state.currentUser] || 0, room.pendingXp?.[state.currentUser] || 0].join("|");
-  return stableStringify({ roomId:room.roomId, gameMode:room.gameMode, hostUid:room.hostUid, players, status:room.status, settings:room.settings, game:room.game });
+  const {updatedAt, presence, joinedAt, gameState, ...visible} = room;
+  return stableStringify({...visible, players});
 }
 function roomSettingsOnlyChanged(previous, next) {
   if (!previous || !next || previous.roomId !== next.roomId || previous.status !== "lobby" || next.status !== "lobby") return false;
-  const withoutSettings = room => { const copy = { ...room }; delete copy.settings; return stableStringify(copy); };
+  const withoutSettings = ({settings, updatedAt, presence, ...rest}) => stableStringify(rest);
   return withoutSettings(previous) === withoutSettings(next) && stableStringify(previous.settings) !== stableStringify(next.settings);
 }
 function lobbySignature() {
-  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => [room.roomId, room.updatedAt || room.createdAt || 0, room.name, room.maxPlayers, room.isPrivate, room.roomType, room.entryFee, normalizedRoomPlayers(room).join(","), room.hostUid || ""].join("|"));
+  const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => [room.roomId, room.name, room.maxPlayers, room.isPrivate, room.roomType, room.entryFee, normalizedRoomPlayers(room).join(","), room.hostUid || ""].join("|"));
   return `${state.selectedGameMode}|${state.onlineBackend}|${rooms.join(";")}`;
 }
 function currentScreenSignature() {
@@ -378,7 +372,6 @@ let activeRoomPollTimer=null;
 let stopOnlineSubscription=()=>{};
 let stopGlobalStatsSubscription=()=>{};
 let stopPresence=()=>{};
-let lastRenderedRoute="";
 let renderFrame=0;
 let pendingRenderOptions=null;
 const gameTransitionKeys=new Map();
@@ -439,6 +432,7 @@ function refreshSongSpotData() {
   }).finally(()=>{songSpotBoardRequest=null;});
 }
 function repaintSongSpot() {
+  if (!musicModeReady("songspot")) return;
   if (Router.current === "solo" && ["songspot", "songspot-solo"].includes(state.selectedGameMode)) {
     const route = root.querySelector(".route-solo");
     if (route?.isConnected) {
@@ -481,7 +475,7 @@ function connectOnlineCount() {
   stopOnlineSubscription();
   stopOnlineSubscription=subscribeOnlineCount(count=>{state.onlineCount=Math.max(1,Number(count)||1);updateOnlineCountPill();trackSiteEvent({type:"onlinePeak",eventId:`online:${Math.floor(Date.now()/30000)}:${state.currentUser||"guest"}`,value:state.onlineCount});});
   stopGlobalStatsSubscription();
-  stopGlobalStatsSubscription=subscribeSiteStats(stats=>{const next={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}},signature=stableStringify(next);if(signature===state.globalStatsSignature)return;state.globalStats=next;state.globalStatsSignature=signature;window.__globalStats=state.globalStats;if(Router.current==="platform")render({preserveDrafts:true});});
+  stopGlobalStatsSubscription=subscribeSiteStats(stats=>{const next={...state.globalStats,...stats,modeCounts:{...(stats?.modeCounts||{})}},signature=stableStringify(next);if(signature===state.globalStatsSignature)return;state.globalStats=next;state.globalStatsSignature=signature;window.__globalStats=state.globalStats;});
 }
 function updateConnectionStatus() {
   const node = document.querySelector("[data-connection-status]");
@@ -2100,6 +2094,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   openSettings() { const request=beginTopbarModal("open-settings"); if (!request) return; finishTopbarModal(settingsModal(), "open-settings", request); },
   refresh: render,
   goPlatform() { document.querySelectorAll(".modal-backdrop").forEach(dismissTopbarModal); if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
+  refreshCategoryData() {
+    invalidateCategoryVotingView();
+    const voterId = state.currentUser || "anonymous";
+    if (Router.current === "platform") refreshPlatformVote(root.querySelector(".route-platform"), actions, voterId);
+    if (Router.current.endsWith("-select")) syncCategoryCards(root.querySelector(".route-view"), actions, { voterId });
+  },
   goPokemonModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/pokemony";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("pokemon-select"); },
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
@@ -2528,6 +2528,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   async startGame() {
     const room = activeRoom(), mode = getGameMode(room?.gameMode);
     if (!room || room.hostUid !== state.currentUser) return;
+    if (!musicModeReady(mode.id)) return;
     if (mode.id==='dokoncz-tekst' && isModeLocked(mode.id)) return message(lockedModeMessage(mode),'info');
     if(await guardBan(room.gameMode))return;
     if(roomIsAdult(room)&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wystartowac gry 18+.", "info");
@@ -2994,7 +2995,7 @@ function changelogModal() {
   modal.querySelectorAll("[data-changelog-index]").forEach(button=>button.addEventListener("click",()=>{const entry=changelogEntries[Number(button.dataset.changelogIndex)]||latestChangelog;modal.querySelectorAll("[data-changelog-index]").forEach(item=>item.classList.toggle("active",item===button));$("#changelog-current",modal).innerHTML=entryHtml(entry);bindEntryActions();}));
   document.body.append(modal);Audio.play("modalOpen");
 }
-function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}${pwaInstallButtonHtml()}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
+function topBar() { const user = profile(), room = activeRoom(), canReport = room && reportableMode(room) && ["room","game"].includes(Router.current), onlineLabel=onlineCountLabel(), friends=friendRequestCount(user), spinReady=user&&isLuckySpinAvailable(user); return `<header class="topbar"><div class="brand-zone"><button class="brand" id="brand-home" aria-label="Gry grupowe!">${icon("zap",20)} <span>Gry grupowe!</span></button>${user?levelProgressButtonHtml(user):""}${pwaInstallButtonHtml()}</div><nav class="top-actions"><span class="online-count-pill" data-count="${state.onlineCount}" data-tooltip="${onlineLabel}"><i></i><b>${state.onlineCount}</b> online</span>${user?`<button class="icon-btn friends-button" id="open-friends" aria-label="Znajomi">${icon("users",18)}${friends?`<b class="friends-count">${friends}</b>`:""}</button>`:""}<button class="icon-btn changelog-button" id="open-changelog" aria-label="Changelog ${latestChangelog.version}">${icon("scroll",18)}</button>${user?`<button class="icon-btn lucky-spin-top-button" id="open-lucky-spin" aria-label="Lucky Spin" title="Lucky Spin">🎡${spinReady?'<b class="topbar-alert-badge">1</b>':""}</button><button class="icon-btn equipment-top-button" id="open-equipment" aria-label="Ekwipunek" title="Ekwipunek">🎒</button>`:""}<button class="icon-btn settings-top-button" id="open-settings" aria-label="Ustawienia" title="Ustawienia">${icon("settings",18)}</button>${canReport?'<button class="icon-btn report-top-button" id="open-report" aria-label="Zgłoś gracza">⚠️</button>':""}${user ? `<button class="icon-btn" id="open-shop" aria-label="Sklep">${icon("shop",18)}</button><div class="money ${user.nickOnly?"muted-money":""}">$${user.nickOnly?user.sessionMoney||0:user.money}</div><button class="account-button" id="account">${playerMini(user)}</button>` : `<button class="account-button" id="account">${icon("user",18)} Konto</button>`}</nav></header>`; }
 const draftFieldSelector = 'input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="tel"], textarea';
 function cssSelectorValue(value) {
   return window.CSS?.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
@@ -3011,8 +3012,6 @@ function captureInputDrafts(container) {
   const fields = [...container.querySelectorAll(draftFieldSelector)];
   const active = document.activeElement;
   return {
-    scrollX:window.scrollX,
-    scrollY:window.scrollY,
     fields:fields.map((field, index) => { const selection = field === active ? fieldSelection(field) : { start:null, end:null }; return ({
       key:draftFieldKey(field,index),
       index,
@@ -3028,12 +3027,11 @@ function restoreInputDrafts(container, draftState = { fields:[] }) {
   draftState.fields.forEach(draft => {
     const field = draft.key.startsWith("__draft_index_") ? fields[draft.index] : container.querySelector(draft.key);
     if (!field || field.disabled || field.readOnly) return;
-    field.value = draft.value;
+    if (field.value !== draft.value) field.value = draft.value;
     if (!draft.active) return;
-    try { field.focus({ preventScroll:true }); } catch { field.focus(); }
+    if (document.activeElement !== field) field.focus({ preventScroll:true });
     if (draft.start !== null && typeof field.setSelectionRange === "function") field.setSelectionRange(draft.start, draft.end);
   });
-  if (Number.isFinite(draftState.scrollY)) requestAnimationFrame(()=>window.scrollTo(draftState.scrollX||0,draftState.scrollY));
 }
 function renderGameError(view, room, error) {
   console.error("Błąd renderowania trybu gry", room?.gameMode, error);
@@ -3192,6 +3190,44 @@ function setupRoundAdvance(view, room, actions) {
   }, Math.max(100, deadline - Date.now() + 50));
 }
 
+function syncAppShell() {
+  const markup = topBar();
+  const signature = markup.replace(/<span class="online-count-pill".*?<\/b> online<\/span>/s, "");
+  const old = root.querySelector(".topbar");
+  if (old && renderedTopBar === signature) {
+    updateConnectionStatus();
+    return;
+  }
+  stopMobileHeader();
+  const shell = document.createElement("template");
+  shell.innerHTML = markup;
+  const header = shell.content.firstElementChild;
+  if (old) old.replaceWith(header);
+  else {
+    root.innerHTML = '<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>';
+    root.append(header);
+  }
+  renderedTopBar = signature;
+  $("#brand-home").addEventListener("click",actions.goPlatform); $("#install-app")?.addEventListener("click",requestPwaInstall); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
+  stopMobileHeader = bindMobileHeader(header);
+}
+
+function renderMusicLoader(view, mode) {
+  view.innerHTML = `<main class="page route-loading"><section class="panel"><span class="route-loading-dot" aria-hidden="true"></span><h1>Otwieram ${escapeHtml(getGameMode(mode).name)}</h1><p role="status">Ładuję bibliotekę utworów…</p></section></main>`;
+  const start = () => loadMusicMode(mode).then(() => {
+    if (view.isConnected) render();
+  }).catch(() => {
+    if (!view.isConnected) return;
+    const panel = view.querySelector("section");
+    panel.innerHTML = '<h1>Nie udało się pobrać biblioteki</h1><p role="status">Sprawdź połączenie i spróbuj ponownie.</p><button class="primary" data-music-retry>Spróbuj ponownie</button>';
+    panel.querySelector("[data-music-retry]").onclick = event => {
+      event.currentTarget.disabled = true;
+      start();
+    };
+  });
+  start();
+}
+
 function renderNow(options = {}) {
   const markerRoom=activeRoom(), markerView=root.querySelector('.route-game');
   if(Router.current==='game'&&markerRoom?.gameMode==='marker'&&markerRoom.game?.phase==='draw'&&markerView?.querySelector('.marker-page')?.dataset.markerViewKey===markerViewKey(markerRoom,state.currentUser)){
@@ -3200,7 +3236,6 @@ function renderNow(options = {}) {
     lastRenderedScreenSignature=currentScreenSignature();
     return;
   }
-  stopMobileHeader();
   stopSongSpotSharing();
   const cupView = Router.current === "solo" && state.selectedGameMode === "playlista-cup"
     ? root.querySelector(".playlist-cup-page")?.closest(".route-solo") : null;
@@ -3210,31 +3245,40 @@ function renderNow(options = {}) {
   if (!preserveCup) stopPlaylistTournament();
   hideCommerceTooltip();
   updateDocumentTitle();
-  const softRender = !options?.forceEnter && Router.current === lastRenderedRoute;
-  const drafts = (options?.preserveDrafts || softRender) ? captureInputDrafts(root) : {fields:[]};
+  const scope = JSON.stringify([Router.current, state.currentUser, activeRoom()?.roomId, state.selectedGameMode]);
+  const previousScope = root.dataset.routeScope;
+  const softRender = !options?.forceEnter && previousScope === scope;
+  const drafts = previousScope === scope ? captureInputDrafts(root) : {fields:[]};
+  root.dataset.routeScope = scope;
   const preservedScrollY = softRender ? window.scrollY : null;
-  if (softRender) {
-    root.classList.add("soft-render");
-    root.style.minHeight = `${Math.max(root.offsetHeight, window.innerHeight)}px`;
-  } else root.classList.remove("soft-render");
+  root.classList.toggle("soft-render", softRender);
   window.__activityStats=activityStats();
-  lastRenderedRoute=Router.current;
   lastRenderedScreenSignature=currentScreenSignature();
   if (!preserveCup) Audio.prepareTrackRerender();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopCharadesTimer(); stopHangmanTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
-  const shell = document.createElement("template");
-  shell.innerHTML = `<div class="bg-orb orb1"></div><div class="bg-orb orb2"></div>${topBar()}`;
-  root.replaceChildren(...shell.content.childNodes);
-  $("#brand-home").addEventListener("click",actions.goPlatform); $("#install-app")?.addEventListener("click",requestPwaInstall); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
-  stopMobileHeader = bindMobileHeader(root.querySelector('.topbar'));
+  syncAppShell();
+  const screen = Router.current;
+  const oldView = root.querySelector(".route-view");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : document.createElement("div");
+  if (oldView !== view) {
+    if (oldView) oldView.replaceWith(view);
+    else root.append(view);
+  }
   const finish = result => {
-    const after = () => { renderHappyHourBanner(); if(screen==="game"&&!root.querySelector(".adsense-game-rail"))root.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail")); activatePublicAds(root,screen); restoreInputDrafts(root,drafts); if(softRender)requestAnimationFrame(()=>{root.style.minHeight="";if(Number.isFinite(preservedScrollY))window.scrollTo(0,preservedScrollY);}); };
-    if(result?.then)return result.finally(after);
+    const after = () => {
+      if (!view.isConnected || Router.current !== screen) return;
+      renderHappyHourBanner();
+      if (screen === "game" && !view.querySelector(".adsense-game-rail")) view.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail"));
+      activatePublicAds(root,screen);
+      restoreInputDrafts(view,drafts);
+      if (softRender && window.scrollY !== preservedScrollY) window.scrollTo({top:preservedScrollY,behavior:"instant"});
+      if (previousScope && previousScope !== scope && window.scrollY) window.scrollTo({top:0,behavior:"instant"});
+    };
+    if (result?.then) return result.finally(after);
     after();
     return result;
   };
-  const view=preserveCup ? cupView : preserveJourney ? journeyView : document.createElement("div"); root.append(view); const screen=Router.current;
   const activeMode = activeRoom()?.gameMode;
   const keepsTrackAudio = screen === "solo" || (screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode));
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
@@ -3244,6 +3288,8 @@ function renderNow(options = {}) {
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
+  const requestedMusic = screen === "solo" ? state.selectedGameMode : ["room", "game"].includes(screen) ? activeMode : "";
+  if (!musicModeReady(requestedMusic)) return finish(renderMusicLoader(view, requestedMusic));
   if(screen==="solo" && state.selectedGameMode==="minecraft-journey") return preserveJourney ? finish() : finish(renderAlexJourney(view,{playerId:popularitySoloPlayerId()},actions));
   if(screen==="solo" && state.selectedGameMode==="minecraft-backpack") return finish(renderLastBackpack(view,{playerId:popularitySoloPlayerId()},actions));
   if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "playlista-cup" && preserveCup) return finish(); if(state.selectedGameMode === "playlista-cup") return finish(renderPlaylistTournament(view,{playerId:popularitySoloPlayerId(),getProfile:profile},actions)); if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),getProfile:profile,playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
@@ -3359,7 +3405,15 @@ function connectRooms(){
     if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
     if(!restoredRoom&&room){restoredRoom=true;setRoomUrl(room);return Router.go(room.game?"game":"room");}
-    if(["platform","lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature){
+    if (Router.current === "platform") {
+      const stats = activityStats();
+      updatePlatformActivity(root.querySelector(".route-platform"), stats);
+      window.__activityStats = stats;
+      lastRenderedScreenSignature = stableStringify(stats);
+      updateOnlineCountPill();
+      return;
+    }
+    if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature){
       if(Router.current === "room" && roomSettingsOnlyChanged(previousActiveRoom, room) && refreshRoomSettings(root,{room,currentUser:state.currentUser},actions)){
         lastRenderedScreenSignature=currentScreenSignature();
         return;
@@ -3471,7 +3525,28 @@ document.addEventListener("click", event => {
   else backdrop.remove();
 });
 Audio.init(); Audio.bindGlobalUI(); Router.init(render);
-window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const appScreen=Router.appScreenFromPath(window.location.pathname);if(appScreen)return Router.go(appScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if(Router.current.startsWith("public:"))return Router.go("platform");});
+window.addEventListener("popstate",()=>{const publicScreen=Router.publicScreenFromPath(window.location.pathname);if(publicScreen)return Router.go(publicScreen);const appScreen=Router.appScreenFromPath(window.location.pathname);if(appScreen)return Router.go(appScreen);const route=readUrlRoute();if(route.mode&&!route.room){state.selectedGameMode=route.mode;persistSession();return Router.go(getGameMode(route.mode).supportsSolo&&!getGameMode(route.mode).supportsLobby?"solo":"lobby");}if((!route.mode && !route.room && ["/","/index.html"].includes(window.location.pathname)) || Router.current.startsWith("public:"))return Router.go("platform");});
 window.addEventListener("online", () => { state.networkOnline = true; state.syncStatus = "idle"; updateConnectionStatus(); if (state.currentUser) connectRooms(); });
 window.addEventListener("offline", () => { state.networkOnline = false; updateConnectionStatus(); });
-initFirebaseAuth().catch(()=>false).then(online=>{if(!online)state.onlineBackend=false;else { restoreFirebaseSession(); recoverMissingRemoteProfile().catch(()=>{}); }refreshPresence();connectOnlineCount();connectRooms();startFriendWatcher();updateConnectionStatus();const routed=routeFromUrlIfNeeded();if((!routed&&["solo","lobby","platform"].includes(Router.current)&&!(Router.current==="platform"&&lastRenderedRoute==="platform"))||Router.current==="solo")render();}); render();
+const entryUrl = window.location.href;
+const entryMode = initialUrlRoute.mode && getGameMode(initialUrlRoute.mode);
+const launchLocalSolo = !initialUrlRoute.room && !state.activeRoomId && entryMode?.supportsSolo &&
+  !entryMode.supportsLobby && !isModeLocked(entryMode.id) && (profile() || entryMode.id === "minecraft-journey");
+if (launchLocalSolo) routeFromUrlIfNeeded();
+initFirebaseAuth().catch(() => false).then(online => {
+  const previousUser = state.currentUser;
+  if (!online) state.onlineBackend = false;
+  else {
+    restoreFirebaseSession();
+    recoverMissingRemoteProfile().catch(() => {});
+    actions.refreshCategoryData();
+  }
+  refreshPresence();
+  connectOnlineCount();
+  connectRooms();
+  startFriendWatcher();
+  updateConnectionStatus();
+  if (!launchLocalSolo && window.location.href === entryUrl && routeFromUrlIfNeeded()) return;
+  if (previousUser !== state.currentUser || Router.current === "lobby") render();
+});
+render();

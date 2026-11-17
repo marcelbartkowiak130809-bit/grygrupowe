@@ -1,12 +1,12 @@
-import { gamesList } from "./games.js?v=20261117-15";
+import { gamesList } from "./games.js?v=20261117-16";
 import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-10';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-11";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-10";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, categoryVotingSnapshot, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-16";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-16";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-11";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-10";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-16";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-16";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [
@@ -44,8 +44,7 @@ function bindModePlayActions(root, actions) {
   }));
 }
 
-export async function renderPokemonModes(root, actions, context = {}) {
-  await loadCategoryVotingView(context.voterId || "anonymous");
+export function renderPokemonModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const pokemonModes = gamesList.filter(game => game.audience === "pokemon");
   const mewtwo = pokemonDex.find(item => item.id === 150);
@@ -55,11 +54,11 @@ export async function renderPokemonModes(root, actions, context = {}) {
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   bindGameCardInteractions(root);
+  syncCategoryCards(root, actions, context, activityStats);
   activatePublicAds(root, "platform");
 }
 
-export async function renderBoardModes(root, actions, context = {}) {
-  await loadCategoryVotingView(context.voterId || "anonymous");
+export function renderBoardModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const boardModes = gamesList.filter(game => game.audience === "board");
   const mobileLayout = getMobileGameLayout();
@@ -68,11 +67,11 @@ export async function renderBoardModes(root, actions, context = {}) {
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   bindGameCardInteractions(root);
+  syncCategoryCards(root, actions, context, activityStats);
   activatePublicAds(root, "platform");
 }
 
-export async function renderMinecraftModes(root, actions, context = {}) {
-  await loadCategoryVotingView(context.voterId || "anonymous");
+export function renderMinecraftModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const minecraftModes = gamesList.filter(game => game.audience === "minecraft");
   const mobileLayout = getMobileGameLayout();
@@ -81,11 +80,11 @@ export async function renderMinecraftModes(root, actions, context = {}) {
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   bindGameCardInteractions(root);
+  syncCategoryCards(root, actions, context, activityStats);
   activatePublicAds(root, "platform");
 }
 
-export async function renderMusicModes(root, actions, context = {}) {
-  await loadCategoryVotingView(context.voterId || "anonymous");
+export function renderMusicModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const musicModes = gamesList.filter(game => game.audience === "music" && !game.hiddenFromLibrary);
   const mobileLayout = getMobileGameLayout();
@@ -94,6 +93,7 @@ export async function renderMusicModes(root, actions, context = {}) {
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
   bindGameCardInteractions(root);
+  syncCategoryCards(root, actions, context, activityStats);
   activatePublicAds(root, "platform");
 }
 
@@ -135,6 +135,38 @@ function bindMobileGameLayout(root) {
     try { localStorage.setItem(MOBILE_GAME_LAYOUT_STORAGE_KEY, value); } catch {}
   };
   root.querySelectorAll("[data-mobile-game-layout]").forEach(button => button.addEventListener("click", () => setLayout(button.dataset.mobileGameLayout)));
+}
+
+export function syncCategoryCards(root, actions, context = {}, activity = window.__activityStats || {}) {
+  if (!root) return;
+  const grid = root.querySelector(".games-grid");
+  loadCategoryVotingView(context.voterId || "anonymous").then(() => {
+    if (!grid?.isConnected) return;
+    for (const card of grid.querySelectorAll("[data-game-id]")) {
+      const mode = gamesList.find(item => item.id === card.dataset.gameId);
+      if (!mode) continue;
+      const locked = isModeLocked(mode.id);
+      if (locked === card.hasAttribute("data-mode-locked")) continue;
+      const template = root.ownerDocument.createElement("template");
+      template.innerHTML = gameCard({...mode, activity:activity[mode.id]});
+      const fresh = template.content.firstElementChild;
+      card.replaceWith(fresh);
+      bindModePlayActions(fresh, actions);
+    }
+  }).catch(() => {});
+}
+
+export function updatePlatformActivity(root, activity) {
+  if (!root) return;
+  for (const card of root.querySelectorAll("[data-game-id]")) {
+    const stats = activity[card.dataset.gameId];
+    const players = card.querySelector("[data-game-player-count]");
+    const rooms = card.querySelector("[data-game-lobby-count]");
+    const playerText = `${stats?.players || 0} graczy`;
+    const roomText = `${stats?.lobbies || 0} lobby`;
+    if (players && players.textContent !== playerText) players.textContent = playerText;
+    if (rooms && rooms.textContent !== roomText) rooms.textContent = roomText;
+  }
 }
 
 function bindGameCardInteractions(root) {
@@ -211,7 +243,7 @@ function gameCard(mode) {
           ? `<div class="game-card-play-options"><button class="primary" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "songspot" ? "🎧" : mode.id === "dokoncz-tekst" ? "🎤" : "🔥"} Solo</button></div>`
           : `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? `<button class="ghost" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "dokoncz-tekst" ? "🎤" : mode.id === "songspot" ? "🎧" : "🔥"} Solo</button>` : ""}</div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
-  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
+  return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""}" data-game-id="${mode.id}" data-mode-category="${modeCategory(mode)}" data-mode-tags="${modeFilterTags(mode)}" data-mode-search="${searchText}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
     <div class="game-visual game-visual-${mode.art}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
       <span>${revealName ? visualSymbol(mode) : locked ? "???" : visualSymbol(mode)}</span>
@@ -222,7 +254,7 @@ function gameCard(mode) {
       <h2>${locked && !revealName ? "Nadchodzący tryb" : mode.name}</h2>
       <p class="muted">${locked && !revealName ? "Nowa rozgrywka pojawi się wkrótce." : mode.description}</p>
       ${locked ? `<div class="unlock-date"><span>${revealName ? "Dzisiaj" : "Odblokowanie"}</span><b>${revealName ? `Od ${escapeHtml(formatUnlockTime(unlock.unlockAt))}` : escapeHtml(unlock.label)}</b></div>` : ""}
-      <div class="game-card-activity"><span>${mode.activity?.players||0} graczy</span><span>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span>${playControls}</div>
+      <div class="game-card-activity"><span data-game-player-count>${mode.activity?.players||0} graczy</span><span data-game-lobby-count>${mode.activity?.lobbies||0} lobby</span></div><div class="game-card-footer"><span class="players-count">${icon("users", 17)} ${mode.players}</span>${playControls}</div>
     </div>
   </article>`;
 }
@@ -337,7 +369,7 @@ function sharePanelHtml() {
 function openGlobalStatsModal(context = {}) {
   const modal = document.createElement("div");
   modal.className = "modal-backdrop";
-  modal.innerHTML = `<section class="modal global-stats-modal enter" role="dialog" aria-modal="true" aria-labelledby="global-stats-modal-title"><button class="icon-btn global-stats-close" data-close aria-label="Zamknij">×</button>${globalStatsHtml(context.globalStats || window.__globalStats)}</section>`;
+  modal.innerHTML = `<section class="modal global-stats-modal enter" role="dialog" aria-modal="true" aria-labelledby="global-stats-modal-title"><button class="icon-btn global-stats-close" data-close aria-label="Zamknij">×</button>${globalStatsHtml(window.__globalStats || context.globalStats)}</section>`;
   const close = () => modal.remove();
   modal.querySelector("[data-close]").addEventListener("click", close);
   modal.addEventListener("click", event => { if (event.target === modal) close(); });
@@ -373,15 +405,67 @@ function openRandomRoomModal(actions){
   const close=()=>modal.remove();modal.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",close));modal.querySelector("#random-room-submit").addEventListener("click",async()=>{const modes=[...modal.querySelectorAll("[data-random-mode]:checked")].map(input=>input.dataset.randomMode);if(!modes.length)return actions.playSound?.("error");localStorage.setItem("randomRoomFilters",JSON.stringify(modes));const button=modal.querySelector("#random-room-submit");button.disabled=true;button.textContent="Szukam…";modal.querySelector(".modal").classList.add("random-room-searching");await new Promise(resolve=>setTimeout(resolve,650));const joined=await actions.joinRandomRoom(modes);if(joined)close();else{button.disabled=false;button.textContent="Szukaj pokoju";modal.querySelector(".modal").classList.remove("random-room-searching");}});document.body.append(modal);actions.playSound?.("modalOpen");
 }
 
-export async function renderPlatform(root, actions, context = {}) {
+function paintCategoryVote(slot, actions, voterId, categoryVote) {
+  const html = categoryVotePanelHtml(categoryVote);
+  if (slot.lastPanelHtml !== html) {
+    slot.innerHTML = html;
+    slot.lastPanelHtml = html;
+    for (const button of slot.querySelectorAll("[data-category-vote]")) {
+      button.addEventListener("click", async () => {
+        slot.querySelectorAll("[data-category-vote]").forEach(option => { option.disabled = true; });
+        actions.playSound?.("poll");
+        try {
+          if (await voteCategory(categoryVote, voterId, button.dataset.categoryVote)) actions.playSound?.("success");
+        } finally {
+          if (slot.isConnected) {
+            slot.lastPanelHtml = "";
+            refreshPlatformVote(slot.closest(".route-view") || slot.parentElement, actions, voterId);
+          }
+        }
+      });
+    }
+    slot.querySelector("[data-open-category-mode]")?.addEventListener("click", event => {
+      event.preventDefault();
+      actions.selectGame(event.currentTarget.dataset.openCategoryMode);
+    });
+  }
+  clearInterval(categoryVoteCountdownTimer);
+  clearTimeout(categoryVoteRefreshTimer);
+  const countdown = slot.querySelector("[data-category-vote-countdown]");
+  if (countdown) {
+    const interval = setInterval(() => {
+      if (!countdown.isConnected) return clearInterval(interval);
+      const label = countdownText(countdown.dataset.categoryVoteCountdown);
+      if (label !== countdown.textContent) countdown.textContent = label;
+    }, 1000);
+    categoryVoteCountdownTimer = interval;
+  }
+  if (categoryVote.phaseEndsAt && categoryVote.phase !== "complete") {
+    categoryVoteRefreshTimer = setTimeout(() => {
+      if (slot.isConnected) refreshPlatformVote(slot.closest(".route-view") || slot.parentElement, actions, voterId);
+    }, Math.max(1000, categoryVote.phaseEndsAt - Date.now() + 500));
+  }
+}
+
+export function refreshPlatformVote(root, actions, voterId = "anonymous") {
+  const slot = root?.querySelector("[data-category-panel]");
+  if (!slot) return;
+  const revision = (slot.voteRevision || 0) + 1;
+  slot.voteRevision = revision;
+  paintCategoryVote(slot, actions, voterId, categoryVotingSnapshot(voterId));
+  loadCategoryVotingView(voterId).then(view => {
+    if (slot.isConnected && slot.voteRevision === revision) paintCategoryVote(slot, actions, voterId, view);
+  }).catch(() => {});
+}
+
+export function renderPlatform(root, actions, context = {}) {
   clearInterval(pollCountdownTimer);
   clearInterval(categoryVoteCountdownTimer);
   clearTimeout(categoryVoteRefreshTimer);
   clearTimeout(modeUnlockAnnouncementTimer);
   const activityStats=context.activityStats||window.__activityStats||{};
   const mobileLayout = getMobileGameLayout();
-  const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
-  const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
+  const currentPollState = POLLS_ENABLED ? pollState(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
     <section class="backpack-release" aria-label="Nowa przygoda Minecraft"><img src="./assets/minecraft/backpack/compass.png" alt="Kompas Minecraft"><div><p class="eyebrow">NOWA PRZYGODA MINECRAFT</p><h2>Droga do Alex</h2><p>10 połączonych scenerii, jeden plecak i świat, który pamięta twoje kroki.</p></div><button class="primary" data-unlock-mode="minecraft-journey">Wyrusz w drogę →</button><button class="ghost" data-unlock-mode="minecraft-backpack">Ostatni plecak</button></section>
     ${homeMenuHtml(gamesList,isModeLocked)}
@@ -400,7 +484,7 @@ export async function renderPlatform(root, actions, context = {}) {
       </div>
       <div class="hero-side-actions"><div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div><button class="ghost global-stats-trigger" id="open-global-stats" type="button">📊 Statystyki strony</button></div>
     </section>
-    ${categoryVotePanelHtml(categoryVote)}
+    <div class="category-panel-slot" data-category-panel></div>
     ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
@@ -417,16 +501,6 @@ export async function renderPlatform(root, actions, context = {}) {
   const countdown = root.querySelector("[data-poll-countdown]");
   if (countdown && visiblePoll() && !currentPollState.ended) {
     pollCountdownTimer = setInterval(() => { if (!countdown.isConnected) return clearInterval(pollCountdownTimer); countdown.textContent = countdownText(countdown.dataset.pollCountdown); }, 1000);
-  }
-  const categoryCountdown = root.querySelector("[data-category-vote-countdown]");
-  if (categoryCountdown) {
-    categoryVoteCountdownTimer = setInterval(() => {
-      if (!categoryCountdown.isConnected) return clearInterval(categoryVoteCountdownTimer);
-      categoryCountdown.textContent = countdownText(categoryCountdown.dataset.categoryVoteCountdown);
-    }, 1000);
-  }
-  if (categoryVote?.phaseEndsAt && categoryVote.phase !== "complete") {
-    categoryVoteRefreshTimer = window.setTimeout(() => actions.refresh?.({ preserveDrafts: true }), Math.max(1000, Number(categoryVote.phaseEndsAt) - Date.now() + 500));
   }
   const applyGameFilters = () => {
     const filter = root.querySelector("[data-game-filter].active")?.dataset.gameFilter || "all";
@@ -445,17 +519,6 @@ export async function renderPlatform(root, actions, context = {}) {
   bindHomeMenu(root, actions);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
-  root.querySelectorAll("[data-category-vote]").forEach(button => button.addEventListener("click", async () => {
-    root.querySelectorAll("[data-category-vote]").forEach(option => { option.disabled = true; });
-    actions.playSound?.("poll");
-    const accepted = await voteCategory(categoryVote, context.voterId || "anonymous", button.dataset.categoryVote);
-    if (accepted) actions.playSound?.("success");
-    actions.refresh?.({ preserveDrafts: true });
-  }));
-  root.querySelector("[data-open-category-mode]")?.addEventListener("click", event => {
-    event.preventDefault();
-    actions.selectGame(event.currentTarget.dataset.openCategoryMode);
-  });
   root.querySelectorAll("[data-unlock-mode]").forEach(button=>button.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode)));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
@@ -486,5 +549,6 @@ export async function renderPlatform(root, actions, context = {}) {
   });
   bindPublicLinks(root, actions);
   activatePublicAds(root, "platform");
+  refreshPlatformVote(root, actions, context.voterId || "anonymous");
   scheduleModeUnlockAnnouncementRefresh(actions);
 }
