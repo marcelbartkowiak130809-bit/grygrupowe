@@ -37,10 +37,11 @@ export function backpackFeedback(root,action,before,state){
   backpackAnimate(tile,[{transform:'translateY(-9px) scale(.82)',opacity:.5},{transform:'translateY(1px) scale(1.06)',opacity:1,offset:.7},{transform:'translateY(0) scale(1)'}],{duration:270});
   const item=state.placed[changed??action.index];backpackAnimate(root.querySelector(`[data-bp-item="${item}"] b`),[{transform:'translateY(-5px)',opacity:.2},{transform:'translateY(0)',opacity:1}]);
  }else if(action.type==='craft-slot')backpackAnimate(slot,[{transform:'scale(.84)'},{transform:'scale(1.08)'},{transform:'scale(1)'}]);
- else if(action.type==='craft'&&before.moves!==state.moves){
+ else if(['craft','craft-all'].includes(action.type)&&before.moves!==state.moves){
   backpackAnimate(root.querySelector(`[data-bp-item="${state.selected}"]`),[{transform:'scale(.85)',boxShadow:'0 0 0 0 #d0ff91'},{transform:'scale(1.1)',boxShadow:'0 0 24px 6px #d0ff9166'},{transform:'scale(1)',boxShadow:'0 0 0 0 #d0ff9100'}],{duration:420});
  }else if(action.type==='undo'||action.type==='clear'||action.type==='remove')backpackAnimate(root.querySelector('.backpack-inventory'),[{opacity:.5,transform:'translateY(3px)'},{opacity:1,transform:'translateY(0)'}]);
  else if(action.type==='place'&&before.on===state.on)backpackAnimate(tile,[{transform:'translateX(0)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:180});
+ if(action.type==='fill-compost')backpackAnimate(root.querySelector('[data-bp-tile="9"]'),[{filter:'brightness(1.8)'},{filter:'brightness(1)'}],{duration:240});
  if(action.type==='place'&&before.puzzle!==JSON.stringify(state.puzzle))backpackAnimate(root.querySelector('.puzzle-cargo img'),[{opacity:.35,transform:'scale(.8)'},{opacity:1,transform:'scale(1)'}],{duration:220});
  if(!before.solved&&state.solved){
   backpackAnimate(root.querySelector('.backpack-world'),[{boxShadow:'0 0 0 0 #b8f28400'},{boxShadow:'0 0 45px 4px #b8f28466'},{boxShadow:'0 0 30px 0 #b4e98022'}],{duration:650});

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pl">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <base href="../"><title>Przegląd zadań — Ostatni plecak</title>
+ <link rel="stylesheet" href="./css/style.css"><link rel="stylesheet" href="./css/lastBackpack.css">
+ <style>.audit-bar{max-width:1144px;margin:16px auto;padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.audit-bar select{max-width:100%;color:white;background:#142222;padding:10px;border-radius:8px}.audit-bar label{font-size:12px;color:#c3daa9}#audit-state{font-size:11px;color:#a5baac}.audit-bar button{padding:8px;font-size:12px}</style>
+</head>
+<body>
+ <nav class="audit-bar"><label for="audit-stage">Przegląd lokalny</label><select id="audit-stage"></select><button id="audit-solved">Pokaż ukończone</button><button id="audit-start">Pokaż początek</button><span id="audit-state">Ładowanie…</span></nav>
+ <div id="audit-game"></div>
+ <script type="module">
+  import {renderLastBackpack} from './js/lastBackpack.js';
+  const fixture=await (await fetch('./scripts/fixtures/backpack-v5.5.6.json')).json();
+  const select=document.getElementById('audit-stage'),root=document.getElementById('audit-game');
+  fixture.names.forEach((name,i)=>select.add(new Option(`${i+1}. ${name}`,String(i))));
+  let revision=0;function show(solved=false){const i=Number(select.value),id=`local-audit-${i}-${Date.now()}-${revision++}`;
+   const end=solved?fixture.ends[i]:fixture.starts[i];localStorage.setItem(`grygrupowe-backpack-v1:${id}`,JSON.stringify({version:1,log:fixture.log.slice(0,end)}));
+   renderLastBackpack(root,{playerId:id},{goMinecraftModes(){location.href='./minecraft';}});
+   document.getElementById('audit-state').textContent=solved?'Stan ukończony — można cofnąć ostatni ruch':'Początek zadania — można grać normalnie';
+  }
+  select.onchange=()=>show();document.getElementById('audit-solved').onclick=()=>show(true);document.getElementById('audit-start').onclick=()=>show();show();
+ </script>
+</body></html>

@@ -56,3 +56,5 @@
 .backpack-tile.puzzle-lit{box-shadow:inset 0 0 24px #ffcc5677}.backpack-tile.puzzle-lit:before{filter:drop-shadow(0 -5px 3px #ffb523)}
 .backpack-tile.puzzle-note img{filter:drop-shadow(0 0 4px #ce9cff)}
 .backpack-tile.puzzle-waxed{box-shadow:inset 0 0 0 3px #ffd27599}
+.backpack-batch{display:block;width:100%;min-height:40px;margin-top:10px;font-size:11px}
+.backpack-tile:hover,.backpack-tile:focus-visible,.backpack-tile:disabled:hover{background-image:var(--tile-texture);background-size:100% auto;transform:none}

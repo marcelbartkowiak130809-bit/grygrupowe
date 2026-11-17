@@ -17,6 +17,10 @@ const craft=(a,b)=>{item(a);slot(0);if(b){item(b);slot(3);}click('[data-bp-craft
 render();
 const original=root.querySelector('.backpack-world');item('oak_log');assert.equal(root.querySelector('.backpack-world'),original,'select does not replace the board');
 const originalTile=root.querySelector('[data-bp-tile="0"]'),originalInventory=root.querySelector('[data-bp-item="cobblestone"]');
+// A CSS variable must contain an absolute asset URL: relative URLs resolve at /css/.
+const terrainUrl=originalTile.getAttribute('style').match(/url\('([^']+)'\)/)[1];
+assert.ok(new URL(terrainUrl).pathname.endsWith('/assets/minecraft/backpack/grass_block_side.png'));
+assert.equal(new URL(terrainUrl,'https://example.test/css/lastBackpack.css').href,terrainUrl);
 // A wooden bridge has an explicit visible texture, not only a CSS variable.
 slot(0);click('[data-bp-craft]');tile(18);
 assert.ok(root.querySelector('[data-bp-tile="18"] img.backpack-block-surface[src$="oak_planks.png"]'));

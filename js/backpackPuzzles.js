@@ -1,11 +1,12 @@
-import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe,advancedProgress,advancedPlace} from './backpackAdvancedPuzzles.js?v=20261117-7';
-import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261117-7';
+import {shelfPower,railRoute,railPowered} from './backpackQuality.js?v=20261117-8';
+import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe,advancedProgress,advancedPlace} from './backpackAdvancedPuzzles.js?v=20261117-8';
+import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261117-8';
 // Handcrafted additions with independent resource budgets and goal checks.
 export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament',...advancedItems,...expeditionItems};
 const decoys={feather:2,string:3,rotten_flesh:2};
 export const extraBackpackLevels=[
  {kind:'farm',theme:'farm',name:'Ostatnie nasiona',goal:'Nawodnij grządki, spulchnij ziemię i posadź trzy ziarna.',tip:'Woda w kamiennej sadzawce nawodni grządki. Użyj motyki, dopiero potem nasion. Motyka: 2 deski w górnym rzędzie i 2 patyki pod jedną z nich.',stock:{oak_planks:4,water_bucket:1,wheat_seeds:3,...decoys},outputs:['stick','wooden_hoe','bucket'],plots:[18,20,22],pool:12},
- {kind:'rail',theme:'rail',name:'Ekspres do skrzyni',goal:'Dokończ trasę, zasil złoty odcinek i wypuść wagonik.',tip:'Złoty odcinek należy do zasilanych torów. Pochodnia redstone obok niego włączy zasilanie. Wagonik postaw na początku, gdy cała trasa będzie gotowa.',stock:{rail:4,powered_rail:1,redstone_torch:1,minecart:1,...decoys},route:[17,18,19,20,21,22],gaps:[18,19,20,21,22],power:20,source:28,start:17,end:22},
+ {kind:'rail',theme:'rail',name:'Ekspres do skrzyni',goal:'Dokończ trasę, zasil złoty odcinek i wypuść wagonik.',tip:'Wybierz, gdzie wstawić zasilany tor. Pochodnia redstone musi stać bezpośrednio obok niego (bez skosu). Zwykłe i złote tory mają połączyć start ze skrzynią. Wagonik ruszy dopiero po połączeniu i zasileniu trasy.',stock:{rail:4,powered_rail:1,redstone_torch:1,minecart:1,...decoys},route:[17,18,19,20,21,22],gaps:[18,19,20,21,22],power:20,source:28,start:17,end:22},
  {kind:'gravity',theme:'quarry',name:'Grawitacja nie wybacza',goal:'Zasyp szyb, aby wyrównać trzy przerwy w przejściu.',tip:'Piasek i żwir spadają na dno szybu. W każdym z trzech słupków są dwa puste miejsca. Klikaj w obrębie zaznaczonego szybu — materiał sam opadnie.',stock:{sand:4,gravel:2,...decoys},columns:[2,3,4],top:2,bottom:3},
  {kind:'forge',theme:'forge',name:'Woda za drzwiami',goal:'Wytop żelazo, zrób wiadro i osusz zalane przejście.',tip:'Do pieca włóż 3 rudy żelaza i 1 węgiel, a potem kliknij piec. Wiadro: sztabki w lewym i prawym górnym polu oraz jedna pośrodku pod nimi. Zbierz wodę wiadrem.',stock:{iron_ore:3,coal:1,...decoys},outputs:['iron_ingot','bucket','water_bucket'],ore:10,fuel:26,furnace:18,water:22},
  {kind:'library',theme:'library',name:'Czytelnia zaklęć',goal:'Ustaw cztery biblioteczki, dodaj lazuryt i zaklnij książkę.',tip:'Biblioteczki muszą stać dwa pola od stołu (również po skosie). Pole pomiędzy stołem a każdą biblioteczką musi zostać puste. Do stołu dodaj 1 lazuryt i książkę. To prosta łamigłówka, nie zaklęcie na poziomie 30.',stock:{bookshelf:4,book:1,lapis_lazuli:1,...decoys},table:19},
@@ -30,11 +31,11 @@ export function extraTile(level,i,s){
  if(level.advanced)return advancedTile(level,i,s);
  let icon='',label='',mark=false;
  if(level.kind==='farm'){mark=level.plots.includes(i);label=mark?'GRZĄDKA':i===level.pool?'WODA':'';if(s.puzzle.planted?.includes(i))icon='wheat_stage3';}
- if(level.kind==='rail'){mark=level.route.includes(i)||i===level.source;label=i===level.source?'ZASILANIE':i===level.start?'START':i===level.end?'META':'';if(i===level.start)icon='rail';if(s.solved&&i===level.end)icon='minecart';}
+ if(level.kind==='rail'){mark=i===level.start||i===level.end;label=i===level.start?'START':i===level.end?'META':'';if(i===level.start)icon='rail';if(s.solved&&i===level.end)icon='minecart';}
  if(level.kind==='gravity'){mark=level.columns.includes(x(i))&&y(i)>=level.top&&y(i)<=level.bottom;label=mark&&y(i)===level.top?'SZYB':'';}
  if(level.kind==='forge'||level.kind==='mine'){if(i===level.ore){label=`RUDA ${s.puzzle.ore||0}/3`;if(s.puzzle.ore)icon='iron_ore';}if(i===level.fuel){label=`WĘGIEL ${s.puzzle.fuel||0}/1`;if(s.puzzle.fuel)icon='coal';}if(i===level.furnace){icon=s.puzzle.smelted?'furnace_front_on':'furnace_front';label=s.puzzle.smelted?'WYTOPIONE':'WYTOP';}mark=[level.ore,level.fuel,level.furnace].includes(i);if(level.kind==='forge'&&i===level.water)label=s.puzzle.drained?'SUCHO':'ZALEW';}
- if(level.kind==='library'){if(i===level.table){icon=s.solved?'enchanted_book':'book';label=s.solved?'ZAKLĘTE':`LAZURYT ${s.puzzle.lapis?1:0}/1`;}mark=i===level.table||distance(i,level.table)===2;}
- if(level.kind==='portal'){mark=level.frame.includes(i);if(level.inside.includes(i))label=s.solved?'PORTAL':'';}
+ if(level.kind==='library'){if(i===level.table){icon=s.solved?'enchanted_book':'book';label=s.solved?'ZAKLĘTE':`MOC ${shelfPower(level,s)}/4`;}mark=i===level.table;}
+ if(level.kind==='portal'){mark=i===level.inside[0];if(level.inside.includes(i))label=s.solved?'PORTAL':i===level.inside[0]?'WNĘTRZE':'';}
  if(level.kind==='mine'&&!s.puzzle.mined?.includes(i)){if(level.stones.includes(i))label='KAMIEŃ';if(level.ores.includes(i))label='ŻELAZO';if(i===level.diamond)label='DIAMENT';mark=mark||level.stones.includes(i)||level.ores.includes(i)||i===level.diamond;}
  return {icon,label,mark,surface:level.kind==='gravity'||level.kind==='portal'||level.kind==='library'};
 }
@@ -56,16 +57,16 @@ export function extraRecipe(grid){
 }
 export function extraProgress(l,s){if(l.expedition)return expeditionProgress(l,s);if(l.advanced)return advancedProgress(l,s);const p=s.puzzle;
  if(l.kind==='farm')return {current:(p.planted||[]).length,total:3,label:'obsiane grządki'};
- if(l.kind==='rail')return {current:l.gaps.filter(i=>s.placed[i]===(i===l.power?'powered_rail':'rail')).length+(s.placed[l.source]==='redstone_torch'?1:0)+(s.solved?1:0),total:7,label:'elementy trasy'};
+ if(l.kind==='rail')return {current:l.gaps.filter(i=>['rail','powered_rail'].includes(s.placed[i])).length+(railPowered(l,s)?1:0)+(s.solved?1:0),total:7,label:'elementy trasy'};
  if(l.kind==='gravity')return {current:l.columns.filter(col=>s.placed[l.top*8+col]).length,total:3,label:'wyrównane słupki'};
  if(l.kind==='forge')return {current:(p.smelted?1:0)+(p.drained?1:0),total:2,label:'etapy ratunku'};
- if(l.kind==='library')return {current:Object.values(s.placed).filter(t=>t==='bookshelf').length+(p.lapis?1:0)+(s.solved?1:0),total:6,label:'elementy zaklęcia'};
+ if(l.kind==='library')return {current:Math.min(4,shelfPower(l,s))+(p.lapis?1:0)+(s.solved?1:0),total:6,label:'elementy zaklęcia'};
  if(l.kind==='portal')return {current:l.frame.filter(i=>s.placed[i]==='obsidian').length+(s.solved?1:0),total:11,label:'elementy portalu'};
  return {current:(p.mined||[]).length+(p.smelted?1:0),total:8,label:'etapy wydobycia'};
 }
-export function extraPlace(s,l,i,item){
+export function extraPlace(s,l,i,item,free=false){
  if(l.expedition)return expeditionPlace(s,l,i,item);
- if(l.advanced)return advancedPlace(s,l,i,item);
+ if(l.advanced)return advancedPlace(s,l,i,item,free);
  const p=s.puzzle,has=id=>(s.stock[id]||0)>0;
  const take=id=>{s.stock[id]--;s.used++;};const give=(id,n=1)=>s.stock[id]=(s.stock[id]||0)+n;
  const place=(id,index=i)=>{if(s.placed[index]||!has(id))return false;take(id);s.placed[index]=id;return true;};
@@ -76,9 +77,9 @@ export function extraPlace(s,l,i,item){
   if(l.plots.includes(i)&&item==='wheat_seeds'&&has(item)&&p.water&&(p.tilled||[]).includes(i)&&!(p.planted||[]).includes(i)){take(item);(p.planted||=[]).push(i);ok=true;}
   s.solved=(p.planted||[]).length===3;
  }else if(l.kind==='rail'){
-  if(l.gaps.includes(i)&&item===(i===l.power?'powered_rail':'rail'))ok=place(item);
-  if(i===l.source&&item==='redstone_torch')ok=place(item);
-  const ready=l.gaps.every(j=>s.placed[j]===(j===l.power?'powered_rail':'rail'))&&s.placed[l.source]==='redstone_torch';
+  if(free){if(i!==l.start&&['rail','powered_rail','redstone_torch'].includes(item))ok=place(item);}
+  else {if(l.gaps.includes(i)&&item===(i===l.power?'powered_rail':'rail'))ok=place(item);if(i===l.source&&item==='redstone_torch')ok=place(item);}
+  const path=railRoute(l,s),ready=path.length>0&&railPowered(l,s,path);
   s.on=ready;if(i===l.start&&item==='minecart'&&has(item)&&ready){take(item);s.solved=true;ok=true;}
  }else if(l.kind==='gravity'){
   if(l.columns.includes(x(i))&&y(i)>=l.top&&y(i)<=l.bottom&&['sand','gravel'].includes(item)&&has(item)){
@@ -98,12 +99,12 @@ export function extraPlace(s,l,i,item){
   if(i===l.furnace&&p.ore===3&&p.fuel===1&&!p.smelted){give('iron_ingot',3);p.smelted=true;ok=true;}
   if(l.kind==='forge'&&i===l.water&&item==='bucket'&&has(item)&&!p.drained){take(item);give('water_bucket');p.drained=true;s.solved=true;ok=true;}
  }else if(l.kind==='library'){
-  if(item==='bookshelf'&&distance(i,l.table)===2)ok=place(item);
+  if(item==='bookshelf'&&i!==l.table&&(free||distance(i,l.table)===2))ok=place(item);
   if(i===l.table&&item==='lapis_lazuli'&&has(item)&&!p.lapis){take(item);p.lapis=true;ok=true;}
-  if(i===l.table&&item==='book'&&has(item)&&p.lapis&&Object.values(s.placed).filter(t=>t==='bookshelf').length===4){take(item);s.solved=true;ok=true;}
+  if(i===l.table&&item==='book'&&has(item)&&p.lapis&&shelfPower(l,s)>=4){take(item);s.solved=true;ok=true;}
  }else if(l.kind==='portal'){
   // Wrong frame placement is reversible, but uses the limited obsidian budget.
-  if(item==='obsidian'&&!l.inside.includes(i))ok=place(item);
+  if(item==='obsidian'&&(free||!l.inside.includes(i)))ok=place(item);
   if(l.inside.includes(i)&&item==='flint_and_steel'&&has(item)&&l.frame.every(j=>s.placed[j]==='obsidian')){s.solved=true;s.on=true;ok=true;}
  }
  if(ok){s.moves++;s.message=s.solved?'Wyzwanie ukończone!':l.kind==='forge'||l.kind==='mine'?'Kolejny etap wykonany.':'Dobrze! Kontynuuj.';}

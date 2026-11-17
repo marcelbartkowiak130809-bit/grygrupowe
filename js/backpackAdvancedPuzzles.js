@@ -31,11 +31,11 @@ export function advancedTile(l,i,s){const p=s.puzzle;let icon='',label='',mark=f
  if(l.kind==='sponge'){if(i===l.furnace){icon=p.wet?'furnace_front_on':'furnace_front';label=p.wet?'SUSZ':'GĄBKA';}if(i===l.fuel)label=`WĘGIEL ${p.fuel||0}`;mark=l.water.includes(i)||i===l.furnace||i===l.fuel;}
  if(l.kind==='hopper'){if(i===l.input){icon='iron_ingot';label='PODAJNIK';}if(i===l.end){icon='chest_minecart';label='SKRZYNIA';}if(s.placed[i]==='hopper')label=['→','↓','←','↑'][p.dirs?.[i]||0];mark=l.path.includes(i);}
  if(l.kind==='brew'){if(i===l.pool)label='WODA';if(i===l.stand){icon='brewing_stand';label=['STATYW','WODA','NIEZRĘCZNY','LECZENIE'][p.brew||0];mark=true;}}
- if(l.kind==='golem'){mark=l.body.includes(i)||i===l.head;label=i===l.head?'GŁOWA':'';}
+ if(l.kind==='golem'){mark=i===l.head;label=i===l.head?'GŁOWA':'';}
  if(l.kind==='demolition'){if(i===l.chest){icon='chest_minecart';label='OCAL SKARB';}if(l.walls.includes(i)&&!(p.broken||[]).includes(i))label='MUR';const tnt=Object.keys(s.placed).find(k=>s.placed[k]==='tnt');mark=tnt!==undefined&&near(i,Number(tnt));if(mark)fx=i===l.chest?'danger':'blast';}
  if(l.kind==='logic'){if(l.switches.includes(i))label=`${'ABC'[l.switches.indexOf(i)]} ${p.switches?.[i]?'ON':'OFF'}`;if(l.lamps.includes(i)){const n=l.lamps.indexOf(i);icon=logicLights(l,s)[n]?'redstone_lamp_on':'redstone_lamp';label=n<2?'WŁĄCZ':'WYŁĄCZ';}mark=l.switches.includes(i);}
- if(l.kind==='beacon'){mark=l.base.includes(i);if(s.placed[i]==='beacon'){label=p.filter==='blue_stained_glass'?'NIEBIESKA':'FILTR';fx=s.solved?'beam':'';}}
- if(l.kind==='conduit'){mark=l.frame.includes(i)||i===l.center;if(i===l.pool)label='WODA';if(i===l.center)label=s.solved?'AKTYWNA':'SERCE';}
+ if(l.kind==='beacon'){mark=i===l.center;label=i===l.center?'ŚRODEK':'';if(s.placed[i]==='beacon'){label=p.filter==='blue_stained_glass'?'NIEBIESKA':'FILTR';fx=s.solved?'beam':'';}}
+ if(l.kind==='conduit'){mark=i===l.center;if(i===l.pool)label='WODA';if(i===l.center)label=s.solved?'AKTYWNA':'SERCE';}
  return {icon,label,mark,fx,surface:['golem','conduit'].includes(l.kind)};
 }
 export function advancedRecipe(grid){
@@ -62,10 +62,10 @@ export function advancedProgress(l,s){const p=s.puzzle;switch(l.kind){
  case 'golem':return {current:l.body.filter(i=>s.placed[i]==='iron_block').length+(s.solved?1:0),total:5,label:'części strażnika'};
  case 'demolition':return {current:(p.broken||[]).length,total:3,label:'usunięte fragmenty muru'};
  case 'logic':{const lights=logicLights(l,s);return {current:s.solved?3:lights.filter((v,i)=>v===(i<2)).length,total:3,label:'poprawne lampy'};}
- case 'beacon':return {current:(p.base||[]).length+(s.placed[l.center]==='beacon'?1:0)+(s.solved?1:0),total:11,label:'etapy sygnału'};
+ case 'beacon':return {current:l.base.filter(i=>(p.base||[]).includes(i)).length+(s.placed[l.center]==='beacon'?1:0)+(s.solved?1:0),total:11,label:'etapy sygnału'};
  case 'conduit':return {current:l.frame.filter(i=>s.placed[i]==='prismarine').length+(s.placed[l.center]==='conduit'?1:0)+(p.water?1:0),total:18,label:'elementy świątyni'};
  }}
-export function advancedPlace(s,l,i,item){const p=s.puzzle,has=id=>(s.stock[id]||0)>0;
+export function advancedPlace(s,l,i,item,free=false){const p=s.puzzle,has=id=>(s.stock[id]||0)>0;
  const take=id=>{s.stock[id]--;s.used++;},give=(id,n=1)=>s.stock[id]=(s.stock[id]||0)+n;
  const place=id=>{if(s.placed[i]||!has(id))return false;take(id);s.placed[i]=id;return true;};let ok=false;
  if(l.kind==='archery'){
@@ -103,11 +103,11 @@ export function advancedPlace(s,l,i,item){const p=s.puzzle,has=id=>(s.stock[id]|
   else if(l.switches.includes(i)&&item==='lever'&&place(item)){(p.switches||={})[i]=false;ok=true;}
   const lights=logicLights(l,s);s.solved=l.switches.every(j=>s.placed[j]==='lever')&&lights[0]&&lights[1]&&!lights[2];s.on=s.solved;
  }else if(l.kind==='beacon'){
-  if(l.base.includes(i)&&item==='iron_block'&&has(item)&&!(p.base||[]).includes(i)){take(item);(p.base||=[]).push(i);ok=true;}
-  if(i===l.center&&item==='beacon'&&has(item)&&(p.base||[]).length===9&&!s.placed[i])ok=place(item);
+  if(item==='iron_block'&&(free||l.base.includes(i))&&has(item)&&!(p.base||[]).includes(i)){take(item);(p.base||=[]).push(i);ok=true;}
+  if(i===l.center&&item==='beacon'&&has(item)&&l.base.every(j=>(p.base||[]).includes(j))&&!s.placed[i])ok=place(item);
   if(i===l.center&&s.placed[i]==='beacon'&&['blue_stained_glass','red_stained_glass'].includes(item)&&has(item)){if(p.filter)give(p.filter);take(item);p.filter=item;ok=true;s.solved=item==='blue_stained_glass';s.on=s.solved;}
  }else if(l.kind==='conduit'){
-  if(l.frame.includes(i)&&item==='prismarine')ok=place(item);
+  if(i!==l.center&&(free||l.frame.includes(i))&&item==='prismarine')ok=place(item);
   if(i===l.center&&item==='conduit')ok=place(item);
   if(i===l.pool&&item==='water_bucket'&&has(item)&&!p.water){take(item);give('bucket');p.water=true;ok=true;}
   s.solved=!!(p.water&&s.placed[l.center]==='conduit'&&l.frame.every(j=>s.placed[j]==='prismarine'));s.on=s.solved;

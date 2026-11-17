@@ -67,3 +67,14 @@ and starting time. Undo includes all per-puzzle state and can reverse a win.
 A completed twenty-stage save continues at stage 21 with the same action history.
 Inventories show a fixed, stage-specific selection, including decoys and possible
 recipe outputs, instead of flooding every stage with all campaign items.
+
+## Quality review
+
+See `backpack-quality-review.md` for the individual evaluation of all 30 stages,
+including similarities and the five weakest designs. The review does not claim
+that passing tests makes every stage as engaging as the original three.
+New UI placements record `free:true` to support reversible off-target construction
+without changing the meaning of historical rejected actions during save replay.
+Rail checks now follow connectivity and adjacent power. Library power requires
+clear gaps. Construction stages show anchors instead of complete solution outlines.
+Optional batch actions shorten repeated crafting and compost filling.

@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-7";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-8";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -24,7 +24,7 @@ function buildChangelogEntries(now = Date.now()) {
       changes:[
         "Odblokowano Ostatni plecak: 30 graficznych łamigłówek solo — od mostu, kopalni i redstone po tłoki, archeologię, barwienie wełny, mapy skarbów, kowalstwo, muzyczny zamek i portal Endu.",
         "Oryginalne tekstury Minecraft Java 1.21.4, ekwipunek, przeciąganie przedmiotów i crafting 3×3 zamiast quizu tekstowego.",
-        "Dodano cofanie ruchów, odzyskiwanie składników, zapis postępu na urządzeniu oraz sterowanie dotykiem i klawiaturą.",
+        "Dodano cofanie ruchów, odzyskiwanie składników, zapis postępu na urządzeniu, seryjny crafting oraz sterowanie dotykiem i klawiaturą. Dopracowano swobodę budowania, zasilanie torów i działanie biblioteczek.",
         "Na stronie głównej pojawiło się wejście do pierwszego odblokowanego trybu Minecraft. Pozostałe tryby nadal czekają na głosowanie."
       ],
     },

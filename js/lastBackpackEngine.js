@@ -1,4 +1,5 @@
-import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261117-7';
+import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261117-8';
+import {craftBatchCount} from './backpackQuality.js?v=20261117-8';
 export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso',...puzzleItems};
 export const backpackLevels=[
  {name:'Nad jeziorem lawy',goal:'Zbuduj bezpieczne przejście do skrzyni.',tip:'Możesz użyć bruku albo zrobić deski z drewna.',theme:'lava',stock:{oak_log:2,cobblestone:4,feather:3,string:2,snowball:4,rotten_flesh:2},start:17,end:22},
@@ -21,6 +22,7 @@ export function createBackpackState(){return {version:1,log:[],undo:[],level:0,s
 export function backpackLight(state,index){return Object.entries(state.placed).some(([key,item])=>item==='torch'&&Math.abs(Number(key)%8-index%8)+Math.abs(Math.floor(Number(key)/8)-Math.floor(index/8))<=1);}
 export function backpackProgress(state){const l=backpackLevels[Math.min(state.level,backpackLevels.length-1)];if(state.level>=3)return extraProgress(l,state);if(state.level===1)return {current:l.targets.filter(i=>backpackLight(state,i)).length,total:l.targets.length,label:'oświetlone miejsca'};if(state.level===2)return {current:l.sockets.filter(i=>state.placed[i]==='redstone').length+(state.on&&state.placed[l.switch]==='lever'?1:0),total:5,label:'elementy obwodu'};return {current:state.solved?1:0,total:1,label:'bezpieczne przejście'};}
 export function backpackTerrain(level,index,state={puzzle:{}}){if(level>=3)return extraTerrain(backpackLevels[level],index,state);const x=index%8,y=Math.floor(index/8);if(level===0)return x<=1||x>=6?'grass_block_side':'lava_still';if(level===1)return y===0||y===4||x===0||x===7?'deepslate_tiles':'stone';return y===0||y===4?'deepslate_tiles':'stone_bricks';}
+export function backpackBatch(state){return craftBatchCount(state,backpackRecipe(state.grid));}
 function add(state,item,count=1){state.stock[item]=(state.stock[item]||0)+count;}
 function solved(state){const level=backpackLevels[state.level];if(state.level===1)return level.targets.every(i=>backpackLight(state,i));
  if(state.level===2)return state.on&&state.placed[level.switch]==='lever'&&level.sockets.every(i=>state.placed[i]==='redstone');
@@ -33,12 +35,14 @@ function execute(state,action){
  if(action.type==='select'){if(!backpackItems[action.item]||!(state.stock[action.item]>0))return false;state.selected=action.item;state.message=`Wybrano: ${backpackItems[action.item]}`;return true;}
  if(action.type==='craft-slot'){const i=action.index;if(!Number.isInteger(i)||i<0||i>8)return false;if(state.grid[i]){add(state,state.grid[i]);state.grid[i]='';}else{const item=action.item||state.selected;if(!backpackItems[item]||!(state.stock[item]>0))return false;state.stock[item]--;state.grid[i]=item;}state.message='Ułóż składniki i odbierz wynik.';return true;}
  if(action.type==='clear'){state.grid.forEach(item=>{if(item)add(state,item);});state.grid.fill('');state.message='Składniki wróciły do plecaka.';return true;}
+ if(action.type==='fill-compost'){const l=backpackLevels[state.level];if(l.kind!=='compost'||state.placed[l.bin]!=='composter')return false;const count=Math.min(4-(state.puzzle.compost||0),state.stock.wheat_seeds||0);if(count<1)return false;for(let n=0;n<count;n++)extraPlace(state,l,l.bin,'wheat_seeds');state.message=`Wsypano ${count} nasiona. Kliknij kompostownik, aby odebrać nawóz.`;return true;}
+ if(action.type==='craft-all'){const recipe=backpackRecipe(state.grid),count=backpackBatch(state);if(!recipe||count<2)return false;for(const item of state.grid)if(item)state.stock[item]-=count-1;add(state,recipe.item,recipe.count*count);for(const [id,n]of Object.entries(recipe.returns||{}))add(state,id,n*count);state.grid.fill('');state.selected=recipe.item;state.moves++;state.message=`Wytworzono: ${recipe.count*count} × ${backpackItems[recipe.item]}`;return true;}
  if(action.type==='craft'){const recipe=backpackRecipe(state.grid);if(!recipe){state.message='Te składniki nie tworzą receptury.';return true;}add(state,recipe.item,recipe.count);for(const [id,count]of Object.entries(recipe.returns||{}))add(state,id,count);state.grid.fill('');state.selected=recipe.item;state.moves++;state.message=`Wytworzono: ${recipe.count} × ${backpackItems[recipe.item]}`;return true;}
- if(action.type==='remove'){if(!Number.isInteger(action.index)||action.index<0||action.index>=40)return false;const item=state.placed[action.index];if(!item)return false;if(backpackLevels[state.level].kind==='gravity'&&state.placed[action.index-8]){state.message='Najpierw odzyskaj górny blok, żeby dolny nie wisiał w powietrzu.';return true;}if(item==='cake'&&state.puzzle.candle){add(state,'candle');delete state.puzzle.candle;}if(item==='beacon'&&state.puzzle.filter){add(state,state.puzzle.filter);delete state.puzzle.filter;}if(item==='lever'&&state.puzzle.switches)delete state.puzzle.switches[action.index];if(item==='hopper'&&state.puzzle.dirs)delete state.puzzle.dirs[action.index];add(state,item);delete state.placed[action.index];state.on=false;state.message='Przedmiot wrócił do plecaka.';return true;}
+ if(action.type==='remove'){if(!Number.isInteger(action.index)||action.index<0||action.index>=40)return false;const item=state.placed[action.index];if(!item){if(backpackLevels[state.level].kind==='beacon'&&(state.puzzle.base||[]).includes(action.index)&&!state.placed[backpackLevels[state.level].center]){state.puzzle.base=state.puzzle.base.filter(i=>i!==action.index);add(state,'iron_block');state.message='Odzyskano blok podstawy.';return true;}return false;}if(backpackLevels[state.level].kind==='gravity'&&state.placed[action.index-8]){state.message='Najpierw odzyskaj górny blok, żeby dolny nie wisiał w powietrzu.';return true;}if(item==='cake'&&state.puzzle.candle){add(state,'candle');delete state.puzzle.candle;}if(item==='beacon'&&state.puzzle.filter){add(state,state.puzzle.filter);delete state.puzzle.filter;}if(item==='lever'&&state.puzzle.switches)delete state.puzzle.switches[action.index];if(item==='hopper'&&state.puzzle.dirs)delete state.puzzle.dirs[action.index];add(state,item);delete state.placed[action.index];state.on=false;state.message='Przedmiot wrócił do plecaka.';return true;}
  if(action.type!=='place')return false;
  const i=action.index,level=backpackLevels[state.level],item=action.item||state.selected;
  if(!Number.isInteger(i)||i<0||i>=40)return false;
- if(state.level>=3)return extraPlace(state,level,i,item);
+ if(state.level>=3)return extraPlace(state,level,i,item,action.free===true);
  if(state.level===2&&i===level.switch&&state.placed[i]==='lever'){state.on=!state.on;state.message=state.on?'Zasilanie włączone.':'Zasilanie wyłączone.';}
  else{
   if(!backpackItems[item]||!(state.stock[item]>0)||state.placed[i]){state.message='Wybierz przedmiot z plecaka. Zajęte pole możesz odzyskać prawym przyciskiem.';return true;}
@@ -54,7 +58,7 @@ export function backpackAction(state,action){
  if(action.type==='undo'){const previous=state.undo.pop();if(!previous)return false;Object.assign(state,previous,{message:'Cofnięto ostatni ruch.'});state.log.push({type:'undo'});return true;}
  const before=snapshot(state),ok=execute(state,action);if(!ok)return false;
  if(!['next','select'].includes(action.type)&&JSON.stringify(before)!==JSON.stringify(snapshot(state)))state.undo.push(before);
- state.log.push({type:action.type,...(action.item?{item:action.item}:{}),...(Number.isInteger(action.index)?{index:action.index}:{})});return true;
+ state.log.push({type:action.type,...(action.item?{item:action.item}:{}),...(action.free===true?{free:true}:{}),...(Number.isInteger(action.index)?{index:action.index}:{})});return true;
 }
 // Rebuild from accepted actions, never trust inventory/solved flags from storage.
 export function restoreBackpack(raw){
