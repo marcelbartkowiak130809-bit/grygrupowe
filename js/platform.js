@@ -1,11 +1,11 @@
-import { gamesList } from "./games.js?v=20261117-10";
+import { gamesList } from "./games.js?v=20261117-11";
 import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-10';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-10";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-11";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-10";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-10";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-11";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-10";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
@@ -189,7 +189,7 @@ function pokemonHubCard() {
 }
 
 function boardHubCard() {
-  return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe chińczyk statki słowotwór warcaby memory domino reversi"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Słowotwór, Warcaby, Reversi i więcej gier przy jednej planszy.</p><div class="game-card-activity"><span>8 trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe chińczyk statki słowotwór warcaby memory domino reversi zgadnij kto"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Słowotwór, Warcaby, Reversi i więcej gier przy jednej planszy.</p><div class="game-card-activity"><span>${gamesList.filter(mode => mode.audience === "board").length} trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
 }
 
 function minecraftHubCard() {

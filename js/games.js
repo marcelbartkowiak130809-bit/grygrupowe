@@ -30,7 +30,7 @@ import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261117-10";
 import { renderPlaylistTournament } from "./playlistTournament.js?v=20261117-10";
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20260903-9";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261117-11";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
 import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
@@ -357,6 +357,12 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
   },
   "minecraft-redstone": {
     id: "minecraft-redstone", name: "Awaria Redstone", description: "Napraw obwód, rozgryź mechanikę i zostań inżynierem ekipy.", help: ["W każdej rundzie dostajesz jedno pytanie logiczne o redstone.", "Wybierasz rozwiązanie spośród odpowiedzi, od podstawowych po eksperckie.", "Po odpowiedzi pokazujemy wyjaśnienie, żeby gra uczyła, a nie tylko punktowała."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🔴", art: "minecraft-redstone", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-redstone"],
+  },
+  "board-zgadnij-kto": {
+    id:"board-zgadnij-kto", name:"Zgadnij kto?", description:"Zadawaj pytania o zdjęcie, odwracaj karty i odkryj, kogo wylosował rywal.",
+    help:["Każdy widzi swoją tajną kartę i zgaduje kartę przypisanego rywala.","W swojej turze zadaj pytanie, na które można odpowiedzieć tak lub nie. Jeśli szczegółu nie widać na zdjęciu, rywal może to zaznaczyć.","Klikaj karty, żeby odkładać wykluczone osoby. Możesz też powiększyć zdjęcie.","Pierwsze trafienie wygrywa mecz. Błędny typ kończy turę."],
+    allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false,
+    symbol:"🕵️", art:"board-guess-people", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-zgadnij-kto"],
   },
   "board-chinczyk": {
     id:"board-chinczyk", name:"Chińczyk", description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", help:["Rzuć kostką i wyprowadź pionek po wyrzuceniu szóstki.","Zbijaj pionki rywali, wracając je do bazy.","Wszystkie cztery pionki w domu oznaczają zwycięstwo."], allowReports:true, players:"2–4 osoby", minPlayers:2, maxPlayers:4, supportsLobby:true, supportsSolo:false, symbol:"🎲", art:"board-ludo", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-chinczyk"],

@@ -1,5 +1,6 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261117-11";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
@@ -15,6 +16,7 @@ export const boardModeDefinitions = [
 ];
 
 export const boardModeDefaults = {
+  [GUESS_PEOPLE_MODE]:guessPeopleDefaults,
   "board-chinczyk": { turnTime:45 },
   "board-slowotwor": { turnTime:45, rounds:6 },
   "board-statki": { turnTime:60 },
@@ -35,6 +37,7 @@ const scoreObject = players => Object.fromEntries(players.map(uid => [uid, 0]));
 const boardInfo = id => boardModeDefinitions.find(item => item.id === id) || boardModeDefinitions[0];
 
 export function sanitizeBoardSettings(raw = {}, modeId = "") {
+  if (modeId === GUESS_PEOPLE_MODE) return sanitizeGuessPeopleSettings(raw);
   const settings = { ...(boardModeDefaults[modeId] || boardModeDefaults["board-chinczyk"]), ...objectOrEmpty(raw) };
   settings.turnTime = clamp(settings.turnTime, 15, 180, boardModeDefaults[modeId]?.turnTime || 45);
   if (modeId === "board-slowotwor") settings.rounds = clamp(settings.rounds, 3, 12, 6);
@@ -123,6 +126,7 @@ function createDomino(players, settings) {
 
 export function createBoardGame(modeId, players, rawSettings = {}) {
   const settings=sanitizeBoardSettings(rawSettings,modeId);
+  if (modeId === GUESS_PEOPLE_MODE) return createGuessPeopleGame(players,settings);
   let game;
   if(modeId === "board-chinczyk") game=createLudo(players,settings);
   else if(modeId === "board-slowotwor") game=createWordGame(players,settings);
@@ -522,6 +526,10 @@ function timeoutBoard(game, uid, settings) {
 export const BoardEngine = {
   action(game, uid, action, payload, players, rawSettings = {}) {
     const settings=sanitizeBoardSettings(rawSettings,game.boardMode);
+    if (game.boardMode === GUESS_PEOPLE_MODE) {
+      if (reconcileGuessPeople(game,players,settings)) return;
+      return guessPeopleAction(game,uid,action,payload,settings);
+    }
     if(game.finished||game.phase==="result"||!game.players?.includes(uid))return game.finished||game.phase==="result"?"Ten mecz jest już zakończony.":"Nie jesteś już graczem w tym meczu.";
     const info=boardInfo(game.boardMode),activePlayers=playersFor(players,info.maxPlayers),previousPlayers=playersFor(game.players,info.maxPlayers),nextPlayers=previousPlayers.filter(player=>activePlayers.includes(player));
     if(activePlayers.length<info.minPlayers) {
@@ -556,6 +564,14 @@ export const BoardEngine = {
 
 export function renderBoardLobbySettings(room, isHost) {
   const mode=room.gameMode,s=sanitizeBoardSettings(room.settings,mode), timeOptions=[15,30,45,60,90,120];
+  if (mode === GUESS_PEOPLE_MODE) {
+    const select = (key, label, options) => `<label class="setting-row"><span>${label}</span><select data-board-setting="${key}" ${isHost ? "" : "disabled"}>${options.map(([value, text]) => `<option value="${value}" ${s[key] === value ? "selected" : ""}>${text}</option>`).join("")}</select></label>`;
+    return `<div class="board-lobby-settings">
+      ${select("boardSize","Rozmiar planszy",[[24,"Klasyczna · 24 osoby"],[40,"Duża · 40 osób"]])}
+      ${select("targetOrder","Kogo zgadujesz?",[["clockwise","Po kolei · następna osoba w lobby"],["random","Losowo · jeden rywal dla każdego"]])}
+      ${select("turnTime","Czas na pytanie lub odpowiedź",timeOptions.map(seconds => [seconds,`${seconds} sekund`]))}
+    </div>`;
+  }
   return `<div class="board-lobby-settings"><div class="board-setting-intro"><span>🎲</span><div><b>Planszówkowe ustawienia</b><small>Wybierz tempo, reszta zasad jest prosta i gotowa do gry.</small></div></div><label class="setting-row"><span>Czas na ruch</span><select data-board-setting="turnTime" ${isHost?"":"disabled"}>${timeOptions.map(value=>`<option value="${value}" ${Number(s.turnTime)===value?"selected":""}>${value} sekund</option>`).join("")}</select></label>${mode==="board-slowotwor"?`<label class="setting-row"><span>Rundy na gracza</span><select data-board-setting="rounds" ${isHost?"":"disabled"}>${[3,4,6,8,10,12].map(value=>`<option value="${value}" ${Number(s.rounds)===value?"selected":""}>${value}</option>`).join("")}</select></label>`:""}${mode==="board-memory"?`<label class="setting-row"><span>Liczba par kart</span><select data-board-setting="pairs" ${isHost?"":"disabled"}>${[4,6,8,10,12].map(value=>`<option value="${value}" ${Number(s.pairs)===value?"selected":""}>${value} par</option>`).join("")}</select></label>`:""}<p class="tiny">Jeśli ktoś nie wykona ruchu na czas, gra wykona bezpieczne pominięcie albo ruch awaryjny.</p></div>`;
 }
 
@@ -663,6 +679,24 @@ function renderBoardResult(game,accounts){
 export function renderBoardGame(root,{room,accounts,currentUser},actions){
   stopBoardGameTimer();
   const game=room.game, info=boardInfo(game.boardMode||room.gameMode), expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt};
+  if (room.gameMode === GUESS_PEOPLE_MODE) {
+    renderGuessPeopleGame(root,{room,accounts,currentUser},actions);
+    if (!game.finished) {
+      const tick = () => {
+        const timer = root.querySelector("[data-board-timer]");
+        if (!timer || !root.isConnected) return stopBoardGameTimer();
+        const seconds = Math.max(0, Math.ceil((game.phaseEndsAt - Date.now()) / 1000));
+        timer.textContent = `${seconds}s`;
+        if (!seconds) {
+          stopBoardGameTimer();
+          actions.boardAction("timeout","",expected);
+        }
+      };
+      boardTimerId = window.setInterval(tick,250);
+      tick();
+    }
+    return;
+  }
   const boardAudio=playBoardAudioTransitions(game,room,currentUser);
   let body=game.phase==="result"?renderBoardResult(game,accounts):game.boardMode==="board-chinczyk"?renderLudo(game,accounts,currentUser):game.boardMode==="board-statki"?renderShips(game,accounts,currentUser,room):game.boardMode==="board-slowotwor"?renderWords(game,accounts,currentUser):game.boardMode==="board-reversi"?renderReversi(game,accounts,currentUser):game.boardMode==="board-warcaby"?renderCheckers(game,accounts,currentUser):game.boardMode==="board-cztery"?renderConnect(game,accounts,currentUser):game.boardMode==="board-memory"?renderMemory(game,accounts,currentUser):renderDomino(game,accounts,currentUser);
   root.innerHTML=`<main class="page board-game-page board-shell enter">${boardPlayerStripHtml(room.players,accounts,{scores:game.scores})}<section class="board-game-heading"><span class="board-game-heading-icon">${info.icon}</span><div><p class="eyebrow">PLANSZÓWKI · ${escapeHtml(info.name.toUpperCase())}</p><h2>${escapeHtml(info.description)}</h2></div></section>${boardRules(info)}${body}${boardCommerceHtml(game,room,accounts,currentUser)}${game.phase==="result"?`<div class="board-result-actions"><button class="primary" id="board-restart" ${room.hostUid===currentUser?"":"disabled"}>🔄 Zagraj ponownie</button><button class="ghost" id="board-lobby">Wróć do lobby</button></div>`:""}<button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;

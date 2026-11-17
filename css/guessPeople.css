@@ -1,0 +1,150 @@
+.gp-page {
+  --gp-paper: #f8edda;
+  --gp-ink: #24233a;
+  --gp-edge: #b2a3f035;
+  width: min(1360px, calc(100% - 24px));
+  margin: 24px auto;
+}
+.gp-heading, .gp-toolbar, .gp-turn-top, .gp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gp-heading { margin-bottom: 18px; }
+.gp-heading h1, .gp-panel h2 { margin: 0; }
+.gp-heading h1 { font-size: clamp(32px, 5vw, 58px); letter-spacing: -.045em; }
+.gp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.gp-panel {
+  background: #19182b;
+  border: 1px solid var(--gp-edge);
+  border-radius: 18px;
+  padding: 16px;
+  min-width: 0;
+}
+.gp-table {
+  background: radial-gradient(ellipse at top left, #323452, transparent 70%), #211f37;
+}
+.gp-toolbar h2, .gp-side h2 { font-size: clamp(14px, 2vw, 20px); }
+.gp-count, .gp-help, .gp-history p { color: #c8c5dc; font-size: 13px; }
+.gp-count { margin-top: 5px; }
+.gp-toggle { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; }
+.gp-toggle input { width: 18px; height: 18px; accent-color: #d5bdff; flex: none; }
+.gp-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.gp-grid-large { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.gp-card { position: relative; min-width: 0; perspective: 600px; }
+.gp-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: grid;
+  color: var(--gp-ink);
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  box-shadow: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform .26s ease;
+}
+.gp-face:hover { transform: translateY(-2px); }
+.gp-card-front, .gp-card-back { grid-area: 1 / 1; border-radius: 9px; backface-visibility: hidden; }
+.gp-card-front {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 3px solid var(--gp-paper);
+  background: var(--gp-paper);
+  gap: 3px;
+  box-shadow: 0 3px 0 #afa38f;
+}
+.gp-card-front img {
+  width: 100%;
+  aspect-ratio: 1.06;
+  object-fit: contain;
+  background: #363347;
+  border-radius: 6px;
+}
+.gp-card-front strong { font-size: clamp(10px, 1.2vw, 15px); line-height: 1.16; overflow-wrap: anywhere; }
+.gp-card-front small { font-size: 10px; color: #514861; margin: auto 0 1px; line-height: 1.1; }
+.gp-card-back {
+  transform: rotateX(180deg);
+  display: grid;
+  place-items: center;
+  background: repeating-linear-gradient(130deg,#322e4a 0 8px,#2a273d 8px 16px);
+  border: 1px solid #777093;
+  color: #bcb1de;
+  font-size: 25px;
+}
+.gp-face.gp-flipped { transform: rotateX(180deg); }
+.gp-card:has(.gp-flipped) .gp-zoom { display: none; }
+.gp-guessing .gp-face:not(.gp-flipped) { outline: 2px solid #ffe090; }
+.gp-zoom {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 25px;
+  min-height: 25px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: #171426e8;
+  color: #fff;
+  font-size: 14px;
+  border: 1px solid #fff5;
+}
+.gp-side { display: grid; gap: 12px; }
+.gp-turn-top strong { color: #ffe09a; font-variant-numeric: tabular-nums; }
+.gp-turn form { display: grid; gap: 9px; margin-top: 12px; }
+.gp-turn textarea { width: 100%; min-height: 72px; resize: vertical; box-sizing: border-box; font-size: 16px; }
+.gp-prompts, .gp-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.gp-prompts button { padding: 6px 8px; min-height: 30px; font-size: 11px; line-height: 1.2; }
+.gp-turn blockquote { margin: 12px 0; padding: 9px 12px; border-left: 3px solid #cbb1ff; overflow-wrap: anywhere; }
+.gp-secret button { margin-top: 9px; display: flex; align-items: center; gap: 10px; text-align: left; }
+.gp-secret img { width: 58px; height: 65px; object-fit: contain; background: #353148; border-radius: 6px; }
+.gp-history { max-height: 280px; overflow: auto; }
+.gp-history summary { cursor: pointer; font-weight: 700; }
+.gp-history p { overflow-wrap: anywhere; }
+.gp-history strong { color: #f3d799; }
+.gp-dialog {
+  color: #fcf6e9;
+  background: #211c32;
+  border: 1px solid #b4a3e4;
+  border-radius: 18px;
+  width: min(440px, calc(100% - 28px));
+  max-height: calc(100dvh - 24px);
+  text-align: center;
+  overflow: auto;
+}
+.gp-dialog::backdrop { background: #080715c9; }
+.gp-dialog form { text-align: right; }
+.gp-dialog img { display: block; width: 100%; max-height: 55dvh; object-fit: contain; margin-top: 9px; }
+.gp-dialog p { font-size: 12px; }
+.gp-dialog a { color: #e0caff; }
+.gp-result { text-align: center; }
+.gp-result .gp-actions { justify-content: center; margin-top: 18px; }
+.gp-reveal { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.gp-reveal article { display: grid; gap: 5px; width: min(165px, 43%); padding: 8px; background: #2a263c; border-radius: 10px; }
+.gp-reveal img { width: 100%; height: 150px; object-fit: contain; background: #181626; border-radius: 6px; }
+.gp-reveal span { color: #c8c5dc; font-size: 12px; }
+.gp-reveal details { font-size: 11px; color: #d2c8ec; overflow-wrap: anywhere; }
+.game-visual-board-guess-people { background: radial-gradient(circle at 25% 20%, #b28be9, transparent 65%), linear-gradient(135deg,#423065,#235969); }
+@media (max-width: 900px) {
+  .gp-layout { grid-template-columns: minmax(0, 1fr); }
+  .gp-side { grid-row: 1; grid-template-columns: 1.4fr 1fr; align-items: start; }
+  .gp-history { grid-column: 1 / -1; max-height: 140px; }
+}
+@media (max-width: 580px) {
+  .gp-page { margin-top: 12px; }
+  .gp-panel { padding: 10px; }
+  .gp-grid, .gp-grid-large { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  .gp-card-front small { font-size: 8px; }
+  .gp-card-front { border-width: 2px; }
+  .gp-side { grid-template-columns: minmax(0, 1fr) 110px; gap: 6px; }
+  .gp-secret button { display: grid; justify-items: center; padding: 5px; font-size: 11px; }
+  .gp-toolbar { align-items: start; }
+  .gp-toggle { font-size: 11px; }
+  .gp-help { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .gp-face { transition: none; } }

@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-10";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-11";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,14 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version:"v5.7.0",date:"2026-11-17",title:"Zgadnij kto? w Planszówkach",
+      changes:[
+        "Nowa gra dla 2–4 osób. Każdy zadaje pytania o tajną kartę przypisanego rywala, odwraca wykluczone karty i może spróbować zgadnąć osobę.",
+        "200 zdjęć znanych osób, od artystów i aktorów po piłkarzy i twórców internetowych. Plansza klasyczna ma 24 karty, a duża 40.",
+        "Host wybiera cele zgodnie z kolejnością w lobby albo losowo. Zdjęcia można powiększać, a odpowiedzi na pytania zostają w historii.",
+      ],
+    },
     {
       version:"v5.6.0",date:"2026-11-17",title:"Droga do Alex — jedna minecraftowa wyprawa",
       changes:[

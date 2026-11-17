@@ -12,13 +12,13 @@ const CATEGORY_RELEASES_KEY = "udowodnij.modeCategoryVoting.v1";
 const CATEGORY_VOTES_KEY = "udowodnij.modeCategoryVotes.v1";
 const HIDDEN_SOLO_VARIANTS = new Set(["popularnosc-solo"]);
 // Owner-selected launch, not a fabricated community vote.
-const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow", "songspot", "minecraft-backpack", "minecraft-journey"]);
+const PERMANENT_MODE_IDS = new Set(["popularnosc-hitow", "songspot", "minecraft-backpack", "minecraft-journey", "board-zgadnij-kto"]);
 // Retired releases must not reopen lyrics after its return to the voting pool.
 export const LYRICS_REVOTE_MIN_CYCLE = Math.floor((Date.parse('2026-10-13T20:00:00+02:00') - Date.parse(CATEGORY_VOTING_START_AT)) / CATEGORY_CYCLE_DURATION_MS);
 const modeEligibleInCycle = (modeId, cycleIndex) => modeId !== 'dokoncz-tekst' || cycleIndex >= LYRICS_REVOTE_MIN_CYCLE;
 const CATEGORY_MODE_IDS = {
   pokemon: ["pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type"],
-  board: ["board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino"],
+  board: ["board-zgadnij-kto", "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino"],
   minecraft: ["minecraft-journey", "minecraft-backpack", "minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome", "minecraft-truth", "minecraft-redstone"],
   music: ["pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "dokoncz-tekst", "songspot"],
 };

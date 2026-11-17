@@ -1,15 +1,16 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261117-10";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261117-11";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
 import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
+import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261117-11";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261117-10";
-import { gamesList, getGameMode } from "./games.js?v=20261117-10";
+import { gamesList, getGameMode } from "./games.js?v=20261117-11";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20260903-9";
@@ -48,17 +49,17 @@ import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotG
 import { renderPlaylistTournament, stopPlaylistTournament } from "./playlistTournament.js?v=20261117-10";
 import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
-import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20260901-10";
+import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261117-11";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-10";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261117-10";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-11";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes } from "./platform.js?v=20261117-11";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-10";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-10";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-11";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20260922-1";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261117-10";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261117-11";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
@@ -897,6 +898,7 @@ const additionalModeRewardConfig = Object.freeze({
   "board-cztery": { participation:50, point:12, scoreCap:8, winner:70, xp:60 },
   "board-memory": { participation:45, point:10, scoreCap:8, winner:65, xp:55 },
   "board-domino": { participation:45, point:9, scoreCap:10, winner:65, xp:55 },
+  "board-zgadnij-kto": { participation:25, point:5, scoreCap:1, winner:30, xp:35 },
 
   "minecraft-sprint": { participation:25, point:8, scoreCap:8, winner:40, xp:35 },
   "minecraft-crafting": { participation:30, point:9, scoreCap:8, winner:45, xp:40 },
@@ -1806,7 +1808,9 @@ function repairGameStateForPlayers(room) {
     SongSpotEngine.reconcile(game, players, sanitizeSongSpotSettings(room.settings));
     if (before !== stableStringify(game)) changed = true;
   }
-  if (typeof room.gameMode === "string" && room.gameMode.startsWith("board-")) {
+  if (room.gameMode === GUESS_PEOPLE_MODE) {
+    if (reconcileGuessPeople(game,players,sanitizeBoardSettings(room.settings,room.gameMode))) changed = true;
+  } else if (typeof room.gameMode === "string" && room.gameMode.startsWith("board-")) {
     const mode = getGameMode(room.gameMode), maxPlayers = Math.max(2, Number(mode.maxPlayers) || 8), gamePlayers = Array.isArray(game.players) && game.players.length ? game.players : players, order = gamePlayers.filter(uid => players.includes(uid)).slice(0, maxPlayers);
     if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
     game.boardMode = room.gameMode;
