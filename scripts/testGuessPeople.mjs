@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { BoardEngine, createBoardGame, renderBoardLobbySettings } from "../js/boardGames.js";
 import { GUESS_PEOPLE_MODE as mode } from "../js/guessPeople.js";
 import { guessPeople } from "../js/guessPeopleCatalog.js";
+import { guessPeopleBios } from "../js/guessPeopleBios.js";
 import { getGameMode } from "../js/games.js";
 import { isModeLocked } from "../js/upcomingModes.js";
 import { roomAllowsBots } from "../js/bots.js";
@@ -15,7 +16,9 @@ test("the public board mode has 200 unique licensed local photos", () => {
   assert.equal(guessPeople.length, 200);
   assert.equal(new Set(guessPeople.map(card => card[0])).size, 200);
   assert.equal(new Set(guessPeople.map(card => card[3])).size, 200);
+  assert.deepEqual(Object.keys(guessPeopleBios).sort(), guessPeople.map(card => card[1]).sort());
   for (const [id, name, category, source, author, license] of guessPeople) {
+    assert.ok(guessPeopleBios[name].length >= 35 && guessPeopleBios[name].length <= 200, name);
     assert.ok(name && category && license && source.startsWith("https://commons.wikimedia.org/wiki/File:"));
     if (license.startsWith("CC BY")) assert.ok(author);
     const bytes = readFileSync(new URL(`../assets/guess-people/${id}.webp`, import.meta.url));

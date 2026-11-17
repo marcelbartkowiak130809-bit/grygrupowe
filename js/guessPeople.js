@@ -1,5 +1,6 @@
 import { escapeHtml } from "./utils.js?v=20260903-7";
 import { guessPeople } from "./guessPeopleCatalog.js?v=20261117-11";
+import { guessPeopleBios } from "./guessPeopleBios.js?v=20261117-14";
 
 export const GUESS_PEOPLE_MODE = "board-zgadnij-kto";
 export const guessPeopleDefaults = { boardSize:24, targetOrder:"clockwise", turnTime:60 };
@@ -145,6 +146,36 @@ function renderCredits(card) {
   return `<a href="${escapeHtml(card[3])}" target="_blank" rel="noopener">Zdjęcie w Wikimedia Commons</a> · ${escapeHtml(card[4])} · ${license} · zmieniono rozmiar`;
 }
 
+const infoButton = card => `<button type="button" class="gp-info" data-gp-info="${card[0]}" aria-label="O osobie: ${escapeHtml(card[1])}" title="O osobie">i</button>`;
+const photoDialog = '<dialog class="gp-dialog" data-gp-dialog aria-labelledby="gp-dialog-title"></dialog>';
+
+function bindCardDialog(root, onGuess) {
+  const dialog = root.querySelector("[data-gp-dialog]");
+  function showCard(card, mode = "photo") {
+    const info = mode === "info";
+    dialog.classList.toggle("gp-dialog-info", info);
+    const heading = `<h2 id="gp-dialog-title">${escapeHtml(card[1])}</h2>`;
+    const content = info
+      ? `<div class="gp-bio">${cardPhoto(card)}<div>${heading}<p>${escapeHtml(guessPeopleBios[card[1]])}</p></div></div>`
+      : cardPhoto(card) + heading;
+    dialog.innerHTML = `<form method="dialog"><button class="ghost" aria-label="Zamknij">✕</button></form>
+      ${content}<p class="gp-photo-credit">${renderCredits(card)}</p>
+      ${mode === "guess" ? '<button class="primary" data-gp-confirm>Potwierdź typ</button>' : ""}`;
+    dialog.querySelector("[data-gp-confirm]")?.addEventListener("click", () => {
+      dialog.close();
+      onGuess(card[0]);
+    }, { once:true });
+    dialog.showModal();
+  }
+  root.querySelectorAll("[data-gp-info]").forEach(button => {
+    button.onclick = () => showCard(cards.get(button.dataset.gpInfo), "info");
+  });
+  root.querySelectorAll("[data-gp-photo]").forEach(button => {
+    button.onclick = () => showCard(cards.get(button.dataset.gpPhoto));
+  });
+  return showCard;
+}
+
 function tableSeats(game, accounts, currentUser) {
   const receiver = game.targets[game.currentUid];
   return `<ol class="gp-seats" style="--seats:${game.players.length}" aria-label="Gracze i ich cele">
@@ -182,10 +213,11 @@ function renderResult(root, game, room, accounts, currentUser, actions) {
     ${game.finishReason === "departure" ? "<p>Przeciwnik opuścił rozgrywkę.</p>" : ""}
     <div class="gp-reveal ${animate ? "gp-deal" : ""}">${game.players.map((uid, i) => {
       const card = cards.get(game.secrets[uid]);
-      return card ? `<article class="${uid === guessedUid ? "gp-solved-card" : ""}" style="--i:${i}">${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><span>Karta gracza ${nameOf(accounts, uid)}</span>${uid === guessedUid ? "<b>Odgadnięta karta</b>" : ""}<details><summary>Źródło zdjęcia</summary>${renderCredits(card)}</details></article>` : "";
+      return card ? `<article class="${uid === guessedUid ? "gp-solved-card" : ""}" style="--i:${i}">${cardPhoto(card)}${infoButton(card)}<strong>${escapeHtml(card[1])}</strong><span>Karta gracza ${nameOf(accounts, uid)}</span>${uid === guessedUid ? "<b>Odgadnięta karta</b>" : ""}<details><summary>Źródło zdjęcia</summary>${renderCredits(card)}</details></article>` : "";
     }).join("")}</div>
     <div class="gp-actions">${room.hostUid === currentUser ? '<button class="primary" data-gp-restart>Zagraj ponownie</button>' : ""}<button class="ghost" data-gp-lobby>Wróć do lobby</button><button class="ghost" data-gp-leave>Wyjdź z pokoju</button></div>
-    </section></main>`;
+    </section>${photoDialog}</main>`;
+  bindCardDialog(root);
   root.querySelector("[data-gp-restart]")?.addEventListener("click", actions.boardRestart);
   root.querySelector("[data-gp-lobby]").onclick = () => actions.returnToRoom();
   root.querySelector("[data-gp-leave]").onclick = () => actions.leaveRoom();
@@ -240,6 +272,7 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
               <span class="gp-card-front" aria-hidden="true">${face}</span>
               <span class="gp-card-back" aria-hidden="true">${face}</span>
             </button>
+            ${infoButton(card)}
             <button type="button" class="gp-zoom" data-gp-photo="${id}" aria-label="Powiększ zdjęcie: ${escapeHtml(card[1])}">⤢</button>
           </article>`;
         }).join("")}
@@ -254,11 +287,11 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
         <button class="primary" type="submit">Zadaj pytanie</button></form>` : ""}
       ${event && !game.question ? `<div class="gp-event ${newEvent ? "gp-arrive" : ""}" role="status">${event}</div>` : ""}
       </section>
-      ${ownCard ? `<section class="gp-panel gp-secret"><h2>Twoja tajna karta</h2><button class="ghost" data-gp-photo="${ownCard[0]}">${cardPhoto(ownCard)}<span>${escapeHtml(ownCard[1])}</span></button></section>` : ""}
+      ${ownCard ? `<section class="gp-panel gp-secret"><h2>Twoja tajna karta</h2><div class="gp-secret-card"><button class="ghost" data-gp-photo="${ownCard[0]}">${cardPhoto(ownCard)}<span>${escapeHtml(ownCard[1])}</span></button>${infoButton(ownCard)}</div></section>` : ""}
       <details class="gp-panel gp-history" ${history.length ? "open" : ""}><summary>Twoje pytania (${history.length})</summary>
         ${history.map(row => `<p>${escapeHtml(row.question)} <strong>${escapeHtml(row.answer)}</strong></p>`).join("")}
       </details>
-    </aside></div><dialog class="gp-dialog" data-gp-dialog></dialog>
+    </aside></div>${photoDialog}
   </main>`;
 
   const update = () => {
@@ -283,25 +316,14 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
     root.querySelector(".gp-table").classList.toggle("gp-guessing", toggle.checked);
     update();
   };
-  const dialog = root.querySelector("[data-gp-dialog]");
-  const showPhoto = (card, guess = false) => {
-    dialog.innerHTML = `<form method="dialog"><button class="ghost" aria-label="Zamknij">✕</button></form>
-      ${cardPhoto(card)}<h2>${escapeHtml(card[1])}</h2><p>${renderCredits(card)}</p>
-      ${guess ? '<button class="primary" data-gp-confirm>Potwierdź typ</button>' : ""}`;
-    dialog.querySelector("[data-gp-confirm]")?.addEventListener("click", () => {
-      dialog.close();
-      send("guess-people-try", card[0]);
-    }, { once:true });
-    dialog.showModal();
-  };
+  const showCard = bindCardDialog(root, id => send("guess-people-try", id));
   root.querySelectorAll("[data-gp-card]").forEach(button => button.onclick = () => {
     const id = button.dataset.gpCard;
-    if (toggle.checked) return showPhoto(cards.get(id), true);
+    if (toggle.checked) return showCard(cards.get(id), "guess");
     if (board.flipped.has(id)) board.flipped.delete(id);
     else board.flipped.add(id);
     update();
   });
-  root.querySelectorAll("[data-gp-photo]").forEach(button => button.onclick = () => showPhoto(cards.get(button.dataset.gpPhoto)));
   root.querySelectorAll("[data-gp-answer]").forEach(button => button.onclick = () => send("guess-people-answer", button.dataset.gpAnswer));
   const form = root.querySelector("[data-gp-form]");
   if (form) {
