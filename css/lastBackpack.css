@@ -18,3 +18,25 @@
 @keyframes bp-lava{from{background-position-y:0%}to{background-position-y:100%}}
 .backpack-page button:focus-visible{outline:3px solid #c7ee91;outline-offset:2px}.backpack-release button:focus-visible{outline:3px solid #e5ffd0;outline-offset:4px}
 @media(max-width:760px){.backpack-inventory{grid-template-columns:repeat(4,minmax(0,1fr))}.backpack-inventory .backpack-slot{min-height:48px;aspect-ratio:auto;height:52px;padding:7px}.backpack-inventory .backpack-slot img{width:35px;height:35px}.backpack-craft-grid .backpack-slot{min-height:44px}.backpack-world-grid{gap:0}.backpack-objective{font-size:9px;gap:8px}.backpack-mission{align-items:flex-start}.backpack-chapters{margin-top:3px}}
+/* Preserve the board's timeline and give feedback without delaying input. */
+.backpack-slot{transition:background .16s,box-shadow .2s,border-color .16s,opacity .16s;transform-origin:center}
+.backpack-slot:not(:disabled):hover{background-color:#89957c;box-shadow:inset 0 0 0 2px #4c594b,0 0 16px #b6db7244}
+.backpack-slot:not(:disabled):active{transform:scale(.95)}
+.backpack-tile{transition:filter .22s,box-shadow .3s;background-repeat:no-repeat;transform-origin:center;isolation:isolate}
+.backpack-tile.drag-over{z-index:3;box-shadow:inset 0 0 0 3px #e2ffab,inset 0 0 22px #d4ff7866}
+.backpack-world{transition:border-color .35s,box-shadow .35s}
+.backpack-tile img{transition:filter .35s}
+.backpack-chapters span{transition:background .25s,color .25s,border-color .25s,box-shadow .25s}
+.backpack-chapters .complete{box-shadow:0 0 16px #a7db5b22}
+.backpack-next{animation:bp-next-ready .32s ease-out;box-shadow:0 6px 22px #91bd3222}
+.backpack-next:hover{box-shadow:0 8px 28px #b3dc4544}
+.backpack-status{height:54px;min-height:54px;box-sizing:border-box;margin-bottom:0}
+.backpack-input-tip{min-height:32px;margin-bottom:0}
+.backpack-next{margin-top:5px;min-height:32px;padding:7px 12px}
+.backpack-status.success{letter-spacing:.015em}
+.backpack-output:not(:disabled) img{animation:bp-craft-ready 2s ease-in-out infinite}
+.backpack-drag-ghost{contain:layout style paint;will-change:left,top}
+@keyframes bp-next-ready{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bp-craft-ready{50%{filter:drop-shadow(0 0 6px #d4ff7d99);transform:translateY(-2px)}}
+@media(max-width:760px){.backpack-status{height:64px;min-height:64px}.backpack-input-tip{min-height:44px}.backpack-next{min-height:44px}.backpack-slot:not(:disabled):hover{background-color:#707a70}.backpack-slot.selected:not(:disabled){background-color:#829365}}
+@media(prefers-reduced-motion:reduce){.backpack-page *{animation:none!important;transition:none!important}.backpack-slot:not(:disabled):active{transform:none}}

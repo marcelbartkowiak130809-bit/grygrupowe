@@ -15,10 +15,14 @@ const item=id=>click(`[data-bp-item="${id}"]`),tile=i=>click(`[data-bp-tile="${i
 const craft=(a,b)=>{item(a);slot(0);if(b){item(b);slot(3);}click('[data-bp-craft]');};
 render();
 const original=root.querySelector('.backpack-world');item('oak_log');assert.equal(root.querySelector('.backpack-world'),original,'select does not replace the board');
+const originalTile=root.querySelector('[data-bp-tile="0"]'),originalInventory=root.querySelector('[data-bp-item="cobblestone"]');
 // Native drag and drop path, without selecting the dragged resource first.
 let dragged;const start=new window.Event('dragstart');start.dataTransfer={setData:(type,value)=>dragged=value};root.querySelector('[data-bp-item="cobblestone"]').dispatchEvent(start);
 assert.equal(dragged,'cobblestone');const drop=new window.Event('drop',{cancelable:true});drop.dataTransfer={getData:()=>dragged};root.querySelector('[data-bp-tile="18"]').dispatchEvent(drop);
 assert.ok(root.querySelector('[data-bp-tile="18"]').classList.contains('has-item'));
+assert.equal(root.querySelector('.backpack-world'),original,'placing preserves world node and lava timeline');
+assert.equal(root.querySelector('[data-bp-tile="0"]'),originalTile,'unaffected tile retained');
+assert.equal(root.querySelector('[data-bp-item="cobblestone"]'),originalInventory,'inventory retained');
 click('[data-bp-undo]');assert.ok(!root.querySelector('[data-bp-tile="18"]').classList.contains('has-item'));
 item('cobblestone');for(const i of [18,19,20,21])tile(i);assert.ok(root.querySelector('[data-bp-next]'));
 click('[data-bp-next]');craft('oak_planks','oak_planks');craft('coal','stick');
@@ -35,6 +39,8 @@ click('[data-bp-restart]');const b=root.querySelector('[data-bp-item="cobbleston
 b.onpointerdown({pointerType:'touch',pointerId:1,clientX:10,clientY:10});b.onpointermove({pointerId:1,clientX:50,clientY:50,preventDefault(){}});
 document.elementFromPoint=()=>root.querySelector('[data-bp-tile="18"]');b.onpointerup({type:'pointerup',pointerId:1,clientX:50,clientY:50});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
+assert.equal(root.querySelector('[data-bp-item="cobblestone"]').dataset.suppressClick,'true');
+root.querySelector('[data-bp-item="cobblestone"]').click();assert.ok(!root.querySelector('[data-bp-item="cobblestone"]').dataset.suppressClick);
 const c=root.querySelector('[data-bp-item="cobblestone"]');c.setPointerCapture=()=>{};c.onpointerdown({pointerType:'touch',pointerId:2,clientX:10,clientY:10});c.onpointermove({pointerId:2,clientX:50,clientY:50,preventDefault(){}});c.onpointercancel({type:'pointercancel'});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
 console.log('PASS: full three-stage UI, crafting, mouse drag/drop, touch drag/cancel, undo, selection stability, save/reload, restart.');
