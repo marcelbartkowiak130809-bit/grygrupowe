@@ -1,7 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createJourney,journeyAction as a,journeyScenes,restoreJourney,saveJourney,journeyCanCross,journeyItems,journeyAssetId,journeySurface} from '../js/alexJourneyEngine.js';
+import {createJourney,journeyAction as a,journeyScenes,journeyScene,restoreJourney,saveJourney,journeyCanCross,journeyItems,journeyAssetId,journeySurface} from '../js/alexJourneyEngine.js';
+import {journeyObjective,journeyTime} from '../js/alexJourneyObjectives.js';
 import {solveJourneyScene} from './journeyTestSolutions.mjs';
 test('minimal route completes all ten scenes with a single persistent inventory and world',()=>{
  let s=createJourney();assert.deepEqual(s.stock,{});
@@ -29,4 +30,38 @@ test('save replay ignores forged inventory, rejects foreign actions and preserve
 test('all journey item assets and native character skins are local PNG files',()=>{
  for(const id of [...Object.keys(journeyItems),'steve','alex','pig']){const png=readFileSync(new URL('../assets/minecraft/backpack/'+journeyAssetId(id)+'.png',import.meta.url));assert.equal(png.subarray(1,4).toString(),'PNG',id);}
  assert.equal(journeyScenes.length,10);assert.equal(new Set(journeyScenes.flatMap(l=>l.nodes.map(n=>n.id))).size,journeyScenes.flatMap(l=>l.nodes).length);
+});
+
+test('old shipped saves replay their original rules at every chapter and at the reunion',()=>{
+ const fixture=JSON.parse(readFileSync(new URL('./fixtures/journey-v1.json',import.meta.url)));
+ for(const length of [...fixture.starts,fixture.log.length]){
+  const s=restoreJourney({version:1,log:fixture.log.slice(0,length),startedAt:Date.now()-90000});
+  assert.equal(s.rulesVersion,1);assert.equal(s.log.length,length);assert.deepEqual(restoreJourney(saveJourney(s)).stock,s.stock);
+  if(length===fixture.log.length){assert.ok(s.done);assert.ok(s.completed.every(Boolean));}
+ }
+});
+
+test('fresh expeditions contain at most five logs in the entire world including chest loot',()=>{
+ const s=createJourney();let logs=0;
+ for(let i=0;i<10;i++)for(const n of journeyScene(s,i).nodes)logs+=(n.type==='log'?n.amount:0)+(n.loot?.oak_log||0);
+ assert.equal(logs,5);assert.equal(s.rulesVersion,2);
+});
+
+test('environment mechanisms alter the world once, consume only their required item, and undo/reload safely',()=>{
+ let s=createJourney();solveJourneyScene(s);a(s,{type:'next'});const stock={...s.stock};
+ a(s,{type:'node',id:'bridge-prop'});assert.equal(s.world[1].placed[104],'oak_planks');assert.equal(s.world[1].placed[105],'oak_planks');assert.deepEqual(s.stock,stock);assert.equal(journeyCanCross(s,1),false);
+ a(s,{type:'undo'});assert.equal(s.world[1].placed[104],undefined);assert.equal(s.world[1].flags.bridgeReleased,undefined);
+ for(let i=1;i<=5;i++){solveJourneyScene(s);a(s,{type:'next'});}
+ assert.equal(s.scene,6);a(s,{type:'node',id:'well',item:'iron_pickaxe'});assert.equal(s.world[6].flags.map,undefined);
+ a(s,{type:'node',id:'well-pulley',item:'iron_pickaxe'});assert.equal(s.world[6].nodes.well,undefined);
+ a(s,{type:'node',id:'well-weight',item:'iron_pickaxe'});const count=s.stock.cobblestone;
+ a(s,{type:'node',id:'well-pulley',item:'cobblestone'});assert.equal(s.stock.cobblestone,count-1);assert.ok(s.world[6].nodes.well.opened);
+ s=restoreJourney(saveJourney(s));assert.ok(s.world[6].flags.counterweight);a(s,{type:'node',id:'well-pulley',item:'cobblestone'});assert.equal(s.stock.cobblestone,count-1);
+ a(s,{type:'node',id:'well'});assert.ok(s.completed[6]);assert.equal(s.stock.map,1);
+});
+
+test('objectives change after actions and the ending time survives reload',()=>{
+ let s=createJourney();assert.match(journeyObjective(s)[0],/pień/);a(s,{type:'node',id:'first-log'});assert.match(journeyObjective(s)[0],/świnię/);
+ for(let i=0;i<10;i++){solveJourneyScene(s);if(i<9)a(s,{type:'next'});}
+ s.startedAt=s.finishedAt-125000;assert.equal(journeyTime(s),'2:05');const end=s.finishedAt;s=restoreJourney(saveJourney(s));assert.equal(s.finishedAt,end);assert.equal(journeyTime(s),'2:05');assert.match(journeyObjective(s)[0],/koniec wyprawy/);
 });

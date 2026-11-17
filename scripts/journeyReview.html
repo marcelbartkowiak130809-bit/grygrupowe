@@ -1,9 +1,9 @@
 <!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../"><title>Droga do Alex — podgląd lokalny</title><link rel="stylesheet" href="./css/style.css"><link rel="stylesheet" href="./css/alexJourney.css"><style>.review-bar{max-width:1320px;margin:10px auto;padding:8px 20px;display:flex;align-items:center;gap:10px;font-size:11px;color:#a7bd9c}.review-bar select{max-width:70%;padding:7px;background:#152620;color:#d9eec3}</style></head><body><nav class="review-bar"><label for="journey-preview">Podgląd lokalny</label><select id="journey-preview"></select><button id="journey-preview-start">Nowa wyprawa</button></nav><div id="root"></div><script type="module">
 import {renderAlexJourney} from './js/alexJourney.js';
 import {journeyScenes} from './js/alexJourneyEngine.js';
-const fixture=await (await fetch('./scripts/fixtures/journey-v1.json')).json();
+const fixture=await (await fetch('./scripts/fixtures/journey-v2.json')).json();
 const select=document.getElementById('journey-preview'),root=document.getElementById('root');
-journeyScenes.forEach((scene,i)=>select.add(new Option(`${i+1}. ${scene.name}`,String(i))));let n=0;
-function show(){const i=Number(select.value),id=`local-journey-${Date.now()}-${n++}`;localStorage.setItem(`grygrupowe-alex-journey-v1:${id}`,JSON.stringify({version:1,log:fixture.log.slice(0,fixture.starts[i])}));renderAlexJourney(root,{playerId:id},{});}
+journeyScenes.forEach((scene,i)=>select.add(new Option(`${i+1}. ${scene.name}`,String(i))));select.add(new Option('Finał · razem z Alex','10'));let n=0;
+function show(){const i=Number(select.value),id=`local-journey-${Date.now()}-${n++}`,now=Date.now();localStorage.setItem(`grygrupowe-alex-journey-v1:${id}`,JSON.stringify({version:1,rulesVersion:2,log:fixture.log.slice(0,i===10?fixture.log.length:fixture.starts[i]),startedAt:now-755000,finishedAt:i===10?now:0}));renderAlexJourney(root,{playerId:id},{});}
 select.onchange=show;document.getElementById('journey-preview-start').onclick=()=>{select.value='0';show();};show();
 </script></body></html>

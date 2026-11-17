@@ -8,12 +8,12 @@ myszką albo dotykiem. Klawiatura nie jest potrzebna do chodzenia.
 | Miejsce | Problem | Co zostaje na później |
 | --- | --- | --- |
 | Polana | Zebrać leżący pień i zdobyć jedzenie | Drewno, surowy schab; opcjonalnie patyki i jagody |
-| Rzeka | Zbudować ciągły most i przejść na drugi brzeg | Most nadal istnieje, niewykorzystane surowce zostają |
+| Rzeka | Zwolnić podporę kłody, dobudować dwa pola mostu i przejść | Opuszczona kłoda i most pozostają |
 | Obóz | Zasilić znaleziony piec i upiec jedzenie | Prowiant; dodatkowy węgiel ze skrzyni |
 | Kamieniołom | Drewnianym kilofem zdobyć materiał na kamienny | Narzędzia i zapas bruku z bocznego złoża |
 | Kopalnia | Doświetlić tunel i wydobyć żelazo | Pochodnie, ruda, dodatkowe zapasy |
 | Kuźnia | Przygotować żelazny kilof, używając pieca i paliwa | Żelazny kilof; piec z pozostałym ciepłem |
-| Wioska | Usunąć głaz i odnaleźć mapę pod studnią | Mapa i jedzenie; dodatkowe skrzynie z zapasami |
+| Wioska | Obciążyć linę brukiem, podnieść pokrywę i zabrać mapę | Uruchomiona przeciwwaga, mapa i jedzenie |
 | Przełęcz | Zbudować podparte stopnie na wyższą półkę | Schody pozostają w świecie |
 | Brama | Wydobyć redstone, zamknąć obwód i włączyć dźwignię | Działająca brama i wcześniejszy ekwipunek |
 | Dom Alex | Zapalić światło i przywitać Alex | Podsumowanie; możliwość obejrzenia całej przebytej drogi |
@@ -39,6 +39,21 @@ myszką albo dotykiem. Klawiatura nie jest potrzebna do chodzenia.
 - Cofanie przywraca razem plecak, surowce, konstrukcje, paliwo i położenie Steve’a.
 - Zapis jest oddzielny dla gracza: `grygrupowe-alex-journey-v1:<id>`. Jest to
   dziennik działań, odtwarzany i walidowany zamiast zaufania zapisanym zasobom.
+- Nowe wyprawy mają `rulesVersion: 2`: łącznie 5 sztuk drewna w całym świecie,
+  w tym jeden zapasowy pień przy domu. Starsze zapisy bez tej informacji nadal
+  odtwarzają pierwotne zasoby i zagadki; aktualizacja nie resetuje plecaka.
+- Polecenie nad światem wskazuje następną czynność i reaguje na postęp.
+  Po przywitaniu Alex pojawiają się serca oraz wyraźny koniec gry z czasem
+  w minutach i sekundach, liczbą miejsc i otwartych skrytek. Czas końcowy
+  zostaje zapisany i nie rośnie po ponownym otwarciu strony.
+
+## Inspiracje konkretnymi zagadkami
+
+Przejrzano [opis przejścia pierwszego Adam & Eve, Jay Is Games](https://www.jayisgames.com/review/adam-eve.php):
+„Broken Bridge” łączy podporę i dwa odcinki mostu, a „Elevator” wykorzystuje
+głaz oraz mechanizm podnoszenia. Na tej zasadzie powstały autorskie zagadki
+z opadającą kłodą nad rzeką i przeciwwagą studni. Nie kopiowano grafiki ani
+postaci Adama i Ewy; oprawa i przedmioty pozostają minecraftowe.
 
 To autorska przygoda fanowska w formie łamigłówki, nie pełna symulacja Minecrafta.
 Nie ma nieodwracalnej śmierci ani utraty plecaka. Na telefonie kamera pokazuje

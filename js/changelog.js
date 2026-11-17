@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-9";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-10";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -25,7 +25,8 @@ function buildChangelogEntries(now = Date.now()) {
         "Nowy tryb solo: Steve wyrusza do Alex przez 10 połączonych scenerii — od polany i rzeki po kopalnię, wioskę i przełęcz.",
         "Wspólny plecak, zbieranie surowców, crafting, piece i budowanie. Poprzednie miejsca, mosty oraz opróżnione skrzynie pozostają w świecie.",
         "Płynne przejścia kamery, oryginalne skórki postaci i tekstury Minecrafta, cofanie czynności oraz zapis wyprawy na urządzeniu.",
-        "Dodatkowe poszukiwania dają zapasy na dalszą drogę, a jedzenie zwiększa wydajność wydobycia. Na telefonie jest szybki pasek plecaka."
+        "Zagadki z podpartą kłodą i przeciwwagą przy studni, czytelne polecenia oraz mniejsza ilość zbierania. Spotkanie z Alex kończy wyprawę sercami i podsumowaniem z czasem przejścia.",
+        "Dodatkowe poszukiwania dają małe zapasy na dalszą drogę, a jedzenie zwiększa wydajność wydobycia. Na telefonie jest szybki pasek plecaka."
       ],
     },
     {

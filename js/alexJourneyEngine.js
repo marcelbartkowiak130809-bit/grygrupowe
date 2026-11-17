@@ -1,7 +1,7 @@
-import {journeyScenes,journeyItems,journeyRecipes,baseJourneyTerrain} from './alexJourneyWorld.js?v=20261117-9';
-export {journeyScenes,journeyItems,journeyRecipes};
+import {journeyScenes,journeyScene,journeyItems,journeyRecipes,baseJourneyTerrain} from './alexJourneyWorld.js?v=20261117-10';
+export {journeyScenes,journeyScene,journeyItems,journeyRecipes};
 export const journeyTier=item=>({wooden_pickaxe:1,stone_pickaxe:2,iron_pickaxe:3}[item]||0);
-export function createJourney(){return {version:1,log:[],undo:[],scene:0,farthest:0,stock:{},discovered:[],grid:Array(9).fill(''),selected:'',world:journeyScenes.map(()=>({nodes:{},placed:{},fuel:{},flags:{}})),completed:Array(10).fill(false),hero:{scene:0,x:6},steps:0,crafted:0,looted:0,food:0,done:false,startedAt:Date.now(),finishedAt:0,message:'Alex czeka po drugiej stronie gór. Zacznij od zapasów.',effect:null};}
+export function createJourney(rulesVersion=2){return {version:1,rulesVersion,log:[],undo:[],scene:0,farthest:0,stock:{},discovered:[],grid:Array(9).fill(''),selected:'',world:journeyScenes.map(()=>({nodes:{},placed:{},fuel:{},flags:{}})),completed:Array(10).fill(false),hero:{scene:0,x:6},steps:0,crafted:0,looted:0,food:0,done:false,startedAt:Date.now(),finishedAt:0,message:'Alex czeka po drugiej stronie gór. Zacznij od zapasów.',effect:null};}
 const give=(s,item,n=1)=>{s.stock[item]=(s.stock[item]||0)+n;if(!s.discovered.includes(item))s.discovered.push(item);};
 const has=(s,item,n=1)=>Number.isInteger(n)&&n>0&&(s.stock[item]||0)>=n;
 const take=(s,item,n=1)=>{s.stock[item]-=n;};
@@ -24,14 +24,14 @@ function complete(s){const w=s.world[s.scene],f=w.flags;const passed=[()=>!!f.fo
  if(passed&&!s.completed[s.scene]){s.completed[s.scene]=true;s.message=s.scene===9?'Alex odnaleziona. Cała droga była warta zachodu!':'Droga otwarta. Możesz jeszcze rozejrzeć się po okolicy.';s.effect={kind:'complete'};}
  if(s.completed[9]&&!s.done){s.done=true;s.finishedAt=Date.now();}
 }
-function execute(s,a){const scene=journeyScenes[s.scene],w=s.world[s.scene],item=a.item||s.selected;
+function execute(s,a){const scene=journeyScene(s),w=s.world[s.scene],item=a.item||s.selected;
  s.effect=null;
  if(a.type==='select'){if(!journeyItems[a.item]||!has(s,a.item))return false;s.selected=a.item;s.message=`Wybrano: ${journeyItems[a.item]}.`;return true;}
  if(a.type==='travel'){
   if(!Number.isInteger(a.scene)||a.scene<0||a.scene>=10||a.scene>s.farthest)return false;
-  s.hero={scene:a.scene,x:6};s.scene=a.scene;s.message=s.completed[s.scene]?'Tu już byłeś. Pozostałe zapasy nadal czekają.':journeyScenes[s.scene].goal;s.effect={kind:'travel'};complete(s);return true;
+  s.hero={scene:a.scene,x:s.done&&a.scene===9?11:6};s.scene=a.scene;s.message=s.completed[s.scene]?'Tu już byłeś. Pozostałe zapasy nadal czekają.':journeyScene(s).goal;s.effect={kind:'travel'};complete(s);return true;
  }
- if(a.type==='next'){if(!s.completed[s.scene]||s.scene>=9)return false;s.scene++;s.farthest=Math.max(s.farthest,s.scene);s.hero={scene:s.scene,x:6};s.message=journeyScenes[s.scene].goal;s.steps++;s.effect={kind:'travel'};complete(s);return true;}
+ if(a.type==='next'){if(!s.completed[s.scene]||s.scene>=9)return false;s.scene++;s.farthest=Math.max(s.farthest,s.scene);s.hero={scene:s.scene,x:6};s.message=journeyScene(s).goal;s.steps++;s.effect={kind:'travel'};complete(s);return true;}
  if(a.type==='slot'){
   if(!Number.isInteger(a.index)||a.index<0||a.index>8)return false;
   if(s.grid[a.index]){give(s,s.grid[a.index]);s.grid[a.index]='';}else{if(!journeyItems[item]||!has(s,item))return false;take(s,item);s.grid[a.index]=item;}s.message='Ułóż recepturę. Składniki odzyskasz kliknięciem.';return true;
@@ -79,7 +79,14 @@ function execute(s,a){const scene=journeyScenes[s.scene],w=s.world[s.scene],item
  const ns=w.nodes[n.id]||{},remaining=ns.remaining??n.amount??1;
  if(ns.done){s.message='To miejsce zostało już zebrane. Nic nie odrasta po przejściu dalej.';return true;}
  s.hero={scene:s.scene,x:Math.max(1,Math.min(n.x-1,scene.id==='ridge'?7:14))};
- if(['log','pig','berries','stone','coal','iron','redstone','well'].includes(n.type)){
+ if(n.type==='prop'){
+  for(const x of [8,9])if(!w.placed[96+x])w.placed[96+x]='oak_planks';
+  w.nodes[n.id]={done:true};w.flags.bridgeReleased=true;s.steps++;s.message='Kłoda opadła! Uzupełnij dwa wolne pola deskami, a potem przejdź przez most.';s.effect={kind:'mechanism',node:n.id};
+ }else if(n.type==='pulley'){
+  if(item!=='cobblestone'||!has(s,item)){s.message='Lina potrzebuje przeciwwagi. Wybierz bruk i kliknij mechanizm.';return true;}
+  take(s,item);w.nodes[n.id]={done:true};w.nodes.well={opened:true};w.flags.counterweight=true;s.steps++;s.message='Ciężar opadł, pokrywa się podniosła. Kliknij odsłoniętą skrzynię w studni.';s.effect={kind:'mechanism',node:n.id};
+ }else if(['log','pig','berries','stone','coal','iron','redstone','well'].includes(n.type)){
+  if(n.type==='well'&&s.rulesVersion===2&&!ns.opened){s.message='Pokrywa jest za ciężka. Obciąż linę brukiem, by ją podnieść.';return true;}
   const tier=journeyTier(item),required=n.type==='well'&&ns.opened?0:({stone:1,coal:1,iron:2,redstone:3,well:3}[n.type]||0);
   if(required&&(!has(s,item)||tier<required)){s.message=`Potrzebujesz ${required===1?'drewnianego':required===2?'kamiennego':'żelaznego'} kilofa lub lepszego.`;return true;}
   if(scene.id==='mine'&&['iron','chest'].includes(n.type)&&!journeyLit(s,s.scene,n.x)){s.message='Jest za ciemno. Najpierw doświetl to miejsce.';return true;}
@@ -112,5 +119,5 @@ export function journeyAction(s,a){if(!a||typeof a!=='object'||!Array.isArray(s.
  if(!['select','travel'].includes(a.type)&&snapshot(s)!==before)s.undo.push(before);
  s.log.push({type:a.type,...(typeof a.item==='string'?{item:a.item}:{}),...(typeof a.id==='string'?{id:a.id}:{}),...Object.fromEntries(['scene','index','x','y'].filter(k=>Number.isInteger(a[k])).map(k=>[k,a[k]]))});return true;
 }
-export function saveJourney(s){return JSON.stringify({version:1,log:s.log,startedAt:s.startedAt,finishedAt:s.finishedAt});}
-export function restoreJourney(raw){const s=createJourney();try{const data=typeof raw==='string'?JSON.parse(raw):raw;if(data?.version!==1||!Array.isArray(data.log)||data.log.length>12000)return s;for(const a of data.log)if(!journeyAction(s,a))return createJourney();if(Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;if(s.done&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;}catch{return createJourney();}return s;}
+export function saveJourney(s){return JSON.stringify({version:1,rulesVersion:s.rulesVersion,log:s.log,startedAt:s.startedAt,finishedAt:s.finishedAt});}
+export function restoreJourney(raw){try{const data=typeof raw==='string'?JSON.parse(raw):raw;if(data?.version!==1||!Array.isArray(data.log)||data.log.length>12000||data.rulesVersion!==undefined&&![1,2].includes(data.rulesVersion))return createJourney();const s=createJourney(data.rulesVersion??1);for(const a of data.log)if(!journeyAction(s,a))return createJourney();if(Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;if(s.done&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;return s;}catch{return createJourney();}}

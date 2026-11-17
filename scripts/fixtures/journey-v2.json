@@ -1,0 +1,407 @@
+{
+  "version": 1,
+  "rulesVersion": 2,
+  "starts": [
+    0,
+    4,
+    11,
+    15,
+    28,
+    42,
+    56,
+    60,
+    71,
+    86
+  ],
+  "log": [
+    {
+      "type": "node",
+      "id": "first-log"
+    },
+    {
+      "type": "node",
+      "id": "pig"
+    },
+    {
+      "type": "node",
+      "id": "pig"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "id": "bridge-prop"
+    },
+    {
+      "type": "prepare",
+      "id": "oak_planks"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "tile",
+      "item": "oak_planks",
+      "x": 10,
+      "y": 6
+    },
+    {
+      "type": "tile",
+      "item": "oak_planks",
+      "x": 11,
+      "y": 6
+    },
+    {
+      "type": "exit"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "id": "camp-log"
+    },
+    {
+      "type": "node",
+      "item": "oak_log",
+      "id": "camp-stove"
+    },
+    {
+      "type": "node",
+      "item": "porkchop",
+      "id": "camp-stove"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "id": "quarry-log"
+    },
+    {
+      "type": "prepare",
+      "id": "oak_planks"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "prepare",
+      "id": "stick"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "prepare",
+      "id": "wooden_pickaxe"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "node",
+      "item": "wooden_pickaxe",
+      "id": "quarry-stone"
+    },
+    {
+      "type": "node",
+      "item": "wooden_pickaxe",
+      "id": "quarry-stone"
+    },
+    {
+      "type": "node",
+      "item": "wooden_pickaxe",
+      "id": "quarry-stone"
+    },
+    {
+      "type": "prepare",
+      "id": "stone_pickaxe"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "mine-coal"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "mine-coal"
+    },
+    {
+      "type": "prepare",
+      "id": "oak_planks"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "prepare",
+      "id": "stick"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "prepare",
+      "id": "torch"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "tile",
+      "item": "torch",
+      "x": 8,
+      "y": 4
+    },
+    {
+      "type": "tile",
+      "item": "torch",
+      "x": 12,
+      "y": 4
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "mine-iron"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "mine-iron"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "mine-iron"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "forge-stone"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "forge-stone"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "forge-stone"
+    },
+    {
+      "type": "node",
+      "item": "stone_pickaxe",
+      "id": "forge-stone"
+    },
+    {
+      "type": "prepare",
+      "id": "furnace"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "tile",
+      "item": "furnace",
+      "x": 10,
+      "y": 5
+    },
+    {
+      "type": "node",
+      "item": "coal",
+      "id": "hearth"
+    },
+    {
+      "type": "node",
+      "item": "iron_ore",
+      "id": "hearth"
+    },
+    {
+      "type": "node",
+      "item": "iron_ore",
+      "id": "hearth"
+    },
+    {
+      "type": "node",
+      "item": "iron_ore",
+      "id": "hearth"
+    },
+    {
+      "type": "prepare",
+      "id": "iron_pickaxe"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "well-weight"
+    },
+    {
+      "type": "node",
+      "item": "cobblestone",
+      "id": "well-pulley"
+    },
+    {
+      "type": "node",
+      "id": "well"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "ridge-stone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "ridge-stone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "ridge-stone"
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 8,
+      "y": 6
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 9,
+      "y": 6
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 10,
+      "y": 6
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 9,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 10,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "cobblestone",
+      "x": 10,
+      "y": 4
+    },
+    {
+      "type": "exit"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "gate-stone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "gate-redstone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "gate-redstone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "gate-redstone"
+    },
+    {
+      "type": "node",
+      "item": "iron_pickaxe",
+      "id": "gate-redstone"
+    },
+    {
+      "type": "prepare",
+      "id": "lever"
+    },
+    {
+      "type": "craft"
+    },
+    {
+      "type": "tile",
+      "item": "lever",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "redstone",
+      "x": 8,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "redstone",
+      "x": 9,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "redstone",
+      "x": 10,
+      "y": 5
+    },
+    {
+      "type": "tile",
+      "item": "redstone",
+      "x": 11,
+      "y": 5
+    },
+    {
+      "type": "switch"
+    },
+    {
+      "type": "exit"
+    },
+    {
+      "type": "next"
+    },
+    {
+      "type": "node",
+      "item": "torch",
+      "id": "lantern"
+    },
+    {
+      "type": "node",
+      "id": "alex"
+    }
+  ]
+}

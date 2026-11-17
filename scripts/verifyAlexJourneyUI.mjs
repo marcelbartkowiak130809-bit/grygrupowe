@@ -28,10 +28,13 @@ const perform=a=>{
  assert.equal(root.querySelector('.journey-track'),track,'camera track persists');assert.equal(root.querySelector('[data-j-scene-panel="0"]'),firstScene,'earlier scenery remains mounted');
  return true;
 };
-for(let scene=0;scene<10;scene++){solveJourneyScene(s,{perform});assert.ok(root.querySelector('.journey-message.good'));if(scene<9)perform({type:'next'});}
+for(let scene=0;scene<10;scene++){console.log(`Checking journey scene ${scene+1}/10`);solveJourneyScene(s,{perform});assert.ok(root.querySelector('.journey-message.good'));if(scene<9)perform({type:'next'});}
 assert.ok(root.querySelector('.journey-ending'));assert.equal(root.querySelectorAll('[data-j-scene-panel]').length,10);
+assert.equal(root.querySelectorAll('.journey-hearts span').length,8);assert.equal(root.querySelector('[data-j-exit]'),null);assert.match(root.querySelector('.journey-ending').textContent,/czas przejścia/);assert.ok(root.querySelector('.is-finished'));
 // Return to the first scene after the ending: the old log and pig remain depleted.
 click('[data-j-travel="0"]');assert.ok(root.querySelector('[data-j-node="pig"]').disabled);assert.ok(root.querySelector('[data-j-node="first-log"]').disabled);
 const {renderAlexJourney:fresh}=await import('../js/alexJourney.js?fresh-ui-test');fresh(root,{playerId},{});assert.ok(root.querySelector('[data-j-node="first-log"]').disabled);
+click('[data-j-travel="9"]');assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);assert.ok(root.querySelector('.journey-hearts'));
+const {renderAlexJourney:reloadEnding}=await import('../js/alexJourney.js?ending-reload-test');reloadEnding(root,{playerId},{});assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);
 click('[data-j-restart]');assert.match(root.querySelector('.journey-empty').textContent,/pusto/);assert.ok(!root.querySelector('[data-j-node="first-log"]').disabled);
 console.log('PASS: 10-scene UI, persistent world DOM, collection, shared inventory, crafting, smelting, construction, lighting, gate, ending, backtracking, reload and restart.');

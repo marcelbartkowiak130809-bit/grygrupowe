@@ -14,6 +14,20 @@ export const journeyScenes=[
  {id:'gate',name:'Brama na końcu szlaku',region:'REDSTONE',goal:'Połącz obwód, włącz bramę i przejdź dalej.',hint:'Redstone wydobędziesz żelaznym kilofem. Patyk nad brukiem daje dźwignię. Połącz brakujące odcinki i kliknij zamontowaną dźwignię.',biome:'gate',wires:[8,9,10,11],switch:7,nodes:[node('gate-redstone','redstone',4,5,{amount:4}),node('gate-log','log',2,5,{amount:1}),node('gate-stone','stone',3,5,{amount:1})],exit:14},
  {id:'alex',name:'Światło w oknie',region:'DOM ALEX',goal:'Zapal światło przy domu i przywitaj się z Alex.',hint:'Postaw pochodnię na słupku obok domu. Jeśli zabrakło materiałów, zajrzyj do przydomowej skrzynki i zbierz pień. Potem kliknij Alex.',biome:'sunset',nodes:[node('home-log','log',3,5,{amount:1}),node('home-cache','chest',5,5,{loot:{coal:1},optional:true}),node('lantern','lantern',10,4),node('alex','alex',12,5)],trees:[1,7],exit:14}
 ];
+// Keep the original route available for action-log saves made before the rebalance.
+// Fresh expeditions use a smaller stock and two environmental mechanisms.
+export function journeyScene(s,index=s.scene){
+ const original=journeyScenes[index];if(s.rulesVersion!==2)return original;
+ const omit={river:['river-log'],forge:['forge-log'],gate:['gate-log'],ridge:['ridge-cache']}[original.id]||[];
+ let nodes=original.nodes.filter(n=>!omit.includes(n.id)).map(n=>{
+  if(n.id==='camp-log')return {...n,amount:1};
+  if(n.id==='village-cache')return {...n,loot:{coal:1,bread:1}};
+  return n;
+ });
+ if(original.id==='river')return {...original,nodes:[...nodes,node('bridge-prop','prop',7)],goal:'Zwolnij podpartą kłodę, uzupełnij most i przejdź przez rzekę.',hint:'Kliknij patyk pod kłodą: pień opadnie na dwa pola rzeki. Pozostałe dwa uzupełnij deskami z craftingu. Potem kliknij strzałkę na drugim brzegu.'};
+ if(original.id==='village')return {...original,nodes:[...nodes,node('well-weight','stone',5,5,{amount:1}),node('well-pulley','pulley',7,4)],goal:'Obciąż linę, podnieś pokrywę studni i znajdź mapę.',hint:'Wydobądź kamień obok studni. Wybierz bruk z plecaka i kliknij mechanizm na linie: przeciwwaga podniesie pokrywę. Wtedy zajrzyj do studni.'};
+ return {...original,nodes};
+}
 export function baseJourneyTerrain(scene,x,y){
  if(scene.biome==='ridge')return y>=(x<8?6:x<=10?7:4)?(y===(x<8?6:x<=10?7:4)?'stone':'deepslate_tiles'):'';
  if(scene.gap?.includes(x))return y>=7?'water_still':'';
