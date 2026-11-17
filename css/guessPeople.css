@@ -50,7 +50,7 @@
 }
 .gp-face:hover { transform: translateY(-2px); }
 .gp-card-front, .gp-card-back { grid-area: 1 / 1; border-radius: 9px; backface-visibility: hidden; }
-.gp-card-front {
+.gp-card-front, .gp-card-back {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -60,24 +60,24 @@
   gap: 3px;
   box-shadow: 0 3px 0 #afa38f;
 }
-.gp-card-front img {
+.gp-face img {
   width: 100%;
   aspect-ratio: 1.06;
   object-fit: contain;
   background: #363347;
   border-radius: 6px;
 }
-.gp-card-front strong { font-size: clamp(10px, 1.2vw, 15px); line-height: 1.16; overflow-wrap: anywhere; }
-.gp-card-front small { font-size: 10px; color: #514861; margin: auto 0 1px; line-height: 1.1; }
+.gp-face strong { font-size: clamp(10px, 1.2vw, 15px); line-height: 1.16; overflow-wrap: anywhere; }
+.gp-face small { font-size: 10px; color: #514861; margin: auto 0 1px; line-height: 1.1; }
 .gp-card-back {
   transform: rotateX(180deg);
-  display: grid;
-  place-items: center;
-  background: repeating-linear-gradient(130deg,#322e4a 0 8px,#2a273d 8px 16px);
-  border: 1px solid #777093;
-  color: #bcb1de;
-  font-size: 25px;
+  background: #777681;
+  border-color: #777681;
+  color: #fff;
+  box-shadow: 0 3px 0 #565561;
 }
+.gp-card-back img { filter: grayscale(1) brightness(.68); }
+.gp-card-back small { color: #fff; }
 .gp-face.gp-flipped { transform: rotateX(180deg); }
 .gp-card:has(.gp-flipped) .gp-zoom { display: none; }
 .gp-guessing .gp-face:not(.gp-flipped) { outline: 2px solid #ffe090; }
@@ -139,8 +139,8 @@
   .gp-page { margin-top: 12px; }
   .gp-panel { padding: 10px; }
   .gp-grid, .gp-grid-large { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
-  .gp-card-front small { font-size: 8px; }
-  .gp-card-front { border-width: 2px; }
+  .gp-face small { font-size: 8px; }
+  .gp-card-front, .gp-card-back { border-width: 2px; }
   .gp-side { grid-template-columns: minmax(0, 1fr) 110px; gap: 6px; }
   .gp-secret button { display: grid; justify-items: center; padding: 5px; font-size: 11px; }
   .gp-toolbar { align-items: start; }

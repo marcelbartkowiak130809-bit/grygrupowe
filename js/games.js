@@ -30,7 +30,7 @@ import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults } from "./songSpot.js?v=20261117-10";
 import { renderPlaylistTournament } from "./playlistTournament.js?v=20261117-10";
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261117-11";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261117-12";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20260903-9";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
 import { renderAlexJourney } from './alexJourney.js?v=20261117-10';

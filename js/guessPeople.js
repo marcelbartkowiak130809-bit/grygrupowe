@@ -132,7 +132,7 @@ function localBoard(game, uid, target) {
   const key = JSON.stringify([game.matchId, uid, target]);
   if (!localBoards.has(key)) {
     if (localBoards.size >= 48) localBoards.delete(localBoards.keys().next().value);
-    localBoards.set(key, { flipped:new Set() });
+    localBoards.set(key, { flipped:new Set(), seenMisses:new Set() });
   }
   return localBoards.get(key);
 }
@@ -167,6 +167,11 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
   const ownCard = cards.get(game.secrets[currentUser]);
   const board = localBoard(game, currentUser, target);
   const wrong = new Set(game.wrongGuesses?.[`${currentUser}:${target}`] || []);
+  for (const id of wrong) {
+    if (board.seenMisses.has(id)) continue;
+    board.seenMisses.add(id);
+    board.flipped.add(id);
+  }
   const history = (game.history || []).filter(row => row.from === currentUser && row.to === target).reverse();
   const expected = {phase:game.phase,phaseEndsAt:game.phaseEndsAt};
   const send = (action, value) => actions.boardAction(action, value, expected);
@@ -180,10 +185,11 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
       <div class="gp-grid ${game.deck.length === 40 ? "gp-grid-large" : ""}">
         ${game.deck.map(id => {
           const card = cards.get(id);
+          const face = `${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><small>${escapeHtml(card[2])}</small>`;
           return `<article class="gp-card">
-            <button type="button" class="gp-face" data-gp-card="${id}" aria-label="${escapeHtml(card[1])}" aria-pressed="false">
-              <span class="gp-card-front">${cardPhoto(card)}<strong>${escapeHtml(card[1])}</strong><small>${escapeHtml(card[2])}</small></span>
-              <span class="gp-card-back" aria-hidden="true">?</span>
+            <button type="button" class="gp-face ${board.flipped.has(id) ? "gp-flipped" : ""}" data-gp-card="${id}" aria-label="${escapeHtml(card[1])}" aria-pressed="${board.flipped.has(id)}">
+              <span class="gp-card-front" aria-hidden="true">${face}</span>
+              <span class="gp-card-back" aria-hidden="true">${face}</span>
             </button>
             <button type="button" class="gp-zoom" data-gp-photo="${id}" aria-label="Powiększ zdjęcie: ${escapeHtml(card[1])}">⤢</button>
           </article>`;
@@ -207,21 +213,22 @@ export function renderGuessPeopleGame(root, {room, accounts, currentUser}, actio
   const update = () => {
     root.querySelectorAll("[data-gp-card]").forEach(button => {
       const id = button.dataset.gpCard;
-      const flipped = board.flipped.has(id) || wrong.has(id);
+      const flipped = board.flipped.has(id);
       button.classList.toggle("gp-flipped", flipped);
       button.setAttribute("aria-pressed", String(flipped));
-      button.disabled = wrong.has(id);
+      button.disabled = toggle.checked && wrong.has(id);
     });
-    const remaining = game.deck.filter(id => !board.flipped.has(id) && !wrong.has(id)).length;
+    const remaining = game.deck.length - board.flipped.size;
     root.querySelector("[data-gp-count]").textContent = `${remaining} z ${game.deck.length} odkrytych kart`;
   };
-  update();
   const toggle = root.querySelector("[data-gp-guess]");
+  update();
   toggle.onchange = () => {
     root.querySelector("[data-gp-help]").textContent = toggle.checked
       ? "Wybierz osobę i potwierdź typ. Pomyłka kończy turę."
       : "Kliknij kartę, by ją odwrócić. Kliknij ponownie, by ją przywrócić.";
     root.querySelector(".gp-table").classList.toggle("gp-guessing", toggle.checked);
+    update();
   };
   const dialog = root.querySelector("[data-gp-dialog]");
   const showPhoto = (card, guess = false) => {
