@@ -2,6 +2,7 @@
 // npm install --prefix <temp-dir> --no-save --package-lock=false linkedom
 // BACKPACK_DOM_MODULE=<temp-dir>/node_modules/linkedom/esm/index.js node scripts/verifyBackpackUI.mjs
 import assert from 'node:assert/strict';
+import {solveExpedition} from './backpackExpeditionSolutions.mjs';
 import {pathToFileURL} from 'node:url';
 const {parseHTML}=await import(pathToFileURL(process.env.BACKPACK_DOM_MODULE).href);
 const {window}=parseHTML('<html><body><div id="root"></div></body></html>');
@@ -59,7 +60,9 @@ put(11,'tnt');assert.ok(root.querySelector('.puzzle-blast'));put(11,'flint_and_s
 for(const i of [9,17,25])put(i,'lever');tile(17);click('[data-bp-next]');
 for(const i of [10,11,12,18,19,20,26,27,28])put(i,'iron_block');pattern([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');pattern(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');assert.ok(root.querySelector('.puzzle-beam'));click('[data-bp-next]');
 for(const i of [1,2,3,4,5,9,13,17,21,25,29,33,34,35,36,37])put(i,'prismarine');pattern(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');
-assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);click('[data-bp-next]');assert.match(root.textContent,/Wszystkie przeszkody pokonane/);assert.match(root.textContent,/20\/20/);assert.ok(stored.size);
+click('[data-bp-next]');
+for(let level=20;level<30;level++){assert.equal(root.querySelectorAll('.backpack-chapters span').length,30);solveExpedition(level,{put,craft:pattern});assert.ok(root.querySelector('[data-bp-next]'));if(level<29)click('[data-bp-next]');}
+assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);click('[data-bp-next]');assert.match(root.textContent,/Wszystkie przeszkody pokonane/);assert.match(root.textContent,/30\/30/);assert.ok(stored.size);
 // A fresh module/session reconstructs the completed game from storage.
 const {renderLastBackpack:fresh}=await import('../js/lastBackpack.js?restore-component-test');fresh(root,context,{});assert.ok(root.querySelector('.backpack-finish'));
 // Touch drag path: one item is consumed once, and a cancelled gesture consumes none.
@@ -71,4 +74,4 @@ assert.equal(root.querySelector('[data-bp-item="cobblestone"]').dataset.suppress
 root.querySelector('[data-bp-item="cobblestone"]').click();assert.ok(!root.querySelector('[data-bp-item="cobblestone"]').dataset.suppressClick);
 const c=root.querySelector('[data-bp-item="cobblestone"]');c.setPointerCapture=()=>{};c.onpointerdown({pointerType:'touch',pointerId:2,clientX:10,clientY:10});c.onpointermove({pointerId:2,clientX:50,clientY:50,preventDefault(){}});c.onpointercancel({type:'pointercancel'});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
-console.log('PASS: full twenty-stage UI, all seventeen added mechanics, crafting, mouse drag/drop, touch drag/cancel, undo, selection stability, save/reload, restart.');
+console.log('PASS: full thirty-stage UI, all twenty-seven added mechanics, crafting, mouse drag/drop, touch drag/cancel, undo, selection stability, save/reload, restart.');

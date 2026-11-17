@@ -9,7 +9,7 @@ for(let level=3;level<backpackLevels.length;level++)test(`new challenge ${level+
  const s=createBackpackState();s.level=level;s.stock={...backpackLevels[level].stock};solveBackpackLevel(s);assert.equal(backpackProgress(s).current,backpackProgress(s).total);for(const count of Object.values(s.stock))assert.ok(count>=0);
 });
 test('whole campaign replays every action, including new mechanics and undo, after reload',()=>{
- let s=createBackpackState();assert.equal(backpackLevels.length,20);
+ let s=createBackpackState();assert.equal(backpackLevels.length,30);
  for(let level=0;level<backpackLevels.length;level++){
   assert.equal(s.level,level);solveBackpackLevel(s);const solvedStock={...s.stock};action(s,{type:'undo'});assert.equal(s.solved,false);
   s=restoreBackpack(saveBackpack(s));assert.equal(s.level,level);
@@ -17,7 +17,7 @@ test('whole campaign replays every action, including new mechanics and undo, aft
   const last=s.log.slice(0,-1).at(-1);assert.ok(action(s,last));assert.ok(s.solved);assert.deepEqual(s.stock,solvedStock);
   action(s,{type:'next'});s=restoreBackpack(saveBackpack(s));
  }
- assert.ok(s.done);assert.equal(s.level,20);
+ assert.ok(s.done);assert.equal(s.level,30);
 });
 test('legacy completed three-level saves continue at the first new puzzle',()=>{
  const s=createBackpackState();for(let i=0;i<3;i++){solveBackpackLevel(s);action(s,{type:'next'});}

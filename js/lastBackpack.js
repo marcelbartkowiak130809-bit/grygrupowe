@@ -1,7 +1,7 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
-import {backpackItems,backpackLevels,backpackTerrain,backpackRecipe,createBackpackState,backpackAction,backpackLight,backpackProgress,restoreBackpack,saveBackpack} from './lastBackpackEngine.js?v=20261117-6';
-import {patchBackpackView,backpackFeedback} from './backpackMotion.js?v=20261117-6';
-import {extraTile,puzzleItems} from './backpackPuzzles.js?v=20261117-6';
+import {backpackItems,backpackLevels,backpackTerrain,backpackRecipe,createBackpackState,backpackAction,backpackLight,backpackProgress,restoreBackpack,saveBackpack} from './lastBackpackEngine.js?v=20261117-7';
+import {patchBackpackView,backpackFeedback} from './backpackMotion.js?v=20261117-7';
+import {extraTile,puzzleItems} from './backpackPuzzles.js?v=20261117-7';
 const asset=id=>`./assets/minecraft/backpack/${id}.png`;
 const img=(id,label='',className='')=>`<img src="${asset(id)}" alt="${escapeHtml(label)}" class="${className}" draggable="false">`;
 const sessions=new Map();

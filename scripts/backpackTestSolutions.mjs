@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {solveExpedition} from './backpackExpeditionSolutions.mjs';
 import {backpackAction as action,backpackRecipe,backpackLevels} from '../js/lastBackpackEngine.js';
 export function solveBackpackLevel(s){
  const put=(index,item)=>{assert.ok(action(s,{type:'place',index,item}));};
@@ -26,7 +27,7 @@ export function solveBackpackLevel(s){
   case 17:for(const i of [9,17,25])put(i,'lever');put(17);break;
   case 18:for(const i of backpackLevels[18].base)put(i,'iron_block');craft([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');craft(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');break;
   case 19:for(const i of backpackLevels[19].frame)put(i,'prismarine');craft(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');break;
-  default:throw Error('No solution for stage '+s.level);
+  default:solveExpedition(s.level,{put,craft});
  }
  assert.ok(s.solved,`Stage ${s.level}: ${s.message}`);
 }

@@ -41,6 +41,7 @@ export function backpackFeedback(root,action,before,state){
   backpackAnimate(root.querySelector(`[data-bp-item="${state.selected}"]`),[{transform:'scale(.85)',boxShadow:'0 0 0 0 #d0ff91'},{transform:'scale(1.1)',boxShadow:'0 0 24px 6px #d0ff9166'},{transform:'scale(1)',boxShadow:'0 0 0 0 #d0ff9100'}],{duration:420});
  }else if(action.type==='undo'||action.type==='clear'||action.type==='remove')backpackAnimate(root.querySelector('.backpack-inventory'),[{opacity:.5,transform:'translateY(3px)'},{opacity:1,transform:'translateY(0)'}]);
  else if(action.type==='place'&&before.on===state.on)backpackAnimate(tile,[{transform:'translateX(0)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:180});
+ if(action.type==='place'&&before.puzzle!==JSON.stringify(state.puzzle))backpackAnimate(root.querySelector('.puzzle-cargo img'),[{opacity:.35,transform:'scale(.8)'},{opacity:1,transform:'scale(1)'}],{duration:220});
  if(!before.solved&&state.solved){
   backpackAnimate(root.querySelector('.backpack-world'),[{boxShadow:'0 0 0 0 #b8f28400'},{boxShadow:'0 0 45px 4px #b8f28466'},{boxShadow:'0 0 30px 0 #b4e98022'}],{duration:650});
   backpackAnimate(root.querySelector('.backpack-next'),[{opacity:0,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:280});
