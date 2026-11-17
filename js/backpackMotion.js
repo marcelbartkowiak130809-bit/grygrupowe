@@ -30,11 +30,12 @@ export function backpackFeedback(root,action,before,state){
  if(action.type==='next'){
   backpackAnimate(root.querySelector('.backpack-shell,.backpack-finish'),[{opacity:.3,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:360});return;
  }
- const tile=root.querySelector(`[data-bp-tile="${action.index}"]`),slot=root.querySelector(`[data-bp-craft-slot="${action.index}"]`);
+ const changed=action.type==='place'?Object.keys(state.placed).find(i=>before.placed[i]!==state.placed[i]):undefined;
+ const tile=root.querySelector(`[data-bp-tile="${changed??action.index}"]`),slot=root.querySelector(`[data-bp-craft-slot="${action.index}"]`);
  if(action.type==='select')backpackAnimate(root.querySelector(`[data-bp-item="${state.selected}"]`),[{transform:'scale(.94)'},{transform:'scale(1.06)'},{transform:'scale(1)'}]);
- else if(action.type==='place'&&before.placed[action.index]!==state.placed[action.index]){
+ else if(action.type==='place'&&(changed!==undefined||before.puzzle!==JSON.stringify(state.puzzle))){
   backpackAnimate(tile,[{transform:'translateY(-9px) scale(.82)',opacity:.5},{transform:'translateY(1px) scale(1.06)',opacity:1,offset:.7},{transform:'translateY(0) scale(1)'}],{duration:270});
-  const item=state.placed[action.index];backpackAnimate(root.querySelector(`[data-bp-item="${item}"] b`),[{transform:'translateY(-5px)',opacity:.2},{transform:'translateY(0)',opacity:1}]);
+  const item=state.placed[changed??action.index];backpackAnimate(root.querySelector(`[data-bp-item="${item}"] b`),[{transform:'translateY(-5px)',opacity:.2},{transform:'translateY(0)',opacity:1}]);
  }else if(action.type==='craft-slot')backpackAnimate(slot,[{transform:'scale(.84)'},{transform:'scale(1.08)'},{transform:'scale(1)'}]);
  else if(action.type==='craft'&&before.moves!==state.moves){
   backpackAnimate(root.querySelector(`[data-bp-item="${state.selected}"]`),[{transform:'scale(.85)',boxShadow:'0 0 0 0 #d0ff91'},{transform:'scale(1.1)',boxShadow:'0 0 24px 6px #d0ff9166'},{transform:'scale(1)',boxShadow:'0 0 0 0 #d0ff9100'}],{duration:420});

@@ -1,12 +1,12 @@
 import { escapeHtml } from './utils.js?v=20260903-7';
-import { Audio } from './audio.js?v=20261117-4';
-import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261117-4';
-import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-4';
-import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261117-4';
-import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261117-4';
+import { Audio } from './audio.js?v=20261117-5';
+import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261117-5';
+import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-5';
+import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261117-5';
+import { bindTournamentSharing, formatTournamentDuration } from './tournamentShare.js?v=20261117-5';
 
 import { cupSizes, cupPreviewTimes, cupSettings, cupEstimate, randomCupTracks } from './musicCupSettings.js?v=20261013-1';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261117-4';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261117-5';
 
 let cleanup = () => {};
 export function confirmTournamentExit(state, ask = message => window.confirm(message)) {

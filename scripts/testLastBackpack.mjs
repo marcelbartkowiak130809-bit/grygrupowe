@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {backpackAction as action,createBackpackState,backpackRecipe,backpackLevels,restoreBackpack,saveBackpack,backpackProgress,backpackLight} from '../js/lastBackpackEngine.js';
 import {isCategoryModeReleased,categoryModeProgress,categoryModesRemaining} from '../js/categoryVoting.js';
 const craft=(s,a,b)=>{action(s,{type:'craft-slot',index:0,item:a});if(b)action(s,{type:'craft-slot',index:3,item:b});assert.ok(backpackRecipe(s.grid));action(s,{type:'craft'});};
-test('three interactive challenges can be completed with available resources',()=>{
+test('original three interactive challenges lead into the expanded campaign',()=>{
  const s=createBackpackState();
  assert.equal(action(s,{type:'next'}),false);
  for(const index of [18,19,20,21])action(s,{type:'place',index,item:'cobblestone'});
@@ -15,7 +15,7 @@ test('three interactive challenges can be completed with available resources',()
  craft(s,'oak_planks','oak_planks');craft(s,'stick','cobblestone');
  action(s,{type:'place',index:17,item:'lever'});for(const index of [18,19,20,21])action(s,{type:'place',index,item:'redstone'});
  assert.equal(s.solved,false);action(s,{type:'place',index:17});assert.ok(s.solved);action(s,{type:'next'});
- assert.ok(s.done&&s.finishedAt>=s.startedAt);assert.equal(action(s,{type:'place',index:0}),false);
+ assert.equal(s.level,3);assert.equal(s.done,false);assert.equal(backpackLevels[s.level].kind,'farm');
 });
 test('crafting uses real shaped recipes and conserves ingredients on refunds and invalid actions',()=>{
  const s=createBackpackState();craft(s,'oak_log');assert.equal(s.stock.oak_planks,4);
