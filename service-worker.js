@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.5.4-20261117-ten-backpack-puzzles";
+const CACHE_NAME = "grygrupowe-shell-v5.5.5-20261117-twenty-backpack-puzzles";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {

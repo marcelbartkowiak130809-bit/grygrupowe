@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-5";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-6";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -22,7 +22,7 @@ function buildChangelogEntries(now = Date.now()) {
     {
       version:"v5.5.0",date:"2026-11-17",title:"Pierwszy Minecraft: Ostatni plecak",
       changes:[
-        "Odblokowano Ostatni plecak: 10 graficznych łamigłówek solo — most, kopalnia, redstone, uprawa, kolej, grawitacja, wytop, biblioteczki, portal i droga po diament.",
+        "Odblokowano Ostatni plecak: 20 graficznych łamigłówek solo — od mostu, kopalni i portalu po łucznictwo, miód, alchemię, transport lejami, TNT, logiczne lampy i podwodną świątynię.",
         "Oryginalne tekstury Minecraft Java 1.21.4, ekwipunek, przeciąganie przedmiotów i crafting 3×3 zamiast quizu tekstowego.",
         "Dodano cofanie ruchów, odzyskiwanie składników, zapis postępu na urządzeniu oraz sterowanie dotykiem i klawiaturą.",
         "Na stronie głównej pojawiło się wejście do pierwszego odblokowanego trybu Minecraft. Pozostałe tryby nadal czekają na głosowanie."

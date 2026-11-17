@@ -1,13 +1,13 @@
-import { musicRegionOptions, musicRegionPicker } from "./music.js?v=20261117-5";
-import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261117-5';
-import { musicArtworkUrl } from './musicArtwork.js?v=20261117-5';
-import { Audio } from "./audio.js?v=20261117-5";
+import { musicRegionOptions, musicRegionPicker } from "./music.js?v=20261117-6";
+import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261117-6';
+import { musicArtworkUrl } from './musicArtwork.js?v=20261117-6';
+import { Audio } from "./audio.js?v=20261117-6";
 import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
 let disposeSongSpotSharing = () => {};
 export function stopSongSpotSharing() { disposeSongSpotSharing(); disposeSongSpotSharing = () => {}; }
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261117-5';
-import { songSpotLevels, songSpotTier, songSpotRoundTier, songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-5';
+import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261117-6';
+import { songSpotLevels, songSpotTier, songSpotRoundTier, songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-6';
 
 export const songSpotDifficulties = [
   { id: "easy", label: "Łatwy", seconds: 0.1, accent: "#22c55e" },

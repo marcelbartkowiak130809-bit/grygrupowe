@@ -45,5 +45,9 @@
 .backpack-tile.puzzle-target:after{content:'';position:absolute;inset:2px;border:1px dashed #daedb879;pointer-events:none;z-index:2}.backpack-tile.has-item.puzzle-target:after{border-style:solid;border-color:#c0e49544}
 .backpack-world.rail .backpack-tile img[src$="rail.png"]{transform:rotate(90deg)}.backpack-world.rail.powered img[src$="powered_rail.png"]{filter:drop-shadow(0 0 6px #ff6c20)}
 .backpack-world.library .backpack-tile img[src$="enchanted_book.png"]{filter:drop-shadow(0 0 9px #e78aff)}
-.backpack-chapters{gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:305px}.backpack-chapters span{width:25px;height:28px;flex:none}
-@media(max-width:760px){.backpack-mission{flex-wrap:wrap}.backpack-chapters{max-width:none;width:100%;justify-content:space-between;gap:3px}.backpack-chapters span{width:22px;height:24px}.backpack-puzzle-label{font-size:5px;letter-spacing:0}}
+.backpack-chapters{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;width:286px;flex:none}.backpack-chapters span{width:100%;height:28px}
+@media(max-width:760px){.backpack-mission{flex-wrap:wrap}.backpack-chapters{max-width:none;width:100%;gap:3px}.backpack-chapters span{width:100%;height:24px}.backpack-puzzle-label{font-size:5px;letter-spacing:0}}
+.backpack-tile.puzzle-blast{box-shadow:inset 0 0 0 2px #ffac426e}
+.backpack-tile.puzzle-danger{box-shadow:inset 0 0 0 3px #ff4c64}
+.backpack-tile.puzzle-beam{box-shadow:inset 0 0 20px #56cfff,0 0 24px #56cfff88;z-index:1}
+.backpack-tile.puzzle-beam:after{content:'';position:absolute;inset:0 35%;background:linear-gradient(0deg,#5bbcffaa,#e0f7ff88);pointer-events:none}

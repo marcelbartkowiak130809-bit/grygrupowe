@@ -48,7 +48,18 @@ for(let i=0;i<3;i++)put(10,'iron_ore');put(26,'coal');tile(18);pattern([[0,'iron
 for(const i of [1,3,5,33])put(i,'bookshelf');put(19,'lapis_lazuli');put(19,'book');click('[data-bp-next]');
 for(const i of [2,3,9,12,17,20,25,28,34,35])put(i,'obsidian');pattern([[0,'flint'],[8,'iron_ingot']]);put(10,'flint_and_steel');click('[data-bp-next]');
 pattern([[0,'oak_log']]);pattern([[0,'oak_log']]);craft('oak_planks','oak_planks');pick('oak_planks');for(const i of [9,17,25])put(i,'wooden_pickaxe');pick('cobblestone');for(const i of [11,19,27])put(i,'stone_pickaxe');for(let i=0;i<3;i++)put(14,'iron_ore');put(30,'coal');tile(22);craft('oak_planks','oak_planks');pick('iron_ingot');put(21,'iron_pickaxe');
-assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);click('[data-bp-next]');assert.match(root.textContent,/Wszystkie przeszkody pokonane/);assert.match(root.textContent,/10\/10/);assert.ok(stored.size);
+click('[data-bp-next]');
+craft('oak_planks','oak_planks');pattern([[1,'stick'],[3,'stick'],[7,'stick'],[2,'string'],[5,'string'],[8,'string']]);pattern([[0,'flint'],[3,'stick'],[6,'feather']]);for(const i of [10,20,30])put(i,'arrow');click('[data-bp-next]');
+for(const i of [18,21])put(i,'campfire');for(const i of [10,13])put(i,'glass_bottle');click('[data-bp-next]');
+put(17,'sponge');put(36,'coal');put(35,'wet_sponge');tile(35);put(21,'sponge');click('[data-bp-next]');
+for(const i of [10,11,19,27,28,29])put(i,'hopper');tile(11);tile(19);put(9,'iron_ingot');click('[data-bp-next]');
+put(10,'glass_bottle');put(21,'blaze_powder');put(21,'potion');put(21,'nether_wart');pattern(Array.from({length:9},(_,i)=>[i,i===4?'melon_slice':'gold_nugget']));put(21,'glistering_melon_slice');click('[data-bp-next]');
+for(const i of [18,19,20,27])put(i,'iron_block');put(11,'carved_pumpkin');click('[data-bp-next]');
+put(11,'tnt');assert.ok(root.querySelector('.puzzle-blast'));put(11,'flint_and_steel');click('[data-bp-next]');
+for(const i of [9,17,25])put(i,'lever');tile(17);click('[data-bp-next]');
+for(const i of [10,11,12,18,19,20,26,27,28])put(i,'iron_block');pattern([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');pattern(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');assert.ok(root.querySelector('.puzzle-beam'));click('[data-bp-next]');
+for(const i of [1,2,3,4,5,9,13,17,21,25,29,33,34,35,36,37])put(i,'prismarine');pattern(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');
+assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);click('[data-bp-next]');assert.match(root.textContent,/Wszystkie przeszkody pokonane/);assert.match(root.textContent,/20\/20/);assert.ok(stored.size);
 // A fresh module/session reconstructs the completed game from storage.
 const {renderLastBackpack:fresh}=await import('../js/lastBackpack.js?restore-component-test');fresh(root,context,{});assert.ok(root.querySelector('.backpack-finish'));
 // Touch drag path: one item is consumed once, and a cancelled gesture consumes none.
@@ -60,4 +71,4 @@ assert.equal(root.querySelector('[data-bp-item="cobblestone"]').dataset.suppress
 root.querySelector('[data-bp-item="cobblestone"]').click();assert.ok(!root.querySelector('[data-bp-item="cobblestone"]').dataset.suppressClick);
 const c=root.querySelector('[data-bp-item="cobblestone"]');c.setPointerCapture=()=>{};c.onpointerdown({pointerType:'touch',pointerId:2,clientX:10,clientY:10});c.onpointermove({pointerId:2,clientX:50,clientY:50,preventDefault(){}});c.onpointercancel({type:'pointercancel'});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
-console.log('PASS: full ten-stage UI, all seven new mechanics, crafting, mouse drag/drop, touch drag/cancel, undo, selection stability, save/reload, restart.');
+console.log('PASS: full twenty-stage UI, all seventeen added mechanics, crafting, mouse drag/drop, touch drag/cancel, undo, selection stability, save/reload, restart.');

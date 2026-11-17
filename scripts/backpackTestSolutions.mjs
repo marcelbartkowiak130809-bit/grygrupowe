@@ -16,6 +16,16 @@ export function solveBackpackLevel(s){
   case 7:for(const i of [1,3,5,33])put(i,'bookshelf');put(19,'lapis_lazuli');put(19,'book');break;
   case 8:for(const i of backpackLevels[8].frame)put(i,'obsidian');craft([[0,'flint'],[8,'iron_ingot']]);put(10,'flint_and_steel');break;
   case 9:craft([[0,'oak_log']]);craft([[0,'oak_log']]);sticks();pick('oak_planks');for(const i of [9,17,25])put(i,'wooden_pickaxe');pick('cobblestone');for(const i of [11,19,27])put(i,'stone_pickaxe');for(let j=0;j<3;j++)put(14,'iron_ore');put(30,'coal');put(22);sticks();pick('iron_ingot');put(21,'iron_pickaxe');break;
+  case 10:sticks();craft([[1,'stick'],[3,'stick'],[7,'stick'],[2,'string'],[5,'string'],[8,'string']]);craft([[0,'flint'],[3,'stick'],[6,'feather']]);for(const i of [10,20,30])put(i,'arrow');break;
+  case 11:for(const i of [18,21])put(i,'campfire');for(const i of [10,13])put(i,'glass_bottle');break;
+  case 12:put(17,'sponge');put(36,'coal');put(35,'wet_sponge');put(35);put(21,'sponge');break;
+  case 13:for(const i of [10,11,19,27,28,29])put(i,'hopper');put(11);put(19);put(9,'iron_ingot');break;
+  case 14:put(10,'glass_bottle');put(21,'blaze_powder');put(21,'potion');put(21,'nether_wart');craft(Array.from({length:9},(_,i)=>[i,i===4?'melon_slice':'gold_nugget']));put(21,'glistering_melon_slice');break;
+  case 15:for(const i of [18,19,20,27])put(i,'iron_block');put(11,'carved_pumpkin');break;
+  case 16:put(11,'tnt');put(11,'flint_and_steel');break;
+  case 17:for(const i of [9,17,25])put(i,'lever');put(17);break;
+  case 18:for(const i of backpackLevels[18].base)put(i,'iron_block');craft([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');craft(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');break;
+  case 19:for(const i of backpackLevels[19].frame)put(i,'prismarine');craft(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');break;
   default:throw Error('No solution for stage '+s.level);
  }
  assert.ok(s.solved,`Stage ${s.level}: ${s.message}`);

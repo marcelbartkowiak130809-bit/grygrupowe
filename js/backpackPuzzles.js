@@ -1,5 +1,6 @@
-// Seven handcrafted additions. Each has its own resource budget and goal checks.
-export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament'};
+import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe,advancedProgress,advancedPlace} from './backpackAdvancedPuzzles.js?v=20261117-6';
+// Handcrafted additions with independent resource budgets and goal checks.
+export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament',...advancedItems};
 const decoys={feather:2,string:3,rotten_flesh:2};
 export const extraBackpackLevels=[
  {kind:'farm',theme:'farm',name:'Ostatnie nasiona',goal:'Nawodnij grządki, spulchnij ziemię i posadź trzy ziarna.',tip:'Woda w kamiennej sadzawce nawodni grządki. Użyj motyki, dopiero potem nasion. Motyka: 2 deski w górnym rzędzie i 2 patyki pod jedną z nich.',stock:{oak_planks:4,water_bucket:1,wheat_seeds:3,...decoys},outputs:['stick','wooden_hoe','bucket'],plots:[18,20,22],pool:12},
@@ -9,9 +10,11 @@ export const extraBackpackLevels=[
  {kind:'library',theme:'library',name:'Czytelnia zaklęć',goal:'Ustaw cztery biblioteczki, dodaj lazuryt i zaklnij książkę.',tip:'Biblioteczki muszą stać dwa pola od stołu (również po skosie). Pole pomiędzy stołem a każdą biblioteczką musi zostać puste. Do stołu dodaj 1 lazuryt i książkę. To prosta łamigłówka, nie zaklęcie na poziomie 30.',stock:{bookshelf:4,book:1,lapis_lazuli:1,...decoys},table:19},
  {kind:'portal',theme:'portal',name:'Dziesięć sztuk obsydianu',goal:'Zbuduj minimalną ramę portalu i zapal jej wnętrze.',tip:'Narożniki nie są potrzebne: 2 bloki u góry, 2 u dołu i po 3 z każdej strony. Krzemień i sztabka żelaza w craftingu dają krzesiwo. Nie wypełniaj wnętrza obsydianem.',stock:{obsidian:10,flint:1,iron_ingot:1,gravel:3,...decoys},outputs:['flint_and_steel'],frame:[2,3,9,12,17,20,25,28,34,35],inside:[10,11,18,19,26,27]},
  {kind:'mine',theme:'mine',name:'Droga po diament',goal:'Zdobądź diament, stopniowo ulepszając kilof.',tip:'Najpierw zrób drewniany kilof i wydobądź 3 kamienie. Z bruku zrób kamienny kilof, wydobądź 3 rudy żelaza i wytop je w piecu (ruda na górnym polu, węgiel na dolnym). Żelazny kilof dopiero poradzi sobie z diamentem. Kilof: 3 materiały w górnym rzędzie i 2 patyki pod środkiem.',stock:{oak_log:2,coal:1,...decoys},outputs:['oak_planks','stick','wooden_pickaxe','cobblestone','stone_pickaxe','iron_ore','iron_ingot','iron_pickaxe'],stones:[9,17,25],ores:[11,19,27],diamond:21,ore:14,fuel:30,furnace:22}
+ ,...advancedLevels
 ];
 const x=i=>i%8,y=i=>Math.floor(i/8),distance=(a,b)=>Math.max(Math.abs(x(a)-x(b)),Math.abs(y(a)-y(b)));
 export function extraTerrain(level,i,s){
+ if(level.advanced)return advancedTerrain(level,i,s);
  if(level.kind==='farm')return i===level.pool?(s.puzzle.water?'water_still':'stone_bricks'):level.plots.includes(i)?(s.puzzle.tilled?.includes(i)?'farmland_moist':'dirt'):'moss_block';
  if(level.kind==='gravity')return level.columns.includes(x(i))&&y(i)>=level.top&&y(i)<=level.bottom?'blackstone':'stone';
  if(level.kind==='forge')return i===level.water&&!s.puzzle.drained?'water_still':'stone_bricks';
@@ -21,6 +24,7 @@ export function extraTerrain(level,i,s){
  return 'stone_bricks';
 }
 export function extraTile(level,i,s){
+ if(level.advanced)return advancedTile(level,i,s);
  let icon='',label='',mark=false;
  if(level.kind==='farm'){mark=level.plots.includes(i);label=mark?'GRZĄDKA':i===level.pool?'WODA':'';if(s.puzzle.planted?.includes(i))icon='wheat_stage3';}
  if(level.kind==='rail'){mark=level.route.includes(i)||i===level.source;label=i===level.source?'ZASILANIE':i===level.start?'START':i===level.end?'META':'';if(i===level.start)icon='rail';if(s.solved&&i===level.end)icon='minecart';}
@@ -32,6 +36,7 @@ export function extraTile(level,i,s){
  return {icon,label,mark,surface:level.kind==='gravity'||level.kind==='portal'||level.kind==='library'};
 }
 export function extraRecipe(grid){
+ const advanced=advancedRecipe(grid);if(advanced)return advanced;
  const cells=grid.map((item,i)=>({item,x:i%3,y:Math.floor(i/3)})).filter(c=>c.item);if(!cells.length)return null;
  const minX=Math.min(...cells.map(c=>c.x)),minY=Math.min(...cells.map(c=>c.y));
  const shape=cells.map(c=>`${c.x-minX},${c.y-minY}:${c.item}`).sort().join('|');
@@ -45,7 +50,7 @@ export function extraRecipe(grid){
  if(cells.length===2&&cells.some(c=>c.item==='flint')&&cells.some(c=>c.item==='iron_ingot'))return {item:'flint_and_steel',count:1};
  return null;
 }
-export function extraProgress(l,s){const p=s.puzzle;
+export function extraProgress(l,s){if(l.advanced)return advancedProgress(l,s);const p=s.puzzle;
  if(l.kind==='farm')return {current:(p.planted||[]).length,total:3,label:'obsiane grządki'};
  if(l.kind==='rail')return {current:l.gaps.filter(i=>s.placed[i]===(i===l.power?'powered_rail':'rail')).length+(s.placed[l.source]==='redstone_torch'?1:0)+(s.solved?1:0),total:7,label:'elementy trasy'};
  if(l.kind==='gravity')return {current:l.columns.filter(col=>s.placed[l.top*8+col]).length,total:3,label:'wyrównane słupki'};
@@ -55,6 +60,7 @@ export function extraProgress(l,s){const p=s.puzzle;
  return {current:(p.mined||[]).length+(p.smelted?1:0),total:8,label:'etapy wydobycia'};
 }
 export function extraPlace(s,l,i,item){
+ if(l.advanced)return advancedPlace(s,l,i,item);
  const p=s.puzzle,has=id=>(s.stock[id]||0)>0;
  const take=id=>{s.stock[id]--;s.used++;};const give=(id,n=1)=>s.stock[id]=(s.stock[id]||0)+n;
  const place=(id,index=i)=>{if(s.placed[index]||!has(id))return false;take(id);s.placed[index]=id;return true;};
