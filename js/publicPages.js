@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20261114-1";
+import { gamesList } from "./games.js?v=20261117-1";
 import { escapeHtml } from "./utils.js?v=20260822-1";
 
 const ADSENSE_CLIENT = "ca-pub-4038439845706886";

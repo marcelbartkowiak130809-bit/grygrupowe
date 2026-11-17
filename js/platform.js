@@ -1,12 +1,12 @@
-import { gamesList } from "./games.js?v=20261114-1";
-import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261013-2';
+import { gamesList } from "./games.js?v=20261117-1";
+import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261117-1';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
-import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261114-1";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261114-1";
+import { categoryForMode, categoryModeProgress, categoryVoteCategories, loadCategoryVotingView, voteCategory } from "./categoryVoting.js?v=20261117-1";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-1";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261114-1";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261114-1";
+import { formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261117-1";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-1";
 import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
 
 const filters = [
@@ -175,6 +175,7 @@ function badgeTag(type) {
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const newModeIcons = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", "unique-answer":"🧩", "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️", songspot:"🎧", "board-chinczyk":"🎲", "board-slowotwor":"🔤", "board-statki":"🚢", "board-reversi":"⚫", "board-warcaby":"♟️", "board-cztery":"🔴", "board-memory":"🧠", "board-domino":"🁫" };
 function visualSymbol(mode) {
+  if(mode.id==='minecraft-backpack')return '<img class="mode-minecraft-symbol" src="./assets/minecraft/backpack/diamond.png" alt="Ostatni plecak" loading="lazy">';
   if (mode.audience === "minecraft" && minecraftModeIcons[mode.id]) return `<img class="mode-minecraft-symbol" src="${minecraftModeIcons[mode.id]}" alt="Minecraft" loading="lazy" decoding="async">`;
   if (newModeIcons[mode.id]) return newModeIcons[mode.id];
   const item = pokemonDex.find(pokemon => pokemon.id === pokemonCardIds[mode.id]);
@@ -191,7 +192,7 @@ function boardHubCard() {
 }
 
 function minecraftHubCard() {
-  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Sześć dynamicznych trybów: pytania, crafting, moby, biomy, ciekawostki i redstone.</p><div class="game-card-activity"><span>6 trybów</span><span>OD EASY DO EKSPERTA</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Nowy Ostatni plecak: budowanie i crafting na planszy. Pozostałe quizy i wyzwania czekają na odblokowanie.</p><div class="game-card-activity"><span>7 trybów</span><span>OSTATNI PLECAK JUŻ DOSTĘPNY</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
 function musicHubCard() {
@@ -381,6 +382,7 @@ export async function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? await pollStateOnline(visiblePoll(), context.voterId || "anonymous") : null;
   const categoryVote = await loadCategoryVotingView(context.voterId || "anonymous");
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
+    <section class="backpack-release" aria-label="Pierwszy tryb Minecraft odblokowany"><img src="./assets/minecraft/backpack/diamond.png" alt="Diament Minecraft"><div><p class="eyebrow">PIERWSZY TRYB MINECRAFT ODBLOKOWANY</p><h2>Ostatni plecak</h2><p>Buduj, craftuj i pokonuj przeszkody. Przeciągaj prawdziwe minecraftowe przedmioty.</p></div><button class="primary" data-unlock-mode="minecraft-backpack">Zagraj teraz →</button></section>
     ${homeMenuHtml(gamesList,isModeLocked)}
     <section class="platform-hero">
       <div>
@@ -453,7 +455,7 @@ export async function renderPlatform(root, actions, context = {}) {
     event.preventDefault();
     actions.selectGame(event.currentTarget.dataset.openCategoryMode);
   });
-  root.querySelector("[data-unlock-mode]")?.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode));
+  root.querySelectorAll("[data-unlock-mode]").forEach(button=>button.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode)));
   root.querySelector("[data-pokemon-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goPokemonModes(); });
   root.querySelector("[data-open-pokemon]")?.addEventListener("click", actions.goPokemonModes);
   root.querySelector("[data-board-hub]")?.addEventListener("click", event => { if (!event.target.closest("button")) actions.goBoardModes(); });

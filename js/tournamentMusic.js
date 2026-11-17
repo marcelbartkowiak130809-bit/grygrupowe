@@ -1,10 +1,10 @@
-import {musicPreviewCatalog} from './music.js?v=20261114-1';
-import {tournamentExtraTracks} from './tournamentExtraMusic.js?v=20261114-1';
-import {cupTrackKey} from './tournamentMusicKey.js?v=20261114-1';
-import {expandedSongMetadata} from './expandedSongMetadata.js?v=20261114-1';
-import {userPlaylistTracks} from './userPlaylistMusic.js?v=20261114-1';
-import {octoberChartTracks} from './octoberChartMusic.js?v=20261114-1';
-import {novemberTrendTracks} from './novemberTrendMusic.js?v=20261114-1';
+import {musicPreviewCatalog} from './music.js?v=20261117-1';
+import {tournamentExtraTracks} from './tournamentExtraMusic.js?v=20261117-1';
+import {cupTrackKey} from './tournamentMusicKey.js?v=20261117-1';
+import {expandedSongMetadata} from './expandedSongMetadata.js?v=20261117-1';
+import {userPlaylistTracks} from './userPlaylistMusic.js?v=20261117-1';
+import {octoberChartTracks} from './octoberChartMusic.js?v=20261117-1';
+import {novemberTrendTracks} from './novemberTrendMusic.js?v=20261117-1';
 // Shared by the tournament and SongSpot; other music modes keep their own pools.
 const keys=new Set(),ids=new Set();
 export const tournamentMusicCatalog=[...musicPreviewCatalog,...tournamentExtraTracks.map(track=>({...track,...expandedSongMetadata[track.id]})),...userPlaylistTracks,...octoberChartTracks,...novemberTrendTracks].filter(track=>{

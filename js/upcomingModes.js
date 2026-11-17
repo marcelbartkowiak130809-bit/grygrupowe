@@ -1,4 +1,4 @@
-import { isCategoryModeReleased } from "./categoryVoting.js?v=20261114-1";
+import { isCategoryModeReleased } from "./categoryVoting.js?v=20261117-1";
 
 // Główne tryby mają własną, niezależną kolejkę. Kategorie Pokémon, planszówki,
 // Minecraft i większość trybów muzycznych otwierają się przez głosowanie na stronie głównej.

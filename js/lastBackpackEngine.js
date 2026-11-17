@@ -1,0 +1,63 @@
+export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia'};
+export const backpackLevels=[
+ {name:'Nad jeziorem lawy',goal:'Zbuduj bezpieczne przejście do skrzyni.',tip:'Możesz użyć bruku albo zrobić deski z drewna.',theme:'lava',stock:{oak_log:2,cobblestone:4},start:17,end:22},
+ {name:'Światło w kopalni',goal:'Oświetl trzy zaznaczone miejsca w kopalni.',tip:'Węgiel nad patykiem daje 4 pochodnie. Deska nad deską daje patyki.',theme:'cave',stock:{oak_planks:2,coal:2},targets:[10,21,30]},
+ {name:'Przywróć zasilanie',goal:'Połącz dźwignię z drzwiami i włącz obwód.',tip:'Patyk nad brukiem daje dźwignię. Uzupełnij cztery przerwy w przewodzie.',theme:'circuit',stock:{oak_planks:2,cobblestone:1,redstone:4},sockets:[18,19,20,21],switch:17,end:22}
+];
+export function backpackRecipe(grid){
+ const cells=grid.map((item,i)=>({item,x:i%3,y:Math.floor(i/3)})).filter(c=>c.item);
+ if(cells.length===1&&cells[0].item==='oak_log')return {item:'oak_planks',count:4};
+ if(cells.length!==2)return null;
+ const [a,b]=cells.sort((a,b)=>a.y-b.y);if(a.x!==b.x||b.y-a.y!==1)return null;
+ if(a.item==='oak_planks'&&b.item==='oak_planks')return {item:'stick',count:4};
+ if(a.item==='coal'&&b.item==='stick')return {item:'torch',count:4};
+ if(a.item==='stick'&&b.item==='cobblestone')return {item:'lever',count:1};
+ return null;
+}
+export function createBackpackState(){return {version:1,log:[],undo:[],level:0,stock:{...backpackLevels[0].stock},grid:Array(9).fill(''),placed:{},selected:'',on:false,solved:false,done:false,moves:0,used:0,startedAt:Date.now(),finishedAt:0,message:'Wybierz przedmiot z plecaka.'};}
+export function backpackLight(state,index){return Object.entries(state.placed).some(([key,item])=>item==='torch'&&Math.abs(Number(key)%8-index%8)+Math.abs(Math.floor(Number(key)/8)-Math.floor(index/8))<=1);}
+export function backpackProgress(state){const l=backpackLevels[Math.min(state.level,2)];if(state.level===1)return {current:l.targets.filter(i=>backpackLight(state,i)).length,total:l.targets.length,label:'oświetlone miejsca'};if(state.level===2)return {current:l.sockets.filter(i=>state.placed[i]==='redstone').length+(state.on&&state.placed[l.switch]==='lever'?1:0),total:5,label:'elementy obwodu'};return {current:state.solved?1:0,total:1,label:'bezpieczne przejście'};}
+export function backpackTerrain(level,index){const x=index%8,y=Math.floor(index/8);if(level===0)return x<=1||x>=6?'grass_block_side':'lava_still';if(level===1)return y===0||y===4||x===0||x===7?'deepslate_tiles':'stone';return y===0||y===4?'deepslate_tiles':'stone_bricks';}
+function add(state,item,count=1){state.stock[item]=(state.stock[item]||0)+count;}
+function solved(state){const level=backpackLevels[state.level];if(state.level===1)return level.targets.every(i=>backpackLight(state,i));
+ if(state.level===2)return state.on&&state.placed[level.switch]==='lever'&&level.sockets.every(i=>state.placed[i]==='redstone');
+ const seen=new Set([level.start]),queue=[level.start];while(queue.length){const i=queue.shift();if(i===level.end)return true;for(const j of [i-8,i+8,...(i%8?[i-1]:[]),...(i%8<7?[i+1]:[])])if(j>=0&&j<40&&!seen.has(j)&&(backpackTerrain(0,j)!=='lava_still'||state.placed[j])){seen.add(j);queue.push(j);}}return false;
+}
+function execute(state,action){
+ if(state.done)return false;
+ if(action.type==='next'){if(!state.solved)return false;state.level++;state.undo=[];if(state.level===backpackLevels.length){state.done=true;state.finishedAt=Date.now();return true;}Object.assign(state,{stock:{...backpackLevels[state.level].stock},grid:Array(9).fill(''),placed:{},selected:'',on:false,solved:false,message:'Nowe wyzwanie. Plecak gotowy.'});return true;}
+ if(state.solved)return false;
+ if(action.type==='select'){if(!backpackItems[action.item]||!(state.stock[action.item]>0))return false;state.selected=action.item;state.message=`Wybrano: ${backpackItems[action.item]}`;return true;}
+ if(action.type==='craft-slot'){const i=action.index;if(!Number.isInteger(i)||i<0||i>8)return false;if(state.grid[i]){add(state,state.grid[i]);state.grid[i]='';}else{const item=action.item||state.selected;if(!backpackItems[item]||!(state.stock[item]>0))return false;state.stock[item]--;state.grid[i]=item;}state.message='Ułóż składniki i odbierz wynik.';return true;}
+ if(action.type==='clear'){state.grid.forEach(item=>{if(item)add(state,item);});state.grid.fill('');state.message='Składniki wróciły do plecaka.';return true;}
+ if(action.type==='craft'){const recipe=backpackRecipe(state.grid);if(!recipe){state.message='Te składniki nie tworzą receptury.';return true;}add(state,recipe.item,recipe.count);state.grid.fill('');state.selected=recipe.item;state.moves++;state.message=`Wytworzono: ${recipe.count} × ${backpackItems[recipe.item]}`;return true;}
+ if(action.type==='remove'){if(!Number.isInteger(action.index)||action.index<0||action.index>=40)return false;const item=state.placed[action.index];if(!item)return false;add(state,item);delete state.placed[action.index];state.on=false;state.message='Przedmiot wrócił do plecaka.';return true;}
+ if(action.type!=='place')return false;
+ const i=action.index,level=backpackLevels[state.level],item=action.item||state.selected;
+ if(!Number.isInteger(i)||i<0||i>=40)return false;
+ if(state.level===2&&i===level.switch&&state.placed[i]==='lever'){state.on=!state.on;state.message=state.on?'Zasilanie włączone.':'Zasilanie wyłączone.';}
+ else{
+  if(!backpackItems[item]||!(state.stock[item]>0)||state.placed[i]){state.message='Wybierz przedmiot z plecaka. Zajęte pole możesz odzyskać prawym przyciskiem.';return true;}
+  const valid=state.level===0?['cobblestone','oak_planks'].includes(item)&&backpackTerrain(0,i)==='lava_still':state.level===1?item==='torch'&&backpackTerrain(1,i)==='stone':(i===level.switch&&item==='lever')||(level.sockets.includes(i)&&item==='redstone');
+  if(!valid){state.message='Ten przedmiot tu nie pasuje. Spróbuj innego miejsca lub receptury.';return true;}
+  state.stock[item]--;state.placed[i]=item;state.used++;state.moves++;state.message='Dobrze! Kontynuuj.';
+ }
+ state.solved=solved(state);if(state.solved)state.message='Wyzwanie ukończone!';return true;
+}
+const snapshot=state=>JSON.parse(JSON.stringify({stock:state.stock,grid:state.grid,placed:state.placed,selected:state.selected,on:state.on,solved:state.solved,moves:state.moves,used:state.used}));
+export function backpackAction(state,action){
+ if(!action||typeof action!=='object'||state.done)return false;
+ if(action.type==='undo'){const previous=state.undo.pop();if(!previous)return false;Object.assign(state,previous,{message:'Cofnięto ostatni ruch.'});state.log.push({type:'undo'});return true;}
+ const before=snapshot(state),ok=execute(state,action);if(!ok)return false;
+ if(!['next','select'].includes(action.type)&&JSON.stringify(before)!==JSON.stringify(snapshot(state)))state.undo.push(before);
+ state.log.push({type:action.type,...(action.item?{item:action.item}:{}),...(Number.isInteger(action.index)?{index:action.index}:{})});return true;
+}
+// Rebuild from accepted actions, never trust inventory/solved flags from storage.
+export function restoreBackpack(raw){
+ const s=createBackpackState();try{const data=typeof raw==='string'?JSON.parse(raw):raw;if(data?.version!==1||!Array.isArray(data.log)||data.log.length>10000)return s;
+  for(const action of data.log)if(!backpackAction(s,action))return createBackpackState();
+  if(Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;
+  if(s.done&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;
+ }catch{return createBackpackState();}return s;
+}
+export function saveBackpack(state){return JSON.stringify({version:1,log:state.log,startedAt:state.startedAt,finishedAt:state.finishedAt});}
