@@ -1,8 +1,8 @@
-export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia'};
+export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso'};
 export const backpackLevels=[
- {name:'Nad jeziorem lawy',goal:'Zbuduj bezpieczne przejście do skrzyni.',tip:'Możesz użyć bruku albo zrobić deski z drewna.',theme:'lava',stock:{oak_log:2,cobblestone:4},start:17,end:22},
- {name:'Światło w kopalni',goal:'Oświetl trzy zaznaczone miejsca w kopalni.',tip:'Węgiel nad patykiem daje 4 pochodnie. Deska nad deską daje patyki.',theme:'cave',stock:{oak_planks:2,coal:2},targets:[10,21,30]},
- {name:'Przywróć zasilanie',goal:'Połącz dźwignię z drzwiami i włącz obwód.',tip:'Patyk nad brukiem daje dźwignię. Uzupełnij cztery przerwy w przewodzie.',theme:'circuit',stock:{oak_planks:2,cobblestone:1,redstone:4},sockets:[18,19,20,21],switch:17,end:22}
+ {name:'Nad jeziorem lawy',goal:'Zbuduj bezpieczne przejście do skrzyni.',tip:'Możesz użyć bruku albo zrobić deski z drewna.',theme:'lava',stock:{oak_log:2,cobblestone:4,feather:3,string:2,snowball:4,rotten_flesh:2},start:17,end:22},
+ {name:'Światło w kopalni',goal:'Oświetl trzy zaznaczone miejsca w kopalni.',tip:'Węgiel nad patykiem daje 4 pochodnie. Deska nad deską daje patyki.',theme:'cave',stock:{oak_planks:2,coal:2,feather:2,string:4,snowball:3,rotten_flesh:3},targets:[10,21,30]},
+ {name:'Przywróć zasilanie',goal:'Połącz dźwignię z drzwiami i włącz obwód.',tip:'Patyk nad brukiem daje dźwignię. Uzupełnij cztery przerwy w przewodzie.',theme:'circuit',stock:{oak_planks:2,cobblestone:1,redstone:4,feather:4,string:3,snowball:2,rotten_flesh:2},sockets:[18,19,20,21],switch:17,end:22}
 ];
 export function backpackRecipe(grid){
  const cells=grid.map((item,i)=>({item,x:i%3,y:Math.floor(i/3)})).filter(c=>c.item);

@@ -60,3 +60,13 @@ test('Minecraft icons and terrain are local PNG assets, with mobile and keyboard
  const css=readFileSync(new URL('../css/lastBackpack.css',import.meta.url),'utf8'),js=readFileSync(new URL('../js/lastBackpack.js',import.meta.url),'utf8');
  assert.ok(css.includes('image-rendering:pixelated'));assert.ok(css.includes('min-height:44px'));assert.ok(css.includes('prefers-reduced-motion:reduce'));assert.ok(js.includes('focus({preventScroll:true})'));assert.ok(js.includes("action.type==='select'"));assert.ok(js.includes("data-bp-selected"));
 });
+test('each stage adds four usable inventory decoys without changing solutions or consuming rejected placements',()=>{
+ const decoys=['feather','string','snowball','rotten_flesh'];
+ for(let level=0;level<3;level++){
+  const s=createBackpackState();s.level=level;s.stock={...backpackLevels[level].stock};
+  for(const item of decoys){assert.ok(s.stock[item]>0);const stock={...s.stock};action(s,{type:'select',item});action(s,{type:'place',index:18,item});assert.deepEqual(s.stock,stock);assert.equal(s.solved,false);
+   action(s,{type:'craft-slot',index:0,item});assert.equal(backpackRecipe(s.grid),null);action(s,{type:'clear'});assert.deepEqual(s.stock,stock);
+   const png=readFileSync(new URL('../assets/minecraft/backpack/'+item+'.png',import.meta.url));assert.equal(png.subarray(1,4).toString(),'PNG');
+  }
+ }
+});
