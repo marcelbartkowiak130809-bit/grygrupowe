@@ -181,6 +181,10 @@ function summary(state) {
 }
 
 const storageKey = id => `grygrupowe-alex-siege-v1:${id}`;
+export function resetAlexSiege(id) {
+ localStorage.removeItem(storageKey(id));
+ sessions.delete(id);
+}
 function session(id) {
  if (!sessions.has(id)) {
   let state;
@@ -191,13 +195,15 @@ function session(id) {
 }
 
 export function renderAlexSiege(root,context) {
- const { playerId, visuals, actions, selectChapter } = context;
+ const { playerId, visuals, actions, selectChapter, rank } = context;
  const state = session(playerId);
+ rank.observe(3,state.finishedAt>0);
  const reduced = backpackReducedMotion();
  const motion = moves.get(root);
  const moving = !!motion && motion.playerId === playerId && motion.scene === state.scene && performance.now() < motion.until;
  const rerender = () => renderAlexSiege(root,context);
  const act = action => {
+  if (!['frame','replay'].includes(action.type) && !rank.canMove(3)) return;
   if (moving && action.type === "node") return;
   const before = state.message;
   if (!siegeAction(state,action)) {
@@ -225,10 +231,12 @@ export function renderAlexSiege(root,context) {
  patchBackpackView(root,`<main class="page journey-page siege-page ${reduced?'siege-reduced':''}">
   <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 3</p><h1>Wieża Kruków</h1></div><div class="game-view-tools">${gameFullscreenButton}<button type="button" class="ghost" data-siege-home>← Minecraft</button></div></header>
   ${gameRotationHint}${chapterMenu(3,true,true)}
+  ${!cutscene?rank.html():''}
   ${cutscene?storyboard(state,visuals):state.phase==='result'?summary(state):game(root,state,visuals,moving,actions)}
   <footer class="journey-credit">Nieoficjalna przygoda fanowska · tekstury Minecraft Java 1.21.4 · Mojang / Microsoft</footer>
  </main>`);
  bindChapterMenu(root,selectChapter);
+ rank.bind();
  bindGamePresentation(root);
  root.querySelectorAll('[data-siege-home]').forEach(button=>{button.onclick=()=>actions.goMinecraftModes?.();});
  root.querySelectorAll('[data-siege-node]:not(:disabled)').forEach(button=>{button.onclick=()=>act({type:'node',id:button.dataset.siegeNode});});

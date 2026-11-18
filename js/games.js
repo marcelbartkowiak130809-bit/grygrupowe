@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20261118-19";
+import { renderGame } from "./game.js?v=20261118-20";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20261118-19";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20261118-20";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260903-9";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260903-9";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260903-9";
@@ -33,7 +33,7 @@ import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylis
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261118-16";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261118-13";
 import { renderLastBackpack } from './lastBackpack.js?v=20261118-19';
-import { renderAlexJourney } from './alexJourney.js?v=20261118-19';
+import { renderAlexJourney } from './alexJourney.js?v=20261118-20';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261118-16";
 

@@ -1,4 +1,5 @@
 import { drawPotionPackItems, potionPackById } from "./potionPacks.js?v=20260831-1";
+import { alexSpeedrunUpdate, alexTimeBoards } from "./alexSpeedrunState.js?v=20261118-20";
 
 const ACCOUNTS_KEY = "udowodnij_prototype_accounts_v1";
 const SESSION_KEY = "udowodnij_session_v1";
@@ -663,6 +664,37 @@ export async function saveSongSpotLeaderboard(uid, records = {}, profile = {}) {
     return result.committed?result.snapshot.val():null;
   } catch {return null;}
 }
+const alexRankPath = "alexSpeedrunRecords";
+
+export async function alexRankStatus(uid) {
+  if (!canUseRemote() || remoteAuth.currentUser.uid !== uid) throw Error("Zaloguj się, żeby połączyć się z rankingiem.");
+  return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`${alexRankPath}/${uid}`))).val();
+}
+
+export async function alexRankMove(uid, nick, move) {
+  if (!canUseRemote() || remoteAuth.currentUser.uid !== uid || remoteAuth.currentUser.isAnonymous) {
+    throw Error("Do podejścia rankingowego potrzebujesz zalogowanego konta.");
+  }
+  const ref = firebaseDatabaseApi.ref(remoteDatabase,`${alexRankPath}/${uid}`);
+  const current = (await firebaseDatabaseApi.get(ref)).val();
+  const result = await firebaseDatabaseApi.runTransaction(ref, record =>
+    alexSpeedrunUpdate(record ?? current,move,serverNow(),firebaseDatabaseApi.serverTimestamp(),String(nick || "Gracz").slice(0,40)),
+  {applyLocally:false});
+  return result.snapshot.val() ?? current;
+}
+
+export async function alexRankLeaders(board) {
+  if (!canUseRemote() || !alexTimeBoards.includes(board)) throw Error("Zaloguj się, żeby zobaczyć ranking.");
+  const api = firebaseDatabaseApi;
+  const query = api.query(api.ref(remoteDatabase,alexRankPath),api.orderByChild(`best/${board}`),api.startAt(1),api.limitToFirst(10));
+  const rows = [];
+  (await api.get(query)).forEach(entry => {
+    const data = entry.val();
+    rows.push({uid:entry.key,nick:data.nick,time:data.best[board]});
+  });
+  return rows;
+}
+
 export async function updateRemoteProfileFields(uid, patch = {}) {
   if (!canUseRemote() || !uid || !Object.keys(patch).length) return false;
   try { await firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), { ...patch, updatedAt:Date.now() }); return true; } catch { return false; }

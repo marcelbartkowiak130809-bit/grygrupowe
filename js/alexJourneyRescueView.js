@@ -1,6 +1,6 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-18';
+import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-18';
 import {renderAlexComic} from './alexJourneyComic.js?v=20261118-18';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-17';
 
@@ -90,12 +90,18 @@ function getSession(playerId){
 
 export function hasCompletedRescue(playerId){return getSession(playerId).done;}
 
+export function resetAlexRescue(playerId){
+ localStorage.removeItem(`grygrupowe-alex-rescue-v1:${playerId}`);
+ sessions.set(playerId,createRescue());
+}
+
 function storeSession(playerId,state){
  try{localStorage.setItem(`grygrupowe-alex-rescue-v1:${playerId}`,saveRescue(state));return true;}catch{return false;}
 }
 
-export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
+export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank}){
  const state=getSession(playerId),scene=rescueScenes[state.scene];
+ rank.observe(2,state.done);
  if(state.scene===0&&!state.flags.embrace){
   return renderAlexComic(root,{kind:'raid',playerId,visuals,onHome:()=>actions.goMinecraftModes?.(),onDone:()=>{
    if(!state.log.length)state.startedAt=Date.now();
@@ -103,7 +109,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
    rescueAction(state,{type:'node',id:'embrace'});
    state.effect='';
    if(!storeSession(playerId,state))state.message+=' Nie udało się zapisać postępu.';
-   renderAlexRescue(root,{playerId,actions,visuals,selectChapter});
+   renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank});
    root.querySelector('[data-rescue-node="trail"]')?.focus({preventScroll:true});
   }});
  }
@@ -112,14 +118,16 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
  const title=state.scene===0&&state.flags.embrace?'Alex zniknęła. Zbadaj ślady przy drzwiach.':scene.goal;
  const elapsed=Math.max(1,Math.round((state.finishedAt-state.startedAt)/1000));
  const act=action=>{
+  if(!rank.canMove(2))return;
   if(!rescueAction(state,action))return;
   if(!storeSession(playerId,state))state.message+=' Nie udało się zapisać postępu.';
-  renderAlexRescue(root,{playerId,actions,visuals,selectChapter});
+  renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank});
  };
  patchBackpackView(root,`<main class="page journey-page rescue-page ${state.done?'rescue-finished':''}">
   <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 2</p><h1>Śladami zombie</h1></div><div class="game-view-tools">${gameFullscreenButton}<button class="ghost" type="button" data-rescue-home>← Minecraft</button></div></header>
   ${gameRotationHint}
   ${chapterMenu(2,true,state.done)}
+  ${rank.html()}
   <div class="rescue-layout"><section class="journey-play">
    <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
    </div>
@@ -137,8 +145,9 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
  </main>`);
  bindGamePresentation(root);
  bindChapterMenu(root,selectChapter);
+ rank.bind();
  root.querySelector('[data-rescue-home]').onclick=()=>actions.goMinecraftModes?.();
- bindMinecraftHints(root,actions,()=>renderAlexRescue(root,{playerId,actions,visuals,selectChapter}));
+ bindMinecraftHints(root,actions,()=>renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank}));
  root.querySelectorAll('[data-rescue-node]:not(:disabled)').forEach(button=>{
   button.onclick=()=>act({type:'node',id:button.dataset.rescueNode});
  });

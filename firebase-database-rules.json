@@ -228,6 +228,95 @@
         }
       }
     },
+    "alexSpeedrunRecords": {
+      ".read": "auth != null && query.limitToFirst != null && query.limitToFirst <= 10 && query.startAt == 1 && (query.orderByChild == 'best/chapter1' || query.orderByChild == 'best/chapter2' || query.orderByChild == 'best/chapter3' || query.orderByChild == 'best/total')",
+      ".indexOn": [
+        "best/chapter1",
+        "best/chapter2",
+        "best/chapter3",
+        "best/total"
+      ],
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid && auth.token.firebase.sign_in_provider != 'anonymous' && newData.exists()",
+        ".validate": "newData.hasChildren(['nick', 'best', 'run']) && ((newData.child('run').child('id').val() != data.child('run').child('id').val() && (!data.exists() || now >= data.child('run').child('reservedAt').val() + 18000000) && newData.child('run').child('reservedAt').val() == now && newData.child('run').child('step').val() == 0 && newData.child('run').child('chapter1').child('start').val() == 0 && newData.child('run').child('chapter1').child('end').val() == 0 && newData.child('run').child('chapter2').child('start').val() == 0 && newData.child('run').child('chapter2').child('end').val() == 0 && newData.child('run').child('chapter3').child('start').val() == 0 && newData.child('run').child('chapter3').child('end').val() == 0 && (data.exists() ? (newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val()) : (newData.child('best').child('chapter1').val() == 0 && newData.child('best').child('chapter2').val() == 0 && newData.child('best').child('chapter3').val() == 0 && newData.child('best').child('total').val() == 0))) || (data.exists() && newData.child('nick').val() == data.child('nick').val() && newData.child('run').child('id').val() == data.child('run').child('id').val() && newData.child('run').child('reservedAt').val() == data.child('run').child('reservedAt').val() && ((data.child('run').child('step').val() == 0 && newData.child('run').child('step').val() == 1 && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('run').child('chapter1').child('start').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val()) || (data.child('run').child('step').val() == 1 && newData.child('run').child('step').val() == 2 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('run').child('chapter1').child('end').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val() && now > data.child('run').child('chapter1').child('start').val()) || (data.child('run').child('step').val() == 2 && newData.child('run').child('step').val() == 3 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('best').child('chapter1').val() == ((data.child('best').child('chapter1').val() == 0 || (data.child('run').child('chapter1').child('end').val() - data.child('run').child('chapter1').child('start').val()) < data.child('best').child('chapter1').val()) ? (data.child('run').child('chapter1').child('end').val() - data.child('run').child('chapter1').child('start').val()) : data.child('best').child('chapter1').val()) && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val()) || (data.child('run').child('step').val() == 3 && newData.child('run').child('step').val() == 4 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('run').child('chapter2').child('start').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val()) || (data.child('run').child('step').val() == 4 && newData.child('run').child('step').val() == 5 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('run').child('chapter2').child('end').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val() && now > data.child('run').child('chapter2').child('start').val()) || (data.child('run').child('step').val() == 5 && newData.child('run').child('step').val() == 6 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('best').child('chapter2').val() == ((data.child('best').child('chapter2').val() == 0 || (data.child('run').child('chapter2').child('end').val() - data.child('run').child('chapter2').child('start').val()) < data.child('best').child('chapter2').val()) ? (data.child('run').child('chapter2').child('end').val() - data.child('run').child('chapter2').child('start').val()) : data.child('best').child('chapter2').val()) && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val()) || (data.child('run').child('step').val() == 6 && newData.child('run').child('step').val() == 7 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('run').child('chapter3').child('start').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val() && now >= 1795201200000) || (data.child('run').child('step').val() == 7 && newData.child('run').child('step').val() == 8 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == now && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val() && newData.child('best').child('chapter3').val() == data.child('best').child('chapter3').val() && newData.child('best').child('total').val() == data.child('best').child('total').val() && now > data.child('run').child('chapter3').child('start').val()) || (data.child('run').child('step').val() == 8 && newData.child('run').child('step').val() == 9 && newData.child('run').child('chapter1').child('start').val() == data.child('run').child('chapter1').child('start').val() && newData.child('run').child('chapter1').child('end').val() == data.child('run').child('chapter1').child('end').val() && newData.child('run').child('chapter2').child('start').val() == data.child('run').child('chapter2').child('start').val() && newData.child('run').child('chapter2').child('end').val() == data.child('run').child('chapter2').child('end').val() && newData.child('run').child('chapter3').child('start').val() == data.child('run').child('chapter3').child('start').val() && newData.child('run').child('chapter3').child('end').val() == data.child('run').child('chapter3').child('end').val() && newData.child('best').child('chapter3').val() == ((data.child('best').child('chapter3').val() == 0 || (data.child('run').child('chapter3').child('end').val() - data.child('run').child('chapter3').child('start').val()) < data.child('best').child('chapter3').val()) ? (data.child('run').child('chapter3').child('end').val() - data.child('run').child('chapter3').child('start').val()) : data.child('best').child('chapter3').val()) && newData.child('best').child('total').val() == ((data.child('best').child('total').val() == 0 || ((data.child('run').child('chapter1').child('end').val() - data.child('run').child('chapter1').child('start').val()) + (data.child('run').child('chapter2').child('end').val() - data.child('run').child('chapter2').child('start').val()) + (data.child('run').child('chapter3').child('end').val() - data.child('run').child('chapter3').child('start').val())) < data.child('best').child('total').val()) ? ((data.child('run').child('chapter1').child('end').val() - data.child('run').child('chapter1').child('start').val()) + (data.child('run').child('chapter2').child('end').val() - data.child('run').child('chapter2').child('start').val()) + (data.child('run').child('chapter3').child('end').val() - data.child('run').child('chapter3').child('start').val())) : data.child('best').child('total').val()) && newData.child('best').child('chapter1').val() == data.child('best').child('chapter1').val() && newData.child('best').child('chapter2').val() == data.child('best').child('chapter2').val()))))",
+        "nick": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+        },
+        "best": {
+          ".validate": "newData.hasChildren(['chapter1', 'chapter2', 'chapter3', 'total'])",
+          "chapter1": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "chapter2": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "chapter3": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "total": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "run": {
+          ".validate": "newData.hasChildren(['id', 'reservedAt', 'step', 'chapter1', 'chapter2', 'chapter3'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length >= 20 && newData.val().length <= 64"
+          },
+          "reservedAt": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "step": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+          },
+          "chapter1": {
+            ".validate": "newData.hasChildren(['start', 'end'])",
+            "start": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "end": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "chapter2": {
+            ".validate": "newData.hasChildren(['start', 'end'])",
+            "start": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "end": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "chapter3": {
+            ".validate": "newData.hasChildren(['start', 'end'])",
+            "start": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "end": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
     "modeCategoryVoting": {
       "releases": {
         ".read": "auth != null",

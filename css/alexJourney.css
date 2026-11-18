@@ -319,3 +319,22 @@
  .alex-comic-page .siege-comic-art { aspect-ratio:1.36; }
  .alex-comic-reunion .alex-shot-2,.alex-comic-raid .alex-shot-0 { transform-origin:76% 52%; }
 }
+.alex-speedrun { margin:12px 0; padding:12px 14px; border:1px solid #bcec982b; border-radius:14px; background:#101b24; }
+.alex-rank-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px 16px; flex-wrap:wrap; }
+.alex-rank-toolbar strong { color:#dcfcb8; font-size:.95rem; }
+.alex-rank-toolbar small { display:block; margin-top:2px; color:#b5c4bb; }
+.alex-rank-toolbar time,.alex-rank-rows b { font-variant-numeric:tabular-nums; }
+.alex-rank-actions,.alex-rank-tabs { display:flex; flex-wrap:wrap; gap:6px; }
+.alex-rank-actions button,.alex-rank-tabs button { min-height:40px; }
+.alex-rank-feedback { margin:6px 0; color:#ffe0ac; }
+.alex-rank-feedback:empty { margin:0; }
+.alex-rank-board { margin-top:8px; padding-top:8px; border-top:1px solid #bcec982b; }
+.alex-rank-board summary { cursor:pointer; width:fit-content; color:#dcfcb8; }
+.alex-rank-tabs { margin:10px 0 8px; }
+.alex-rank-tabs [aria-pressed="true"] { border-color:#bcec98; color:#dcfcb8; background:#bcec981a; }
+.alex-rank-rows { color:#dbe6e0; max-width:560px; }
+.alex-rank-rows ol { margin:0; padding-inline-start:2rem; }
+.alex-rank-rows li { border-bottom:1px solid #bcec982b; padding:5px 6px; min-width:0; }
+.alex-rank-rows li span { overflow-wrap:anywhere; }
+.alex-rank-rows li b { float:inline-end; padding-inline-start:8px; color:#dcfcb8; }
+.alex-rank-rows li.own { background:#bcec981a; }

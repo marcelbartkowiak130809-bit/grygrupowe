@@ -20,6 +20,14 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version:"v5.11.0",date:"2026-11-18",title:"Wyścig po Alex",
+      changes:[
+        "Dodano rankingi czasu dla poszczególnych rozdziałów i całej historii.",
+        "Nowe podejście rankingowe możesz rozpocząć co 5 godzin. Całą historię poza rankingiem możesz powtarzać w dowolnym momencie.",
+        "Łączny wynik sumuje czasy trzech rozdziałów z jednego podejścia. Przerwy pomiędzy nimi pomijamy.",
+      ],
+    },
+    {
       version:"v5.10.0",date:"2026-11-18",title:"Droga do Alex · Śladami zombie",
       changes:[
         "Po ukończeniu rozdziału 1 odblokowuje się dalsza przygoda, która zaczyna się przed domem Alex.",
