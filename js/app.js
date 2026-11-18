@@ -11,10 +11,10 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261118-20";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261118-26";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261118-27";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-24";
-import { gamesList, getGameMode } from "./games.js?v=20261118-26";
-import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
+import { gamesList, getGameMode } from "./games.js?v=20261118-27";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261118-27";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261118-16";
 import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261118-20";
@@ -41,7 +41,7 @@ import { createCharadesGame, CharadesEngine, stopCharadesTimer } from "./charade
 import { createHangmanGame, HangmanEngine, stopHangmanTimer } from "./hangman.js?v=20261118-16";
 import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20260903-9";
 import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20260903-9";
-import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20260903-9";
+import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20261118-27";
 import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20260903-9";
 import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20260903-9";
 import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20260903-9";
@@ -55,19 +55,19 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-26";
-import { renderBoardModes, renderCollectionModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-26";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-26";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-27";
+import { renderBoardModes, renderCollectionModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-27";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-27";
 import { Router } from "./router.js?v=20261118-24";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-26";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-27";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261118-20";
-import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-15";
-import { scheduleBot } from "./botController.js?v=20261118-20";
+import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
+import { scheduleBot } from "./botController.js?v=20261118-27";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -1607,19 +1607,7 @@ function repairGameStateForPlayers(room) {
     const defaults = sanitizeUniqueAnswerSettings(room.settings, players.length); players.forEach(uid => { if (!Number.isFinite(Number(game.lives[uid]))) { game.lives[uid] = defaults.lives; changed = true; } });
     if (!Number.isFinite(Number(game.phaseEndsAt)) && game.phase !== "result") { game.phaseEndsAt = Date.now() + defaults.answerTime * 1000; changed = true; }
   }
-  if (room.gameMode === "polacz-nas") {
-    const order = keepPlayers(game.players);
-    if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
-    if (!Array.isArray(game.pair) || game.pair.length < 2) { game.pair = ["kot", "samochód"]; changed = true; }
-    if (!Array.isArray(game.usedPairs)) { game.usedPairs = []; changed = true; }
-    ["answers", "votes", "scores"].forEach(key => { if (!game[key] || typeof game[key] !== "object" || Array.isArray(game[key])) { game[key] = {}; changed = true; } });
-    if (!game.creativeEdits || typeof game.creativeEdits !== "object" || Array.isArray(game.creativeEdits)) { game.creativeEdits = {}; changed = true; }
-    if (!game.passUses || typeof game.passUses !== "object" || Array.isArray(game.passUses)) { game.passUses = {}; changed = true; }
-    Object.keys(game.answers).forEach(uid => { if (!players.includes(uid)) { delete game.answers[uid]; changed = true; } });
-    Object.keys(game.votes).forEach(uid => { if (!players.includes(uid) || !players.includes(game.votes[uid])) { delete game.votes[uid]; changed = true; } });
-    const beforeScores = JSON.stringify(game.scores); game.scores = ensureScoreObject(game.scores, players, 0); if (JSON.stringify(game.scores) !== beforeScores) changed = true;
-    if (!Number.isFinite(Number(game.phaseEndsAt)) && !["gameSummary", "result"].includes(game.phase)) { game.phaseEndsAt = Date.now() + Math.max(15, Number(room.settings?.answerTime) || 30) * 1000; changed = true; }
-  }
+  if (room.gameMode === "polacz-nas" && game.version === 2 && ConnectEngine.interrupt(game,players)) changed = true;
   if (room.gameMode === "klamca") {
     const order = keepPlayers(game.players);
     if (JSON.stringify(order) !== JSON.stringify(game.players || [])) { game.players = order; changed = true; }
@@ -2557,6 +2545,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(roomIsAdult(room)&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wystartowac gry 18+.", "info");
     const players = normalizedRoomPlayers(room);
     if (players.length < mode.minPlayers) return message(`Ten tryb wymaga minimum ${mode.minPlayers} graczy.`, "info");
+    if (mode.id === "polacz-nas" && (players.length !== 2 || players.some(isBotId))) return message("Połącz nas jest dla dwóch osób.", "info");
     if (mode.id === "pokemon-auction" && !canStartPokemonAuction(room.settings)) return message("Wybrane filtry nie dają żadnego Pokémona. Zmień ustawienia puli.", "info");
     const fee=roomEntryFee(room);
     if(fee){const missing=players.find(uid=>playerMoney(room,uid)<fee);if(missing)return message(`Gracz ${state.accounts[missing]?.nick||room.playerProfiles?.[missing]?.nick||"Gracz"} nie ma wystarczających środków na wpisowe.`);}
@@ -2796,11 +2785,30 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   uniqueAnswerHostPrompt(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase)return "Pytanie jest już ustawione.";return UniqueAnswerEngine.hostPrompt(game,state.currentUser,text,room.settings);},{sound:"clue"});},
   uniqueAnswerTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="unique-answer")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Runda już się skończyła.";UniqueAnswerEngine.timeout(game,current.settings);},{sound:"roundEnd",after:settleAdditionalModeResult});},
   uniqueAnswerNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>UniqueAnswerEngine.nextRound(game,current.settings),{sound:"turn"});},
-  connectAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";return ConnectEngine.answer(game,state.currentUser,text);},{sound:"submit"});},
-  connectEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";if(!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return ConnectEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
-  connectVote(target, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return ConnectEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
-  connectTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="polacz-nas")return;return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";ConnectEngine.timeout(game);},{sound:"roundEnd"});},
-  connectNext(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć następną rundę.","info");return mutateRoomGame((game,current)=>{const result=ConnectEngine.nextRound(game,current.settings);if(game.finished)current.status="results";return result;},{sound:"turn"});},
+  connectCommit(digest, expected) {
+    return mutateRoomGame((game,room) => {
+      if (room.gameMode !== "polacz-nas" || game.phase !== expected.phase || game.attempt !== expected.attempt) return "Ta runda już się zmieniła.";
+      return ConnectEngine.commit(game,state.currentUser,digest);
+    },{sound:"submit"});
+  },
+  connectReveal(word, digest, expected) {
+    return mutateRoomGame((game,room) => {
+      if (room.gameMode !== "polacz-nas" || game.phase !== expected.phase || game.attempt !== expected.attempt) return "Ta runda już się zmieniła.";
+      return ConnectEngine.reveal(game,state.currentUser,word,digest);
+    },{quietRejected:true});
+  },
+  connectTimeout(expected) {
+    return mutateRoomGame((game,room) => {
+      if (room.gameMode !== "polacz-nas" || game.phase !== expected.phase || game.attempt !== expected.attempt) return "Ta runda już się zmieniła.";
+      return ConnectEngine.timeout(game);
+    },{quietRejected:true});
+  },
+  connectNext(expected) {
+    return mutateRoomGame((game,room) => {
+      if (room.gameMode !== "polacz-nas" || room.hostUid !== state.currentUser || game.attempt !== expected.attempt) return "Ta runda już się zmieniła.";
+      return ConnectEngine.nextRound(game,room.settings);
+    },{sound:"turn",quietRejected:true});
+  },
   liarAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";return LiarEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
   liarEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na odpowiedzi już minął.";if(!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return LiarEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   liarStartVoting(expected={}){const room=activeRoom();if(!room||room.gameMode!=="klamca")return;if(room.hostUid!==state.currentUser)return message("Tylko host może rozpocząć głosowanie.","info");return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Dyskusja już się zakończyła.";return LiarEngine.startVoting(game,current.settings);},{sound:"turn"});},
@@ -2994,7 +3002,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   equipCosmetic(itemId) { const defaults={ defaultIdle:["selectedIdleAnimation",""], defaultWin:["selectedWinAnimation",""], defaultLose:["selectedLoseAnimation",""] , defaultLudoBoard:["selectedBoardLudoSkin","defaultLudoBoard"], defaultMemoryBoard:["selectedBoardMemorySkin","defaultMemoryBoard"] }; if(defaults[itemId]){ Audio.play("equip"); return updateProfile({ [defaults[itemId][0]]:defaults[itemId][1] }); } const item = cosmetics.find(entry => entry.id === itemId), user = profile(); if (!item || !user?.ownedCosmetics[itemId]) return; Audio.play(item.type==="win"||item.type==="lose"?item.id:"equip"); updateProfile({ [{ nick:"selectedNickEffect", frame:"selectedAvatarFrame", aura:"selectedAura", candy:"selectedCandySkin", bomb:"selectedBombSkin", clock:"selectedClockSkin", marker:"selectedMarkerSkin", sequence:"selectedSequenceSkin", "board-ludo":"selectedBoardLudoSkin", "board-memory":"selectedBoardMemorySkin", idle:"selectedIdleAnimation", win:"selectedWinAnimation", lose:"selectedLoseAnimation" }[item.type]]: itemId }); },
 };
 
-const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "connectNext", "liarNext", "falseMessageNext", "musicDuelNext", "musicArenaNext", "lyricsNext", "popularityNext", "charadesNext", "hangmanNext"];
+const hostOnlyRoundActions = ["nextRound", "otherNext", "mostLikelyNext", "bombNextRound", "closestTruthNext", "rankingNext", "clockNextRound", "pokemonNextRound", "wavelengthNext", "friendshipRoundNext", "familyNext", "poisonCandyNextRound", "liarNext", "falseMessageNext", "musicDuelNext", "musicArenaNext", "lyricsNext", "popularityNext", "charadesNext", "hangmanNext"];
 hostOnlyRoundActions.forEach(actionName => {
   const original = actions[actionName];
   if (!original) return;
@@ -3357,7 +3365,7 @@ function renderNow(options = {}) {
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}:${room.game.finishedAt||""}`);
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
-      renderQuickReactions(view, room, state.accounts, actions);
+      if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
       return finish(rendered);

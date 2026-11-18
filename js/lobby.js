@@ -1,7 +1,7 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20261118-26";
+import { getGameMode } from "./games.js?v=20261118-27";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20260901-13";
+import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20261118-27";
 import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
 import { musicRegionPicker } from "./music.js?v=20261117-10";
 

@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261118-26";
+import { renderGame } from "./game.js?v=20261118-27";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -21,7 +21,7 @@ import { familyDefaults, renderFamilyGame } from "./family.js?v=20260903-9";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20260903-9";
 import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20260903-9";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20260903-9";
-import { connectDefaults, renderConnectGame } from "./connect.js?v=20260903-9";
+import { connectDefaults, renderConnectGame } from "./connect.js?v=20261118-27";
 import { liarDefaults, renderLiarGame } from "./liar.js?v=20260903-9";
 import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20260903-9";
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20260903-9";
@@ -297,7 +297,7 @@ export const gamesRegistry = {
     id: "unique-answer", name: "Bez powtórek", description: "Odpowiedz na wspólne pytanie tak, żeby nikt nie podał tego samego.", help: ["Wszyscy dostają jedno pytanie i wpisują po jednej odpowiedzi.", "Każda powtórzona odpowiedź zabiera życie wszystkim, którzy jej użyli.", "Po utracie wszystkich żyć gracz odpada, a ostatnia osoba w grze wygrywa.", "Przy 5–8 graczach host może sam wymyślać pytania."], allowReports:true, players:"3-8 osób", minPlayers:3, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🧩", art:"unique-answer", audience:"everyone", collections: ["tiktok"], render:renderUniqueAnswerGame, defaultSettings:uniqueAnswerDefaults,
   },
   "polacz-nas": {
-    id: "polacz-nas", name: "Połącz nas", description: "Dwie zupełnie różne rzeczy. Wymyśl najlepsze połączenie między nimi i przekonaj resztę.", help: ["W każdej rundzie dostajecie dwie pozornie niezwiązane rzeczy.", "Każdy gracz pisze własne logiczne albo zabawne wyjaśnienie.", "Potem anonimowo głosujecie na najlepszą odpowiedź — nie można głosować na siebie.", "Po ostatniej rundzie wygrywa osoba z największą liczbą punktów."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🔗", art:"connect", audience:"everyone", badges:["new"], render:renderConnectGame, defaultSettings:connectDefaults,
+    id: "polacz-nas", name: "Połącz nas", description: "Podajcie po słowie i szukajcie wspólnego skojarzenia, aż oboje wpiszecie to samo.", help: ["W pierwszej rundzie każde z was wpisuje dowolne słowo w tajemnicy.", "Po odsłonięciu oboje wpisujecie po jednym słowie, które łączy poprzednią parę.", "Różne odpowiedzi tworzą nową parę. Gdy wpiszecie to samo, oboje wygrywacie."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔗", art:"connect", audience:"everyone", badges:["new"], render:renderConnectGame, defaultSettings:connectDefaults,
   },
   klamca: {
     id: "klamca", name: "Kłamca", description: "Wszyscy odpowiadają na to samo pytanie, ale jedna osoba musi skłamać. Znajdźcie kłamcę.", help: ["Wszyscy dostają to samo pytanie o opinię albo doświadczenie.", "Jedna osoba widzi tajną instrukcję i musi odpowiedzieć kłamstwem.", "Po odpowiedziach czytacie wypowiedzi i głosujecie, kto jest Kłamcą.", "Trafiony gracz daje głosującym punkt, a niewykryty Kłamca dostaje 2 punkty."], allowReports: true, players: "3-8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎭", art: "impostor", audience: "everyone", badges: ["new"], collections: ["tiktok"], render: renderLiarGame, defaultSettings: liarDefaults,

@@ -1,181 +1,211 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { hasGamePass } from "./gamePasses.js?v=20260901-13";
+import { escapeHtml } from "./utils.js?v=20260903-7";
 
-export const connectDefaults = { rounds: 5, answerTime: 30, category: "random" };
+export const connectDefaults = { answerTime:30 };
+const wordPattern = /^\p{L}[\p{L}\p{M}]{0,31}$/u;
+const digestPattern = /^[a-f0-9]{64}$/;
+const pending = new Set();
 
-const pairPacks = {
-  easy: [
-    ["Minecraft", "McDonald's"], ["kot", "samochód"], ["szkoła", "więzienie"], ["TikTok", "babcia"],
-    ["wakacje", "matematyka"], ["Shrek", "siłownia"], ["pizza", "kosmos"], ["deszcz", "parasol"],
-    ["telefon", "lodówka"], ["pies", "policjant"], ["morze", "czekolada"], ["rower", "wiatr"],
-    ["film", "popcorn"], ["pociąg", "poniedziałek"], ["kawa", "poranek"], ["książka", "sen"],
-    ["basen", "ręcznik"], ["lotnisko", "walizka"], ["las", "cisza"], ["deskorolka", "gips"],
-    ["komputer", "spóźnienie"], ["kanapka", "plecak"], ["lody", "słońce"], ["muzyka", "słuchawki"],
-    ["kino", "randka"], ["mapa", "zgubienie"], ["kuchnia", "eksperyment"], ["namiot", "komary"],
-    ["królik", "kapelusz"], ["długopis", "egzamin"]
-  ],
-  weird: [
-    ["dinozaur", "bankomat"], ["rekin", "przedszkole"], ["wampir", "dentysta"], ["kaczka", "prezydent"],
-    ["księżyc", "ziemniak"], ["robot", "rosół"], ["smok", "paragon"], ["pingwin", "sauna"],
-    ["duch", "windy"], ["jednorożec", "podatki"], ["pirat", "GPS"], ["słoń", "szpilka"],
-    ["czarodziej", "mikrofala"], ["małpa", "krawat"], ["wulkan", "lody"], ["kosmita", "Biedronka"],
-    ["zombie", "dentysta"], ["kapibara", "drukarka"], ["mumia", "pralka"], ["krab", "fortepian"],
-    ["wieloryb", "rower miejski"], ["nietoperz", "biblioteka"], ["kot", "formularz PIT"], ["rycerz", "pizza"],
-    ["tęcza", "pralka"], ["bałwan", "klimatyzacja"], ["kaktus", "parasolka"], ["ninja", "kolejka"],
-    ["foka", "mikrofon"], ["koza", "internet"]
-  ],
-  hard: [
-    ["demokracja", "grzyby"], ["nostalgia", "pusty peron"], ["grawitacja", "plotka"], ["czas", "kolejka"],
-    ["wolność", "walizka"], ["przypadek", "szachy"], ["pamięć", "zapach"], ["ryzyko", "parasol"],
-    ["cierpliwość", "mikrofala"], ["ambicja", "winda"], ["tajemnica", "lodówka"], ["odwaga", "telefon"],
-    ["sprawiedliwość", "pizza"], ["sztuka", "remont"], ["technologia", "cisza"], ["przyjaźń", "deszcz"],
-    ["szczęście", "zgubione klucze"], ["prawda", "lustro"], ["wyobraźnia", "kalendarz"], ["rutyna", "huragan"],
-    ["nauka", "sen"], ["chaos", "bibliotekarz"], ["przyszłość", "stary sweter"], ["dzieciństwo", "hasło"],
-    ["sukces", "pusty portfel"], ["spokój", "powiadomienie"], ["odpowiedzialność", "pilot do telewizora"], ["wstyd", "karaoke"],
-    ["nadzieja", "korek"], ["logika", "mem"]
-  ],
-  random: [
-    ["Minecraft", "babcia"], ["McDonald's", "deszcz"], ["Shrek", "podatek"], ["TikTok", "biblioteka"],
-    ["futbol", "księżyc"], ["szkoła", "kosmos"], ["hotel", "dinozaur"], ["telefon", "smok"],
-    ["kawa", "wulkan"], ["Netflix", "kaktus"], ["pociąg", "czarodziej"], ["wakacje", "bankomat"],
-    ["pizza", "ninja"], ["kot", "egzamin"], ["samochód", "sen"], ["morze", "drukarka"],
-    ["siłownia", "pingwin"], ["lotnisko", "duch"], ["słuchawki", "rycerz"], ["rower", "tęcza"],
-    ["zakupy", "robot"], ["koncert", "formularz"], ["las", "internet"], ["lody", "praca"],
-    ["mapa", "kapibara"], ["kanapa", "przygoda"], ["parasol", "superbohater"], ["film", "pustynia"],
-    ["plecak", "tajemnica"], ["poniedziałek", "słoń"]
-  ]
-};
-const allPairs = [...pairPacks.easy, ...pairPacks.weird, ...pairPacks.hard];
-const clamp = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
-const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
-const active = game => (game.players || []).filter(uid => !game.eliminated?.includes(uid));
-const deadline = seconds => Date.now() + clamp(seconds, 10, 120, 30) * 1000;
-const pairKey = pair => pair.map(item => String(item).toLocaleLowerCase("pl-PL")).join("|" );
-const cleanText = value => String(value || "").trim().slice(0, 240);
-const validText = value => { const text = cleanText(value); return text.length >= 2 && text.length <= 240; };
-const nick = (accounts, uid) => accounts?.[uid]?.nick || (String(uid).startsWith("bot:") ? "Bot" : "Gracz");
-const shuffled = list => [...list].sort(() => Math.random() - .5);
-
-export function sanitizeConnectSettings(settings = {}) {
-  return { rounds: clamp(settings.rounds, 1, 10, 5), answerTime: clamp(settings.answerTime, 15, 90, 30), category: ["easy", "weird", "hard", "random"].includes(settings.category) ? settings.category : "random" };
+export function connectWord(value) {
+  const word = String(value ?? "").trim().normalize("NFC");
+  return wordPattern.test(word) ? word : "";
 }
 
-function pickPair(game, settings) {
-  const requested = settings.category === "random" ? allPairs : pairPacks[settings.category];
-  const used = new Set(game.usedPairs || []);
-  const available = requested.filter(pair => !used.has(pairKey(pair)));
-  const pair = shuffled(available.length ? available : requested)[0] || ["kot", "samochód"];
-  game.usedPairs = [...(game.usedPairs || []), pairKey(pair)];
-  return pair;
+const comparable = word => word.toLocaleLowerCase("pl-PL").normalize("NFD").replace(/\p{M}/gu,"").replace(/ł/g,"l");
+const answerTime = value => [15,30,45,60,90].includes(Number(value)) ? Number(value) : connectDefaults.answerTime;
+
+export function createConnectGame(players, settings = {}, now = Date.now()) {
+  return {
+    version:2, mode:"polacz-nas", players:[...players],
+    phase:"thinking", round:1, attempt:1, pair:[], history:[],
+    commits:{}, revealed:{}, phaseEndsAt:now+answerTime(settings.answerTime)*1000,
+  };
 }
 
-export function createConnectGame(players, settings = {}) {
-  const s = sanitizeConnectSettings(settings);
-  const game = { mode: "polacz-nas", phase: "answering", round: 1, totalRounds: s.rounds, players: [...players], pair: [], category: s.category, answers: {}, votes: {}, scores: Object.fromEntries(players.map(uid => [uid, 0])), usedPairs: [], creativeEdits: {}, passUses: {}, roundResult: null, finished: false, phaseEndsAt: deadline(s.answerTime) };
-  game.pair = pickPair(game, s);
-  return game;
-}
-
-function enterVoting(game) {
-  game.phase = "voting";
-  game.votes = {};
-  game.phaseEndsAt = deadline(30);
-}
-
-function resolveVoting(game) {
-  const answers = object(game.answers), votes = object(game.votes), counts = {};
-  game.scores = object(game.scores);
-  Object.values(votes).forEach(uid => { if (uid && uid in answers) counts[uid] = (counts[uid] || 0) + 1; });
-  const max = Math.max(0, ...Object.values(counts).map(Number));
-  const winners = max > 0 ? Object.keys(counts).filter(uid => Number(counts[uid]) === max) : [];
-  winners.forEach(uid => { game.scores[uid] = Number(game.scores[uid] || 0) + 1; });
-  game.roundResult = { round: game.round, pair: [...game.pair], answers: { ...answers }, votes: { ...votes }, voteCounts: counts, winners };
-  game.phase = "roundResult";
-  game.phaseEndsAt = Date.now() + 10000;
+function showResult(game, now, retry = false) {
+  const words = retry ? [] : game.players.map(uid => game.revealed[uid]);
+  const matched = !retry && comparable(words[0]) === comparable(words[1]);
+  game.roundResult = { retry, matched, words };
+  game.commits = {};
+  game.revealed = {};
+  if (!retry) game.history = [...(game.history || []), { round:game.round, words }].slice(-12);
+  game.phase = matched ? "gameSummary" : "roundResult";
+  game.phaseEndsAt = matched ? null : now+5000;
+  if (matched) {
+    game.winners = [...game.players];
+    game.finished = true;
+  }
 }
 
 export const ConnectEngine = {
-  editAnswer(game, uid, text) {
-    if (game.phase !== "answering") return "Odpowiedź może być poprawiona tylko przed końcem rundy.";
-    if (!(uid in object(game.answers))) return "Najpierw zapisz odpowiedź.";
-    if (game.passUses?.[uid]?.["creative-license"]) return "Licencja kreatywności została już użyta w tej grze.";
-    if (!validText(text)) return "Napisz krótkie wyjaśnienie (2–240 znaków).";
-    game.answers[uid] = cleanText(text);
-    game.passUses = { ...(game.passUses || {}), [uid]: { ...(game.passUses?.[uid] || {}), "creative-license": true } };
-    game.creativeEdits = { ...(game.creativeEdits || {}), [uid]:true };
-    return null;
+  commit(game, uid, digest, now = Date.now()) {
+    if (game.phase !== "thinking" || now >= game.phaseEndsAt) return "Czas na słowo minął.";
+    if (game.players?.length !== 2 || !game.players.includes(uid)) return "Ta runda jest dla dwóch graczy.";
+    if (!digestPattern.test(digest)) return "Nie udało się zapisać słowa.";
+    game.commits ||= {};
+    if (Object.hasOwn(game.commits,uid)) return "Twoje słowo jest już zapisane.";
+    game.commits[uid] = digest;
+    if (game.players.every(player => Object.hasOwn(game.commits,player))) {
+      game.phase = "revealing";
+      game.phaseEndsAt = now+15000;
+    }
   },
-  answer(game, uid, text) {
-    if (game.phase !== "answering") return "Czas na odpowiedzi już minął.";
-    if (!active(game).includes(uid)) return "Nie bierzesz już udziału w tej rundzie.";
-    game.answers = object(game.answers);
-    if (uid in game.answers) return "Twoja odpowiedź jest już zapisana.";
-    if (!validText(text)) return "Napisz krótkie wyjaśnienie (2–240 znaków).";
-    game.answers[uid] = cleanText(text);
-    if (active(game).every(player => player in game.answers)) enterVoting(game);
+  reveal(game, uid, word, digest, now = Date.now()) {
+    if (game.phase !== "revealing" || now >= game.phaseEndsAt) return "Czas na odsłonięcie słów minął.";
+    if (!game.players?.includes(uid) || !connectWord(word) || !digestPattern.test(digest) || game.commits?.[uid] !== digest) return "Nie udało się odsłonić słowa.";
+    game.revealed ||= {};
+    if (Object.hasOwn(game.revealed,uid)) return "Twoje słowo jest już odsłonięte.";
+    game.revealed[uid] = word;
+    if (game.players.every(player => Object.hasOwn(game.revealed,player))) showResult(game,now);
   },
-  vote(game, uid, target) {
-    if (game.phase !== "voting") return "Głosowanie jest już zakończone.";
-    if (!active(game).includes(uid)) return "Nie bierzesz już udziału w tej rundzie.";
-    if (!target || target === uid || !(target in object(game.answers))) return "Nie możesz głosować na tę odpowiedź.";
-    game.votes = object(game.votes);
-    if (uid in game.votes) return "Twój głos został już zapisany.";
-    game.votes[uid] = target;
-    if (active(game).every(player => player in game.votes)) resolveVoting(game);
+  timeout(game, now = Date.now()) {
+    if (!["thinking","revealing"].includes(game.phase) || now < game.phaseEndsAt) return "Runda nadal trwa.";
+    showResult(game,now,true);
   },
-  timeout(game) {
-    if (game.phase === "answering") {
-      game.answers = object(game.answers);
-      active(game).forEach(uid => { if (!(uid in game.answers)) game.answers[uid] = ""; });
-      enterVoting(game);
-    } else if (game.phase === "voting") resolveVoting(game);
+  nextRound(game, settings = {}, now = Date.now()) {
+    if (game.phase !== "roundResult") return "Ta runda nadal trwa.";
+    if (!game.roundResult.retry) {
+      game.pair = game.roundResult.words;
+      game.round++;
+    }
+    game.attempt++;
+    game.roundResult = null;
+    game.phase = "thinking";
+    game.phaseEndsAt = now+answerTime(settings.answerTime)*1000;
   },
-  nextRound(game, settings = {}) {
-    if (game.phase !== "roundResult") return "Wynik rundy nie jest jeszcze gotowy.";
-    if (Number(game.round) >= Number(game.totalRounds || settings.rounds || 5)) { game.phase = "gameSummary"; game.finished = true; game.phaseEndsAt = null; return; }
-    const nextSettings = sanitizeConnectSettings(settings); game.round += 1; game.pair = pickPair(game, nextSettings); game.answers = {}; game.votes = {}; game.creativeEdits = {}; game.roundResult = null; game.phase = "answering"; game.phaseEndsAt = deadline(nextSettings.answerTime);
+  interrupt(game, players) {
+    if (["interrupted","gameSummary"].includes(game.phase)) return false;
+    if (game.players?.length === 2 && game.players.every(uid => players.includes(uid) && !uid.startsWith("bot:"))) return false;
+    game.phase = "interrupted";
+    game.phaseEndsAt = null;
+    game.commits = {};
+    game.revealed = {};
+    return true;
   },
-  botAnswer(game, uid) {
-    const [left, right] = game.pair || [];
-    const options = [`Obie rzeczy łączy to, że wywołują dużo emocji.`, `${left} i ${right} pasują do siebie, bo można je spotkać w dobrej historii.`, `Jedno i drugie potrafi być częścią bardzo dziwnego dnia.`, `Łączy je skojarzenie z ludźmi, którzy lubią próbować nowych rzeczy.`];
-    return options[Math.floor(Math.random() * options.length)];
-  }
 };
 
-function rankingHtml(game, accounts, winners = []) {
-  const winnerSet = new Set(winners);
-  return [...(game.players || [])].sort((a, b) => Number(game.scores?.[b] || 0) - Number(game.scores?.[a] || 0)).map((uid, index) => `<div class="connect-ranking-row"><span>${index + 1}.</span>${resultPlayerMiniHtml(accounts[uid], winnerSet.has(uid) ? "win" : "lose")}<b>${Number(game.scores?.[uid] || 0)} pkt</b></div>`).join("");
+const secretKey = (room, uid) => `grygrupowe-connect:${room.roomId}:${room.game.siteGameId || room.game.startedAt}:${uid}`;
+
+async function connectDigest(room, uid, { word, salt, attempt }) {
+  const bytes = new TextEncoder().encode(JSON.stringify([secretKey(room,uid),attempt,word,salt]));
+  const digest = await globalThis.crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest),byte => byte.toString(16).padStart(2,"0")).join("");
 }
 
-function answerCards(game, accounts, currentUser, reveal = false) {
-  return Object.entries(game.answers || {}).map(([uid, text], index) => {
-    const votes = Number(game.roundResult?.voteCounts?.[uid] || 0);
-    return `<article class="connect-answer-card"><div class="connect-answer-label">${reveal ? escapeHtml(nick(accounts, uid)) : `Odpowiedź ${index + 1}`}</div><p>${escapeHtml(text || "Brak odpowiedzi")}</p>${reveal ? `<b class="connect-votes">${votes} ${votes === 1 ? "głos" : "głosów"}</b>` : `<button class="ghost" data-connect-vote="${escapeHtml(uid)}" ${uid === currentUser || !text ? "disabled" : ""}>Głosuję na tę odpowiedź</button>`}</article>`;
-  }).join("");
+export async function submitConnectWord(room, uid, text, send) {
+  const word = connectWord(text), key = secretKey(room,uid);
+  if (!word) return "Wpisz jedno słowo, do 32 liter.";
+  if (pending.has(key)) return "";
+  pending.add(key);
+  try {
+    const secret = { word, salt:globalThis.crypto.randomUUID(), attempt:room.game.attempt };
+    const digest = await connectDigest(room,uid,secret);
+    localStorage.setItem(key,JSON.stringify(secret));
+    await send(digest);
+    return "";
+  } catch {
+    return "Nie udało się zapisać słowa. Spróbuj jeszcze raz.";
+  } finally { pending.delete(key); }
+}
+
+function savedWord(room, uid) {
+  try {
+    const secret = JSON.parse(localStorage.getItem(secretKey(room,uid)));
+    return secret?.attempt === room.game.attempt && connectWord(secret.word) ? secret : null;
+  } catch { return null; }
+}
+
+export async function revealConnectWord(room, uid, send) {
+  const secret = savedWord(room,uid), key = secretKey(room,uid);
+  if (!secret || pending.has(key)) return;
+  pending.add(key);
+  try {
+    const digest = await connectDigest(room,uid,secret);
+    if (digest === room.game.commits?.[uid]) await send(secret.word,digest);
+  } finally { pending.delete(key); }
 }
 
 export function renderConnectLobbySettings(room, isHost) {
-  const s = sanitizeConnectSettings(room.settings);
-  return `<div class="connect-settings"><label class="setting-row"><span>Liczba rund</span><select data-connect-setting="rounds" ${isHost ? "" : "disabled"}>${[1, 3, 5, 7, 10].map(value => `<option value="${value}" ${s.rounds === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="setting-row"><span>Czas na odpowiedź</span><select data-connect-setting="answerTime" ${isHost ? "" : "disabled"}>${[15, 30, 45, 60, 90].map(value => `<option value="${value}" ${s.answerTime === value ? "selected" : ""}>${value}s</option>`).join("")}</select></label><label class="setting-row"><span>Rodzaj par</span><select data-connect-setting="category" ${isHost ? "" : "disabled"}><option value="random" ${s.category === "random" ? "selected" : ""}>Totalnie losowe</option><option value="easy" ${s.category === "easy" ? "selected" : ""}>Łatwe</option><option value="weird" ${s.category === "weird" ? "selected" : ""}>Dziwne</option><option value="hard" ${s.category === "hard" ? "selected" : ""}>Trudne</option></select></label><p class="tiny">Najpierw każdy pisze własne połączenie, potem głosujecie anonimowo na najlepszą odpowiedź. Nie można głosować na siebie.</p></div>`;
+  const time = answerTime(room.settings?.answerTime);
+  return `<label class="setting-row"><span>Czas na słowo</span><select data-connect-setting="answerTime" ${isHost?"":"disabled"}>${[15,30,45,60,90].map(value => `<option value="${value}" ${time===value?"selected":""}>${value}s</option>`).join("")}</select></label>`;
+}
+
+function wordsHtml(words, players, accounts, matched = false) {
+  return `<div class="connect-word-pair ${matched?"is-match":""}">${words.map((word,index) => `<div class="connect-word"><small>${escapeHtml(accounts[players[index]]?.nick || `Gracz ${index+1}`)}</small><strong>${escapeHtml(word)}</strong></div>`).join('<span aria-hidden="true">+</span>')}</div>`;
 }
 
 export function renderConnectGame(root, { room, accounts, currentUser }, actions) {
+  stopConnectTimer();
   const game = room.game;
-  const expected = { phase: game.phase, phaseEndsAt: game.phaseEndsAt };
-  const timer = Math.max(0, Math.ceil((Number(game.phaseEndsAt || 0) - Date.now()) / 1000));
-  let content = `<p class="eyebrow">POŁĄCZ NAS · RUNDA ${Math.min(game.round, game.totalRounds)}/${game.totalRounds}</p><h1>Co łączy te dwie rzeczy?</h1><div class="connect-pair"><span>${escapeHtml(game.pair?.[0] || "—")}</span><b>＋</b><span>${escapeHtml(game.pair?.[1] || "—")}</span></div>`;
-  if (game.phase === "answering") content += currentUser in (game.answers || {}) ? `<div class="waiting-state"><h2>Odpowiedź zapisana ✓</h2><p>Czekamy na pozostałych graczy.</p>${hasGamePass(accounts?.[currentUser], "creative-license") && !game.passUses?.[currentUser]?.["creative-license"] ? `<form id="connect-edit-form" class="creative-edit-form"><textarea id="connect-edit" maxlength="240" placeholder="Możesz jeszcze poprawić własne połączenie"></textarea><button class="ghost">Popraw odpowiedź za darmo</button></form>` : ""}</div>` : `<form id="connect-answer-form" class="connect-answer-form"><label for="connect-answer">Co je łączy?</label><textarea id="connect-answer" maxlength="240" required placeholder="Wymyśl logiczne albo zabawne połączenie..."></textarea><button class="primary">Wyślij odpowiedź</button></form><p class="connect-timer">Czas: <b>${timer}s</b></p><p class="muted">Odpowiedzi są ukryte do końca tej fazy.</p>`;
-  else if (game.phase === "voting") content += `<h2>Wybierz najlepsze połączenie</h2><p class="muted">Odpowiedzi są anonimowe. Nie możesz głosować na siebie.</p><div class="connect-answers">${answerCards(game, accounts, currentUser)}</div><p class="connect-timer">Głosowanie kończy się za <b>${timer}s</b></p>`;
-  else if (game.phase === "roundResult") { const winners = game.roundResult?.winners || []; content += `<h2>Wynik rundy</h2><div class="connect-answers">${answerCards(game, accounts, currentUser, true)}</div><p class="connect-winner">${winners.length ? `🏆 Wygrywa: ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ")}` : "Nikt nie zdobył punktu."}</p><div class="connect-ranking">${rankingHtml(game, accounts, winners)}</div><button id="connect-next" class="primary">${Number(game.round) >= Number(game.totalRounds) ? "Pokaż podsumowanie" : "Następna runda"}</button><p class="round-advance-notice">${currentUser === room.hostUid ? `Podsumowanie pojawi się automatycznie za <b>${timer}s</b>.` : `Czekamy na hosta. Następna runda rozpocznie się automatycznie za <b>${timer}s</b>.`}</p>`; }
-  else { const top = Math.max(...Object.values(game.scores || {}).map(Number), 0); const winners = top > 0 ? (game.players || []).filter(uid => Number(game.scores?.[uid] || 0) === top) : []; content += `<div class="connect-final"><span>🏆</span><h2>Koniec gry</h2><p>Najlepsze połączenia wygrywają rundy. Dzięki za grę!</p><div class="connect-ranking">${rankingHtml(game, accounts, winners)}</div><p class="connect-winner">Zwycięzca: ${winners.map(uid => escapeHtml(nick(accounts, uid))).join(", ") || "brak"}</p></div><button id="connect-lobby" class="primary">Zagraj ponownie</button>`; }
-  root.innerHTML = `<main class="page connect-page enter"><section class="panel connect-panel">${content}</section><button id="connect-leave" class="ghost">Wyjdź z pokoju</button></main>`;
-  root.querySelector("#connect-answer-form")?.addEventListener("submit", event => { event.preventDefault(); actions.connectAnswer(root.querySelector("#connect-answer").value, expected); });
-  root.querySelector("#connect-edit-form")?.addEventListener("submit", event => { event.preventDefault(); actions.connectEditAnswer(root.querySelector("#connect-edit").value, expected); });
-  root.querySelectorAll("[data-connect-vote]").forEach(button => button.addEventListener("click", () => actions.connectVote(button.dataset.connectVote, expected)));
-  root.querySelector("#connect-next")?.addEventListener("click", () => actions.connectNext());
+  const expected = { phase:game.phase, attempt:game.attempt };
+  const host = room.hostUid === currentUser;
+  const pair = game.pair || [], result = game.roundResult;
+  const playable = game.version === 2 && game.phase !== "interrupted";
+  const privateWord = savedWord(room,currentUser);
+  if (privateWord && !["thinking","revealing"].includes(game.phase)) {
+    try { localStorage.removeItem(secretKey(room,currentUser)); } catch {}
+  }
+  let title, body;
+  if (!playable) {
+    title = game.version === 2 ? "Gracz opuścił rozgrywkę" : "Rozpocznij nową grę";
+    body = host ? '<button class="primary" id="connect-lobby">Wróć do pokoju</button>' : '<p class="muted">Czekamy na hosta.</p>';
+  } else if (game.phase === "gameSummary") {
+    title = "Trafiliście!";
+    body = wordsHtml(result.words,game.players,accounts,true) + (host ? '<button class="primary" id="connect-lobby">Zagraj ponownie</button>' : "");
+  } else if (game.phase === "roundResult") {
+    title = result.retry ? "Czas minął" : "Nowa para";
+    body = (result.retry ? '<p class="muted">Spróbujcie ponownie w tej samej rundzie.</p>' : wordsHtml(result.words,game.players,accounts))
+      + (host ? `<button class="primary" id="connect-next">${result.retry?"Powtórz rundę":"Następna runda"} →</button>` : "");
+  } else {
+    const waiting = game.phase === "revealing" || game.commits?.[currentUser];
+    title = pair.length ? "Co łączy te słowa?" : "Podaj dowolne słowo";
+    body = (pair.length ? wordsHtml(pair,game.players,accounts) : '<p class="muted">Każde z was wybiera jedno słowo w tajemnicy.</p>')
+      + (waiting
+        ? `<p class="connect-wait" role="status">${game.phase==="revealing"?"Odsłaniamy słowa…":"Zapisano · czekamy na drugiego gracza"}${privateWord?` <b>${escapeHtml(privateWord.word)}</b>`:""}</p>`
+        : '<form id="connect-answer-form" class="connect-word-form"><input id="connect-answer" aria-label="Twoje słowo" minlength="1" maxlength="32" required autocomplete="off" placeholder="Twoje słowo…"><button class="primary">Zapisz</button></form>');
+  }
+  const history = (game.history || []).filter(item => item.round < game.round).slice(-6).reverse();
+  root.innerHTML = `<main class="page connect-page enter"><section class="panel connect-panel connect-word-panel">
+    <header class="connect-round-head"><p class="eyebrow">POŁĄCZ NAS · RUNDA ${Number(game.round)||1}</p>${playable&&game.phaseEndsAt?'<span class="connect-clock" data-connect-clock></span>':""}</header>
+    <h1>${title}</h1>${body}<small class="connect-word-error" role="status" data-connect-error></small>
+    ${history.length?`<details class="connect-word-history"><summary>Poprzednie pary</summary><ol>${history.map(item => `<li>${escapeHtml(item.words.join(" + "))}</li>`).join("")}</ol></details>`:""}
+  </section><button id="connect-leave" class="ghost">Wyjdź z pokoju</button></main>`;
+  root.querySelector("#connect-answer-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget, button = form.querySelector("button");
+    button.disabled = true;
+    const error = await submitConnectWord(room,currentUser,form.querySelector("input").value,digest => actions.connectCommit(digest,expected));
+    if (form.isConnected) {
+      button.disabled = false;
+      root.querySelector("[data-connect-error]").textContent = error;
+    }
+  });
+  root.querySelector("#connect-next")?.addEventListener("click", () => actions.connectNext(expected));
   root.querySelector("#connect-lobby")?.addEventListener("click", () => actions.returnToRoom());
   root.querySelector("#connect-leave")?.addEventListener("click", () => actions.leaveRoom());
-  if (["answering", "voting", "roundResult"].includes(game.phase)) renderConnectGame.timer = window.setTimeout(() => { if (game.phase === "answering" || game.phase === "voting") actions.connectTimeout(expected); else if (currentUser === room.hostUid) actions.connectNext(); }, Math.max(100, Number(game.phaseEndsAt || Date.now()) - Date.now() + 50));
+  if (!playable || !game.phaseEndsAt) return;
+  if (game.phase === "revealing" && !game.revealed?.[currentUser] && privateWord) {
+    const view = root.firstElementChild;
+    const reveal = async () => {
+      if (!view.isConnected || Date.now() >= game.phaseEndsAt) return;
+      await revealConnectWord(room,currentUser,(word,digest) => actions.connectReveal(word,digest,expected)).catch(() => {});
+      if (view.isConnected) connectRevealTimer = setTimeout(reveal,850);
+    };
+    connectRevealTimer = setTimeout(reveal,100);
+  }
+  const clock = root.querySelector("[data-connect-clock]");
+  const tick = () => { if (clock) clock.textContent = `${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))} s`; };
+  tick();
+  connectClock = setInterval(tick,250);
+  connectTimer = setTimeout(() => {
+    stopConnectTimer();
+    if (game.phase === "roundResult") { if (host) actions.connectNext(expected); }
+    else actions.connectTimeout(expected);
+  },Math.max(100,game.phaseEndsAt-Date.now()+70));
 }
 
-export function stopConnectTimer() { clearTimeout(renderConnectGame.timer); renderConnectGame.timer = 0; }
+let connectTimer,connectClock,connectRevealTimer;
+export function stopConnectTimer() {
+  clearTimeout(connectTimer);
+  clearTimeout(connectRevealTimer);
+  clearInterval(connectClock);
+}

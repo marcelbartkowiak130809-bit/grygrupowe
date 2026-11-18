@@ -1,4 +1,4 @@
-import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20261118-15";
+import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20261118-27";
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
@@ -25,7 +25,6 @@ import { CharadesEngine } from "./charades.js?v=20260922-1";
 import { HangmanEngine, hangmanWordBank } from "./hangman.js?v=20261118-16";
 import { NumberMysteryEngine } from "./numberMystery.js?v=20260831-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
-import { ConnectEngine } from "./connect.js?v=20260831-4";
 import { LiarEngine } from "./liar.js?v=20260831-4";
 import { FalseMessageEngine } from "./falseMessage.js?v=20260831-4";
 import { SecretRuleEngine } from "./secretRule.js?v=20260831-5";
@@ -460,7 +459,6 @@ function timeoutMutation(room, game, bot) {
     case "sequence": return g => g.phase === "create" ? timeoutSequenceCreation(g, g.createEndsAt) : SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
-    case "polacz-nas": return g => ConnectEngine.timeout(g);
     case "klamca": return g => LiarEngine.timeout(g, settings);
     case "falszywa-wiadomosc": return g => FalseMessageEngine.timeout(g, settings);
     case "tajna-zasada": return g => SecretRuleEngine.timeout(g, settings);
@@ -681,13 +679,6 @@ export function botMutation(room) {
         break;
       case "unique-answer":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => UniqueAnswerEngine.answer(g, bot, uniqueAnswerBot(g, room, bot), settings);
-        break;
-      case "polacz-nas":
-        if (game.phase === "answering" && isMissing(game.answers, bot)) return g => ConnectEngine.answer(g, bot, ConnectEngine.botAnswer(g, bot));
-        if (game.phase === "voting" && isMissing(game.votes, bot)) return g => {
-          const target = Object.keys(g.answers || {}).find(uid => uid !== bot && g.answers?.[uid]) || Object.keys(g.answers || {}).find(uid => uid !== bot);
-          return target ? ConnectEngine.vote(g, bot, target) : null;
-        };
         break;
       case "klamca":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => LiarEngine.answer(g, bot, LiarEngine.botAnswer(g, bot), settings);

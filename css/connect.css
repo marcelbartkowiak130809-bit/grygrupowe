@@ -1,0 +1,48 @@
+.connect-page .connect-word-panel {
+  max-width:650px;
+  margin:0 auto 12px;
+  padding:clamp(16px,4vw,30px);
+  border-color:#85d6eb38;
+  background:radial-gradient(ellipse at 50% 0,#233459,#101625 72%);
+}
+.connect-round-head { display:flex; justify-content:space-between; align-items:center; gap:8px; text-align:left; }
+.connect-round-head .eyebrow { margin:0; }
+.connect-clock {
+  flex:none;
+  border:1px solid #9debf53d;
+  border-radius:9px;
+  padding:5px 9px;
+  color:#9debf5;
+  font-variant-numeric:tabular-nums;
+}
+.connect-word-panel h1 { margin:15px 0; font-size:clamp(24px,6vw,40px); }
+.connect-word-pair {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:clamp(6px,2vw,14px);
+  margin:18px 0;
+}
+.connect-word {
+  min-width:0;
+  border:1px solid #88b6f33b;
+  border-radius:14px;
+  padding:clamp(9px,2vw,17px);
+  background:#88b6f315;
+}
+.connect-word small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#adbeda; }
+.connect-word strong { display:block; margin-top:5px; font-size:clamp(16px,4vw,27px); overflow-wrap:anywhere; }
+.connect-word-pair.is-match .connect-word { color:#a7ffd0; border-color:#a7ffd076; background:#a7ffd01c; }
+.connect-word-form { display:flex; gap:7px; margin:14px auto 0; max-width:410px; }
+.connect-word-form input { min-width:0; flex:1; font-size:16px; }
+.connect-word-form button { flex:none; }
+.connect-wait { min-height:42px; margin:14px 0 0; color:#a7dae9; overflow-wrap:anywhere; }
+.connect-word-error { display:block; margin-top:6px; color:#ffbdac; }
+.connect-word-error:empty { display:none; }
+.connect-word-history { margin:18px 0 0; text-align:start; color:#adbeda; }
+.connect-word-history summary { cursor:pointer; }
+.connect-word-history li { overflow-wrap:anywhere; }
+.light-theme .connect-page .connect-word-panel { background:#f6f8ff; color:#17233c; }
+.light-theme .connect-word small,.light-theme .connect-clock,.light-theme .connect-wait,.light-theme .connect-word-history { color:#315579; }
+.light-theme .connect-word-pair.is-match .connect-word { color:#087547; }
+.light-theme .connect-word-error { color:#a23825; }
