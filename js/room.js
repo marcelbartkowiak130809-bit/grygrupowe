@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261118-21";
+import { getGameMode } from "./games.js?v=20261118-23";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261117-10";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261118-16";
@@ -28,7 +28,7 @@ import { renderConnectLobbySettings } from "./connect.js?v=20260831-4";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
-import { adSenseBlock } from "./publicPages.js?v=20261118-21";
+import { adSenseBlock } from "./publicPages.js?v=20261118-23";
 import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20261118-15";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261117-10";

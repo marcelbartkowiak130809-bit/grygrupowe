@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261118-21";
+import { renderGame } from "./game.js?v=20261118-23";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -105,6 +105,7 @@ export const gamesRegistry = {
     symbol: "🤔",
     art: "question",
     audience: "everyone",
+    collections: ["tiktok"],
     render: renderOtherQuestionGame,
     defaultSettings: otherQuestionDefaults,
   },
@@ -310,10 +311,10 @@ export const gamesRegistry = {
     id: "mathematics", name: "Matematyka", description: "Rozwiązujcie proceduralnie generowane zadania i ścigajcie się o poprawne odpowiedzi.", help: ["Host wybiera liczbę pytań, czas, sposób odpowiedzi i typy zadań.", "Pytania rosną z poziomem trudności wraz z numerem pytania.", "Pierwsza poprawna odpowiedź daje punkt."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"∑", art:"mathematics", audience:"everyone", badges:["new"], render:renderMathematicsGame, defaultSettings:mathematicsDefaults,
   },
   marker: {
-id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik znajdzie liczbę. Zapełnij swoją planszę jako pierwszy.", help: ["Wybierz liczbę na planszy. Przeciwnik od razu zaczyna jej szukać.", "W tym samym czasie rysuj po dwie duże, przecinające się kreski w pustych polach swojej planszy. Krzyżyki zapisują się automatycznie.", "Znalezienie liczby zamienia role. Każdy zachowuje swoje krzyżyki. Wygrywa pierwszy, który zapełni całe własne pole."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"✎", art:"marker", audience:"everyone", badges:["new"], render:renderMarkerGame, defaultSettings:markerDefaults,
+id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik znajdzie liczbę. Zapełnij swoją planszę jako pierwszy.", help: ["Wybierz liczbę na planszy. Przeciwnik od razu zaczyna jej szukać.", "W tym samym czasie rysuj po dwie duże, przecinające się kreski w pustych polach swojej planszy. Krzyżyki zapisują się automatycznie.", "Znalezienie liczby zamienia role. Każdy zachowuje swoje krzyżyki. Wygrywa pierwszy, który zapełni całe własne pole."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"✎", art:"marker", audience:"everyone", badges:["new"], collections:["tiktok"], render:renderMarkerGame, defaultSettings:markerDefaults,
   },
   sequence: {
-    id: "sequence", name: "Zgadnij sekwencję", description: "Twórzcie tajne sekwencje kolorów i łamcie kod przeciwnika.", help: ["Każdy gracz tworzy własną sekwencję dla przeciwnika.", "Po każdej próbie widzicie tylko liczbę kolorów na poprawnym miejscu.", "Nie pokazujemy, które pozycje są prawidłowe."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"◎", art:"sequence", audience:"everyone", badges:["new"], render:renderSequenceGame, defaultSettings:sequenceDefaults,
+    id: "sequence", name: "Zgadnij sekwencję", description: "Twórzcie tajne sekwencje kolorów i łamcie kod przeciwnika.", help: ["Każdy gracz tworzy własną sekwencję dla przeciwnika.", "Po każdej próbie widzicie tylko liczbę kolorów na poprawnym miejscu.", "Nie pokazujemy, które pozycje są prawidłowe."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"◎", art:"sequence", audience:"everyone", badges:["new"], collections:["tiktok"], render:renderSequenceGame, defaultSettings:sequenceDefaults,
   },
   family: {
     id: "family", name: "Familiada", description: "Odgadujcie najpopularniejsze odpowiedzi i zdobywajcie punkty z tablicy.", help: ["Gra losuje pytanie i odpowiedzi z ukrytej tablicy.", "Po każdej odpowiedzi pokazujemy tylko miejsce i wartość trafienia.", "Host wybiera sposób zmiany gracza oraz liczbę rund."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"★", art:"family", audience:"everyone", badges:["new"], render:renderFamilyGame, defaultSettings:familyDefaults,

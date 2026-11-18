@@ -12,7 +12,7 @@ test('music leads navigation; counts exclude hidden/locked modes and shortcuts o
  const categories=categoryTilesHtml(gamesList);
  for(const category of ['music','pokemon','board','minecraft','tiktok'])assert.ok(categories.includes(`data-home-category="${category}"`));
  assert.match(categories,/href="\/hity-tiktoka"/);
- assert.match(categories,/15 trybów/);
+ assert.match(categories,/18 trybów/);
 });
 test('category clicks navigate and discovery shortcuts use existing filters',()=>{
  const handlers={},calls=[];
@@ -28,9 +28,10 @@ test('category clicks navigate and discovery shortcuts use existing filters',()=
 });
 test('TikTok is a collection of the original hits and games keep their primary category',()=>{
  const hits=libraryModesFor(gamesList,'tiktok');
- assert.equal(hits.length,15);
+ assert.equal(hits.length,18);
  assert.ok(!gamesList.some(mode=>mode.badges?.includes('tiktok')));
  const find=id=>hits.find(mode=>mode.id===id);
+ for(const id of ['inne-pytanie','marker','sequence'])assert.ok(find(id),id);
  assert.equal(libraryModeCategory(find('charades')).id,'board');
  assert.equal(libraryModeCategory(find('songspot')).id,'music');
  assert.equal(libraryModeCategory(find('impostor')).id,'tiktok');
