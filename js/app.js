@@ -11,6 +11,7 @@ import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=2026
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261117-16";
+import { gameCategory } from "./gameCategories.js";
 import { gamesList, getGameMode } from "./games.js?v=20261117-16";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
@@ -54,7 +55,7 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261117-14";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-16";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-8";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-9";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-16";
 import { Router } from "./router.js?v=20260901-3";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-16";
@@ -2098,7 +2099,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
   goMusicModes() { if(activeRoom())return actions.leaveRoom("music-select");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
-  goModeCategory(mode = getGameMode(state.selectedGameMode)) { const audience = mode?.audience; if (audience === "pokemon") return actions.goPokemonModes(); if (audience === "board") return actions.goBoardModes(); if (audience === "minecraft") return actions.goMinecraftModes(); if (audience === "music") return actions.goMusicModes(); return actions.goPlatform(); },
+  goModeCategory(mode = getGameMode(state.selectedGameMode)) { const category = gameCategory(mode); if (category === "pokemon") return actions.goPokemonModes(); if (category === "board") return actions.goBoardModes(); if (category === "minecraft") return actions.goMinecraftModes(); if (category === "music") return actions.goMusicModes(); return actions.goPlatform(); },
   goPublicPage(path) { const screen=Router.publicScreenFromPath(path); if(!screen)return actions.goPlatform(); window.history.pushState(null,"",path); Router.go(screen); },
   goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },

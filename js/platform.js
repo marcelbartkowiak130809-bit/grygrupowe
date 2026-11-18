@@ -1,4 +1,5 @@
 import { gamesList } from "./games.js?v=20261117-16";
+import { gameCategory } from "./gameCategories.js";
 import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261118-1';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
@@ -24,14 +25,14 @@ let pollCountdownTimer;
 let weeklyUnlockTimer;
 let modeUnlockAnnouncementTimer;
 const POLLS_ENABLED = false;
+const hubCategories = new Set(["pokemon", "board", "minecraft", "music"]);
+const boardModes = gamesList.filter(mode => !mode.hiddenFromLibrary && gameCategory(mode) === "board");
 
 function modeCategory(mode) {
-  if (mode.audience === "pokemon") return "pokemon";
-  if (mode.audience === "board") return "board";
-  if (mode.audience === "minecraft") return "minecraft";
-  if (mode.audience === "music") return "music";
+  const category = gameCategory(mode);
+  if (hubCategories.has(category)) return category;
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
-  return mode.audience === "crew" ? "crew" : "everyone";
+  return category === "crew" ? "crew" : "everyone";
 }
 
 function bindModePlayActions(root, actions) {
@@ -59,9 +60,8 @@ export function renderPokemonModes(root, actions, context = {}) {
 
 export function renderBoardModes(root, actions, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
-  const boardModes = gamesList.filter(game => game.audience === "board");
   const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyczne zasady, szybkie tury i jedna plansza dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
+  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyki, gry słowne i szybkie wyzwania dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
   root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
   bindMobileGameLayout(root);
   bindModePlayActions(root, actions);
@@ -208,7 +208,7 @@ function pokemonHubCard() {
 }
 
 function boardHubCard() {
-  return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe chińczyk statki słowotwór warcaby memory domino reversi zgadnij kto"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Słowotwór, Warcaby, Reversi i więcej gier przy jednej planszy.</p><div class="game-card-activity"><span>${gamesList.filter(mode => mode.audience === "board").length} trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card board-hub-card" data-board-hub data-mode-category="board" data-mode-tags="board category new everyone" data-mode-search="planszówki planszowki gry planszowe ${escapeHtml(boardModes.map(mode => mode.name).join(" "))}"><div class="game-visual game-visual-board-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎲</span><b class="board-hub-badge">PLANSZÓWKI</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-board">KATEGORIA</span></div><h2>PLANSZÓWKI</h2><p class="muted">Chińczyk, Statki, Kalambury i inne gry dla całej ekipy.</p><div class="game-card-activity"><span>${boardModes.length} trybów</span><span>KLASYKI I STRATEGIA</span></div><div class="game-card-footer"><span class="players-count">🎲 DLA EKIPY</span><button class="primary" data-open-board>Wybierz tryb</button></div></div></article>`;
 }
 
 function minecraftHubCard() {
@@ -402,7 +402,7 @@ function watchWeeklyUnlocks(root, actions) {
     const button = slot.querySelector("[data-weekly-mode]");
     button?.addEventListener("click", () => actions.selectGame(button.dataset.weeklyMode));
     if (focused) button?.focus({ preventScroll: true });
-    const category = snapshot.celebrating && gamesList.find(game => game.id === snapshot.latest.modeId)?.audience;
+    const category = snapshot.celebrating && gameCategory(gamesList.find(game => game.id === snapshot.latest.modeId));
     root.querySelectorAll("[data-home-category]").forEach(link => {
       link.classList.toggle("weekly-release-highlight", link.dataset.homeCategory === category);
     });
@@ -449,7 +449,7 @@ export function renderPlatform(root, actions, context = {}) {
      <section class="${mobileGamesSectionClass(mobileLayout)}">
        <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div><p class="muted">Filtruj tryby po tym, czy są dla znajomych, dla każdego, solo albo oryginalne.</p></div>
        <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu po nazwie lub opisie…"></label><div class="game-filters" role="tablist" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}">${label}</button>`).join("")}</div>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
-       <div class="games-grid">${gamesList.filter(game => game.audience !== "pokemon" && game.audience !== "board" && game.audience !== "minecraft" && game.audience !== "music" && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}${musicHubCard()}</div>
+       <div class="games-grid">${gamesList.filter(game => !hubCategories.has(modeCategory(game)) && !game.hiddenFromLibrary).sort(compareMainModes).map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}${pokemonHubCard()}${boardHubCard()}${minecraftHubCard()}${musicHubCard()}</div>
     </section>
     ${homeInfoHtml()}
   </main>`;
