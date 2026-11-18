@@ -1,4 +1,5 @@
-import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261117-10';
+import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261118-3';
+import {logicSolved} from './backpackAdvancedPuzzles.js?v=20261118-3';
 import {craftBatchCount} from './backpackQuality.js?v=20261117-10';
 export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso',...puzzleItems};
 export const backpackLevels=[
@@ -18,7 +19,17 @@ export function backpackRecipe(grid){
  if(a.item==='stick'&&b.item==='cobblestone')return {item:'lever',count:1};
  return null;
 }
-export function createBackpackState(){return {version:1,log:[],undo:[],level:0,stock:{...backpackLevels[0].stock},grid:Array(9).fill(''),placed:{},puzzle:{},selected:'',on:false,solved:false,done:false,moves:0,used:0,startedAt:Date.now(),finishedAt:0,message:'Wybierz przedmiot z plecaka.'};}
+const levelAttempt = (level,message) => ({
+ stock:{...backpackLevels[level].stock},grid:Array(9).fill(''),placed:{},puzzle:{},
+ selected:'',on:false,solved:false,undo:[],message
+});
+export function createBackpackState(){
+ return {
+  version:2,log:[],legacyActions:0,level:0,unlocked:0,completed:[],attempts:{},
+  done:false,moves:0,used:0,startedAt:Date.now(),finishedAt:0,finishedMoves:0,
+  ...levelAttempt(0,'Wybierz przedmiot z plecaka.')
+ };
+}
 export function backpackLight(state,index){return Object.entries(state.placed).some(([key,item])=>item==='torch'&&Math.abs(Number(key)%8-index%8)+Math.abs(Math.floor(Number(key)/8)-Math.floor(index/8))<=1);}
 export function backpackProgress(state){const l=backpackLevels[Math.min(state.level,backpackLevels.length-1)];if(state.level>=3)return extraProgress(l,state);if(state.level===1)return {current:l.targets.filter(i=>backpackLight(state,i)).length,total:l.targets.length,label:'oświetlone miejsca'};if(state.level===2)return {current:l.sockets.filter(i=>state.placed[i]==='redstone').length+(state.on&&state.placed[l.switch]==='lever'?1:0),total:5,label:'elementy obwodu'};return {current:state.solved?1:0,total:1,label:'bezpieczne przejście'};}
 export function backpackTerrain(level,index,state={puzzle:{}}){if(level>=3)return extraTerrain(backpackLevels[level],index,state);const x=index%8,y=Math.floor(index/8);if(level===0)return x<=1||x>=6?'grass_block_side':'lava_still';if(level===1)return y===0||y===4||x===0||x===7?'deepslate_tiles':'stone';return y===0||y===4?'deepslate_tiles':'stone_bricks';}
@@ -29,8 +40,6 @@ function solved(state){const level=backpackLevels[state.level];if(state.level===
  const seen=new Set([level.start]),queue=[level.start];while(queue.length){const i=queue.shift();if(i===level.end)return true;for(const j of [i-8,i+8,...(i%8?[i-1]:[]),...(i%8<7?[i+1]:[])])if(j>=0&&j<40&&!seen.has(j)&&(backpackTerrain(0,j)!=='lava_still'||state.placed[j])){seen.add(j);queue.push(j);}}return false;
 }
 function execute(state,action){
- if(state.done)return false;
- if(action.type==='next'){if(!state.solved)return false;state.level++;state.undo=[];if(state.level===backpackLevels.length){state.done=true;state.finishedAt=Date.now();return true;}Object.assign(state,{stock:{...backpackLevels[state.level].stock},grid:Array(9).fill(''),placed:{},puzzle:{},selected:'',on:false,solved:false,message:'Nowe wyzwanie. Plecak gotowy.'});return true;}
  if(state.solved)return false;
  if(action.type==='select'){if(!backpackItems[action.item]||!(state.stock[action.item]>0))return false;state.selected=action.item;state.message=`Wybrano: ${backpackItems[action.item]}`;return true;}
  if(action.type==='craft-slot'){const i=action.index;if(!Number.isInteger(i)||i<0||i>8)return false;if(state.grid[i]){add(state,state.grid[i]);state.grid[i]='';}else{const item=action.item||state.selected;if(!backpackItems[item]||!(state.stock[item]>0))return false;state.stock[item]--;state.grid[i]=item;}state.message='Ułóż składniki i odbierz wynik.';return true;}
@@ -52,20 +61,93 @@ function execute(state,action){
  }
  state.solved=solved(state);if(state.solved)state.message='Wyzwanie ukończone!';return true;
 }
-const snapshot=state=>JSON.parse(JSON.stringify({stock:state.stock,grid:state.grid,placed:state.placed,puzzle:state.puzzle,selected:state.selected,on:state.on,solved:state.solved,moves:state.moves,used:state.used}));
-export function backpackAction(state,action){
- if(!action||typeof action!=='object'||state.done)return false;
- if(action.type==='undo'){const previous=state.undo.pop();if(!previous)return false;Object.assign(state,previous,{message:'Cofnięto ostatni ruch.'});state.log.push({type:'undo'});return true;}
- const before=snapshot(state),ok=execute(state,action);if(!ok)return false;
- if(!['next','select'].includes(action.type)&&JSON.stringify(before)!==JSON.stringify(snapshot(state)))state.undo.push(before);
+function attemptOf({stock,grid,placed,puzzle,selected,on,solved,undo,message}){
+ return {stock,grid,placed,puzzle,selected,on,solved,undo,message};
+}
+function markCompletion(state){
+ if(!state.solved)return;
+ state.completed[state.level]=true;
+ state.unlocked=Math.max(state.unlocked,Math.min(state.level+1,backpackLevels.length-1));
+}
+function openLevel(state,index){
+ if(!state.done)state.attempts[state.level]=attemptOf(state);
+ const attempt=state.attempts[index]||levelAttempt(index,'Nowe wyzwanie. Plecak gotowy.');
+ delete state.attempts[index];
+ Object.assign(state,attempt,{level:index,done:false});
+}
+function showSummary(state){
+ if(!state.done)state.attempts[state.level]=attemptOf(state);
+ if(!state.finishedAt){
+  state.finishedAt=Date.now();
+  state.finishedMoves=state.moves;
+ }
+ state.level=backpackLevels.length;
+ state.done=true;
+}
+function snapshot(state){
+ const {undo,message,...board}=attemptOf(state);
+ return JSON.parse(JSON.stringify(board));
+}
+function applyBackpackAction(state,action,legacy=false){
+ if(!action||typeof action!=='object')return false;
+ if(action.type==='level'){
+  if(legacy||!Number.isInteger(action.index)||action.index<0||action.index>state.unlocked||action.index===state.level)return false;
+  openLevel(state,action.index);
+ }else if(action.type==='summary'){
+  if(legacy||state.done||!state.finishedAt)return false;
+  showSummary(state);
+ }else if(state.done)return false;
+ else if(action.type==='reset-level'){
+  if(legacy)return false;
+  Object.assign(state,levelAttempt(state.level,'Poziom rozpoczęty od nowa.'));
+ }else if(action.type==='next'){
+  if(!state.solved)return false;
+  if(state.level===backpackLevels.length-1)showSummary(state);
+  else openLevel(state,state.level+1);
+ }else if(action.type==='undo'){
+  const previous=state.undo.pop();
+  if(!previous)return false;
+  Object.assign(state,previous.board,{message:'Cofnięto ostatni ruch.'});
+  state.moves-=previous.moves;
+  state.used-=previous.used;
+ }else{
+  const before=snapshot(state),moves=state.moves,used=state.used;
+  if(!execute(state,action))return false;
+  // Old saves can contain additional lever placements after the pattern was already correct.
+  const level=backpackLevels[state.level];
+  if(legacy&&level.kind==='logic'&&state.solved&&level.switches.some(index=>state.placed[index]!=='lever')){
+   state.solved=state.on=false;
+   state.message='Dobrze! Obserwuj zmianę na planszy.';
+  }
+  markCompletion(state);
+  if(action.type!=='select'&&JSON.stringify(before)!==JSON.stringify(snapshot(state)))state.undo.push({board:before,moves:state.moves-moves,used:state.used-used});
+ }
  state.log.push({type:action.type,...(action.item?{item:action.item}:{}),...(action.free===true?{free:true}:{}),...(Number.isInteger(action.index)?{index:action.index}:{})});return true;
+}
+export function backpackAction(state,action){return applyBackpackAction(state,action);}
+
+function upgradeCurrentLogicAttempt(state){
+ const level=backpackLevels[state.level];
+ if(level?.kind!=='logic'||state.solved||!logicSolved(level,state))return;
+ state.solved=state.on=true;
+ state.message='Wyzwanie ukończone!';
+ markCompletion(state);
 }
 // Rebuild from accepted actions, never trust inventory/solved flags from storage.
 export function restoreBackpack(raw){
- const s=createBackpackState();try{const data=typeof raw==='string'?JSON.parse(raw):raw;if(data?.version!==1||!Array.isArray(data.log)||data.log.length>10000)return s;
-  for(const action of data.log)if(!backpackAction(s,action))return createBackpackState();
+ const s=createBackpackState();try{
+  const data=typeof raw==='string'?JSON.parse(raw):raw;
+  if(![1,2].includes(data?.version)||!Array.isArray(data.log)||(data.version===1&&data.log.length>10000))return s;
+  const legacyActions=data.version===1?data.log.length:data.legacyActions??0;
+  if(!Number.isInteger(legacyActions)||legacyActions<0||legacyActions>data.log.length)return s;
+  s.legacyActions=legacyActions;
+  for(let index=0;index<data.log.length;index++){
+   if(index===legacyActions&&legacyActions)upgradeCurrentLogicAttempt(s);
+   if(!applyBackpackAction(s,data.log[index],index<legacyActions))return createBackpackState();
+  }
+  if(legacyActions&&legacyActions===data.log.length)upgradeCurrentLogicAttempt(s);
   if(Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;
-  if(s.done&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;
+  if(s.finishedAt&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;
  }catch{return createBackpackState();}return s;
 }
-export function saveBackpack(state){return JSON.stringify({version:1,log:state.log,startedAt:state.startedAt,finishedAt:state.finishedAt});}
+export function saveBackpack(state){return JSON.stringify({version:2,log:state.log,legacyActions:state.legacyActions,startedAt:state.startedAt,finishedAt:state.finishedAt});}

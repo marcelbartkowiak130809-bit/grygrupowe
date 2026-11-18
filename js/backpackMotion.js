@@ -27,7 +27,7 @@ export function backpackAnimate(node,frames,options={}){
 }
 export function backpackFeedback(root,action,before,state){
  if(backpackReducedMotion())return;
- if(action.type==='next'){
+ if(['next','level','reset-level','summary'].includes(action.type)){
   backpackAnimate(root.querySelector('.backpack-shell,.backpack-finish'),[{opacity:.3,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:360});return;
  }
  const changed=action.type==='place'?Object.keys(state.placed).find(i=>before.placed[i]!==state.placed[i]):undefined;

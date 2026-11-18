@@ -10,7 +10,7 @@ export const advancedLevels=[
  {kind:'brew',name:'Alchemia w dobrej kolejności',goal:'Uwarz miksturę leczenia, zaczynając od pustej butelki.',tip:'Napełnij butelkę w sadzawce. Do statywu dodaj płomienny proszek, butelkę wody, brodawkę i na końcu lśniący arbuz. Arbuz powstaje z kawałka arbuza otoczonego 8 samorodkami złota.',stock:{glass_bottle:1,blaze_powder:1,nether_wart:1,melon_slice:1,gold_nugget:8,...decoys},outputs:['potion','glistering_melon_slice'],pool:10,stand:21},
  {kind:'golem',name:'Strażnik wioski',goal:'Zbuduj żelaznego strażnika i na końcu dodaj dynię.',tip:'Cztery bloki żelaza tworzą literę T: trzy w poprzeczce i jeden pod jej środkiem. Wydrążoną dynię ustaw nad środkiem jako ostatni element. Złe bloki możesz odzyskać.',stock:{iron_block:4,carved_pumpkin:1,cobblestone:3,...decoys},body:[18,19,20,27],head:11},
  {kind:'demolition',name:'Wyburz mur, ocal skarb',goal:'Jednym TNT usuń trzy fragmenty muru, nie uszkadzając skrzyni.',tip:'W tej planszy wybuch obejmuje obszar 3×3 wokół TNT. Przed odpaleniem zobaczysz jego zasięg. Szukaj miejsca, które obejmie wszystkie fragmenty muru, ale nie skrzynię. Krzesiwo uruchamia postawione TNT. Nieudane wyburzenie można cofnąć.',stock:{tnt:1,flint_and_steel:1,sand:3,...decoys},walls:[18,19,20],chest:22},
- {kind:'logic',name:'Dwie jasne, jedna ciemna',goal:'Włącz dwie górne lampy, a dolną pozostaw zgaszoną.',tip:'Postaw trzy dźwignie. Kolejne kliknięcia zmieniają ich pozycję. Górna lampa świeci, gdy A i B są różne; środkowa, gdy B i C są różne; dolna, gdy A i C są obie włączone. To plansza logiczna, nie symulator obwodów redstone.',stock:{lever:3,redstone:4,...decoys},switches:[9,17,25],lamps:[12,20,28]},
+ {kind:'logic',name:'Dwie jasne, jedna ciemna',goal:'Włącz dwie górne lampy, a dolną pozostaw zgaszoną.',tip:'Możesz postawić dźwignie na polach A, B i C. Kliknij postawioną dźwignię, aby zmienić jej pozycję. Puste pole działa jak wyłączona dźwignia. Górna lampa świeci, gdy A i B są różne. Środkowa świeci, gdy B i C są różne. Dolna świeci, gdy A i C są włączone.',stock:{lever:3,redstone:4,...decoys},switches:[9,17,25],lamps:[12,20,28]},
  {kind:'beacon',name:'Niebieski sygnał ratunkowy',goal:'Zbuduj podstawę i uruchom latarnię z niebieską wiązką.',tip:'Podstawa to pełne 3×3 z bloków żelaza. Latarnia: 3 szkła u góry, szkło–gwiazda–szkło w środku, 3 obsydiany na dole. Postaw ją na środku podstawy. Niebieskie szkło: barwnik pośrodku i 8 szkieł dookoła. Użyj go na latarni.',stock:{iron_block:9,glass:13,obsidian:3,nether_star:1,blue_dye:1,red_stained_glass:1,...decoys},outputs:['beacon','blue_stained_glass'],base:[10,11,12,18,19,20,26,27,28],center:19},
  {kind:'conduit',name:'Serce zatopionej świątyni',goal:'Uruchom przewodnię w pryzmarynowej ramie pod wodą.',tip:'Ramka 5×5 potrzebuje 16 bloków pryzmarynu. Środek zostaje na przewodnię. W craftingu otocz serce oceanu 8 muszlami. Dodaj wodę na oznaczonym polu. Ten przekrój jest uproszczoną łamigłówką, nie pełną symulacją podwodnej budowli.',stock:{prismarine:16,heart_of_the_sea:1,nautilus_shell:8,water_bucket:1,...decoys},outputs:['conduit','bucket'],frame:ring,center:19,pool:20}
 ].map(l=>({...l,advanced:true,theme:l.kind}));
@@ -25,6 +25,10 @@ export function advancedTerrain(l,i,s){const p=s.puzzle;
  return 'stone_bricks';
 }
 export function logicLights(l,s){const a=!!s.puzzle.switches?.[l.switches[0]],b=!!s.puzzle.switches?.[l.switches[1]],c=!!s.puzzle.switches?.[l.switches[2]];return [a!==b,b!==c,a&&c];}
+export function logicSolved(level,state){
+ const [top,middle,bottom]=logicLights(level,state);
+ return top&&middle&&!bottom;
+}
 export function advancedTile(l,i,s){const p=s.puzzle;let icon='',label='',mark=false,fx='';
  if(l.kind==='archery'&&l.targets.includes(i)){icon='target_side';mark=true;label=(p.hits||[]).includes(i)?'TRAFIONA':'TARCZA';}
  if(l.kind==='honey'){if(l.hives.includes(i)){icon='beehive_front_honey';label=(p.honey||[]).includes(i)?'ZEBRANE':'UL';}mark=l.fires.includes(i);}
@@ -101,7 +105,7 @@ export function advancedPlace(s,l,i,item,free=false){const p=s.puzzle,has=id=>(s
  }else if(l.kind==='logic'){
   if(l.switches.includes(i)&&s.placed[i]==='lever'){(p.switches||={})[i]=!p.switches?.[i];ok=true;}
   else if(l.switches.includes(i)&&item==='lever'&&place(item)){(p.switches||={})[i]=false;ok=true;}
-  const lights=logicLights(l,s);s.solved=l.switches.every(j=>s.placed[j]==='lever')&&lights[0]&&lights[1]&&!lights[2];s.on=s.solved;
+  s.solved=logicSolved(l,s);s.on=s.solved;
  }else if(l.kind==='beacon'){
   if(item==='iron_block'&&(free||l.base.includes(i))&&has(item)&&!(p.base||[]).includes(i)){take(item);(p.base||=[]).push(i);ok=true;}
   if(i===l.center&&item==='beacon'&&has(item)&&l.base.every(j=>(p.base||[]).includes(j))&&!s.placed[i])ok=place(item);

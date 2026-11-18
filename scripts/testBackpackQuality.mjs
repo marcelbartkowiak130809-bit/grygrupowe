@@ -11,6 +11,43 @@ test('all 30 pre-audit starts and completions replay without losing progress',()
  for(let i=0;i<30;i++){for(const [end,solved]of [[baseline.starts[i],false],[baseline.ends[i],true]]){const s=restoreBackpack({version:1,log:baseline.log.slice(0,end)});assert.equal(s.level,i);assert.equal(s.solved,solved);assert.equal(s.log.length,end);}}
  assert.ok(restoreBackpack({version:1,log:baseline.log}).done);
 });
+test('a full lamp progress bar completes the puzzle without all three levers, including in old saves',()=>{
+ const s=stage(17);
+ put(s,9,'lever');put(s,17,'lever');put(s,17);
+ assert.ok(s.solved);
+ assert.equal(backpackLevels[17].switches.filter(index=>s.placed[index]==='lever').length,2);
+ const old=restoreBackpack({version:1,log:s.log});
+ assert.equal(old.solved,true);
+ assert.equal(old.unlocked,18);
+ const restored=restoreBackpack(saveBackpack(old));
+ assert.equal(restored.solved,true);
+ assert.ok(action(restored,{type:'next'}));
+ assert.equal(restoreBackpack(saveBackpack(restored)).level,18);
+});
+test('reset affects only the current attempt and chapter changes preserve drafts, unlocks and the completed run',()=>{
+ const s=restoreBackpack({version:1,log:baseline.log});
+ const {finishedAt,finishedMoves}=s;
+ assert.equal(s.completed.filter(Boolean).length,30);
+ assert.ok(action(s,{type:'level',index:0}));
+ assert.ok(action(s,{type:'reset-level'}));
+ put(s,18,'cobblestone');
+ assert.ok(action(s,{type:'level',index:17}));
+ assert.ok(action(s,{type:'reset-level'}));
+ put(s,17,'lever');
+ assert.ok(action(s,{type:'level',index:0}));
+ assert.equal(s.placed[18],'cobblestone');
+ const moves=s.moves;
+ assert.ok(action(s,{type:'undo'}));
+ assert.equal(s.moves,moves-1);
+ assert.equal(s.completed.filter(Boolean).length,30);
+ const restored=restoreBackpack(saveBackpack(s));
+ assert.ok(action(restored,{type:'level',index:17}));
+ assert.equal(restored.placed[17],'lever');
+ assert.ok(action(restored,{type:'summary'}));
+ assert.equal(restored.finishedAt,finishedAt);
+ assert.equal(restored.finishedMoves,finishedMoves);
+ assert.equal(action(createBackpackState(),{type:'level',index:1}),false);
+});
 test('old rejected placements stay rejected during replay; new free placements are recorded separately',()=>{
  const old=stage(7);action(old,{type:'place',index:18,item:'bookshelf'});assert.equal(old.stock.bookshelf,4);
  assert.equal(restoreBackpack(saveBackpack(old)).stock.bookshelf,4);

@@ -61,16 +61,18 @@ for(const i of [10,11,19,27,28,29])put(i,'hopper');tile(11);tile(19);put(9,'iron
 put(10,'glass_bottle');put(21,'blaze_powder');put(21,'potion');put(21,'nether_wart');pattern(Array.from({length:9},(_,i)=>[i,i===4?'melon_slice':'gold_nugget']));put(21,'glistering_melon_slice');click('[data-bp-next]');
 for(const i of [18,19,20,27])put(i,'iron_block');put(11,'carved_pumpkin');click('[data-bp-next]');
 put(11,'tnt');assert.ok(root.querySelector('.puzzle-blast'));put(11,'flint_and_steel');click('[data-bp-next]');
-for(const i of [9,17,25])put(i,'lever');tile(17);click('[data-bp-next]');
+for(const i of [9,17])put(i,'lever');tile(17);assert.ok(root.querySelector('[data-bp-next]'));click('[data-bp-next]');
 for(const i of [10,11,12,18,19,20,26,27,28])put(i,'iron_block');pattern([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');pattern(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');assert.ok(root.querySelector('.puzzle-beam'));click('[data-bp-next]');
 for(const i of [1,2,3,4,5,9,13,17,21,25,29,33,34,35,36,37])put(i,'prismarine');pattern(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');
 click('[data-bp-next]');
-for(let level=20;level<30;level++){assert.equal(root.querySelectorAll('.backpack-chapters span').length,30);solveExpedition(level,{put,craft:pattern});assert.ok(root.querySelector('[data-bp-next]'));if(level<29)click('[data-bp-next]');}
+for(let level=20;level<30;level++){assert.equal(root.querySelectorAll('[data-bp-level]').length,30);solveExpedition(level,{put,craft:pattern});assert.ok(root.querySelector('[data-bp-next]'));if(level<29)click('[data-bp-next]');}
 assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);click('[data-bp-next]');assert.match(root.textContent,/Wszystkie przeszkody pokonane/);assert.match(root.textContent,/30\/30/);assert.ok(stored.size);
 // A fresh module/session reconstructs the completed game from storage.
 const {renderLastBackpack:fresh}=await import('../js/lastBackpack.js?restore-component-test');fresh(root,context,{});assert.ok(root.querySelector('.backpack-finish'));
 // Touch drag path: one item is consumed once, and a cancelled gesture consumes none.
-click('[data-bp-restart]');const b=root.querySelector('[data-bp-item="cobblestone"]');b.setPointerCapture=()=>{};
+click('[data-bp-level="0"]');click('[data-bp-reset-level]');
+assert.equal(root.querySelectorAll('.backpack-chapters .complete').length,30);
+const b=root.querySelector('[data-bp-item="cobblestone"]');b.setPointerCapture=()=>{};
 b.onpointerdown({pointerType:'touch',pointerId:1,clientX:10,clientY:10});b.onpointermove({pointerId:1,clientX:50,clientY:50,preventDefault(){}});
 document.elementFromPoint=()=>root.querySelector('[data-bp-tile="18"]');b.onpointerup({type:'pointerup',pointerId:1,clientX:50,clientY:50});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
