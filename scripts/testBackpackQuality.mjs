@@ -29,9 +29,9 @@ test('a full lamp progress bar completes the puzzle without all three levers, in
 });
 test('reset affects only the current attempt and chapter changes preserve drafts, unlocks and the completed run',()=>{
  const s=restoreBackpack({version:1,log:baseline.log});
- for(let i=30;i<50;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
+ for(let i=30;i<backpackLevels.length;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
  const {finishedAt,finishedMoves}=s;
- assert.equal(s.completed.filter(Boolean).length,50);
+ assert.equal(s.completed.filter(Boolean).length,60);
  assert.ok(action(s,{type:'level',index:0}));
  assert.ok(action(s,{type:'reset-level'}));
  put(s,18,'cobblestone');
@@ -43,7 +43,7 @@ test('reset affects only the current attempt and chapter changes preserve drafts
  const moves=s.moves;
  assert.ok(action(s,{type:'undo'}));
  assert.equal(s.moves,moves-1);
- assert.equal(s.completed.filter(Boolean).length,50);
+ assert.equal(s.completed.filter(Boolean).length,60);
  const restored=restoreBackpack(saveBackpack(s));
  assert.ok(action(restored,{type:'level',index:17}));
  assert.equal(restored.placed[17],'lever');
@@ -58,6 +58,33 @@ test('old summaries still open the new extension after replaying an earlier leve
  assert.equal(s.level,30);
  assert.equal(s.completed.filter(Boolean).length,30);
  assert.equal(restoreBackpack(saveBackpack(s)).level,30);
+});
+test('completed 50-level saves open level 51 and retain all previous attempts',()=>{
+ const s=restoreBackpack({version:1,log:baseline.log});
+ for(let i=30;i<50;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
+ assert.equal(s.level,50);
+ const old={...JSON.parse(saveBackpack(s)),campaignLength:50,finishedAt:Date.now()};
+ old.log.push({type:'level',index:0},{type:'summary'});
+ const upgraded=restoreBackpack(old);
+ assert.equal(upgraded.level,50);
+ assert.equal(upgraded.completed.filter(Boolean).length,50);
+ assert.equal(upgraded.finishedAt,0);
+ assert.deepEqual(upgraded.stock,backpackLevels[50].stock);
+ assert.equal(restoreBackpack(saveBackpack(upgraded)).level,50);
+});
+test('late challenges add real steps and recoverable inventory decoys',()=>{
+ const totals=[0,0];
+ for(let i=40;i<60;i++){
+  const level=backpackLevels[i];
+  const s=Object.assign(createBackpackState(),{level:i,stock:{...level.stock}});
+  solveDeepLevel(s);
+  totals[i<50?0:1]+=s.moves;
+  if(i>=50){
+   const used=new Set(s.log.map(action=>action.item).filter(Boolean));
+   assert.ok(Object.keys(level.stock).filter(item=>!used.has(item)).length>=5,level.name);
+  }
+ }
+ assert.ok(totals[1]>=totals[0]*1.45,`Late moves ${totals[1]}, previous ${totals[0]}`);
 });
 test('old rejected placements stay rejected during replay; new free placements are recorded separately',()=>{
  const old=stage(7);action(old,{type:'place',index:18,item:'bookshelf'});assert.equal(old.stock.bookshelf,4);

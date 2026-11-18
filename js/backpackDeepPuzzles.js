@@ -1,8 +1,8 @@
 // Stages 31–50. Stations describe individual operations; dependencies join them into a puzzle.
-const step=(id,cell,label,icon,options={})=>({id,cell,label,icon,...options});
-const use=(item,count=1)=>({[item]:count});
-const carry=(start,finish,cells,gates={})=>({start,finish,cells,gates});
-const deep=(name,goal,tip,terrain,stock,steps,options={})=>({
+export const step=(id,cell,label,icon,options={})=>({id,cell,label,icon,...options});
+export const use=(item,count=1)=>({[item]:count});
+export const carry=(start,finish,cells,gates={})=>({start,finish,cells,gates});
+export const deep=(name,goal,tip,terrain,stock,steps,options={})=>({
  name,goal,tip,terrain,kind:'deep',theme:'deep',stock:{...stock,rotten_flesh:2,snowball:2},
  steps,...options,outputs:[...new Set([...steps.flatMap(station=>Object.keys(station.give||{})),...(options.outputs||[])])]
 });
@@ -185,12 +185,15 @@ export const deepLevels=[
 
 const done=(state,id)=>Boolean(state.puzzle.stations?.[id]);
 const position=(level,state)=>state.puzzle.cart??level.route?.start;
+const matchesSignal=(pattern,state)=>pattern.every((on,i)=>state.puzzle.switches?.[i]===on);
 const ready=(station,state)=>!done(state,station.id)&&
  (station.after||[]).every(id=>done(state,id))&&
  (station.at===undefined||state.puzzle.cart===station.at)&&
- (!station.pattern||(station.pattern.every((on,i)=>state.puzzle.switches?.[i]===on)));
+ (!station.pattern||matchesSignal(station.pattern,state));
 const adjacent=(a,b)=>Math.abs(a%8-b%8)+Math.abs(Math.floor(a/8)-Math.floor(b/8))===1;
-const isOpen=(level,state,index)=>(level.route?.gates[index]||[]).every(id=>done(state,id));
+export const isDeepRouteOpen=(level,state,index)=>(level.route?.gates[index]||[]).every(id=>done(state,id))&&
+ (!level.route?.signals?.[index]||matchesSignal(level.route.signals[index],state));
+const isOpen=isDeepRouteOpen;
 const moving=(level,state,index)=>level.route?.cells.includes(index)&&isOpen(level,state,index)&&adjacent(position(level,state),index);
 
 export function deepTile(level,index,state){
@@ -200,6 +203,7 @@ export function deepTile(level,index,state){
  const cart=path&&position(level,state)===index;
  const blocked=path&&!isOpen(level,state,index);
  const stop=path&&level.steps.some(entry=>entry.at===index);
+ const signal=level.route?.signals?.[index];
  if(switchIndex>=0){
   const power=state.puzzle.switches?.[switchIndex];
   return {mark:true,icon:'lever',label:`${'ABC'[switchIndex]} · ${power===undefined?'MONTAŻ':power?'ON':'OFF'}`};
@@ -208,7 +212,7 @@ export function deepTile(level,index,state){
  return {
   mark:Boolean(station||path),
   icon:cart?'minecart':station?(finished&&station.doneIcon||station.icon):index===level.route?.finish?'light_weighted_pressure_plate':path?'rail':'',
-  label:station?`${station.label}${finished?' ✓':''}`:blocked?'BLOKADA':stop?'BOCZNICA':cart?'WAGONIK':index===level.route?.finish?'META':'',
+  label:station?`${station.label}${finished?' ✓':''}`:signal?`${signal.map((on,i)=>on?'ABC'[i]:'–').join(' ')}`:blocked?'BLOKADA':stop?'BOCZNICA':cart?'WAGONIK':index===level.route?.finish?'META':'',
   fx:cart?'cargo':finished?(station.fx==='lit'?'deep-lit':station.fx||'deep-done'):station&&ready(station,state)?'deep-ready':blocked?'deep-closed':stop?'deep-stop':path?'deep-path':'',
  };
 }
@@ -236,7 +240,7 @@ export function deepPlace(state,level,index,item){
   message='Dźwignia zamontowana.';
  }else if(station&&ready(station,state)&&(!station.tool||item===station.tool&&state.stock[item]>0)){
   const cost=Object.entries(station.take||{});
-  if(!cost.length||(item===cost[0][0]&&cost.every(([id,count])=>state.stock[id]>=count))){
+  if(!cost.length||(Object.hasOwn(station.take,item)&&cost.every(([id,count])=>state.stock[id]>=count))){
    for(const [id,count]of cost){state.stock[id]-=count;state.used+=count;}
    for(const [id,count]of Object.entries(station.give||{}))state.stock[id]=(state.stock[id]||0)+count;
    (state.puzzle.stations||={})[station.id]=true;
@@ -248,7 +252,9 @@ export function deepPlace(state,level,index,item){
   message='Wagonik przesunięty.';
  }
  if(!message){
-  if(station?.pattern)state.message='Pulpit nie odpowiada. Sprawdź zasilanie i ustawienie wszystkich dźwigni.';
+  const signal=level.route?.signals?.[index];
+  if(signal&&!matchesSignal(signal,state))state.message='Zablokowany tor. Ustaw dźwignie zgodnie z literami na polu.';
+  else if(station?.pattern)state.message='Pulpit nie odpowiada. Sprawdź zasilanie i ustawienie wszystkich dźwigni.';
   else if(station)state.message='Sprawdź potrzebny przedmiot lub wcześniejszy etap we wskazówce.';
   else state.message=level.route?'Wagonik jedzie na sąsiednie, odblokowane pole toru.':'Kliknij oznaczone stanowisko.';
   return true;

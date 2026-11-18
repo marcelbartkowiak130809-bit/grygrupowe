@@ -54,7 +54,7 @@ export function advancedRecipe(grid){
   [['0,0:glass','1,0:glass','2,0:glass','0,1:glass','1,1:nether_star','2,1:glass','0,2:obsidian','1,2:obsidian','2,2:obsidian'],'beacon',1],
  ];
  for(const [parts,item,count]of recipes)if([...parts].sort().join('|')===shape)return {item,count};
- for(const [center,around,item,count]of [['melon_slice','gold_nugget','glistering_melon_slice',1],['blue_dye','glass','blue_stained_glass',8],['heart_of_the_sea','nautilus_shell','conduit',1]])if(grid[4]===center&&grid.every((v,i)=>i===4||v===around))return {item,count};
+ for(const [center,around,item,count]of [['melon_slice','gold_nugget','glistering_melon_slice',1],['blue_dye','glass','blue_stained_glass',8],['red_dye','glass','red_stained_glass',8],['heart_of_the_sea','nautilus_shell','conduit',1]])if(grid[4]===center&&grid.every((v,i)=>i===4||v===around))return {item,count};
  return null;
 }
 export function advancedProgress(l,s){const p=s.puzzle;switch(l.kind){

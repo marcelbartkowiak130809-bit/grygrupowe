@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {backpackAction,backpackLevels} from '../js/lastBackpackEngine.js';
+import {isDeepRouteOpen} from '../js/backpackDeepPuzzles.js';
 
 const recipes={
  bucket:[[0,'iron_ingot'],[2,'iron_ingot'],[4,'iron_ingot']],
@@ -16,6 +17,12 @@ const recipes={
  lever:[[0,'stick'],[3,'cobblestone']],
  iron_pickaxe:[[0,'iron_ingot'],[1,'iron_ingot'],[2,'iron_ingot'],[4,'stick'],[7,'stick']],
  ender_eye:[[0,'ender_pearl'],[1,'blaze_powder']],
+ oak_planks:[[0,'oak_log']],
+ red_stained_glass:Array.from({length:9},(_,index)=>[index,index===4?'red_dye':'glass']),
+ flint_and_steel:[[0,'flint'],[1,'iron_ingot']],
+ diamond_chestplate:[0,2,3,4,5,6,7,8].map(index=>[index,'diamond']),
+ cake:['milk_bucket','milk_bucket','milk_bucket','sugar','egg','sugar','wheat','wheat','wheat'].map((item,index)=>[index,item]),
+ beacon:['glass','glass','glass','glass','nether_star','glass','obsidian','obsidian','obsidian'].map((item,index)=>[index,item]),
 };
 
 export function solveDeepLevel(state,perform=action=>backpackAction(state,action)){
@@ -37,17 +44,28 @@ export function solveDeepLevel(state,perform=action=>backpackAction(state,action
  };
  const reach=finish=>{
   const {route}=level,start=state.puzzle.cart??route.start;
-  const paths=new Map([[start,[]]]),queue=[start];
-  for(const cell of queue){
-   for(const tile of route.cells){
-    if(paths.has(tile)||!(route.gates[tile]||[]).every(done))continue;
-    if(Math.abs(tile%8-cell%8)+Math.abs(Math.floor(tile/8)-Math.floor(cell/8))!==1)continue;
-    paths.set(tile,[...paths.get(cell),tile]);
-    queue.push(tile);
+  const mask=(level.switches||[]).reduce((result,_,index)=>result+(state.puzzle.switches[index]?1<<index:0),0);
+  const queue=[{cell:start,mask,actions:[]}], seen=new Set([`${start}:${mask}`]);
+  const add=(cell,mask,actions,index)=>{
+   const key=`${cell}:${mask}`;
+   if(!seen.has(key)){seen.add(key);queue.push({cell,mask,actions:[...actions,index]});}
+  };
+  for(const current of queue){
+   if(current.cell===finish){
+    for(const tile of current.actions)place(tile);
+    assert.equal(state.puzzle.cart??route.start,finish);
+    return;
    }
+   const switches=(level.switches||[]).map((_,index)=>Boolean(current.mask&(1<<index)));
+   const routeState={puzzle:{...state.puzzle,switches}};
+   for(const tile of route.cells){
+    if(!isDeepRouteOpen(level,routeState,tile))continue;
+    if(Math.abs(tile%8-current.cell%8)+Math.abs(Math.floor(tile/8)-Math.floor(current.cell/8))!==1)continue;
+    add(tile,current.mask,current.actions,tile);
+   }
+   if(route.signals)level.switches.forEach((index,i)=>add(current.cell,current.mask^(1<<i),current.actions,index));
   }
-  assert.ok(paths.has(finish),`${level.name}: no route to ${finish}`);
-  for(const tile of paths.get(finish)){place(tile);assert.equal(state.puzzle.cart,tile);}
+  assert.fail(`${level.name}: no route to ${finish}`);
  };
  for(const [index,cell]of (level.switches||[]).entries()){
   ensure('lever');
@@ -58,8 +76,10 @@ export function solveDeepLevel(state,perform=action=>backpackAction(state,action
   assert.ok((station.after||[]).every(done));
   if(station.at!==undefined)reach(station.at);
   if(station.pattern)station.pattern.forEach((on,i)=>{if(state.puzzle.switches[i]!==on)place(level.switches[i]);});
-  const [item,count]=Object.entries(station.take||{})[0]||[station.tool,1];
-  if(item)ensure(item,count);
+  const ingredients=Object.entries(station.take||{});
+  for(const [id,count]of ingredients)ensure(id,count);
+  const item=ingredients[0]?.[0]||station.tool;
+  if(station.tool)ensure(station.tool);
   place(station.cell,item);
   assert.ok(done(station.id),`${level.name}: ${station.label}`);
  }

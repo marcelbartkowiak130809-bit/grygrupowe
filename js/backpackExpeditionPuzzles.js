@@ -53,6 +53,7 @@ export function expeditionRecipe(grid){
  if(shape==='0,0:oak_planks|1,0:oak_planks|2,0:oak_planks')return {item:'oak_slab',count:6};
  for(const [parts,item]of shapes)if([...parts].sort().join('|')===shape)return {item,count:1};
  if(grid[4]==='compass'&&grid.every((v,i)=>i===4||v==='paper'))return {item:'map',count:1};
+ if(!grid[1]&&grid.every((item,index)=>index===1||item==='diamond'))return {item:'diamond_chestplate',count:1};
  if(grid.join('|')==='milk_bucket|milk_bucket|milk_bucket|sugar|egg|sugar|wheat|wheat|wheat')return {item:'cake',count:1,returns:{bucket:3}};
  if(cells.length===2){const ids=cells.map(c=>c.item);for(const color of ['red','blue','yellow'])if(ids.includes('white_wool')&&ids.includes(color+'_dye'))return {item:color+'_wool',count:1};if(ids.includes('ender_pearl')&&ids.includes('blaze_powder'))return {item:'ender_eye',count:1};}
  return null;

@@ -34,7 +34,7 @@ test('a wagon cannot skip track cells or pass a closed gate, and moving is undoa
  assert.equal(s.stock.oak_planks,0);
 });
 test('whole campaign replays every action, including new mechanics and undo, after reload',()=>{
- let s=createBackpackState();assert.equal(backpackLevels.length,50);
+ let s=createBackpackState();assert.equal(backpackLevels.length,60);
  for(let level=0;level<backpackLevels.length;level++){
   assert.equal(s.level,level);solveBackpackLevel(s);const solvedStock={...s.stock};action(s,{type:'undo'});assert.equal(s.solved,false);
   s=restoreBackpack(saveBackpack(s));assert.equal(s.level,level);
@@ -42,7 +42,7 @@ test('whole campaign replays every action, including new mechanics and undo, aft
   const last=s.log.slice(0,-1).at(-1);assert.ok(action(s,last));assert.ok(s.solved);assert.deepEqual(s.stock,solvedStock);
   action(s,{type:'next'});s=restoreBackpack(saveBackpack(s));
  }
- assert.ok(s.done);assert.equal(s.level,50);
+ assert.ok(s.done);assert.equal(s.level,60);
 });
 test('legacy completed three-level saves continue at the first new puzzle',()=>{
  const s=createBackpackState();for(let i=0;i<3;i++){solveBackpackLevel(s);action(s,{type:'next'});}

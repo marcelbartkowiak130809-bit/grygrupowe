@@ -66,6 +66,7 @@
 .backpack-chapters .complete::after{content:"✓";position:absolute;right:2px;top:2px;font-size:8px}
 .backpack-finish .backpack-chapters{max-width:100%;margin-inline:auto}
 .backpack-summary-link{width:100%;margin-top:8px}
+.backpack-signal-key{margin:6px 0 0;color:#c6e49a;font-size:.75rem;line-height:1.4}
 
 /* The vanilla prismarine sprite stacks square animation frames vertically. */
 .backpack-page img[src$="/prismarine.png"],.backpack-drag-ghost[src$="/prismarine.png"]{
