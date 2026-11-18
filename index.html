@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080914">
-    <meta name="description" content="Udowodnij! Platforma gier przeglądarkowych dla znajomych: lobby, tryby multiplayer, gra solo i kosmetyki.">
+    <meta name="description" content="Zagraj ze znajomymi w Impostora, Kalambury, Kim jestem? i quizy muzyczne. Polskie gry imprezowe w przeglądarce, z pokojami na kod i trybami solo.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Gry grupowe">
     <meta property="og:title" content="Gry grupowe — zagraj ze znajomymi">
@@ -21,7 +21,7 @@
     <meta name="twitter:description" content="Przeglądarkowe gry multiplayer dla znajomych.">
     <meta name="twitter:image" content="https://grygrupowe.pages.dev/assets/icons/game-icon-512.png">
     <meta name="google-site-verification" content="hTBHbojM7wM2OlixT9Hy4hjBFmLN6LubKi7z4lSXfd4">
-    <title>Gry grupowe</title>
+    <title>Gry grupowe online dla znajomych</title>
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/game-icon-32.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/game-icon-512.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/game-icon-180.png">
@@ -54,12 +54,19 @@
     <div id="app" class="app" aria-live="polite">
       <main class="page route-loading"><section class="panel">
         <span class="route-loading-dot" aria-hidden="true"></span>
-        <h1>Gry grupowe!</h1><p role="status">Ładuję stronę…</p>
+        <h1>Gry grupowe online dla znajomych</h1>
+        <p role="status">Ładuję stronę…</p>
       </section></main>
+      <noscript>
+        <section class="page panel">
+          <p>Zagraj w Impostora, Kalambury i inne polskie gry imprezowe w przeglądarce. Aby rozpocząć rozgrywkę, włącz JavaScript.</p>
+          <a href="/tryby-gry">Wszystkie gry dla znajomych</a> · <a href="/planszowki">Planszówki online</a> · <a href="/muzyka">Quizy muzyczne</a>
+        </section>
+      </noscript>
     </div>
-    <div class="site-version" aria-label="Wersja strony">v5.11.14</div>
+    <div class="site-version" aria-label="Wersja strony">v5.11.15</div>
     <script src="./js/firebase-config.js?v=20260602-11"></script>
-    <script type="module" src="./js/app.js?v=20261118-34"></script>
+    <script type="module" src="./js/app.js?v=20261118-36"></script>
     <script>
       if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
         window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));

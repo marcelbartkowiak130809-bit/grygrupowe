@@ -41,7 +41,7 @@ function bindModePlayActions(root, actions) {
   }));
 }
 
-const categoryDescriptions = {
+export const categoryDescriptions = {
   music: "Zgaduj utwory, porównuj popularność hitów i wybieraj zwycięzców muzycznych pojedynków.",
   tiktok: "Zagraj w popularne wyzwania z TikToka, od Impostora po Połącz nas.",
   minecraft: "Buduj, rozwiązuj łamigłówki i wyrusz na poszukiwanie Alex.",

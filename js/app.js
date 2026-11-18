@@ -56,7 +56,7 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-30";
-import { renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261118-32";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261118-36";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-30";
 import { Router } from "./router.js?v=20261118-30";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-30";
@@ -454,12 +454,47 @@ function repaintSongSpot() {
   }
   render({preserveDrafts:true});
 }
+const siteDescription = document.querySelector('meta[name="description"]');
+const homepage = { path:"/", title:document.title, description:siteDescription.content };
+const categorySearchTitles = {
+  music:"Quizy muzyczne online",
+  board:"Planszówki online dla znajomych",
+  minecraft:"Gry i łamigłówki Minecraft",
+  pokemon:"Gry Pokémon online",
+  knowledge:"Quizy i gry wiedzy online",
+  tiktok:"Gry i wyzwania z TikToka",
+  other:"Inne gry dla znajomych",
+};
+const publicSearchPages = {
+  "public:tryby-gry":{ title:"Gry imprezowe online dla znajomych", description:"Zobacz tryby Gry grupowe, od Impostora i Kalamburów po quizy muzyczne i planszówki." },
+  "public:jak-grac":{ title:"Jak grać ze znajomymi online", description:"Dowiedz się, jak stworzyć prywatny pokój, wysłać zaproszenie i dołączyć do gry za pomocą kodu." },
+  "public:o-grze":{ title:"O platformie Gry grupowe", description:"Gry grupowe to polska platforma gier imprezowych i solo, dostępna w przeglądarce na komputerze i telefonie." },
+};
+
 function updateDocumentTitle() {
+  const screen = Router.current;
+  const category = libraryCategories.find(entry => entry.screen === screen);
+  const publicPage = publicSearchPages[screen];
+  const landing = screen === "platform" ? homepage : category ? {
+    path:category.path, title:categorySearchTitles[category.id], description:categoryDescriptions[category.id],
+  } : publicPage ? { ...publicPage, path:Router.pathForPublicScreen(screen) } : null;
   const room = activeRoom();
-  const modeId = room?.gameMode || (Router.current === "lobby" ? state.selectedGameMode : "");
+  const modeId = room?.gameMode || (["lobby","solo"].includes(screen) ? state.selectedGameMode : "");
   const mode = modeId ? getGameMode(modeId) : null;
-  const screenTitle = mode?.name || (Router.current === "shop" ? "Sklep" : "Gry grupowe!");
-  document.title = screenTitle === "Gry grupowe!" ? screenTitle : `${screenTitle} · Gry grupowe!`;
+  const title = landing?.title || mode?.name || (screen === "shop" ? "Sklep" : "");
+  document.title = !title || landing === homepage ? homepage.title : `${title} · Gry grupowe`;
+  siteDescription.content = landing?.description || homepage.description;
+
+  const canonical = document.head.querySelector('link[rel="canonical"]');
+  const path = window.location.pathname;
+  if (landing && (path === landing.path || (landing === homepage && path === "/index.html"))) {
+    const link = canonical || document.createElement("link");
+    link.rel = "canonical";
+    link.href = new URL(landing.path, "https://grygrupowe.pages.dev/").href;
+    if (!canonical) document.head.append(link);
+  } else {
+    canonical?.remove();
+  }
 }
 const trackedSiteEvents = new Set();
 function trackSiteEvent(event) {
