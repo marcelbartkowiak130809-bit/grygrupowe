@@ -3,7 +3,7 @@ import { Audio } from "./audio.js?v=20261117-10";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-1";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
-import { renderLastBackpack } from './lastBackpack.js?v=20261118-3';
+import { renderLastBackpack } from './lastBackpack.js?v=20261118-7';
 import { renderAlexJourney } from './alexJourney.js?v=20261118-6';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 

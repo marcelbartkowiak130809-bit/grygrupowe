@@ -26,7 +26,7 @@ const levelAttempt = (level,message) => ({
 export function createBackpackState(){
  return {
   version:2,log:[],legacyActions:0,level:0,unlocked:0,completed:[],attempts:{},
-  done:false,moves:0,used:0,startedAt:Date.now(),finishedAt:0,finishedMoves:0,
+  done:false,moves:0,used:0,startedAt:0,finishedAt:0,finishedMoves:0,
   ...levelAttempt(0,'Wybierz przedmiot z plecaka.')
  };
 }
@@ -120,7 +120,10 @@ function applyBackpackAction(state,action,legacy=false){
    state.message='Dobrze! Obserwuj zmianę na planszy.';
   }
   markCompletion(state);
-  if(action.type!=='select'&&JSON.stringify(before)!==JSON.stringify(snapshot(state)))state.undo.push({board:before,moves:state.moves-moves,used:state.used-used});
+  if(action.type!=='select'&&JSON.stringify(before)!==JSON.stringify(snapshot(state))){
+   if(!state.startedAt)state.startedAt=Date.now();
+   state.undo.push({board:before,moves:state.moves-moves,used:state.used-used});
+  }
  }
  state.log.push({type:action.type,...(action.item?{item:action.item}:{}),...(action.free===true?{free:true}:{}),...(Number.isInteger(action.index)?{index:action.index}:{})});return true;
 }
@@ -146,7 +149,7 @@ export function restoreBackpack(raw){
    if(!applyBackpackAction(s,data.log[index],index<legacyActions))return createBackpackState();
   }
   if(legacyActions&&legacyActions===data.log.length)upgradeCurrentLogicAttempt(s);
-  if(Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;
+  if(s.startedAt&&Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;
   if(s.finishedAt&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;
  }catch{return createBackpackState();}return s;
 }
