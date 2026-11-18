@@ -29,13 +29,13 @@ import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
 import { adSenseBlock } from "./publicPages.js?v=20261117-16";
-import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
+import { BOT_DIFFICULTIES, BOT_NOTICE, botTooltip, botIds, isBotId, roomAllowsBots } from "./bots.js?v=20261118-15";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20260901-13";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261117-10";
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20261117-10";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20260905-1";
 import { renderSongSpotLobbySettings } from "./deferredMusicModes.js?v=20261117-16";
-import { renderBoardLobbySettings } from "./boardGames.js?v=20261117-14";
+import { renderBoardLobbySettings } from "./boardGames.js?v=20261118-15";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20261118-13";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };

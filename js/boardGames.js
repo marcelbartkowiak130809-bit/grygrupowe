@@ -1,6 +1,7 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261117-14";
+import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261118-15";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261118-15";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
@@ -467,6 +468,7 @@ function boardBotDominoMove(game, uid, difficulty) {
  */
 export function boardBotAction(game, uid, difficulty = "normal") {
   if (!game || game.finished || game.phase === "result" || !game.players?.includes(uid)) return null;
+  if (game.boardMode === GUESS_PEOPLE_MODE) return guessPeopleBotAction(game, uid, difficulty);
   if (game.boardMode === "board-statki" && game.phase === "placement") {
     if (game.placementSubmitted?.[uid]) return null;
     return { action: "ships-place", payload: boardBotFleet(uid).join(",") };

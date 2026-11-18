@@ -1,5 +1,7 @@
 import { escapeHtml } from "./utils.js?v=20260903-7";
 import { guessPeople } from "./guessPeopleCatalog.js?v=20261117-11";
+import { isBotId } from "./bots.js?v=20261118-15";
+import { UNKNOWN_BOT_ANSWER } from "./guessPeopleBot.js?v=20261118-15";
 import { guessPeopleBios } from "./guessPeopleBios.js?v=20261117-14";
 
 export const GUESS_PEOPLE_MODE = "board-zgadnij-kto";
@@ -94,7 +96,8 @@ export function guessPeopleAction(game, uid, action, value, settings) {
   }
   if (expired) return "Czas na ten ruch minął.";
   if (action === "guess-people-answer") {
-    if (!game.question || uid !== target || !["Tak", "Nie", "Nie widać"].includes(value)) return "Tylko pytany gracz może teraz odpowiedzieć.";
+    const valid = ["Tak", "Nie", "Nie widać"].includes(value) || (isBotId(uid) && value === UNKNOWN_BOT_ANSWER);
+    if (!game.question || uid !== target || !valid) return "Tylko pytany gracz może teraz odpowiedzieć.";
     game.history = [...(game.history || []).slice(-79), {
       from:game.currentUid, to:target, question:game.question, answer:value,
     }];

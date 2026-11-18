@@ -1,4 +1,4 @@
-import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20260823-2";
+import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20261118-15";
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
@@ -33,7 +33,8 @@ import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261117-10";
 import { LyricsEngine } from "./lyrics.js?v=20261117-10";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261117-16";
-import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
+import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261118-15";
+import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261118-15";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261118-13";
 import { serverNow } from "./firebase.js?v=20261010-7";
 import { gameMomentKey } from "./roomLifecycle.js";
@@ -85,6 +86,10 @@ export function botActor(room) {
     if (game.phase === "turn" && isBotId(game.turnUid)) return game.turnUid;
     if (["reviewExample", "reviewGuess"].includes(game.phase) && isBotId(game.reviewerUid)) return game.reviewerUid;
     if (game.phase === "guessing" && isBotId(game.guessUid)) return game.guessUid;
+  }
+  if (game.boardMode === GUESS_PEOPLE_MODE) {
+    const actor = game.question ? game.targets?.[game.currentUid] : game.currentUid;
+    return bots.includes(actor) ? actor : "";
   }
   if (game.boardMode?.startsWith("board-")) {
     if (game.boardMode === "board-statki" && game.phase === "placement") return bots.find(uid => !game.placementSubmitted?.[uid]) || "";
@@ -351,6 +356,7 @@ function timeoutMutation(room, game, bot) {
     case "minecraft-truth":
     case "minecraft-redstone": return g => MinecraftEngine.timeout(g, players, settings);
     case "songspot": return g => SongSpotEngine.timeout(g, settings);
+    case GUESS_PEOPLE_MODE: return g => BoardEngine.action(g, g.currentUid, "timeout", "", players, settings);
     default:
       if (room.gameMode?.startsWith("board-")) return g => BoardEngine.action(g, bot, "timeout", "", players, settings);
       return null;
@@ -599,6 +605,7 @@ export function botMutation(room) {
       case "minecraft-truth":
         if (game.phase === "question" && isMissing(game.answers, bot)) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct(), botDifficulty(room, bot).id), players, settings);
         break;
+      case GUESS_PEOPLE_MODE:
       case "board-chinczyk":
       case "board-slowotwor":
       case "board-statki":
