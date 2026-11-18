@@ -89,3 +89,22 @@
 .backpack-world.deep .puzzle-cargo{box-shadow:inset 0 0 0 2px #f3d990}
 .backpack-world.deep img:is([src$="/water_still.png"],[src$="/lava_still.png"],[src$="/end_portal.png"]){object-fit:cover;object-position:top}
 .backpack-world.deep .backpack-puzzle-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.minecraft-hints {
+ min-width:0;
+ margin:10px 0;
+ padding:0 10px;
+ border:1px solid #c1ed8b36;
+ border-radius:12px;
+ background:#101d1baa;
+ color:#e7f4dc;
+ font-size:.85rem;
+}
+.minecraft-hints summary { padding:8px 2px; cursor:pointer; }
+.minecraft-hints summary span { margin-inline-start:8px; color:#c1ed8b; font-weight:700; }
+.minecraft-hint-options { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; padding:2px 0 10px; }
+.minecraft-hint-options button { min-height:44px; text-align:left; font-size:inherit; }
+.minecraft-hint-options button b { color:#c1ed8b; margin-inline-start:4px; }
+.minecraft-hint-answer { flex:1 1 100%; padding:9px 10px; background:#c1ed8b10; border-radius:8px; }
+.minecraft-hint-answer p { margin:3px 0 0; line-height:1.5; }
+.minecraft-hint-status { margin:0 0 8px; color:#f4d79d; }
+.minecraft-hint-status:empty { margin:0; }

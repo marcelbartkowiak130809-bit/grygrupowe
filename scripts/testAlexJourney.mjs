@@ -4,6 +4,36 @@ import {readFileSync} from 'node:fs';
 import {createJourney,journeyAction as a,journeyScenes,journeyScene,restoreJourney,saveJourney,journeyCanCross,journeyItems,journeyAssetId,journeySurface} from '../js/alexJourneyEngine.js';
 import {journeyObjective,journeyTime} from '../js/alexJourneyObjectives.js';
 import {solveJourneyScene} from './journeyTestSolutions.mjs';
+import {rescueScenes} from '../js/alexJourneyRescue.js';
+import {siegeScenes} from '../js/alexJourneySiege.js';
+import {alexHintOptions} from '../js/alexJourneyHints.js';
+import {minecraftHintPurchase} from '../js/minecraftHints.js';
+
+test('each Alex scene has a nudge and a different step-by-step answer',()=>{
+ for (const [chapter,scenes] of [journeyScenes,rescueScenes,siegeScenes].entries()) {
+  for (const [index,scene] of scenes.entries()) {
+   const {key,hint,solution}=alexHintOptions(chapter+1,index,scene);
+   assert.equal(key,`alex-${chapter+1}-${index+1}`);
+   assert.ok(hint && solution && hint!==solution);
+  }
+ }
+});
+
+test('Minecraft hints use site money and entitlements prevent repeat charges',()=>{
+ const first='backpack-1-hint', simple='alex-1-1-nudge', detailed='alex-1-1-solution';
+ let player={money:325};
+ for (const [id,remaining] of [[first,225],[simple,150],[detailed,0]]) {
+  const {patch}=minecraftHintPurchase(player,id);
+  assert.equal(patch.money,remaining);
+  player={...player,...patch};
+ }
+ assert.deepEqual(minecraftHintPurchase(player,first),{});
+ assert.match(minecraftHintPurchase(player,'backpack-2-hint').error,/\$100/);
+ assert.match(minecraftHintPurchase(player,'backpack-1-nudge').error,/niedostępna/);
+ assert.match(minecraftHintPurchase(null,simple).error,/konto/);
+ const guest={nickOnly:true,sessionMoney:75,money:999};
+ assert.deepEqual(minecraftHintPurchase(guest,simple).patch,{sessionMoney:0,minecraftHints:{[simple]:true}});
+});
 test('minimal route completes all ten scenes with a single persistent inventory and world',()=>{
  let s=createJourney();assert.deepEqual(s.stock,{});
  for(let i=0;i<10;i++){assert.equal(s.scene,i);assert.ok(journeySurface(s,i,s.hero.x)>=4,'character stays below cave ceiling');solveJourneyScene(s);assert.ok(Object.values(s.stock).every(n=>n>=0));const before=JSON.stringify(s.world),stock={...s.stock};s=restoreJourney(saveJourney(s));assert.equal(s.scene,i);assert.equal(JSON.stringify(s.world),before);assert.deepEqual(s.stock,stock);if(i<9){assert.ok(a(s,{type:'next'}));assert.deepEqual(s.stock,stock);}}

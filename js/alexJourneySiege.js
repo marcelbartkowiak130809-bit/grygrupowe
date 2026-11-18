@@ -129,7 +129,7 @@ export const siegeScenes = [
 export function createSiege() {
  return { phase: 'intro', frame: 0, scene: 0, hero: 1.6, stock: {}, flags: {}, selected: '',
   grid: Array(9).fill(''), sequence: [], switches: [false, false, false],
-  hint: false, log: [], startedAt: 0, finishedAt: 0, steps: 0, message: '', effect: '' };
+  log: [], startedAt: 0, finishedAt: 0, steps: 0, message: '', effect: '' };
 }
 
 export function siegeCraftReady(state) {

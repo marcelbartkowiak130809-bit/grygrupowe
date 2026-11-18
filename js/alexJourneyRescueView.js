@@ -6,7 +6,9 @@ import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-1
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 
-const sessions=new Map(), hints=new Set();
+import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261118-19';
+const sessions=new Map();
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
 const image=id=>`<img src="${asset(id)}" alt="" draggable="false">`;
 const at=(x,y,width=1,height=1)=>`left:${x/16*100}%;top:${y/9*100}%;width:${width/16*100}%;height:${height/9*100}%`;
@@ -120,8 +122,8 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
   ${chapterMenu(2,true,state.done)}
   <div class="rescue-layout"><section class="journey-play">
    <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
-   <button class="ghost journey-hint-toggle" type="button" aria-label="Wskazówka" aria-expanded="${hints.has(playerId)}" data-rescue-hint>?</button></div>
-   <p class="journey-hint" ${hints.has(playerId)?'':'hidden'}>${scene.hint}</p>
+   </div>
+   ${minecraftHintPanel(root,actions,alexHintOptions(2,state.scene,scene,!state.flags[scene.finish]))}
    <div class="rescue-camera"><div class="rescue-track" style="--scene:${state.scene}">
      ${rescueScenes.map((item,index)=>renderScene(item,index,state,visuals)).join('')}
      <div class="rescue-hero ${state.effect==='strike'?'hero-strike':''}" style="--hero:${state.scene*16+state.hero}" aria-hidden="true">${visuals.person('steve')}</div>
@@ -136,10 +138,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
  bindGamePresentation(root);
  bindChapterMenu(root,selectChapter);
  root.querySelector('[data-rescue-home]').onclick=()=>actions.goMinecraftModes?.();
- root.querySelector('[data-rescue-hint]').onclick=()=>{
-  if(hints.has(playerId))hints.delete(playerId);else hints.add(playerId);
-  renderAlexRescue(root,{playerId,actions,visuals,selectChapter});
- };
+ bindMinecraftHints(root,actions,()=>renderAlexRescue(root,{playerId,actions,visuals,selectChapter}));
  root.querySelectorAll('[data-rescue-node]:not(:disabled)').forEach(button=>{
   button.onclick=()=>act({type:'node',id:button.dataset.rescueNode});
  });

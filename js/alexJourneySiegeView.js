@@ -1,8 +1,10 @@
+import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261118-19';
 import { escapeHtml } from './utils.js?v=20260903-7';
 import { backpackAnimate, backpackReducedMotion, patchBackpackView } from './backpackMotion.js?v=20261117-10';
 import { bindChapterMenu, chapterMenu } from './alexJourneyChapters.js?v=20261118-17';
 import { gameFullscreenButton, gameRotationHint, bindGamePresentation } from './gamePresentation.js?v=20261118-11';
-import { createSiege, restoreSiege, saveSiege, siegeAction, siegeCraftReady, siegeItems, siegeScenes } from './alexJourneySiege.js?v=20261118-17';
+import { createSiege, restoreSiege, saveSiege, siegeAction, siegeCraftReady, siegeItems, siegeScenes } from './alexJourneySiege.js?v=20261118-19';
 
 const sessions = new Map();
 const clocks = new WeakMap();
@@ -150,15 +152,15 @@ function storyboard(state,visuals) {
   <button type="button" class="primary" data-siege-frame-next>${finalFrame?intro?'Ruszaj po Alex →':'Zobacz wynik →':'Dalej →'}</button></div></section>`;
 }
 
-function game(state,visuals,moving) {
+function game(root,state,visuals,moving,actions) {
  const scene = siegeScenes[state.scene];
  const next = state.flags[scene.finish];
  const ready = siegeCraftReady(state), bench = scene.craft && scene.nodes.some(node=>node.opens&&state.flags[node.id]) && !state.flags[scene.craft.id];
  const inventory = Object.entries(state.stock).filter(([,count])=>count>0);
  return `<div class="siege-layout"><section class="journey-play siege-play">
   <div class="siege-quest"><div><p class="eyebrow">${String(state.scene+1).padStart(2,'0')}/10 · ${scene.region}</p><h2>${scene.name}</h2><p>${scene.goal}</p></div>
-  <button class="ghost journey-hint-toggle" type="button" aria-label="Wskazówka" aria-expanded="${state.hint}" data-siege-hint>?</button></div>
-  <p class="journey-hint" ${state.hint?'':'hidden'}>${scene.hint}</p>
+  </div>
+  ${minecraftHintPanel(root,actions,alexHintOptions(3,state.scene,scene,!next))}
   <div class="siege-camera" aria-busy="${moving}"><div class="siege-track" style="--scene:${state.scene}">
   ${siegeScenes.map((entry,i)=>gameScene(entry,i,state,visuals,moving)).join('')}
   <div class="siege-hero ${state.effect==='block'?'siege-hero-block':''}" style="--hero:${state.scene*16+state.hero}">${visuals.person('steve')}${state.effect==='block'?art('shield'):''}</div>
@@ -223,7 +225,7 @@ export function renderAlexSiege(root,context) {
  patchBackpackView(root,`<main class="page journey-page siege-page ${reduced?'siege-reduced':''}">
   <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 3</p><h1>Wieża Kruków</h1></div><div class="game-view-tools">${gameFullscreenButton}<button type="button" class="ghost" data-siege-home>← Minecraft</button></div></header>
   ${gameRotationHint}${chapterMenu(3,true,true)}
-  ${cutscene?storyboard(state,visuals):state.phase==='result'?summary(state):game(state,visuals,moving)}
+  ${cutscene?storyboard(state,visuals):state.phase==='result'?summary(state):game(root,state,visuals,moving,actions)}
   <footer class="journey-credit">Nieoficjalna przygoda fanowska · tekstury Minecraft Java 1.21.4 · Mojang / Microsoft</footer>
  </main>`);
  bindChapterMenu(root,selectChapter);
@@ -233,7 +235,7 @@ export function renderAlexSiege(root,context) {
  root.querySelectorAll('[data-siege-item]').forEach(button=>{button.onclick=()=>act({type:'select',id:button.dataset.siegeItem});});
  root.querySelectorAll('[data-siege-slot]').forEach(button=>{button.onclick=()=>act({type:'slot',index:Number(button.dataset.siegeSlot)});});
  const bind = (selector,fn) => { const button=root.querySelector(selector); if (button) button.onclick=fn; };
- bind('[data-siege-hint]',()=>{state.hint=!state.hint;rerender();});
+ bindMinecraftHints(root,actions,rerender);
  bind('[data-siege-next]',()=>act({type:'next'}));
  bind('[data-siege-craft]',()=>act({type:'craft'}));
  bind('[data-siege-replay]',()=>act({type:'replay'}));

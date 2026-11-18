@@ -3,22 +3,23 @@ import { Audio } from "./audio.js?v=20261117-10";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-10";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
-import { renderLastBackpack } from './lastBackpack.js?v=20261118-11';
-import { renderAlexJourney } from './alexJourney.js?v=20261118-18';
+import { minecraftHintPurchase } from './minecraftHints.js?v=20261118-19';
+import { renderLastBackpack } from './lastBackpack.js?v=20261118-19';
+import { renderAlexJourney } from './alexJourney.js?v=20261118-19';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261117-16";
+import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261118-19";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261118-19";
 import { gameCategory } from "./gameCategories.js";
-import { gamesList, getGameMode } from "./games.js?v=20261117-16";
+import { gamesList, getGameMode } from "./games.js?v=20261118-19";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20260901-13";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261118-16";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20260902-1";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261118-19";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260903-9";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20260903-9";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261118-19";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260903-9";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260903-9";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260903-9";
@@ -54,19 +55,19 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-16";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-17";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-16";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-19";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-19";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-19";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-16";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-19";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
+import { loadPresenceUsers } from "./firebase.js?v=20261118-19";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-15";
-import { scheduleBot } from "./botController.js?v=20261118-16";
+import { scheduleBot } from "./botController.js?v=20261118-19";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -2099,6 +2100,23 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   goPlatform() { document.querySelectorAll(".modal-backdrop").forEach(dismissTopbarModal); if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
   goPokemonModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/pokemony";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("pokemon-select"); },
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
+  hasMinecraftHint(key) { return profile()?.minecraftHints?.[key] === true; },
+  buyMinecraftHint(key) {
+    const player = profile(), uid = state.currentUser;
+    const { error, patch } = minecraftHintPurchase(player,key);
+    if (error || !patch) return error;
+    const updated = { ...player, ...patch, updatedAt:Date.now() };
+    try {
+      saveAccounts({ ...state.accounts, [uid]:updated });
+    } catch {
+      return "Nie udało się zapisać zakupu podpowiedzi.";
+    }
+    state.accounts[uid] = updated;
+    syncPlayerProfile(uid,updated);
+    const balance = root.querySelector('.top-actions .money');
+    if (balance) balance.textContent = `$${updated.nickOnly ? updated.sessionMoney : updated.money}`;
+    Audio.play("purchase");
+  },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
   goMusicModes() { if(activeRoom())return actions.leaveRoom("music-select");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
   goModeCategory(mode = getGameMode(state.selectedGameMode)) { const category = gameCategory(mode); if (category === "pokemon") return actions.goPokemonModes(); if (category === "board") return actions.goBoardModes(); if (category === "minecraft") return actions.goMinecraftModes(); if (category === "music") return actions.goMusicModes(); return actions.goPlatform(); },

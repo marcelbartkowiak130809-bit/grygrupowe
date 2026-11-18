@@ -1,13 +1,13 @@
-import { gamesList } from "./games.js?v=20261117-16";
+import { gamesList } from "./games.js?v=20261118-19";
 import { gameCategory } from "./gameCategories.js";
 import { homeMenuHtml, bindHomeMenu } from './homeMenu.js?v=20261118-1';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20260902-1";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261118-19";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261118-14";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261117-16";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261118-19";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261118-14";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-16";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261118-19";
 import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
 
 const filters = [
