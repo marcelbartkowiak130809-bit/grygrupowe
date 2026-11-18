@@ -1,8 +1,8 @@
-import { libraryCategories, libraryModesFor } from './gameCategories.js?v=20261118-21';
+import { libraryCategories, libraryModesFor } from './gameCategories.js?v=20261118-24';
 
 const categoryActionNames = {
   music:'goMusicModes', tiktok:'goTikTokModes', minecraft:'goMinecraftModes',
-  board:'goBoardModes', pokemon:'goPokemonModes',
+  board:'goBoardModes', pokemon:'goPokemonModes', knowledge:'goKnowledgeModes',
 };
 
 export function categoryTilesHtml(games) {

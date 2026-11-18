@@ -10,6 +10,7 @@ export const libraryCategories = [
   { id:"minecraft", name:"Minecraft", symbol:"⛏️", path:"/minecraft", screen:"minecraft-select" },
   { id:"board", name:"Planszówki", symbol:"🎲", path:"/planszowki", screen:"board-select" },
   { id:"pokemon", name:"Pokémon", symbol:"⚡", path:"/pokemony", screen:"pokemon-select" },
+  { id:"knowledge", name:"Wiedza", symbol:"💡", path:"/wiedza", screen:"knowledge-select" },
 ];
 
 const categoryById = new Map(libraryCategories.map(category => [category.id, category]));

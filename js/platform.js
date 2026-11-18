@@ -1,13 +1,13 @@
-import { gamesList } from "./games.js?v=20261118-23";
-import { gameCategory, filterLibraryGames, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-21";
-import { homeMenuHtml, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-21';
+import { gamesList } from "./games.js?v=20261118-24";
+import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-24";
+import { homeMenuHtml, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-24';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261118-20";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261118-14";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261118-23";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261118-24";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261118-14";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261118-23";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261118-24";
 import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
 
 const filters = [
@@ -95,19 +95,20 @@ export function renderMusicModes(root, actions, context = {}) {
   activatePublicAds(root, "platform");
 }
 
-export function renderTikTokModes(root, actions, context = {}) {
+export function renderCollectionModes(root, actions, categoryId, context = {}) {
+  const { id, name, symbol } = libraryCategories.find(category => category.id === categoryId);
   const activityStats = context.activityStats || window.__activityStats || {};
   const layout = getMobileGameLayout();
-  const modes = libraryModesFor(gamesList, "tiktok").sort(compareMainModes);
+  const modes = libraryModesFor(gamesList, id).sort(compareMainModes);
   const now = Date.now();
-  root.innerHTML = `<main class="page platform-page tiktok-selection-page enter">
-    <header class="tiktok-selection-hero library-category-tiktok">
+  root.innerHTML = `<main class="page platform-page collection-selection-page enter">
+    <header class="collection-selection-hero library-category-${id}">
       <button class="ghost" id="back-to-games">← Biblioteka</button>
-      <h1>Hity TikToka</h1><span class="tiktok-hero-note" aria-hidden="true">♪</span>
+      <h1>${name}</h1><span class="collection-hero-symbol" aria-hidden="true">${symbol}</span>
     </header>
     <section class="${mobileGamesSectionClass(layout)}">
-      <div class="tiktok-library-tools">${mobileGameLayoutSwitchHtml(layout)}</div>
-      <div class="games-grid">${modes.map(mode => gameCard({ ...mode, activity:activityStats[mode.id] },now,"collection")).join("")}</div>
+      <div class="collection-library-tools">${mobileGameLayoutSwitchHtml(layout)}</div>
+      <div class="games-grid">${modes.map(mode => gameCard({ ...mode, activity:activityStats[mode.id] },now,id)).join("")}</div>
     </section>
   </main>`;
   root.querySelector("#back-to-games").addEventListener("click", actions.goPlatform);
@@ -232,7 +233,7 @@ function visualSymbol(mode) {
 function gameCard(mode, now = Date.now(), context = "") {
   const unlock = modeUnlockInfo(mode.id, now), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const origin = context && libraryModeCategory(mode);
-  const originLink = origin && !(context === "collection" && origin.id === "tiktok")
+  const originLink = origin && origin.id !== context
     ? `<a class="library-card-origin library-category-${origin.id}" href="${origin.path}" data-home-category="${origin.id}" title="${origin.name}" aria-label="Kategoria: ${origin.name}">${origin.symbol}<span aria-hidden="true">↗</span></a>`
     : "";
     const soloModeId = mode.soloModeId || (mode.id === "popularnosc-hitow" ? "popularnosc-solo" : "");

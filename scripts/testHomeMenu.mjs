@@ -10,7 +10,7 @@ test('music leads navigation; counts exclude hidden/locked modes and shortcuts o
  assert.ok(html.includes('home-music-feature'));
  assert.match(html,/data-home-music-count>1<\/span> dostępnych trybów/);assert.ok(html.includes('data-play-solo-mode="playlista-cup" disabled'));
  const categories=categoryTilesHtml(gamesList);
- for(const category of ['music','pokemon','board','minecraft','tiktok'])assert.ok(categories.includes(`data-home-category="${category}"`));
+ for(const category of ['music','pokemon','board','minecraft','tiktok','knowledge'])assert.ok(categories.includes(`data-home-category="${category}"`));
  assert.match(categories,/href="\/hity-tiktoka"/);
  assert.match(categories,/18 trybów/);
 });
@@ -48,6 +48,16 @@ test('non-category filters and search reach individual modes inside categories',
  assert.ok(filterLibraryGames(gamesList,'all','zgadnij utwor').some(mode=>mode.id==='songspot'));
  assert.ok(filterLibraryGames(gamesList,'solo','muzyka').some(mode=>mode.id==='songspot'));
  assert.deepEqual(filterLibraryGames(gamesList,'category',''),[]);
+});
+test('Wiedza has the four requested modes and is available as a direct route',()=>{
+ const expected=['najblizej-prawdy','quiz','mathematics','family'];
+ const modes=libraryModesFor(gamesList,'knowledge');
+ assert.deepEqual(modes.map(mode=>mode.id),expected);
+ assert.equal(Router.appScreenFromPath('/wiedza'),'knowledge-select');
+ assert.ok(modes.every(mode=>libraryModeCategory(mode).id==='knowledge'));
+ const results=filterLibraryGames(gamesList,'all','wiedza');
+ assert.ok(modes.every(mode=>results.includes(mode)));
+ assert.ok(!filterLibraryGames(gamesList,'main','').some(mode=>expected.includes(mode.id)));
 });
 test('desktop-only redesign preserves mobile cards and provides reduced-motion support',async()=>{
  const css=await readFile(new URL('../css/homeMenu.css',import.meta.url),'utf8');

@@ -55,12 +55,13 @@
 
 .library-categories { margin:18px 0; }
 .library-categories h2 { margin:0 0 10px; font-size:clamp(18px,2.4vw,26px); letter-spacing:-.035em; }
-.library-category-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+.library-category-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; }
 .library-category-music { --library-accent:#d4adff; --library-dark:#261838; }
 .library-category-tiktok { --library-accent:#77f6e5; --library-dark:#122e32; }
 .library-category-minecraft { --library-accent:#b2ef8f; --library-dark:#1d3223; }
 .library-category-board { --library-accent:#ffc891; --library-dark:#38281d; }
 .library-category-pokemon { --library-accent:#ffe382; --library-dark:#34301b; }
+.library-category-knowledge { --library-accent:#ffb1d2; --library-dark:#382039; }
 .library-category-tile {
   display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px;
   min-width:0; min-height:82px; padding:10px; border:1px solid color-mix(in srgb,var(--library-accent) 44%,transparent);
@@ -73,7 +74,7 @@
   display:grid; place-items:center; inline-size:36px; block-size:36px; border-radius:11px;
   color:var(--library-accent); background:#ffffff0c; font-size:22px; font-weight:800;
 }
-.library-category-tiktok .library-category-icon,.tiktok-hero-note { text-shadow:2px 1px #fd4f85,-2px -1px #48dcd4; }
+.library-category-tiktok .library-category-icon,.library-category-tiktok .collection-hero-symbol { text-shadow:2px 1px #fd4f85,-2px -1px #48dcd4; }
 .library-category-copy { min-width:0; }
 .library-category-copy strong,.library-category-copy small { display:block; }
 .library-category-copy strong { color:inherit; font-size:clamp(12px,1.28vw,17px); line-height:1.15; }
@@ -87,7 +88,7 @@
 .library-filter-categories { margin-top:8px; }
 .library-filter-categories[hidden],.home-menu-page .games-grid[hidden],.library-empty[hidden] { display:none; }
 .library-empty { padding:16px; margin:0; color:#aebad0; }
-.home-menu-page .game-card-top:empty,.tiktok-selection-page .game-card-top:empty { display:none; }
+.home-menu-page .game-card-top:empty,.collection-selection-page .game-card-top:empty { display:none; }
 .game-card-top [data-card-filter] { cursor:pointer; }
 .game-card-top [data-card-filter]:hover { filter:brightness(1.25); }
 .library-card-origin {
@@ -97,18 +98,19 @@
   font-size:15px; line-height:1; text-decoration:none;
 }
 .game-visual .library-card-origin span { display:inline; font:700 10px/1 system-ui; transform:none; }
-.tiktok-selection-hero {
+.collection-selection-hero {
   position:relative; isolation:isolate; min-height:150px; padding:20px; overflow:hidden;
-  border:1px solid #77f6e576; border-radius:22px;
-  background:radial-gradient(ellipse at 88% 56%,#25e0ca29,transparent 42%),linear-gradient(120deg,#112731,#25182c);
+  border:1px solid color-mix(in srgb,var(--library-accent) 46%,transparent); border-radius:22px;
+  background:radial-gradient(ellipse at 88% 56%,color-mix(in srgb,var(--library-accent) 18%,transparent),transparent 42%),
+    linear-gradient(120deg,var(--library-dark),#181627);
 }
-.tiktok-selection-hero h1 { margin:14px 0 0; color:#fff; font-size:clamp(27px,5.4vw,57px); letter-spacing:-.06em; }
-.tiktok-selection-hero button { position:relative; z-index:1; }
-.tiktok-hero-note {
+.collection-selection-hero h1 { margin:14px 0 0; color:#fff; font-size:clamp(27px,5.4vw,57px); letter-spacing:-.06em; }
+.collection-selection-hero button { position:relative; z-index:1; }
+.collection-hero-symbol {
   position:absolute; z-index:-1; inset-inline-end:9%; top:50%; transform:translateY(-50%) rotate(-14deg);
   color:#e0fdfb; opacity:.28; font:bold clamp(76px,12vw,160px)/1 system-ui;
 }
-.tiktok-library-tools { margin-bottom:12px; }
+.collection-library-tools { margin-bottom:12px; }
 .light-theme .library-category-tile {
   color:#16223b; background:linear-gradient(135deg,color-mix(in srgb,var(--library-accent) 46%,white),#f8f9ff);
   border-color:color-mix(in srgb,var(--library-dark) 33%,transparent);
@@ -122,16 +124,14 @@
   .home-music-feature { min-height:288px; }
   .home-record-scene { max-width:430px; }
 }
-@media(max-width:900px) {
-  .library-category-grid { grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; }
-  .library-category-tile { grid-column:span 2; min-height:68px; padding:8px; gap:5px; }
-  .library-category-tile:nth-child(-n+2) { grid-column:span 3; }
+@media(max-width:1020px) {
+  .library-category-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+  .library-category-tile { min-height:68px; padding:8px; gap:5px; }
   .library-category-icon { inline-size:28px; block-size:28px; font-size:17px; border-radius:8px; }
 }
 @media(max-width:520px) {
   .library-category-tile { grid-template-columns:1fr auto; grid-template-rows:auto auto; gap:4px; }
-  .library-category-tile:nth-child(-n+2) { grid-template-columns:auto 1fr auto; grid-template-rows:auto; }
-  .library-category-tile:nth-child(n+3) .library-category-copy { grid-row:2; grid-column:1 / -1; }
+  .library-category-copy { grid-row:2; grid-column:1 / -1; }
   .library-category-tile > i { font-size:19px; }
   .library-category-copy small { font-size:10px; }
   .library-card-origin { inset-block-start:4px; inset-inline-end:4px; min-height:28px; min-width:31px; font-size:12px; }

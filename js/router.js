@@ -1,4 +1,4 @@
-import { libraryCategories } from "./gameCategories.js?v=20261118-21";
+import { libraryCategories } from "./gameCategories.js?v=20261118-24";
 
 export const publicRoutes = {
   "/o-grze":"public:o-grze",
