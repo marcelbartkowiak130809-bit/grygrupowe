@@ -18,3 +18,5 @@ Food items and coal/redstone ores use their original item/ and block/ textures.
 The tall lava texture is Minecraft's original animated sprite sheet; CSS steps
 through its frames (static when reduced motion is enabled). Icons intentionally
 use pixelated rendering. Textures are served locally, not via runtime hotlinks.
+Chapter two extracts zombie, villager, iron sword, lantern, chain, iron bars,
+bell and tripwire hook textures unchanged from the local Java 1.21.4 client.

@@ -20,6 +20,14 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version:"v5.10.0",date:"2026-11-18",title:"Droga do Alex · Śladami zombie",
+      changes:[
+        "Po ukończeniu rozdziału 1 odblokowuje się dalsza przygoda, która zaczyna się przed domem Alex.",
+        "Drugi rozdział ma sześć scen typu point-and-click, między innymi zbrojownię ze śpiącym strażnikiem, kopalnię i legowisko zombie.",
+        "Postęp obu rozdziałów zapisuje się osobno. W menu historii pojawiło się też odliczanie do trzeciego rozdziału.",
+      ],
+    },
+    {
       version:"v5.9.0",date:"2026-11-18",title:"Ostatni plecak ma 50 wyzwań",
       changes:[
         "Dodano 20 plansz o stopniowo rosnącej trudności, od kuźni pod osuwiskiem po portal powrotny.",

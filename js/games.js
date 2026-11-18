@@ -339,7 +339,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
   },
   "minecraft-journey": {
-    id:"minecraft-journey",name:"Droga do Alex",description:"Steve, jeden plecak i 10 połączonych scenerii. Zbieraj zasoby, buduj przejścia, odwiedź wioskę i dotrzyj do Alex.",
+    id:"minecraft-journey",name:"Droga do Alex",description:"Dwa rozdziały przygody Steve’a. Dotrzyj do Alex, a później rusz jej śladem przez zbrojownię i kopalnię.",
     help:["Klikaj surowce na planszy. Wybrany przedmiot użyjesz kliknięciem w świat.","Zawartość plecaka i wszystkie zmiany świata zostają między sceneriami.","Craftuj narzędzia, buduj i rozwiązuj problemy. Możesz wracać do odkrytych miejsc.","Dodatkowe skrzynie, drewno i prowiant ułatwią dalszą podróż."],
     players:"Przygoda solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-biome",audience:"minecraft",badges:["new"],render:renderAlexJourney,soloRender:renderAlexJourney,defaultSettings:{},
   },

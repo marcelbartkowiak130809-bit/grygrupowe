@@ -11,6 +11,7 @@ const {renderAlexJourney}=await import('../js/alexJourney.js');
 const root=document.getElementById('root'),playerId='journey-component',s=createJourney();
 const click=sel=>{const b=root.querySelector(sel);assert.ok(b,sel);assert.ok(!b.disabled&&!b.hasAttribute('disabled'),sel);b.click();};
 renderAlexJourney(root,{playerId},{});
+assert.ok(root.querySelector('[data-journey-chapter="2"]').hasAttribute('disabled'));
 const track=root.querySelector('.journey-track'),firstScene=root.querySelector('[data-j-scene-panel="0"]');
 const perform=a=>{
  if(a.item&&['node','tile','eat'].includes(a.type)&&s.selected!==a.item){assert.ok(journeyAction(s,{type:'select',item:a.item}));click(`.journey-inventory [data-j-item="${a.item}"]`);}
@@ -51,5 +52,16 @@ click('[data-j-travel="0"]');assert.ok(root.querySelector('[data-j-node="pig"]')
 const {renderAlexJourney:fresh}=await import('../js/alexJourney.js?fresh-ui-test');fresh(root,{playerId},{});assert.ok(root.querySelector('[data-j-node="first-log"]').disabled);
 click('[data-j-travel="9"]');assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);assert.ok(root.querySelector('.journey-hearts'));
 const {renderAlexJourney:reloadEnding}=await import('../js/alexJourney.js?ending-reload-test');reloadEnding(root,{playerId},{});assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);
+click('[data-journey-chapter="2"]');
+assert.match(root.querySelector('.rescue-quest h2').textContent,/Ten sam dom/);
+click('[data-rescue-node="embrace"]');
+assert.ok(root.querySelector('.effect-abduction'));
+click('[data-rescue-node="trail"]');click('[data-rescue-next]');
+assert.match(root.querySelector('.rescue-quest h2').textContent,/Zbrojownia/);
+const {renderAlexJourney:resumedChapter}=await import('../js/alexJourney.js?chapter-two-reload-test');
+resumedChapter(root,{playerId},{});
+assert.match(root.querySelector('.rescue-quest h2').textContent,/Zbrojownia/);
+click('[data-journey-chapter="1"]');
+assert.ok(root.querySelector('.journey-ending'));
 click('[data-j-restart]');assert.match(root.querySelector('.journey-empty').textContent,/pusto/);assert.ok(!root.querySelector('[data-j-node="first-log"]').disabled);
 console.log('PASS: 10-scene UI, persistent world DOM, collection, shared inventory, crafting, smelting, construction, lighting, gate, ending, backtracking, reload and restart.');

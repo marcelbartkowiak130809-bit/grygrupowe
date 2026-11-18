@@ -212,7 +212,7 @@ function boardHubCard() {
 }
 
 function minecraftHubCard() {
-  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Droga do Alex: jedna wyprawa przez 10 scenerii. Ostatni plecak: 50 graficznych łamigłówek.</p><div class="game-card-activity"><span>8 trybów</span><span>2 PRZYGODY JUŻ DOSTĘPNE</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
+  return `<article class="game-card minecraft-hub-card" data-minecraft-hub data-mode-category="minecraft" data-mode-tags="minecraft category new everyone solo" data-mode-search="minecraft crafting sprint mob biomy redstone quiz kategoria"><div class="game-visual game-visual-minecraft-hub"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"></span><b class="minecraft-hub-badge">MINECRAFT</b></div><div class="game-card-content"><div class="game-card-top"><span class="tag tag-category-minecraft">KATEGORIA</span></div><h2>MINECRAFT</h2><p class="muted">Droga do Alex: dwa rozdziały przygody. Ostatni plecak: 50 graficznych łamigłówek.</p><div class="game-card-activity"><span>8 trybów</span><span>2 PRZYGODY JUŻ DOSTĘPNE</span></div><div class="game-card-footer"><span class="players-count">⛏️ DLA EKIPY I SOLO</span><button class="primary" data-open-minecraft>Wybierz tryb</button></div></div></article>`;
 }
 
 function musicHubCard() {
@@ -426,7 +426,7 @@ export function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? pollState(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
     <div data-weekly-unlock aria-live="polite"></div>
-    <section class="backpack-release" aria-label="Nowa przygoda Minecraft"><img src="./assets/minecraft/backpack/compass.png" alt="Kompas Minecraft"><div><p class="eyebrow">NOWA PRZYGODA MINECRAFT</p><h2>Droga do Alex</h2><p>10 połączonych scenerii, jeden plecak i świat, który pamięta twoje kroki.</p></div><button class="primary" data-unlock-mode="minecraft-journey">Wyrusz w drogę →</button><button class="ghost" data-unlock-mode="minecraft-backpack">Ostatni plecak</button></section>
+    <section class="backpack-release" aria-label="Nowa przygoda Minecraft"><img src="./assets/minecraft/backpack/compass.png" alt="Kompas Minecraft"><div><p class="eyebrow">NOWA PRZYGODA MINECRAFT</p><h2>Droga do Alex</h2><p>Dwa rozdziały. Najpierw spotkaj Alex, potem rusz jej na ratunek.</p></div><button class="primary" data-unlock-mode="minecraft-journey">Wyrusz w drogę →</button><button class="ghost" data-unlock-mode="minecraft-backpack">Ostatni plecak</button></section>
     ${homeMenuHtml(gamesList,isModeLocked)}
     <section class="platform-hero">
       <div>
