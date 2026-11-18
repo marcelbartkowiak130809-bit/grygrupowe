@@ -243,10 +243,9 @@ function connectAction(game, uid, action, payload, settings) {
   if(game.currentUid!==uid)return "Poczekaj na swoją kolej.";
   if(action!=="connect-drop")return "Wybierz kolumnę.";
   const col=Number(payload);if(!Number.isInteger(col)||col<0||col>6)return "Nieprawidłowa kolumna.";
-  let row=-1;for(let candidate=5;candidate>=0;candidate-=1)if(!game.cells[candidate*7+col]){row=candidate;break;}if(row<0)return "Ta kolumna jest pełna.";
-  game.cells[row*7+col]=uid;
-  const directions=[[0,1],[1,0],[1,1],[1,-1]],hasFour=directions.some(([dr,dc])=>{let total=1;for(const sign of [-1,1]){let r=row+dr*sign,c=col+dc*sign;while(r>=0&&r<6&&c>=0&&c<7&&game.cells[r*7+c]===uid){total+=1;r+=dr*sign;c+=dc*sign;}}return total>=4;});
-  if(hasFour)return finishGame(game,[uid]);if(game.cells.every(Boolean))return finishGame(game,[],scoreObject(game.players));startTurn(game,(Number(game.turnIndex)||0)+1,settings);
+  if(game.cells[col])return "Ta kolumna jest pełna.";
+  const index = dropConnectPiece(game.cells, col, uid);
+  if(connectHasFour(game.cells, uid, Math.floor(index / 7), col))return finishGame(game,[uid]);if(game.cells.every(Boolean))return finishGame(game,[],scoreObject(game.players));startTurn(game,(Number(game.turnIndex)||0)+1,settings);
 }
 
 function memoryAction(game, uid, action, payload, settings) {
@@ -433,24 +432,77 @@ function connectHasFour(cells, uid, row, col) {
   });
 }
 
-function connectWinningColumn(game, uid, column) {
-  const cells = [...arrayOrEmpty(game.cells)];
-  for (let row = 5; row >= 0; row -= 1) if (!cells[row * 7 + column]) { cells[row * 7 + column] = uid; return connectHasFour(cells, uid, row, column); }
-  return false;
+const connectColumns = [3, 2, 4, 1, 5, 0, 6];
+const connectWindows = [];
+for (let row = 0; row < 6; row++) {
+  for (let column = 0; column < 7; column++) {
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const lastRow = row + 3 * dr, lastColumn = column + 3 * dc;
+      if (lastRow >= 6 || lastColumn < 0 || lastColumn >= 7) continue;
+      connectWindows.push(Array.from({ length: 4 }, (_, i) => (row + dr * i) * 7 + column + dc * i));
+    }
+  }
+}
+
+function dropConnectPiece(cells, column, uid) {
+  let index = 35 + column;
+  while (cells[index]) index -= 7;
+  cells[index] = uid;
+  return index;
 }
 
 function boardBotConnectColumn(game, uid, difficulty) {
-  const columns = [0, 1, 2, 3, 4, 5, 6].filter(column => !game.cells?.[column]);
+  const cells = [...arrayOrEmpty(game.cells)];
+  const columns = connectColumns.filter(column => !cells[column]);
   if (!columns.length) return null;
-  if (difficulty !== "easy") {
-    const winning = columns.find(column => connectWinningColumn(game, uid, column));
-    if (winning !== undefined) return winning;
-    const opponent = game.players.find(player => player !== uid);
-    const block = opponent && columns.find(column => connectWinningColumn(game, opponent, column));
-    if (block !== undefined && (difficulty === "hard" || difficulty === "expert" || Math.random() < .75)) return block;
+  const opponent = game.players.find(player => player !== uid);
+  if (difficulty === "easy" || !opponent) return boardBotPick(columns, difficulty);
+  const depth = { normal: 2, hard: 4, expert: 5 }[difficulty] || 2;
+  function evaluate() {
+    let score = 0;
+    for (let row = 0; row < 6; row++) {
+      const center = cells[row * 7 + 3];
+      score += center === uid ? 3 : center === opponent ? -3 : 0;
+    }
+    const weights = [0, 1, 9, 42];
+    for (const line of connectWindows) {
+      let mine = 0, theirs = 0;
+      for (const index of line) {
+        mine += Number(cells[index] === uid);
+        theirs += Number(cells[index] === opponent);
+      }
+      if (!theirs) score += weights[mine] || 0;
+      else if (!mine) score -= weights[theirs] || 0;
+    }
+    return score;
   }
-  const preferred = [3, 2, 4, 1, 5, 0, 6].filter(column => columns.includes(column));
-  return boardBotPick(preferred, difficulty);
+  function search(player, left, alpha, beta) {
+    if (cells.every(Boolean)) return 0;
+    if (!left) return evaluate();
+    const maximizing = player === uid;
+    let best = maximizing ? -Infinity : Infinity;
+    for (const column of connectColumns) {
+      if (cells[column]) continue;
+      const index = dropConnectPiece(cells, column, player);
+      const wins = connectHasFour(cells, player, Math.floor(index / 7), column);
+      const score = wins ? (maximizing ? 1 : -1) * (10000 + left)
+        : search(maximizing ? opponent : uid, left - 1, alpha, beta);
+      cells[index] = "";
+      if (maximizing) { best = Math.max(best, score); alpha = Math.max(alpha, best); }
+      else { best = Math.min(best, score); beta = Math.min(beta, best); }
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+  let best = -Infinity, choice = columns[0];
+  for (const column of columns) {
+    const index = dropConnectPiece(cells, column, uid);
+    const win = connectHasFour(cells, uid, Math.floor(index / 7), column);
+    const score = win ? 10000 + depth : search(opponent, depth - 1, best, Infinity);
+    cells[index] = "";
+    if (score > best) { best = score; choice = column; }
+  }
+  return choice;
 }
 
 function boardBotDominoMove(game, uid, difficulty) {

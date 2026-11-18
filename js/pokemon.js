@@ -27,13 +27,13 @@ export const pokemonDefaults = {
   "pokemon-match-type": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
 };
 
-function candidates(settings) { return filteredDex(settings).filter(item => item.id <= 1025); }
+export function pokemonCandidates(settings) { return filteredDex(settings).filter(item => item.id <= 1025); }
 function pickEvolutionBase(settings) {
-  const pool = candidates(settings);
+  const pool = pokemonCandidates(settings);
   const valid = pool.filter(base => pool.some(item => item.id !== base.id && item.evolutionChain === base.evolutionChain));
   return randomItem(valid.length ? valid : pool);
 }
-function pickTarget(settings, used = []) { const source = settings?.evolutionMode ? candidates(settings).filter(base => candidates(settings).some(item => item.id !== base.id && item.evolutionChain === base.evolutionChain)) : candidates(settings); const pool = source.filter(item => !used.includes(item.id)); return randomItem(pool.length ? pool : source); }
+function pickTarget(settings, used = []) { const source = settings?.evolutionMode ? pokemonCandidates(settings).filter(base => pokemonCandidates(settings).some(item => item.id !== base.id && item.evolutionChain === base.evolutionChain)) : pokemonCandidates(settings); const pool = source.filter(item => !used.includes(item.id)); return randomItem(pool.length ? pool : source); }
 function lastLetterActive(game) { return (game.order || []).filter(uid => !(game.eliminated || []).includes(uid)); }
 function advanceLastLetter(game, settings) {
   const active = lastLetterActive(game);
@@ -62,7 +62,7 @@ export function createPokemonGame(mode, players, settings) {
   if (mode === "pokemon-auction") {
     const teamSize = Math.max(2, Math.min(10, Math.floor(Number(settings.teamSize) || 6)));
     const budget = Math.max(10, Math.min(500, Math.floor(Number(settings.budget) || 50)));
-    const pool = candidates(settings);
+    const pool = pokemonCandidates(settings);
     const count = Math.min(pool.length, teamSize * players.length);
     // Partial Fisher–Yates gives every eligible Pokémon the same chance.
     for (let index = 0; index < count; index++) {
@@ -111,7 +111,7 @@ function finishTypes(game, players, settings = {}) {
   game.ranking = ranking; game.phase = "result"; game.finished = Number(game.round) >= Math.max(1, Number(settings.rounds) || 5);
 }
 export function canStartPokemonAuction(settings) {
-  return candidates(settings).length > 0;
+  return pokemonCandidates(settings).length > 0;
 }
 
 function auctionPassed(game, uid) {
@@ -273,7 +273,7 @@ export const PokemonEngine = {
       game.eliminated = Array.isArray(game.eliminated) ? game.eliminated : [];
       if (game.order[game.turnIndex] !== uid || game.eliminated.includes(uid)) return "Teraz odpowiada inny gracz.";
       const item = pokemon(text), previous = game.chain.at(-1), required = previous ? clean(previous.name).slice(-1) : "";
-      const pool = candidates(settings);
+      const pool = pokemonCandidates(settings);
       if (!item || !pool.some(row => row.id === item.id) || game.usedIds.includes(item.id) || (required && !clean(item.name).startsWith(required))) { loseLastLetterHeart(game, uid, settings); return; }
       game.scores = game.scores && typeof game.scores === "object" && !Array.isArray(game.scores) ? game.scores : scoreMap(players);
       game.scores[uid] = Number(game.scores[uid]) || 0;
@@ -284,7 +284,7 @@ export const PokemonEngine = {
       if (game.answers?.[uid]) return "Odpowiedź została już wysłana.";
       const names = Array.isArray(text) ? text : [text], items = names.filter(value => String(value || "").trim()).map(value => pokemon(value));
       if (!items.length || items.some(item => !item)) return "Wpisz poprawną nazwę Pokémona.";
-      const pool = candidates(settings), base = pokemonDex.find(item => item.id === game.baseId), chain = pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain).sort((a,b) => a.id - b.id), baseIndex = chain.findIndex(item => item.id === base?.id);
+      const pool = pokemonCandidates(settings), base = pokemonDex.find(item => item.id === game.baseId), chain = pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain).sort((a,b) => a.id - b.id), baseIndex = chain.findIndex(item => item.id === base?.id);
       if (items.some(item => !pool.some(row => row.id === item.id))) return "Ten Pokémon nie jest dostępny w wybranych generacjach.";
       if (settings.evolutionMode === "later" && items.some(item => chain.indexOf(item) <= baseIndex)) return "W tym ustawieniu wpisuj tylko późniejsze ewolucje.";
       game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
@@ -294,7 +294,7 @@ export const PokemonEngine = {
     }
     const item = pokemon(text); if (!item) return "Wpisz poprawną nazwę Pokémona.";
     game.answers = game.answers && typeof game.answers === "object" && !Array.isArray(game.answers) ? game.answers : {};
-    const pool = candidates(settings); if (!pool.some(row => row.id === item.id)) return "Ten Pokémon nie jest dostępny w wybranych generacjach.";
+    const pool = pokemonCandidates(settings); if (!pool.some(row => row.id === item.id)) return "Ten Pokémon nie jest dostępny w wybranych generacjach.";
     if (game.mode === "pokemon-dex") { if (game.answers[uid]) return "Odpowiedź została już wysłana."; game.answers[uid] = item; if (Object.keys(game.answers).length >= players.length) finishDex(game, players, settings); return; }
     if (game.mode === "pokemon-evolution") { return "Wpisz odpowiedzi w polach ewolucji."; }
     if (game.mode === "pokemon-types") { game.scores = game.scores && typeof game.scores === "object" && !Array.isArray(game.scores) ? game.scores : scoreMap(players); game.scores[uid] = Number(game.scores[uid]) || 0; game.selectedTypes = game.selectedTypes && typeof game.selectedTypes === "object" && !Array.isArray(game.selectedTypes) ? game.selectedTypes : {}; if (game.phase !== "answer") return "Najpierw wybierzcie typy."; if (!game.answers[uid] && Object.values(game.selectedTypes).every(type => item.types.includes(type))) { game.answers[uid] = item; game.scores[uid] += 1; game.ranking = [{ uid, answer:item, correct:true }]; game.phase = "result"; game.finished = Number(game.round) >= Math.max(1, Number(settings.rounds) || 5); } return; }
@@ -329,7 +329,7 @@ export const PokemonEngine = {
     if (game.selectedTypes[uid]) return "Typ został już wybrany.";
     game.selectedTypes[uid] = type;
     if (Object.keys(game.selectedTypes).length >= players.length) {
-      const selected = [...new Set(Object.values(game.selectedTypes))]; const exists = candidates(settings).some(item => selected.every(itemType => item.types.includes(itemType)));
+      const selected = [...new Set(Object.values(game.selectedTypes))]; const exists = pokemonCandidates(settings).some(item => selected.every(itemType => item.types.includes(itemType)));
       if (!exists) { game.blockedPairs.push(selected.join("+")); game.selectedTypes = {}; game.phaseEndsAt = phaseEnd(settings.selectTime); }
       else { game.phase = "answer"; game.phaseEndsAt = phaseEnd(settings.answerTime); }
     }

@@ -70,6 +70,65 @@ function categoryForWord(word, settings, customWords) {
   return normalizeCategories(settings).find(name => (identityCategories[name] || []).includes(word)) || "";
 }
 
+function identityBotRules(settings) {
+  const categoryRules = [...normalizeCategories(settings), "Wlasne hasla"].map(category => ({
+    prompt: `Czy moje hasło jest z grupy „${category}”?`,
+    matches: candidate => candidate.category === category,
+  }));
+  const letterRules = [..."ABCDEFGHIJKLMNOPRSTUWYZ"].map(letter => ({
+    prompt: `Czy moje hasło zaczyna się na literę ${letter}?`,
+    matches: candidate => normalizeAnswer(candidate.word).startsWith(letter.toLowerCase()),
+  }));
+  return [...categoryRules, ...letterRules];
+}
+
+export function identityBotTurn(game, uid, settings, customWords, difficulty) {
+  const history = arrayOrEmpty(game.history).filter(row => row.uid === uid);
+  const recent = history.slice(history.findLastIndex(row => row.correct) + 1);
+  const asked = new Set(recent.map(row => normalizeAnswer(row.text)));
+  const rules = identityBotRules(settings);
+  const evidence = rules.map(rule => {
+    const row = recent.find(entry => normalizeAnswer(entry.text) === normalizeAnswer(rule.prompt));
+    const votes = String(row?.answer || "").split("/").map(normalizeAnswer);
+    const yes = votes.filter(value => value === "tak" || value === "yes").length;
+    const no = votes.filter(value => value === "nie" || value === "no").length;
+    return { rule, yes, no };
+  }).filter(row => row.yes !== row.no);
+  const visibleOthers = new Set(game.order.filter(player => player !== uid).map(player => normalizeAnswer(game.words?.[player])));
+  const candidates = pool(settings, customWords)
+    .filter(word => !visibleOthers.has(normalizeAnswer(word)) && !asked.has(normalizeAnswer(word)))
+    .map(word => ({ word, category: categoryForWord(word, settings, customWords) }));
+  const score = candidate => evidence.reduce((sum, row) => sum + Number(row.rule.matches(candidate) === (row.yes > row.no)), 0);
+  const maximum = Math.max(...candidates.map(score));
+  const plausible = candidates.filter(candidate => score(candidate) === maximum);
+  const options = rules.filter(rule => !asked.has(normalizeAnswer(rule.prompt))).map(rule => {
+    const yes = plausible.filter(rule.matches).length;
+    return { rule, split: Math.min(yes, plausible.length - yes) };
+  }).filter(item => item.split > 0).sort((a, b) => b.split - a.split);
+  const threshold = { easy: 5, normal: 3, hard: 2, expert: 1 }[difficulty] || 3;
+  if (plausible.length && (!options.length || plausible.length <= threshold)) {
+    return { type: "guess", text: plausible[Math.floor(Math.random() * plausible.length)].word };
+  }
+  const choices = options.slice(0, difficulty === "easy" ? 3 : 1);
+  const rule = choices[Math.floor(Math.random() * choices.length)]?.rule;
+  return rule ? { type: "question", text: rule.prompt } : null;
+}
+
+export function identityBotResponse(game, settings, customWords) {
+  const pending = game.pending;
+  const word = game.words?.[pending?.uid];
+  if (!word) return "NIE WIEM";
+  if (pending.type === "guess") return normalizeAnswer(pending.text) === normalizeAnswer(word) ? "TAK" : "NIE";
+  const text = normalizeAnswer(pending.text);
+  const rule = identityBotRules(settings).find(item => normalizeAnswer(item.prompt) === text);
+  if (rule) return rule.matches({ word, category: categoryForWord(word, settings, customWords) }) ? "TAK" : "NIE";
+  const contains = text.match(/^czy moje haslo (?:zawiera|ma) litere ([a-z])$/)?.[1];
+  const begins = text.match(/^czy (?:moje haslo )?zaczyna sie na (?:litere )?([a-z])$/)?.[1];
+  if (contains) return normalizeAnswer(word).includes(contains) ? "TAK" : "NIE";
+  if (begins) return normalizeAnswer(word).startsWith(begins) ? "TAK" : "NIE";
+  return "NIE WIEM";
+}
+
 function drawWord(game, uid, settings, customWords) {
   const words = pool(settings, customWords);
   const used = new Set([

@@ -9,11 +9,11 @@ const wordBanks = {
 };
 const normalize = value => String(value || "").toLocaleLowerCase("pl-PL").normalize("NFC");
 const phaseEnd = seconds => Date.now() + Math.max(5, Number(seconds) || 20) * 1000;
-function bank(category = "all") { return (category === "all" ? Object.values(wordBanks).join(" ") : wordBanks[category] || wordBanks.rozne).split(/\s+/).filter(Boolean); }
+export function hangmanWordBank(category = "all") { return (category === "all" ? Object.values(wordBanks).join(" ") : wordBanks[category] || wordBanks.rozne).split(/\s+/).filter(Boolean); }
 function nextPuzzle(game) {
   if (game.round >= game.rounds) { game.phase = "result"; game.finished = true; game.phaseEndsAt = 0; return; }
   game.round += 1;
-  game.word = game.words[game.round - 1] || bank(game.category)[Math.floor(Math.random() * bank(game.category).length)];
+  game.word = game.words[game.round - 1] || hangmanWordBank(game.category)[Math.floor(Math.random() * hangmanWordBank(game.category).length)];
   game.mask = [...game.word].map(character => /[a-ząćęłńóśźż]/iu.test(character) ? "" : character);
   game.mistakes = 0;
   game.guessed = [];
@@ -25,7 +25,7 @@ function nextPuzzle(game) {
 }
 
 export function createHangmanGame(players, settings = {}) {
-  const category = settings.category || "all", rounds = Math.max(1, Math.min(12, Number(settings.rounds) || 5)), pool = [...bank(category)].sort(() => Math.random() - .5);
+  const category = settings.category || "all", rounds = Math.max(1, Math.min(12, Number(settings.rounds) || 5)), pool = [...hangmanWordBank(category)].sort(() => Math.random() - .5);
   const words = Array.from({ length: rounds }, (_, index) => pool[index % pool.length]);
   const word = words[0] || "tajemnica";
   return { mode: "hangman", phase: "guessing", round: 1, rounds, players: [...players], words, word, category, mask: [...word].map(character => /[a-ząćęłńóśźż]/iu.test(character) ? "" : character), guessed: [], mistakes: 0, maxMistakes: 6, turnIndex: 0, currentUid: players[0], turnTime: Math.max(8, Number(settings.turnTime) || 20), scores: Object.fromEntries(players.map(uid => [uid, 0])), roundWinner: "", phaseEndsAt: phaseEnd(settings.turnTime), finished: false };

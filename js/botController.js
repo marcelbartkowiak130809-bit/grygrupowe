@@ -3,7 +3,7 @@ import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20260822-1";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20261117-10";
-import { IdentityEngine } from "./identity.js?v=20261117-15";
+import { IdentityEngine, identityBotResponse, identityBotTurn } from "./identity.js?v=20261118-16";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20260605-4";
 import { MostLikelyEngine } from "./mostLikely.js?v=20260612-1";
 import { FriendshipTestEngine } from "./friendshipTest.js?v=20260605-1";
@@ -11,19 +11,19 @@ import { PoisonCandyEngine } from "./poisonCandy.js?v=20260831-12";
 import { BombEngine, bombCategories } from "./bomb.js?v=20260621-1";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
-import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
+import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine, pokemonAuctionCanBid } from "./pokemon.js?v=20261118-14";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates } from "./pokemon.js?v=20261118-16";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
-import { QuizEngine } from "./quiz.js?v=20260823-5";
+import { QuizEngine, quizQuestions } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
 import { MarkerEngine } from "./marker.js?v=20261117-10";
-import { SequenceEngine, markSequenceReady } from "./sequence.js?v=20260813-2";
+import { SequenceEngine, markSequenceReady, timeoutSequenceCreation } from "./sequence.js?v=20260813-2";
 import { FamilyEngine } from "./family.js?v=20260822-2";
 import { WordChainEngine, wordChainBotWord } from "./wordChain.js?v=20260822-2";
 import { CharadesEngine } from "./charades.js?v=20260922-1";
-import { HangmanEngine } from "./hangman.js?v=20260922-1";
-import { NumberMysteryEngine, numberMysteryQuickQuestions } from "./numberMystery.js?v=20260831-4";
+import { HangmanEngine, hangmanWordBank } from "./hangman.js?v=20261118-16";
+import { NumberMysteryEngine } from "./numberMystery.js?v=20260831-4";
 import { UniqueAnswerEngine } from "./uniqueAnswer.js?v=20260823-5";
 import { ConnectEngine } from "./connect.js?v=20260831-4";
 import { LiarEngine } from "./liar.js?v=20260831-4";
@@ -33,17 +33,23 @@ import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261117-10";
 import { LyricsEngine } from "./lyrics.js?v=20261117-10";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261117-16";
-import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261118-15";
+import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261118-16";
 import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261118-15";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261118-13";
 import { serverNow } from "./firebase.js?v=20261010-7";
 import { gameMomentKey } from "./roomLifecycle.js";
+import { hangmanBotLetter, numberMysteryBotAction, randomBotChoice, sequenceBotGuess, shuffledBotChoices } from "./botDeduction.js?v=20261118-16";
 
 const playersOf = room => Array.isArray(room?.players) ? room.players : Object.keys(room?.players || {});
 const botsOf = room => botIds(room).filter(Boolean);
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const array = value => Array.isArray(value) ? value : [];
-const expired = game => [game?.phaseEndsAt, game?.guessEndsAt, game?.countdownEndsAt, game?.roundEndsAt, game?.explodesAt].some(value => Number(value || 0) > 0 && Date.now() >= Number(value));
+function expired(game) {
+  if (!game || game.finished) return false;
+  const endsAt = game.variant === "full-test" && game.phase === "test" ? [game.testEndsAt]
+    : [game.phaseEndsAt, game.guessEndsAt, game.countdownEndsAt, game.roundEndsAt, game.explodesAt, game.phase === "create" && game.createEndsAt];
+  return endsAt.some(value => Number(value || 0) > 0 && Date.now() >= Number(value));
+}
 const activeFrom = (game, keys = []) => keys.map(key => game?.[key]).find(Boolean) || "";
 const orderUid = (game, keys = ["order", "turnOrder"], index = "turnIndex") => {
   for (const key of keys) {
@@ -74,7 +80,7 @@ export function botActor(room) {
     return isBotId(active) && bots.includes(active) ? active : "";
   }
   if (game.mode === "wavelength" || room.gameMode === "wavelength") {
-    if (game.phase === "clue") return bots.find(uid => uid !== game.guesserUid && !game.clues?.[uid]) || bots.find(uid => uid !== game.guesserUid) || "";
+    if (game.phase === "clue") return bots.find(uid => uid !== game.guesserUid && !game.clues?.[uid]) || "";
     if (game.phase === "guess" && bots.includes(game.guesserUid)) return game.guesserUid;
   }
   if (room.gameMode === "falszywa-wiadomosc") {
@@ -97,12 +103,30 @@ export function botActor(room) {
   }
   if (room.gameMode === "pojedynek-hitow") {
     if (game.phase === "selecting") return bots.find(uid => isMissing(game.submissions, uid)) || "";
+    if (game.phase === "continueDecision") return bots.find(uid => isMissing(game.continueVotes, uid)) || "";
     if (game.phase === "voting") return bots.find(uid => isMissing(game.votes, uid)) || "";
   }
   if (room.gameMode === "bitwa-hitow") {
     if (game.phase === "selecting") return bots.find(uid => game.duelists?.includes(uid) && isMissing(game.submissions, uid)) || "";
     if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
   }
+  if (room.gameMode === "number-mystery") {
+    if (game.phase === "guess") return bots.find(uid => isMissing(game.guesses, uid)) || "";
+    const actor = game.phase === "answer" ? game.responder : game.turnUid;
+    return bots.includes(actor) ? actor : "";
+  }
+  if (room.gameMode === "impostor") {
+    if (game.phase === "roleReveal") return bots.find(uid => !game.acknowledged?.[uid]) || "";
+    if (game.phase === "voting") return bots.find(uid => isMissing(game.votes, uid)) || "";
+    if (game.phase === "finalGuess") return bots.includes(game.result?.expelled) ? game.result.expelled : "";
+  }
+  if (room.gameMode === "test-znajomosci" && game.phase === "assigning") {
+    return bots.find(uid => array(game.answerOrder).some(id => id !== uid && isMissing(game.guesses?.[uid], id))) || "";
+  }
+  if (room.gameMode === "mathematics" && game.phase === "test") return bots.find(uid => !game.completed?.[uid]) || "";
+  if (room.gameMode === "quiz" && game.phase?.endsWith("-buzz")) return bots.find(uid => !game.eliminated?.includes(uid)) || "";
+  if (room.gameMode === "pokemon-types" && game.phase === "choose") return bots.find(uid => isMissing(game.selectedTypes, uid)) || "";
+  if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
   if (room.gameMode === "pokemon-auction") return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
@@ -113,10 +137,8 @@ export function botActor(room) {
     if (game.mode === "minecraft-truth" && game.phase === "question") return bots.find(uid => isMissing(game.answers, uid)) || "";
     if (game.phase === "turn" && isBotId(game.currentUid)) return game.currentUid;
   }
-  if (game.phase === "responses") {
-    const responder = bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid));
-    if (responder) return responder;
-  }
+  if (room.gameMode === "kim-jestem" && game.phase === "responses") return bots.find(uid => uid !== game.pending?.uid && isMissing(game.responses, uid)) || "";
+  if (game.phase === "voting") return bots.find(uid => isMissing(game.votes, uid)) || "";
   const direct = activeFrom(game, ["starter", "decisionPlayer", "currentBidder", "currentUid", "turnUid", "activeUid", "drawerUid", "seekerUid", "responder"]);
   if (isBotId(direct) && bots.includes(direct)) return direct;
   const ordered = orderUid(game);
@@ -167,18 +189,68 @@ function proveAnswer(game) {
   return task?.answers?.find(answer => answer && !used.has(String(answer).trim().toLowerCase())) || "";
 }
 
-function pokemonName(game, mode) {
-  const base = pokemonDex.find(item => item.id === (game?.target || game?.baseId));
-  if (mode === "pokemon-evolution") {
-    const chain = pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain).sort((a, b) => a.id - b.id);
-    return chain.find(item => item.id !== base?.id)?.name || base?.name || "pikachu";
-  }
-  return base?.name || pokemonDex[0]?.name || "pikachu";
+const quizById = new Map(quizQuestions.map(question => [question.id, question]));
+function quizBotOption(game, knowsAnswer) {
+  const question = quizById.get(game.questionIds?.[game.questionIndex]) || quizQuestions[0];
+  return knowsAnswer ? question.answer : randomBotChoice(question.options.map((_, i) => i).filter(i => i !== question.answer));
 }
 
-function pokemonEvolutionAnswers(game) {
-  const base = pokemonDex.find(item => item.id === game?.baseId);
-  return pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain && item.id !== base?.id).sort((a, b) => a.id - b.id).slice(0, 2).map(item => item.name);
+function mathematicsBotOption(game, uid, knows) {
+  const index = game.phase === "test" ? Number(game.progress?.[uid]) || 0 : game.questionIndex;
+  const question = game.questions[index];
+  if (game.answerMode === "abcd") {
+    if (knows) return question.options.indexOf(question.answer);
+    return randomBotChoice(question.options.map((option, i) => option === question.answer ? -1 : i).filter(i => i >= 0));
+  }
+  return knows ? question.answer : randomBotChoice(question.options.filter(option => option !== question.answer));
+}
+
+function fiveSecondsBotAnswer(game, room, uid) {
+  const category = fiveSecondsCategories.find(item => item.id === game.categoryId);
+  if (!category?.words.length) return "";
+  const recent = new Set(array(game.history).filter(row => row.uid === uid && row.categoryId === category.id)
+    .slice(-4).flatMap(row => array(row.accepted)).map(normalizeAnswer));
+  const fresh = category.words.filter(word => !recent.has(normalizeAnswer(word)));
+  const ranked = [...shuffledBotChoices(fresh), ...shuffledBotChoices(category.words.filter(word => !fresh.includes(word)))];
+  const learned = ranked.slice(0, 3).filter(() => botShouldBeCorrect(room, uid));
+  return learned.join(", ");
+}
+
+function pokemonEvolutionAnswers(game, pool, knowsAnswer) {
+  const base = pokemonDex.find(item => item.id === game.baseId);
+  if (!base) return [];
+  const family = pool.filter(item => item.evolutionChain === base.evolutionChain && item.id !== base.id)
+    .sort((a, b) => a.id - b.id);
+  return family.slice(0, knowsAnswer ? 2 : 1).map(item => item.name);
+}
+
+function pokemonLastLetterChoice(game, pool, difficulty) {
+  const previous = game.chain?.at(-1);
+  const last = previous ? normalizeAnswer(previous.name).at(-1) : "";
+  const used = new Set(game.usedIds || []);
+  const available = pool.filter(item => !used.has(item.id));
+  const matching = available.filter(item => normalizeAnswer(item.name).startsWith(last));
+  if (difficulty === "easy" || matching.length < 2) return randomBotChoice(matching);
+  const startingCounts = new Map();
+  for (const item of available) {
+    const first = normalizeAnswer(item.name)[0];
+    startingCounts.set(first, (startingCounts.get(first) || 0) + 1);
+  }
+  const replies = item => {
+    const name = normalizeAnswer(item.name);
+    const end = name.at(-1);
+    return (startingCounts.get(end) || 0) - Number(end === name[0]);
+  };
+  return randomBotChoice(shuffledBotChoices(matching).sort((a, b) => replies(a) - replies(b))
+    .slice(0, difficulty === "expert" ? 1 : difficulty === "hard" ? 3 : 7));
+}
+
+function pokemonTypeChoice(game, pool) {
+  const chosen = Object.values(game.selectedTypes || {});
+  const compatible = pool.filter(item => chosen.every(type => item.types.includes(type)));
+  const types = [...new Set(compatible.flatMap(item => item.types))];
+  const newTypes = types.filter(type => !chosen.includes(type) && !game.blockedPairs?.includes([...new Set([...chosen, type])].join("+")));
+  return randomBotChoice(newTypes.length ? newTypes : types) || "water";
 }
 
 function bombAnswer(game) {
@@ -253,55 +325,102 @@ const impostorSpecificClues = {
   radość:["uśmiech","szczęście","emocje","świętowanie","dobra wiadomość"], stres:["nerwy","presja","egzamin","napięcie","emocje"]
 };
 const clueKey = value => normalizeAnswer(value).replace(/[^a-z0-9]/g, "");
+const impostorWordClues = new Map(Object.entries(impostorSpecificClues).map(([word, clues]) => [clueKey(word), clues]));
 const pick = values => values[Math.floor(Math.random() * values.length)] || "";
 function impostorBotClue(game, room, bot) {
   const category = String(game?.category || "").trim();
-  const secret = String(game?.roles?.[bot]?.word || game?.mainWord || "").trim();
-  const normalizedMain = normalizeAnswer(game?.mainWord || "");
-  const normalizedSecret = normalizeAnswer(secret);
-  const used = new Set(array(game?.clues).map(clue => normalizeAnswer(clue?.text || clue)).filter(Boolean));
-  const specific = Object.entries(impostorSpecificClues).find(([word]) => clueKey(word) === clueKey(secret))?.[1] || [];
-  const generic = impostorClueWords[category] || [];
-  const difficulty = botDifficulty(room, bot).id;
-  const specificChance = { easy:.25, normal:.55, hard:.82, expert:.95 }[difficulty] ?? .55;
-  const preferred = Math.random() < specificChance ? [...specific, ...generic] : [...generic, ...specific];
-  const pool = [...new Set(preferred)]
-    .filter(Boolean)
-    .filter(word => {
-      const normalized = normalizeAnswer(word);
-      return normalized && normalized !== normalizedMain && normalized !== normalizedSecret && !normalized.includes(normalizedMain) && !used.has(normalized);
-    });
-  if (pool.length) return pick(pool);
-  const variants = ["Kojarzy mi się z {word}.", "Pierwsze skojarzenie: {word}.", "Dla mnie pasuje tu {word}.", "Mam z tym związek przez {word}."];
-  const base = [...new Set([...specific, ...generic])].filter(word => {
-    const normalized = normalizeAnswer(word);
-    return normalized && normalized !== normalizedSecret && normalized !== normalizedMain && !normalized.includes(normalizedMain);
+  const word = normalizeAnswer(game.roles?.[bot]?.word);
+  const used = new Set(array(game.clues).map(clue => normalizeAnswer(clue.text)));
+  const safe = list => list.filter(clue => {
+    const normalized = normalizeAnswer(clue);
+    return normalized && !used.has(normalized) && (!word || !normalized.includes(word));
   });
-  const freshVariants = base.flatMap(word => variants.map(template => template.replace("{word}", word)))
-    .filter(text => !used.has(normalizeAnswer(text)));
-  return pick(freshVariants) || base[0] || (category ? `skojarzenie z kategorią ${category.toLowerCase()}` : "codzienne skojarzenie");
+  const specific = safe(impostorWordClues.get(clueKey(word)) || []);
+  const generic = safe(impostorClueWords[category] || []);
+  const preference = { easy: .3, normal: .62, hard: .82, expert: .92 }[botDifficulty(room, bot).id] || .62;
+  const clues = Math.random() < preference ? [specific, generic] : [generic, specific];
+  return pick(clues.find(list => list.length) || []) || (category ? `Kojarzy mi się z kategorią: ${category.toLowerCase()}` : "Mam skojarzenie, ale jeszcze się waham.");
 }
-function wavelengthOffset(room, bot) {
-  const id=botDifficulty(room,bot).id, roll=Math.random();
-  if(id==="easy") return roll<.5?0:roll<.65?-1:roll<.8?1:roll<.9?-2:2;
-  if(id==="normal") return roll<.5?0:roll<.7?1:roll<.9?-1:roll<.95?-2:2;
-  if(id==="hard") return roll<.7?0:roll<.85?-1:1;
-  return roll<.95?0:roll<.975?-1:1;
+
+function clueMatch(clue, tokens) {
+  const words = normalizeAnswer(clue).split(" ");
+  return words.some(word => word.length > 2 && tokens.has(word));
 }
-function wavelengthBotClue(game,room,bot) {
-  const bucket=Math.max(0,Math.min(9,Math.round((Number(game.target)||0)/10)+wavelengthOffset(room,bot))), pool=wavelengthCluePools[bucket] || wavelengthCluePools[5];
-  return pool[Math.floor(Math.random()*pool.length)];
+
+function impostorSuspect(game, uid, difficulty) {
+  const others = game.turnOrder.filter(player => player !== uid);
+  if (difficulty === "easy") return pick(others);
+  const word = game.roles?.[uid]?.role === "citizen" ? game.roles[uid].word : "";
+  const related = new Set((impostorWordClues.get(clueKey(word)) || []).flatMap(clue => normalizeAnswer(clue).split(" ")));
+  const entries = array(game.clues);
+  const ranked = shuffledBotChoices(others).map(player => {
+    const clues = entries.filter(clue => clue.uid === player);
+    const score = clues.reduce((sum, clue) => sum + (clue.missed ? 2 : related.size && !clueMatch(clue.text, related) ? 1 : 0), 0);
+    return { player, score: clues.length ? score / clues.length : 1 };
+  }).sort((a, b) => b.score - a.score);
+  return pick(ranked.slice(0, difficulty === "normal" ? 2 : 1))?.player || pick(others);
 }
-function wavelengthBotPosition(game,room,bot) {
-  const target=Math.max(0,Math.min(100,Number(game.target)||0));
-  const difficulty=botDifficulty(room,bot).id;
-  const accurate=botShouldBeCorrect(room,bot);
-  const errorRange={easy:20,normal:14,hard:8,expert:4}[difficulty] ?? 14;
-  if (accurate) return Math.max(0,Math.min(100,target+Math.round(Math.random()*(errorRange*2)-errorRange)));
-  const missRange={easy:[22,48],normal:[18,40],hard:[14,32],expert:[10,24]}[difficulty] || [18,40];
-  const direction=target <= 50 ? 1 : target >= 50 ? -1 : Math.random() < .5 ? -1 : 1;
-  const miss=missRange[0]+Math.floor(Math.random()*(missRange[1]-missRange[0]+1));
-  return Math.max(0,Math.min(100,target+direction*miss));
+
+function impostorFinalWord(game, uid) {
+  const own = clueKey(game.roles?.[uid]?.word);
+  const entries = array(game.clues).filter(clue => clue.uid !== uid && !clue.missed);
+  const scored = [...impostorWordClues].filter(([word]) => word !== own).map(([word, clues]) => {
+    const tokens = new Set(clues.flatMap(clue => normalizeAnswer(clue).split(" ")));
+    const score = entries.filter(clue => clueMatch(clue.text, tokens)).length;
+    return { word, score };
+  }).sort((a, b) => b.score - a.score);
+  if (!scored[0]?.score || scored[0].score === scored[1]?.score) return "";
+  return Object.keys(impostorSpecificClues).find(word => clueKey(word) === scored[0].word);
+}
+const wavelengthExamples = {
+  "gorace|zimne": ["kostka lodu", "sok z lodówki", "szklanka wody na stole", "kubek herbaty", "wrzątek"],
+  "szybkie|wolne": ["ślimak na chodniku", "spacer z psem", "rower w mieście", "pociąg ekspresowy", "rakieta podczas startu"],
+  "glosne|ciche": ["spadający płatek śniegu", "szept w bibliotece", "rozmowa przy stole", "motocykl", "start odrzutowca"],
+  "jasne|ciemne": ["jaskinia bez latarki", "ulica w nocy", "pokój w pochmurny dzień", "stadion pod reflektorami", "słońce w południe"],
+  "duze|male": ["ziarnko maku", "spinacz biurowy", "plecak", "autobus", "kontynent"],
+  "wysokie|niskie": ["próg drzwi", "stołek", "dwupiętrowy dom", "wieżowiec", "Mount Everest"],
+  "ciezkie|lekkie": ["piórko", "pusty kubek", "walizka na urlop", "pralka", "lokomotywa"],
+  "slodkie|gorzkie": ["niesłodzone kakao", "czarna kawa", "ciemna czekolada", "dojrzałe mango", "syrop cukrowy"],
+  "mokre|suche": ["piasek na pustyni", "ręcznik po suszeniu", "trawa o świcie", "gąbka po umyciu naczyń", "dno basenu"],
+  "miekkie|twarde": ["granitowa płyta", "drewniany blat", "świeża bułka", "pianka do kąpieli", "puchowa poduszka"],
+  "lato|zima": ["lepienie bałwana", "gołoledź", "pierwszy dzień wiosny", "wieczór pod namiotem", "plażowanie w sierpniu"],
+  "miasto|wies": ["gospodarstwo na odludziu", "przystanek przy polu", "małe miasteczko", "galeria handlowa", "stacja metra na Manhattanie"],
+  "tanie|drogie": ["prywatny odrzutowiec", "nowy samochód", "buty z porządnego sklepu", "bułka w piekarni", "guma do żucia na sztuki"],
+  "spokojne|chaotyczne": ["ewakuacja w panice", "zatłoczony dworzec w szczycie", "niedzielne zakupy", "czytanie książki", "drzemka nad jeziorem"],
+  "dlugie|krotkie": ["mrugnięcie okiem", "reklama w radiu", "odcinek serialu", "lot między kontynentami", "epoka lodowcowa"],
+};
+const examplePositions = [4, 25, 50, 75, 96];
+const wavelengthBank = game => wavelengthExamples[(game.pair || []).map(normalizeAnswer).join("|")];
+
+function wavelengthBotClue(game, room, bot) {
+  const spread = { easy: 24, normal: 15, hard: 7, expert: 3 }[botDifficulty(room, bot).id] || 15;
+  const approximate = Math.max(0, Math.min(100, Number(game.target) + (Math.random() - .5) * spread));
+  const examples = wavelengthBank(game);
+  if (examples) {
+    const nearest = examplePositions.reduce((best, position, index) => Math.abs(position - approximate) < Math.abs(examplePositions[best] - approximate) ? index : best, 0);
+    if (!game.pair.some(word => examples[nearest].toLocaleLowerCase("pl-PL").includes(word.toLocaleLowerCase("pl-PL")))) return examples[nearest];
+  }
+  const bucket = Math.max(0, Math.min(9, Math.floor(approximate / 10)));
+  return randomBotChoice(wavelengthCluePools[bucket]);
+}
+
+function wavelengthBotPosition(game, room, bot) {
+  const examples = (wavelengthBank(game) || []).map(normalizeAnswer);
+  const estimates = [];
+  for (const clue of Object.values(game.clues || {})) {
+    const text = normalizeAnswer(clue);
+    const example = examples.findIndex(value => value === text || text.includes(value));
+    if (example !== -1) { estimates.push(examplePositions[example]); continue; }
+    const pool = wavelengthCluePools.findIndex(list => list.some(value => normalizeAnswer(value) === text));
+    if (pool !== -1) { estimates.push(pool * 10 + 5); continue; }
+    const direction = /praw/.test(text) ? 1 : /lew/.test(text) ? -1 : 0;
+    if (direction) estimates.push(50 + direction * (/skrajn|mocno/.test(text) ? 37 : /lekko|odrobin/.test(text) ? 14 : 27));
+    else if (/srodk|polow/.test(text)) estimates.push(50);
+  }
+  const sorted = estimates.sort((a, b) => a - b);
+  const estimate = sorted.length ? sorted[Math.floor((sorted.length - 1) / 2)] : 50;
+  const spread = { easy: 28, normal: 17, hard: 8, expert: 3 }[botDifficulty(room, bot).id] || 17;
+  return Math.round(Math.max(0, Math.min(100, estimate + (Math.random() - .5) * spread)));
 }
 function timeoutMutation(room, game, bot) {
   const settings = room.settings || {};
@@ -338,7 +457,7 @@ function timeoutMutation(room, game, bot) {
     case "word-chain": return g => WordChainEngine.timeout(g);
     case "charades": return g => CharadesEngine.timeout(g);
     case "hangman": return g => HangmanEngine.timeout(g);
-    case "sequence": return g => SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
+    case "sequence": return g => g.phase === "create" ? timeoutSequenceCreation(g, g.createEndsAt) : SequenceEngine.timeout(g, g.turnUid, g.guessEndsAt);
     case "number-mystery": return g => NumberMysteryEngine.timeout(g);
     case "unique-answer": return g => UniqueAnswerEngine.timeout(g, settings);
     case "polacz-nas": return g => ConnectEngine.timeout(g);
@@ -371,7 +490,6 @@ export function botMutation(room) {
   let bot = botActor(room);
   const settings = room.settings || {};
   const correct = () => botShouldBeCorrect(room, bot);
-  const missing = key => { bot = firstMissingBot(room, game[key]); return bot; };
 
   // Never submit a late answer. Engines that own a timeout get first chance
   // to advance the round; this is what was missing when the UI displayed 0s.
@@ -398,15 +516,21 @@ export function botMutation(room) {
         };
         break;
       case "impostor":
-        if (game.phase === "roleReveal" && !game.acknowledged?.[bot]) return g => ImpostorEngine.acknowledge(g, bot, settings);
+        if (game.phase === "roleReveal" && bot && !game.acknowledged?.[bot]) return g => ImpostorEngine.acknowledge(g, bot, settings);
         if (game.phase === "clues" && orderUid(game, ["turnOrder"]) === bot) return g => ImpostorEngine.clue(g, bot, impostorBotClue(g, room, bot), settings);
-        if (game.phase === "continueDecision" && game.decisionPlayer === bot) return g => ImpostorEngine.decide(g, bot, correct(), settings);
-        if (game.phase === "voting" && !game.votes?.[bot]) return g => ImpostorEngine.vote(g, bot, players.find(uid => uid !== bot) || players[0]);
-        if (game.phase === "finalGuess" && game.result?.expelled === bot) return g => correct() ? ImpostorEngine.finalGuess(g, bot, g.mainWord || "") : ImpostorEngine.finalSurrender(g, bot);
+        if (game.phase === "continueDecision" && bot && isMissing(game.continueVotes, bot)) return g => ImpostorEngine.decide(g, bot, g.roles?.[bot]?.role !== "citizen" && !impostorFinalWord(g, bot), settings);
+        if (game.phase === "voting" && bot && isMissing(game.votes, bot)) return g => ImpostorEngine.vote(g, bot, impostorSuspect(g, bot, botDifficulty(room, bot).id));
+        if (game.phase === "finalGuess" && bot && game.result?.expelled === bot) return g => {
+          const word = impostorFinalWord(g, bot);
+          return word ? ImpostorEngine.finalGuess(g, bot, word) : ImpostorEngine.finalSurrender(g, bot);
+        };
         break;
       case "kim-jestem":
-        if (game.phase === "turn" && orderUid(game, ["order"]) === bot) return g => IdentityEngine.submit(g, bot, correct() ? "Czy jestem osoba?" : "nie wiem", correct() ? "question" : "guess", settings, room.customWords);
-        if (game.phase === "responses" && game.pending?.uid !== bot) return g => IdentityEngine.respond(g, bot, correct() ? "yes" : "no", settings, room.customWords);
+        if (game.phase === "turn" && orderUid(game, ["order"]) === bot) return g => {
+          const move = identityBotTurn(g, bot, settings, room.customWords, botDifficulty(room, bot).id);
+          if (move) return IdentityEngine.submit(g, bot, move.text, move.type, settings, room.customWords);
+        };
+        if (game.phase === "responses" && bot && game.pending?.uid !== bot) return g => IdentityEngine.respond(g, bot, identityBotResponse(g, settings, room.customWords), settings, room.customWords);
         break;
       case "inne-pytanie":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => OtherQuestionEngine.answer(g, bot, correct() ? "Tak" : "Nie wiem", settings);
@@ -418,7 +542,15 @@ export function botMutation(room) {
         break;
       case "test-znajomosci":
         if (game.phase === "waitingForAnswers" && isMissing(game.answers, bot)) return g => FriendshipTestEngine.answer(g, bot, correct() ? "Tak" : "Nie", players, settings);
-        if (game.phase === "assigning" && !Object.keys(game.guesses?.[bot] || {}).length) { const answerId = game.answerOrder?.find(uid => uid !== bot); const target = players.find(uid => uid !== bot && uid !== answerId) || players[0]; return g => FriendshipTestEngine.guess(g, bot, answerId, target, players); }
+        if (game.phase === "assigning" && bot) return g => {
+          const choices = Object.values(g.guesses?.[bot] || {});
+          const available = shuffledBotChoices(players.filter(uid => uid !== bot && !choices.includes(uid)));
+          for (const answerId of array(g.answerOrder)) {
+            if (answerId === bot || !isMissing(g.guesses?.[bot], answerId)) continue;
+            const target = available.pop();
+            if (target) FriendshipTestEngine.guess(g, bot, answerId, target, players);
+          }
+        };
         break;
       case "zatruty-cukierek":
         if (game.phase === "poisoning" && isMissing(game.poisonChoices, bot)) return g => PoisonCandyEngine.poison(g, bot, array(g.candies).filter(item => !item.poisoners?.length).slice(0, Number(settings.poisonedPerPlayer || 1)).map(item => item.id), players, settings);
@@ -438,26 +570,40 @@ export function botMutation(room) {
         break;
       case "5-sekund":
         if (game.phase === "prepare" || game.phase === "prompt") return g => FiveSecondsEngine.advance(g, players, settings, guard(game));
-        if (game.phase === "turn" && game.activeUid === bot) return g => FiveSecondsEngine.answer(g, bot, correct() ? "kot, pies, dom" : "x", players, settings, guard(game));
+        if (game.phase === "turn" && game.activeUid === bot) return g => FiveSecondsEngine.answer(g, bot, fiveSecondsBotAnswer(g, room, bot), players, settings, guard(game));
         break;
       case "zegar":
         if (game.phase === "countdown") return g => ClockEngine.start(g, players, settings, guard(game));
         if (game.phase === "running" && !game.stops?.[bot]) return g => ClockEngine.stop(g, bot, players, settings, guard(game));
         break;
       case "pokemon-dex":
+        if (game.phase === "answers" && isMissing(game.answers, bot)) return g => {
+          const spread = { easy: 130, normal: 65, hard: 28, expert: 8 }[botDifficulty(room, bot).id] || 65;
+          const target = g.target + Math.round((Math.random() - Math.random()) * spread);
+          const entry = pokemonCandidates(settings).reduce((best, item) => !best || Math.abs(item.id - target) < Math.abs(best.id - target) ? item : best, null);
+          return entry && PokemonEngine.answer(g, bot, entry.name, players, settings);
+        };
+        break;
       case "pokemon-evolution":
-        if (game.phase === "answers" && isMissing(game.answers, bot)) return g => PokemonEngine.answer(g, bot, room.gameMode === "pokemon-evolution" ? pokemonEvolutionAnswers(g) : pokemonName(g, room.gameMode), players, settings);
+        if (game.phase === "answers" && isMissing(game.answers, bot)) return g => {
+          const pool = pokemonCandidates(settings).filter(item => settings.evolutionMode !== "later" || item.id > g.baseId);
+          const answers = pokemonEvolutionAnswers(g, pool, correct());
+          if (answers.length) return PokemonEngine.answer(g, bot, answers, players, settings);
+        };
         break;
       case "pokemon-last-letter":
-        if (game.phase === "chain" && orderUid(game, ["order"]) === bot) {
-          const last = String(game.chain?.at(-1)?.name || "").toLowerCase().replace(/[^a-z]/g, "").slice(-1);
-          const item = pokemonDex.find(candidate => candidate.name.startsWith(last) && !game.usedIds?.includes(candidate.id));
-          return g => PokemonEngine.answer(g, bot, item?.name || "pikachu", players, settings);
-        }
+        if (game.phase === "chain" && orderUid(game, ["order"]) === bot) return g => {
+          const item = pokemonLastLetterChoice(g, pokemonCandidates(settings), botDifficulty(room, bot).id);
+          return item ? PokemonEngine.answer(g, bot, item.name, players, settings) : PokemonEngine.timeout(g, bot, players, settings);
+        };
         break;
       case "pokemon-types":
-        if (game.phase === "choose" && isMissing(game.selectedTypes, bot)) return g => PokemonEngine.selectType(g, bot, "water", players, settings);
-        if (game.phase === "answer" && isMissing(game.answers, bot)) return g => PokemonEngine.answer(g, bot, pokemonName(g, room.gameMode), players, settings);
+        if (game.phase === "choose" && isMissing(game.selectedTypes, bot)) return g => PokemonEngine.selectType(g, bot, pokemonTypeChoice(g, pokemonCandidates(settings)), players, settings);
+        if (game.phase === "answer" && isMissing(game.answers, bot)) return g => {
+          const picked = Object.values(g.selectedTypes);
+          const item = randomBotChoice(pokemonCandidates(settings).filter(entry => picked.every(type => entry.types.includes(type))));
+          if (item) return PokemonEngine.answer(g, bot, item.name, players, settings);
+        };
         break;
       case "pokemon-match-type":
         if (game.phase === "answers" && isMissing(game.answers, bot)) { const target = pokemonDex.find(item => item.id === game.target); return g => PokemonEngine.matchType(g, bot, correct() ? target?.types || [] : ["normal"], players, settings); }
@@ -474,19 +620,20 @@ export function botMutation(room) {
         };
         break;
       case "wavelength":
-        if (game.phase === "clue" && bot !== game.guesserUid && !game.clues?.[bot]) return g => WavelengthEngine.clue(g, bot, wavelengthBotClue(g, room, bot), players, settings);
+        if (game.phase === "clue" && bot && bot !== game.guesserUid && !game.clues?.[bot]) return g => WavelengthEngine.clue(g, bot, wavelengthBotClue(g, room, bot), players, settings);
         if (game.phase === "guess" && game.guesserUid === bot) return g => { const position=wavelengthBotPosition(g,room,bot); WavelengthEngine.move(g,bot,position); return WavelengthEngine.confirm(g,bot,players,settings); };
         break;
       case "quiz":
-        if (game.variant === "casual" && game.phase === "question" && isMissing(game.answers, bot)) return g => QuizEngine.answer(g, bot, correct() ? 0 : 1, players, settings);
-        if (["r1"].includes(game.phase) && orderUid(game, ["order"]) === bot) return g => QuizEngine.answer(g, bot, correct() ? 0 : 1, players, settings);
-        if (["r2-buzz", "r3-buzz"].includes(game.phase) && !game.responder) return g => QuizEngine.buzz(g, bot, players);
-        if (["r2-answer", "r3-answer"].includes(game.phase) && game.responder === bot) return g => QuizEngine.answer(g, bot, correct() ? 0 : 1, players, settings);
+        if (game.variant === "casual" && game.phase === "question" && isMissing(game.answers, bot)) return g => QuizEngine.answer(g, bot, quizBotOption(g, correct()), players, settings);
+        if (["r1"].includes(game.phase) && orderUid(game, ["order"]) === bot) return g => QuizEngine.answer(g, bot, quizBotOption(g, correct()), players, settings);
+        if (["r2-buzz", "r3-buzz"].includes(game.phase) && !game.responder && bot) return g => QuizEngine.buzz(g, bot, players);
+        if (["r2-answer", "r3-answer"].includes(game.phase) && game.responder === bot) return g => QuizEngine.answer(g, bot, quizBotOption(g, correct()), players, settings);
         if (game.phase === "r3-choose" && game.responder === bot) return g => QuizEngine.choose(g, bot, players.find(uid => uid !== bot && !game.eliminated?.includes(uid)) || players[0], players);
         break;
       case "mathematics":
-        if (game.phase === "question" && isMissing(game.answers, bot)) return g => MathematicsEngine.answer(g, bot, correct() ? (g.answerMode === "abcd" ? g.questions[g.questionIndex]?.options.indexOf(g.questions[g.questionIndex]?.answer) : g.questions[g.questionIndex]?.answer) : 0, players);
-        if (game.variant === "full-test" && game.phase === "test" && !game.completed?.[bot]) return g => { const index=Number(g.progress?.[bot])||0, question=g.questions?.[index]; return MathematicsEngine.answer(g, bot, correct() ? (g.answerMode === "abcd" ? question?.options.indexOf(question?.answer) : question?.answer) : 0, players); };
+        if (bot && ((game.phase === "question" && isMissing(game.answers, bot)) || (game.phase === "test" && !game.completed?.[bot]))) {
+          return g => MathematicsEngine.answer(g, bot, mathematicsBotOption(g, bot, correct()), players);
+        }
         break;
       case "marker":
         if (game.phase === "select" && game.turnUid === bot) return g => { const numbers=Array.isArray(g.numbers)?g.numbers:[]; const marked=g.marked&&typeof g.marked==="object"?g.marked:{}; const cell=numbers.findIndex((value,index)=>value!=null&&!marked[index]); return cell>=0 ? MarkerEngine.select(g,bot,cell) : MarkerEngine.timeout(g); };
@@ -494,8 +641,14 @@ export function botMutation(room) {
         if (game.phase === "draw" && game.seekerUid === bot) return g => MarkerEngine.find(g, bot, g.selectedCell);
         break;
       case "sequence":
-        if (game.phase === "create") { bot = botsOf(room).find(uid => (game.drafts?.[uid] || []).length < Number(game.length || 0)) || bot; return g => { const result = SequenceEngine.draft(g, bot, g.colors?.[Math.floor(Math.random() * g.colors.length)]); if (g.phase === "create" && (g.drafts?.[bot] || []).length >= Number(g.length || 0)) markSequenceReady(g, bot); return result; }; }
-        if (game.phase === "guess" && game.turnUid === bot) return g => SequenceEngine.guess(g, bot, correct() ? g.sequences?.[g.players.find(uid => uid !== bot)] || [] : g.colors.slice(0, g.length));
+        if (game.phase === "create" && bot && !game.ready?.[bot]) return g => {
+          while (g.phase === "create" && array(g.drafts?.[bot]).length < g.length) {
+            const error = SequenceEngine.draft(g, bot, randomBotChoice(g.colors));
+            if (error) return error;
+          }
+          return markSequenceReady(g, bot);
+        };
+        if (game.phase === "guess" && game.turnUid === bot) return g => SequenceEngine.guess(g, bot, sequenceBotGuess(g, bot, botDifficulty(room, bot).id));
         break;
       case "family":
         if (game.phase === "wheel") return g => FamilyEngine.timeout(g);
@@ -515,29 +668,15 @@ export function botMutation(room) {
         }
         break;
       case "hangman":
-        if (game.phase === "guessing" && game.currentUid === bot) {
-          const guessed = new Set(array(game.guessed));
-          const wordLetters = [...String(game.word || "").toLocaleLowerCase("pl-PL").normalize("NFC")].filter(letter => /[a-ząćęłńóśźż]/u.test(letter));
-          const remaining = [...new Set(wordLetters)].filter(letter => !guessed.has(letter));
-          const alphabet = [..."aąbcćdeęfghijklłmnńoópqrsśtuvwxyzźż"].filter(letter => !guessed.has(letter));
-          const letter = remaining.length && botShouldBeCorrect(room, bot) ? remaining[Math.floor(Math.random() * remaining.length)] : alphabet.find(candidate => !wordLetters.includes(candidate)) || alphabet[0] || "a";
-          return g => HangmanEngine.guess(g, bot, letter);
-        }
+        if (game.phase === "guessing" && game.currentUid === bot) return g => {
+          const letter = hangmanBotLetter(g, hangmanWordBank(g.category), botDifficulty(room, bot).id);
+          return letter ? HangmanEngine.guess(g, bot, letter) : HangmanEngine.timeout(g, bot);
+        };
         break;
       case "number-mystery":
-        if (game.phase === "ask" && game.turnUid === bot) return g => {
-          if (game.roundMode === "race" && Math.random() < (correct() ? .08 : .16)) {
-            const value = correct() ? g.numbers?.[bot] : Math.max(1, Math.min(150, Number(g.numbers?.[bot] || 75) + (Math.random() < .5 ? -1 : 1) * (5 + Math.floor(Math.random() * 20))));
-            NumberMysteryEngine.guess(g, bot, value);
-            if (g.finished) return;
-          }
-          const question = numberMysteryQuickQuestions[Math.floor(Math.random() * numberMysteryQuickQuestions.length)];
-          return NumberMysteryEngine.ask(g, bot, question);
-        };
-        if (game.phase === "answer" && game.responder === bot) return g => NumberMysteryEngine.answer(g, bot, Math.random() < (correct() ? .72 : .5) ? "yes" : Math.random() < .5 ? "no" : "maybe");
-        if (game.phase === "guess" && !game.guesses?.[bot]) return g => {
-          const target = Number(g.numbers?.[bot] || 75), value = correct() ? target : Math.max(1, Math.min(150, target + (Math.random() < .5 ? -1 : 1) * (4 + Math.floor(Math.random() * 18))));
-          return NumberMysteryEngine.guess(g, bot, value);
+        if (bot && ((game.phase === "ask" && game.turnUid === bot) || (game.phase === "answer" && game.responder === bot) || (game.phase === "guess" && isMissing(game.guesses, bot)))) return g => {
+          const { action, value } = numberMysteryBotAction(g, bot, botDifficulty(room, bot).id);
+          return NumberMysteryEngine[action](g, bot, value);
         };
         break;
       case "unique-answer":
@@ -614,6 +753,10 @@ export function botMutation(room) {
       case "board-cztery":
       case "board-memory":
       case "board-domino": {
+        if (game.boardMode === "board-cztery" && game.currentUid === bot && !game.finished && game.phase === "playing") return g => {
+          const move = boardBotAction(g, bot, botDifficulty(room, bot).id);
+          if (move) return BoardEngine.action(g, bot, move.action, move.payload, players, settings);
+        };
         const action = boardBotAction(game, bot, botDifficulty(room, bot).id);
         if (action) return g => BoardEngine.action(g, bot, action.action, action.payload, players, settings);
         break;
@@ -635,7 +778,11 @@ export function scheduleBot(room, { mutate, onDone }) {
   const key = room.gameMode==='marker'
     ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${actor}:${room.game.phaseEndsAt||0}:${actor===room.game.drawerUid?Object.keys(room.game.coverage?.[actor]||{}).length:0}`
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
-  const delay = expired(room.game) ? 80 : botDelay(room, "answer", actor);
+  const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
+    : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
+  const timeLeft = Number(deadline || 0) - Date.now();
+  const think = botDelay(room, "answer", actor);
+  const delay = expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {
     if (currentRoom.hostUid !== hostUid || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return;
