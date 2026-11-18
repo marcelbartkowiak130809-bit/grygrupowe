@@ -149,18 +149,35 @@
 }
 .game-visual .library-card-origin span { display:inline; font:700 10px/1 system-ui; transform:none; }
 .collection-selection-hero {
-  position:relative; isolation:isolate; min-height:150px; padding:20px; overflow:hidden;
+  position:relative; isolation:isolate; display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(110px,21%,220px);
+  grid-template-areas:"back art" "copy art"; align-items:center;
+  min-height:180px; gap:14px 20px; padding:clamp(16px,3vw,34px); overflow:hidden;
   border:1px solid color-mix(in srgb,var(--library-accent) 46%,transparent); border-radius:22px;
   background:radial-gradient(ellipse at 88% 56%,color-mix(in srgb,var(--library-accent) 18%,transparent),transparent 42%),
     linear-gradient(120deg,var(--library-dark),#181627);
 }
-.collection-selection-hero h1 { margin:14px 0 0; color:#fff; font-size:clamp(27px,5.4vw,57px); letter-spacing:-.06em; }
-.collection-selection-hero button { position:relative; z-index:1; }
+.collection-hero-copy { grid-area:copy; min-width:0; }
+.collection-selection-hero h1 { margin:0; color:#fff; font-size:clamp(28px,5.4vw,57px); line-height:1.08; letter-spacing:-.045em; }
+.collection-hero-copy p { max-width:52ch; margin:8px 0 0; color:#e0e6f4; font-size:clamp(13px,1.4vw,17px); }
+.collection-selection-hero button { grid-area:back; justify-self:start; color:#fff; border-color:#ffffff30; }
 .collection-hero-symbol {
-  position:absolute; z-index:-1; inset-inline-end:9%; top:50%; transform:translateY(-50%) rotate(-14deg);
-  color:#e0fdfb; opacity:.28; font:bold clamp(76px,12vw,160px)/1 system-ui;
+  grid-area:art; display:grid; place-items:center; pointer-events:none;
+  transform:rotate(-12deg); color:var(--library-accent);
+  font:bold clamp(64px,10vw,134px)/1 system-ui;
+  filter:drop-shadow(0 12px 26px color-mix(in srgb,var(--library-accent) 36%,transparent));
 }
+.collection-hero-symbol img { width:clamp(90px,15vw,165px); aspect-ratio:1; object-fit:contain; }
+.collection-hero-symbol .collection-art-pixelated { image-rendering:pixelated; }
+.collection-selection-page .games-section { margin-top:14px; }
 .collection-library-tools { margin-bottom:12px; }
+@media(max-width:600px) {
+  .collection-selection-hero { grid-template-columns:minmax(0,1fr); grid-template-areas:"back" "copy"; min-height:0; }
+  .collection-hero-symbol {
+    position:absolute; grid-area:auto; z-index:-1; inset-inline-end:10px; bottom:8px;
+    opacity:.22; font-size:78px;
+  }
+}
 .light-theme .library-category-tile {
   color:#16223b; background:linear-gradient(135deg,color-mix(in srgb,var(--library-accent) 46%,white),#f8f9ff);
   border-color:color-mix(in srgb,var(--library-dark) 33%,transparent);

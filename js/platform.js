@@ -24,7 +24,6 @@ let pollCountdownTimer;
 let weeklyUnlockTimer;
 let modeUnlockAnnouncementTimer;
 const POLLS_ENABLED = false;
-const boardModes = libraryModesFor(gamesList, "board");
 
 function modeCategory(mode) {
   const category = gameCategory(mode);
@@ -42,70 +41,39 @@ function bindModePlayActions(root, actions) {
   }));
 }
 
-export function renderPokemonModes(root, actions, context = {}) {
-  const activityStats = context.activityStats || window.__activityStats || {};
-  const pokemonModes = libraryModesFor(gamesList, "pokemon");
-  const mewtwo = pokemonDex.find(item => item.id === 150);
-  const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page pokemon-selection-page enter"><section class="pokemon-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="pokemon-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>POKEMONY</h1><p>Wybierzcie sposób rywalizacji z Pokémonami.</p></div><div class="pokemon-selection-art">${mewtwo ? `<img src="${mewtwo.sprite}" alt="Mewtwo" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">` : "🧬"}</div></section><section class="${mobileGamesSectionClass(mobileLayout)} pokemon-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY POKÉMON</p><h2>W co gramy?</h2></div><span class="badge">${pokemonModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${pokemonModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
-  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  bindMobileGameLayout(root);
-  bindModePlayActions(root, actions);
-  bindGameCardInteractions(root);
-  watchWeeklyUnlocks(root, actions);
-  activatePublicAds(root, "platform");
-}
+const categoryDescriptions = {
+  music: "Zgaduj utwory, porównuj popularność hitów i wybieraj zwycięzców muzycznych pojedynków.",
+  tiktok: "Zagraj w popularne wyzwania z TikToka, od Impostora po Połącz nas.",
+  minecraft: "Buduj, rozwiązuj łamigłówki i wyrusz na poszukiwanie Alex.",
+  board: "Zagraj w klasyczne planszówki, gry słowne i kalambury.",
+  pokemon: "Sprawdź znajomość Pokémonów lub wylicytuj własną drużynę.",
+  knowledge: "Sprawdź się w quizach, licytuj odpowiedzi i podawaj własne szacunki.",
+  other: "Wybieraj między dwiema opcjami albo sprawdź, jak dobrze znasz swoją ekipę.",
+};
 
-export function renderBoardModes(root, actions, context = {}) {
-  const activityStats = context.activityStats || window.__activityStats || {};
-  const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page board-selection-page enter"><section class="board-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="board-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>PLANSZÓWKI</h1><p>Klasyki, gry słowne i szybkie wyzwania dla całej ekipy.</p></div><div class="board-selection-art" aria-hidden="true"><span>🎲</span><i>♟</i><b>🁫</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} board-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY PLANSZOWE</p><h2>W co gramy?</h2></div><span class="badge">${boardModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${boardModes.map(game=>gameCard({...game,activity:activityStats[game.id]})).join("")}</div></section></main>`;
-  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  bindMobileGameLayout(root);
-  bindModePlayActions(root, actions);
-  bindGameCardInteractions(root);
-  watchWeeklyUnlocks(root, actions);
-  activatePublicAds(root, "platform");
-}
-
-export function renderMinecraftModes(root, actions, context = {}) {
-  const activityStats = context.activityStats || window.__activityStats || {};
-  const minecraftModes = libraryModesFor(gamesList, "minecraft");
-  const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page minecraft-selection-page enter"><section class="minecraft-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="minecraft-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MINECRAFT</h1><p>Przygody z budowaniem, jeden świat i plecak pełen pomysłów. Wybierz swoją drogę.</p></div><div class="minecraft-selection-art"><img src="${minecraftModeIcons["minecraft-sprint"]}" alt="Kilof Minecraft"><span>CRAFT</span><b>PLAY</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} minecraft-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MINECRAFT</p><h2>W co gramy?</h2></div><span class="badge">${minecraftModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${minecraftModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
-  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  bindMobileGameLayout(root);
-  bindModePlayActions(root, actions);
-  bindGameCardInteractions(root);
-  watchWeeklyUnlocks(root, actions);
-  activatePublicAds(root, "platform");
-}
-
-export function renderMusicModes(root, actions, context = {}) {
-  const activityStats = context.activityStats || window.__activityStats || {};
-  const musicModes = libraryModesFor(gamesList, "music");
-  const mobileLayout = getMobileGameLayout();
-  root.innerHTML = `<main class="page platform-page music-selection-page enter"><section class="music-selection-hero"><button class="ghost" id="back-to-games">← Wróć do wszystkich trybów</button><div class="music-selection-copy"><p class="eyebrow">SPECJALNA STREFA</p><h1>MUZYKA</h1><p>Wybierajcie hity, słuchajcie krótkich previewów i sprawdzajcie, który numer wygrywa.</p></div><div class="music-selection-art" aria-hidden="true"><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div><span>🎵</span><i>♫</i><b>HITS</b></div></section><section class="${mobileGamesSectionClass(mobileLayout)} music-games-section"><div class="section-intro"><div><p class="eyebrow">TRYBY MUZYCZNE</p><h2>W co gramy?</h2></div><span class="badge">${musicModes.length}</span>${mobileGameLayoutSwitchHtml(mobileLayout)}</div><div class="games-grid">${musicModes.map(game => gameCard({...game, activity:activityStats[game.id]})).join("")}</div></section></main>`;
-  root.querySelector("#back-to-games")?.addEventListener("click", actions.goPlatform);
-  bindMobileGameLayout(root);
-  bindModePlayActions(root, actions);
-  bindGameCardInteractions(root);
-  watchWeeklyUnlocks(root, actions);
-  activatePublicAds(root, "platform");
+function categoryArtwork(id, symbol) {
+  if (id === "pokemon") {
+    const mewtwo = pokemonDex.find(item => item.id === 150);
+    if (mewtwo) return `<img src="${mewtwo.sprite}" alt="" onerror="this.onerror=null;this.src='${mewtwo.spriteFallback}'">`;
+  }
+  if (id === "minecraft") return `<img class="collection-art-pixelated" src="${minecraftModeIcons["minecraft-sprint"]}" alt="">`;
+  return symbol;
 }
 
 export function renderCollectionModes(root, actions, categoryId, context = {}) {
   const { id, name, symbol } = libraryCategories.find(category => category.id === categoryId);
   const activityStats = context.activityStats || window.__activityStats || {};
   const layout = getMobileGameLayout();
-  const modes = libraryModesFor(gamesList, id).sort(compareMainModes);
+  const modes = libraryModesFor(gamesList, id);
+  if (["tiktok", "knowledge", "other"].includes(id)) modes.sort(compareMainModes);
   const now = Date.now();
-  root.innerHTML = `<main class="page platform-page collection-selection-page enter">
+  root.innerHTML = `<main class="page platform-page collection-selection-page ${id}-selection-page enter">
     <header class="collection-selection-hero library-category-${id}">
-      <button class="ghost" id="back-to-games">← Biblioteka</button>
-      <h1>${name}</h1><span class="collection-hero-symbol" aria-hidden="true">${symbol}</span>
+      <button class="ghost" id="back-to-games" type="button">← Wróć do wszystkich trybów</button>
+      <div class="collection-hero-copy"><h1>${name}</h1><p>${categoryDescriptions[id]}</p></div>
+      <div class="collection-hero-symbol" aria-hidden="true">${categoryArtwork(id, symbol)}</div>
     </header>
-    <section class="${mobileGamesSectionClass(layout)}">
+    <section class="${mobileGamesSectionClass(layout)} ${id}-games-section" aria-label="Tryby w kategorii ${name}">
       <div class="collection-library-tools">${mobileGameLayoutSwitchHtml(layout)}</div>
       <div class="games-grid">${modes.map(mode => gameCard({ ...mode, activity:activityStats[mode.id] },now,id)).join("")}</div>
     </section>
