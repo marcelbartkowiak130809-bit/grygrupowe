@@ -1,0 +1,126 @@
+.room-page.compact-room { max-width:1140px; }
+.compact-room .room-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px 16px;
+  overflow:visible;
+  z-index:2;
+  margin:0;
+  padding:14px 18px;
+  border-radius:18px;
+  animation:none;
+}
+.compact-room .room-header::after { content:none; }
+.compact-room .room-heading { min-width:0; }
+.compact-room .room-heading h1 {
+  margin:2px 0 0;
+  font-size:clamp(20px,3vw,30px);
+  line-height:1.15;
+  overflow-wrap:anywhere;
+}
+.compact-room .room-heading .eyebrow { margin:0; }
+.compact-room .room-heading .eyebrow img { width:20px; height:20px; vertical-align:middle; }
+.compact-room .room-heading .room-type-badge { margin-top:6px; }
+.compact-room .room-header-actions {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  gap:6px;
+  width:auto;
+}
+.compact-room-code {
+  padding:7px 9px;
+  border:1px solid #67e8f93d;
+  border-radius:9px;
+  color:#9debf7;
+  background:#67e8f911;
+  font-size:.86rem;
+  font-weight:750;
+  letter-spacing:.09em;
+  white-space:nowrap;
+}
+.compact-room .room-icon-action,.compact-room .compact-room-leave {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  gap:4px;
+  width:auto;
+  min-width:40px;
+  min-height:40px;
+  padding:6px 8px;
+  border-radius:10px;
+}
+.compact-room .room-icon-action svg,.compact-room .compact-room-leave svg { flex:none; }
+.compact-room .lobby-layout {
+  grid-template-columns:minmax(285px,340px) minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  margin:12px 0 0;
+}
+.compact-room .compact-room-roster,.compact-room .lobby-settings {
+  min-width:0;
+  min-height:0;
+  margin:0;
+  padding:14px;
+  border-radius:16px;
+}
+.room-roster-head,.room-roster-tools,.room-player-identity,.room-player-tools,.compact-room-start {
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.room-roster-tools { margin-inline-start:auto; }
+.compact-room h2 { margin:0; font-size:1.12rem; }
+.compact-room .lobby-settings > h2 { margin-bottom:10px; }
+.room-player-list {
+  display:grid;
+  gap:5px;
+  margin:10px 0;
+  padding:0;
+  max-height:min(43vh,430px);
+  overflow:auto;
+  list-style:none;
+}
+.room-player-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:4px 6px;
+  min-height:45px;
+  padding:4px 6px;
+  border:1px solid #94a3b826;
+  border-radius:10px;
+  background:#94a3b80c;
+}
+.room-player-identity { min-width:0; gap:5px; }
+.room-player-identity .mini-player { justify-content:flex-start; flex-wrap:nowrap; gap:5px; }
+.room-player-identity .mini-player > .avatar { flex:none; width:28px; height:28px; }
+.room-player-identity .age-badge,.room-player-identity .level-badge { flex:none; white-space:nowrap; }
+.room-player-tools { justify-self:end; gap:3px; }
+.compact-room .room-player-tools .room-icon-action { min-width:34px; min-height:34px; padding:3px 5px; }
+.room-host-mark { display:inline-flex; color:#facc15; }
+.room-bot-difficulty { grid-column:1/-1; justify-self:end; min-height:34px; padding:4px 8px; font-size:.78rem; }
+.compact-room-start { flex-wrap:wrap; justify-content:space-between; }
+.compact-room-start small { color:#a6b4c9; }
+.compact-room-start button { min-height:40px; padding:7px 11px; }
+.compact-room .compact-room-activity { margin:10px 0 0; padding:8px 14px; }
+.compact-room-activity summary { cursor:pointer; font-size:.9rem; }
+.compact-room-activity .room-activity-list { margin-top:8px; }
+.compact-room > .adsense-lobby:empty { min-height:0; margin:0; }
+.light-theme .compact-room-code,.light-theme .compact-room-start small { color:#32516c; }
+.light-theme .room-host-mark { color:#9c6600; }
+
+@media (max-width:900px) {
+  .compact-room .room-header { padding:11px 12px; }
+  .room-page.compact-room .lobby-layout { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:520px) {
+  .compact-room .room-header-actions { gap:4px; }
+  .compact-room .room-header-actions .room-icon-action,.compact-room .compact-room-leave { min-width:36px; }
+  .compact-room .compact-room-leave span { display:none; }
+  .compact-room .room-heading { flex-basis:100%; }
+  .compact-room .compact-room-roster,.compact-room .lobby-settings { padding:10px; }
+}

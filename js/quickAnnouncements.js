@@ -18,19 +18,31 @@ export function renderHostAnnouncements(view, room, currentUser, actions, onExpi
     view.append(banner);
     window.setTimeout(() => onExpired?.(), Math.max(100, Number(announcement.expiresAt) - Date.now() + 80));
   }
-  if (room?.status !== "lobby" || room.hostUid !== currentUser) return;
-  const controls = document.createElement("section");
-  controls.className = "host-announcement-controls panel";
+  const anchor = view.querySelector("[data-host-announcement-anchor]");
+  if (room?.status !== "lobby" || room.hostUid !== currentUser || !anchor) return;
   const cooldown = Math.max(0, Number(room.hostAnnouncement?.cooldownUntil || 0) - Date.now());
   if (cooldown) window.setTimeout(() => onExpired?.(), cooldown + 80);
-  controls.innerHTML = `<div><p class="eyebrow">HOST</p><h3>Komunikaty</h3><p class="muted">Wyślij krótką informację wszystkim graczom.</p></div><div class="host-announcement-actions"><button class="primary" data-host-announcements ${cooldown ? "disabled" : ""}>📣 Komunikaty</button><div class="host-announcement-menu" hidden>${HOST_ANNOUNCEMENTS.map(item => `<button type="button" data-host-announcement="${item.id}" ${cooldown ? "disabled" : ""}>${item.text}</button>`).join("")}</div></div>`;
-  const toggle = controls.querySelector("[data-host-announcements]");
-  const menu = controls.querySelector(".host-announcement-menu");
-  toggle.addEventListener("click", () => { menu.hidden = !menu.hidden; });
-  controls.querySelectorAll("[data-host-announcement]").forEach(button => button.addEventListener("click", () => { actions.sendHostAnnouncement(button.dataset.hostAnnouncement); menu.hidden = true; }));
-  const layout = view.querySelector(".room-page .lobby-layout");
-  if (layout) {
-    layout.classList.add("has-host-announcements");
-    layout.insertBefore(controls, layout.firstElementChild);
-  } else view.append(controls);
+  anchor.innerHTML = `<button class="ghost room-icon-action" type="button" data-host-announcements aria-expanded="false" aria-label="Komunikaty hosta" title="Komunikaty hosta" ${cooldown ? "disabled" : ""}>📣</button>
+    <div class="host-announcement-menu" hidden>${HOST_ANNOUNCEMENTS.map(item => `<button type="button" data-host-announcement="${item.id}" ${cooldown ? "disabled" : ""}>${item.text}</button>`).join("")}</div>`;
+  const toggle = anchor.querySelector("[data-host-announcements]");
+  const menu = anchor.querySelector(".host-announcement-menu");
+  const setOpen = open => {
+    menu.hidden = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+  toggle.addEventListener("click", () => setOpen(menu.hidden));
+  anchor.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || menu.hidden) return;
+    event.stopPropagation();
+    setOpen(false);
+    toggle.focus();
+  });
+  view.addEventListener("click", event => {
+    if (!anchor.contains(event.target)) setOpen(false);
+  });
+  menu.querySelectorAll("[data-host-announcement]").forEach(button => button.addEventListener("click", () => {
+    setOpen(false);
+    toggle.focus();
+    actions.sendHostAnnouncement(button.dataset.hostAnnouncement);
+  }));
 }

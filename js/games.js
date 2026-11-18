@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261118-24";
+import { renderGame } from "./game.js?v=20261118-26";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
