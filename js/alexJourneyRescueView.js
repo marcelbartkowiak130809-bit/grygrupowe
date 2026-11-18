@@ -1,7 +1,7 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-10';
-import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-10';
+import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-17';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 
@@ -89,6 +89,8 @@ function getSession(playerId){
  return sessions.get(playerId);
 }
 
+export function hasCompletedRescue(playerId){return getSession(playerId).done;}
+
 function storeSession(playerId,state){
  try{localStorage.setItem(`grygrupowe-alex-rescue-v1:${playerId}`,saveRescue(state));return true;}catch{return false;}
 }
@@ -107,7 +109,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
  patchBackpackView(root,`<main class="page journey-page rescue-page ${state.done?'rescue-finished':''}">
   <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 2</p><h1>Śladami zombie</h1></div><div class="game-view-tools">${gameFullscreenButton}<button class="ghost" type="button" data-rescue-home>← Minecraft</button></div></header>
   ${gameRotationHint}
-  ${chapterMenu(2,true)}
+  ${chapterMenu(2,true,state.done)}
   <div class="rescue-layout"><section class="journey-play">
    <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
    <button class="ghost journey-hint-toggle" type="button" aria-label="Wskazówka" aria-expanded="${hints.has(playerId)}" data-rescue-hint>?</button></div>

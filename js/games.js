@@ -33,7 +33,7 @@ import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylis
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261118-16";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261118-13";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
-import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
+import { renderAlexJourney } from './alexJourney.js?v=20261118-17';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261118-16";
 
@@ -339,7 +339,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
   },
   "minecraft-journey": {
-    id:"minecraft-journey",name:"Droga do Alex",description:"Dwa rozdziały przygody Steve’a. Dotrzyj do Alex, a później rusz jej śladem przez zbrojownię i kopalnię.",
+    id:"minecraft-journey",name:"Droga do Alex",description:"Poprowadź Steve’a przez kopalnię, zbrojownię i Wieżę Kruków. Rozwiązuj zagadki i znajdź Alex.",
     help:["Klikaj surowce na planszy. Wybrany przedmiot użyjesz kliknięciem w świat.","Zawartość plecaka i wszystkie zmiany świata zostają między sceneriami.","Craftuj narzędzia, buduj i rozwiązuj problemy. Możesz wracać do odkrytych miejsc.","Dodatkowe skrzynie, drewno i prowiant ułatwią dalszą podróż."],
     players:"Przygoda solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-biome",audience:"minecraft",badges:["new"],render:renderAlexJourney,soloRender:renderAlexJourney,defaultSettings:{},
   },

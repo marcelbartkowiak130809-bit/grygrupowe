@@ -60,7 +60,7 @@ test('all chapter props exist and the premiere countdown reaches Friday at 20:00
  for(const texture of textures)assert.ok(existsSync(new URL(`../assets/minecraft/backpack/${texture}.png`,import.meta.url)),texture);
  assert.equal(new Date(THIRD_CHAPTER_AT).toISOString(),'2026-11-20T19:00:00.000Z');
  assert.equal(chapterCountdown(THIRD_CHAPTER_AT-3600000),'01:00:00');
- assert.equal(chapterCountdown(THIRD_CHAPTER_AT),'W przygotowaniu');
+ assert.equal(chapterCountdown(THIRD_CHAPTER_AT),'Już dostępny');
  assert.match(chapterMenu(1,false),/data-journey-chapter="2"\s+disabled/);
  assert.match(chapterMenu(2,true),/data-journey-chapter="2" aria-current/);
 });
