@@ -20,111 +20,40 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
-      version:"v5.11.0",date:"2026-11-18",title:"Wyścig po Alex",
-      changes:[
-        "Dodano rankingi czasu dla poszczególnych rozdziałów i całej historii.",
-        "Nowe podejście rankingowe możesz rozpocząć co 5 godzin. Całą historię poza rankingiem możesz powtarzać w dowolnym momencie.",
-        "Łączny wynik sumuje czasy trzech rozdziałów z jednego podejścia. Przerwy pomiędzy nimi pomijamy.",
+      version: "v5.11.0",
+      date: "2026-11-18",
+      title: "Minecraft · Droga do Alex i Ostatni plecak",
+      changes: [
+        "Dodano Drogę do Alex, przygodę solo z połączonym światem, wspólnym plecakiem i zagadkami wykorzystującymi surowce, crafting i budowanie.",
+        "Śladami zombie to drugi rozdział z sześcioma scenami. Spotkanie Steve’a z Alex i najazd zombie pokazują nowe komiksowe przerywniki.",
+        "Każdy rozdział ma własny ranking czasu. Łączny wynik sumuje czasy z jednego podejścia. Nową próbę rankingową można rozpocząć co 5 godzin, a trening w dowolnym momencie.",
+        "Ostatni plecak ma 50 plansz, w tym wieloetapowe zagadki z tłokami, wagonikami i redstonem. Można wracać do odblokowanych plansz i resetować je pojedynczo.",
+        "W obu grach dopracowano sterowanie na telefonie i dodano płatne podpowiedzi za walutę strony.",
+        "W bibliotece wyróżniono kategorie, dodano Hity TikToka i Wiedzę oraz zmieniono filtry, by pokazywały od razu konkretne gry.",
       ],
     },
     {
-      version:"v5.10.0",date:"2026-11-18",title:"Droga do Alex · Śladami zombie",
-      changes:[
-        "Po ukończeniu rozdziału 1 odblokowuje się dalsza przygoda, która zaczyna się przed domem Alex.",
-        "Drugi rozdział ma sześć scen typu point-and-click, między innymi zbrojownię ze śpiącym strażnikiem, kopalnię i legowisko zombie.",
-        "Postęp obu rozdziałów zapisuje się osobno. W menu historii pojawiło się też odliczanie do trzeciego rozdziału.",
-      ],
-    },
-    {
-      version:"v5.9.0",date:"2026-11-18",title:"Ostatni plecak ma 50 wyzwań",
-      changes:[
-        "Dodano 20 plansz o stopniowo rosnącej trudności, od kuźni pod osuwiskiem po portal powrotny.",
-        "Nowe zagadki łączą crafting, dostawy wagonikiem, rozgałęzione trasy i układy dźwigni.",
-        "Dotychczasowy postęp pozostaje w zapisie. Po przejściu Endu odblokowuje się poziom 31.",
-      ],
-    },
-    {
-      version:"v5.8.0",date:"2026-11-18",title:"Sobotnie odblokowania",
-      changes:[
-        "Co sobotę o 20:00 czasu polskiego odblokowuje się jeden losowo wybrany tryb z kolejki.",
-        "Przez pierwszą godzinę strona główna świętuje premierę fajerwerkami i pokazuje przycisk wejścia do nowej gry.",
-        "Pojedynek hitów i Zgadnij Moba zachowują dostęp zdobyty w poprzednim systemie.",
-      ],
-    },
-    {
-      version:"v5.7.0",date:"2026-11-17",title:"Zgadnij kto? w Planszówkach",
-      changes:[
-        "Nowa gra dla 2–4 osób. Każdy zadaje pytania o tajną kartę przypisanego rywala, odwraca wykluczone karty i może spróbować zgadnąć osobę.",
-        "200 zdjęć znanych osób, od artystów i aktorów po piłkarzy i twórców internetowych. Plansza klasyczna ma 24 karty, a duża 40.",
-        "Host wybiera cele zgodnie z kolejnością w lobby albo losowo. Zdjęcia można powiększać, a odpowiedzi na pytania zostają w historii.",
-      ],
-    },
-    {
-      version:"v5.6.0",date:"2026-11-17",title:"Droga do Alex — jedna minecraftowa wyprawa",
-      changes:[
-        "Nowy tryb solo: Steve wyrusza do Alex przez 10 połączonych scenerii — od polany i rzeki po kopalnię, wioskę i przełęcz.",
-        "Wspólny plecak, zbieranie surowców, crafting, piece i budowanie. Poprzednie miejsca, mosty oraz opróżnione skrzynie pozostają w świecie.",
-        "Płynne przejścia kamery, oryginalne skórki postaci i tekstury Minecrafta, cofanie czynności oraz zapis wyprawy na urządzeniu.",
-        "Zagadki z podpartą kłodą i przeciwwagą przy studni, czytelne polecenia oraz mniejsza ilość zbierania. Spotkanie z Alex kończy wyprawę sercami i podsumowaniem z czasem przejścia.",
-        "Dodatkowe poszukiwania dają małe zapasy na dalszą drogę, a jedzenie zwiększa wydajność wydobycia. Na telefonie jest szybki pasek plecaka."
-      ],
-    },
-    {
-      version:"v5.5.0",date:"2026-11-17",title:"Pierwszy Minecraft: Ostatni plecak",
-      changes:[
-        "Odblokowano Ostatni plecak: 30 graficznych łamigłówek solo — od mostu, kopalni i redstone po tłoki, archeologię, barwienie wełny, mapy skarbów, kowalstwo, muzyczny zamek i portal Endu.",
-        "Oryginalne tekstury Minecraft Java 1.21.4, ekwipunek, przeciąganie przedmiotów i crafting 3×3 zamiast quizu tekstowego.",
-        "Dodano cofanie ruchów, odzyskiwanie składników, zapis postępu na urządzeniu, seryjny crafting oraz sterowanie dotykiem i klawiaturą. Dopracowano swobodę budowania, zasilanie torów i działanie biblioteczek.",
-        "Na stronie głównej pojawiło się wejście do pierwszego odblokowanego trybu Minecraft. Pozostałe tryby nadal czekają na głosowanie."
+      version: "v5.8.0",
+      date: "2026-11-18",
+      title: "Zgadnij kto? i sobotnie premiery",
+      changes: [
+        "W Planszówkach pojawiło się Zgadnij kto? dla 2–4 osób. Gracze zadają pytania o tajne karty i mogą odwracać portrety na planszy z 24 lub 40 osobami.",
+        "Pula zawiera 200 portretów, a gospodarz wybiera przydział przeciwników w kolejności miejsc lub losowo.",
+        "Co sobotę o 20:00 czasu polskiego losuje się jeden tryb z kolejki. Przez pierwszą godzinę na stronie głównej widać fajerwerki i przycisk wejścia do gry.",
       ],
     },
     {
       version: "v5.4.0",
       date: "2026-10-14",
-      title: "Nowe menu i odświeżone rozgrywki",
+      title: "Turniej hitów, Twój miks i nowe menu",
       changes: [
-        "Przebudowano główne menu na komputerze: muzyka i kategorie są na górze, z animowaną płytą i szybkimi wejściami do gry.",
-        "Dopracowano widok kompaktowy i nawigację na telefonach. Dodatkowe opcje mieszczą się w rozwijanym menu, a ustawienia muzyki i ranking w zwijanych panelach.",
-        "Przebudowano Marker: jedna osoba szuka liczby, gdy druga rysuje krzyżyki. Po znalezieniu liczby następuje zamiana; wygrywa pierwszy, który zapełni własną planszę.",
-        "Ulepszono hasła w Impostorze: wspólne skojarzenia bez zbyt oczywistych odpowiedników, np. gitara — pianino i krokodyl — hipopotam.",
-        "Dokończ tekst wrócił do muzycznej puli głosowania. Przygotowano fragmenty z tekstem dopasowanym do konkretnych odsłuchów.",
-      ],
-    },
-    {
-      version: "v5.3.0",
-      date: "2026-10-13",
-      title: "Turniej hitów i udostępnianie wyników",
-      changes: [
-        "Dodano turniej solo: słuchasz dwóch piosenek i wybierasz tę, która przechodzi dalej, aż do zwycięzcy finału.",
-        "Możesz losować zestawy 8, 16, 32, 64 lub 128 utworów z puli polskiej, globalnej albo mieszanej.",
-        "Turniej hitów i Zgadnij utwór korzystają ze wspólnej biblioteki 1200 unikalnych utworów z odsłuchem, rozszerzonej o hity z archiwalnych list Billboard i dyskografie obecnych artystów.",
-        "Dodano wybór długości odsłuchu, szacowany czas gry, pauzę, powtórki, animowane karty i podsumowanie drogi zwycięskiego utworu.",
-        "Wyniki turnieju i Zgadnij utwór można udostępnić jako grafikę z okładką, nazwą piosenki, artystą, nickiem, zdjęciem gracza i czasem gry.",
-      ],
-    },
-    {
-      version: "v5.2.0",
-      date: "2026-10-12",
-      title: "Druga szansa i polskie klasyki",
-      changes: [
-        "Błędna odpowiedź w Zgadnij utwór odsłania kolejny fragment tej samej piosenki. Seria kończy się dopiero po ostatniej próbie.",
-        "Dodano poziomy Easy, Medium, Hard, kolorowe All oraz cykl Easy → Medium → Hard.",
-        "Do rankingu liczą się wyłącznie serie na All, bez ograniczania puli filtrami.",
-        "Podsumowanie pokazuje czas odgadnięcia, odtwarza fragment utworu i pozwala przejść do Apple Music lub Spotify oraz uruchomić pełny odtwarzacz Apple Music.",
-        "Dodano 74 znane polskie utwory sprzed 2000 roku, w tym 8 piosenek Maryli Rodowicz, z odsłuchami, okładkami i datami pierwotnych wydań.",
-        "Dodano niewielkie nagrody waluty za trafienia w muzycznych trybach solo oraz za ukończony turniej, zależne od faktycznie przesłuchanego czasu.",
-      ],
-    },
-    {
-      version: "v5.1.0",
-      date: "2026-10-10",
-      title: "Twój miks i większa biblioteka muzyki",
-      changes: [
-        "Dodano zapętlane filtry dekad i gatunków oraz wybór artystów, również z featuringów.",
-        "Możesz grać według gatunku i dekady albo wybranych artystów. Lista pokazuje okładki, liczbę utworów i zaznaczone osoby na górze.",
-        "Dodano osobne rankingi polskie i globalne oraz uzupełniono metadane katalogu.",
-        "Rozszerzono polską i globalną bibliotekę o popularne hity, więcej utworów ADÉLI i Doja Cat oraz zagranicznego rapu.",
-        "Odświeżono Zgadnij utwór: prostszy ekran, duży przycisk odtwarzania i możliwość sprawdzania odpowiedzi także podczas odsłuchu.",
+        "Dodano Turniej hitów solo. Wybierasz zwycięzcę każdej pary aż do finału, z zestawem od 8 do 128 utworów i wybraną długością odsłuchu.",
+        "Zgadnij utwór i Turniej hitów dostały wspólną bibliotekę odsłuchów, w tym polskie klasyki sprzed 2000 roku i utwory Maryli Rodowicz.",
+        "Twój miks pozwala wybrać dekadę i gatunek albo artystów, również z gościnnych występów. Dodano poziomy trudności i oddzielne rankingi polskie oraz globalne na ustawieniu All.",
+        "W Zgadnij utwór błędna odpowiedź odsłania dłuższy fragment. Podsumowanie pokazuje czas, okładkę i linki do odsłuchu. Wyniki można udostępniać jako grafikę.",
+        "Odświeżono menu główne, widok kompaktowy na telefonie i nawigację podczas gry. Dodano nagrody za rozgrywki muzyczne solo.",
+        "Przebudowano Marker. Gdy jedna osoba szuka liczby, druga rysuje krzyżyki. Po znalezieniu liczby role się zmieniają.",
+        "Ulepszono skojarzenia w Impostorze i dopasowano tekst do fragmentów w trybie Dokończ tekst.",
       ],
     },
     {

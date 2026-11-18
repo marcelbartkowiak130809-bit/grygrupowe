@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-20";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-25";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
 import { minecraftHintPurchase } from './minecraftHints.js?v=20261118-19';
