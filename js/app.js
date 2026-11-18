@@ -1,12 +1,12 @@
 import { accountModal, authModal } from "./auth.js?v=20260831-3";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261117-16";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-1";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
 import { renderLastBackpack } from './lastBackpack.js?v=20261117-10';
 import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
-import { invalidateCategoryVotingView } from "./categoryVoting.js?v=20261117-16";
+
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261117-14";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261010-7";
@@ -54,14 +54,14 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261117-14";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20260901-9";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-16";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, refreshPlatformVote, syncCategoryCards, updatePlatformActivity } from "./platform.js?v=20261117-16";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-1";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-16";
 import { Router } from "./router.js?v=20260901-3";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-16";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261117-16";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-1";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
@@ -2094,12 +2094,6 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   openSettings() { const request=beginTopbarModal("open-settings"); if (!request) return; finishTopbarModal(settingsModal(), "open-settings", request); },
   refresh: render,
   goPlatform() { document.querySelectorAll(".modal-backdrop").forEach(dismissTopbarModal); if(activeRoom())return actions.leaveRoom("platform");setUrlRoute("", "");Router.go("platform"); },
-  refreshCategoryData() {
-    invalidateCategoryVotingView();
-    const voterId = state.currentUser || "anonymous";
-    if (Router.current === "platform") refreshPlatformVote(root.querySelector(".route-platform"), actions, voterId);
-    if (Router.current.endsWith("-select")) syncCategoryCards(root.querySelector(".route-view"), actions, { voterId });
-  },
   goPokemonModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/pokemony";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("pokemon-select"); },
   goBoardModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/planszowki";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("board-select"); },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
@@ -3539,7 +3533,6 @@ initFirebaseAuth().catch(() => false).then(online => {
   else {
     restoreFirebaseSession();
     recoverMissingRemoteProfile().catch(() => {});
-    actions.refreshCategoryData();
   }
   refreshPresence();
   connectOnlineCount();

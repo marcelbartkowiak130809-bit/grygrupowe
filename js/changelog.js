@@ -1,4 +1,4 @@
-import { modeUnlockInfo } from "./upcomingModes.js?v=20261117-16";
+import { modeUnlockInfo } from "./upcomingModes.js?v=20261118-1";
 
 const stagedModes = [
   { id: "bomba", name: "Bomba" },
@@ -19,6 +19,14 @@ function unlockedModeChanges(now = Date.now()) {
 
 function buildChangelogEntries(now = Date.now()) {
   return [
+    {
+      version:"v5.8.0",date:"2026-11-18",title:"Sobotnie odblokowania",
+      changes:[
+        "Co sobotę o 20:00 czasu polskiego odblokowuje się jeden losowo wybrany tryb z kolejki.",
+        "Przez pierwszą godzinę strona główna świętuje premierę fajerwerkami i pokazuje przycisk wejścia do nowej gry.",
+        "Pojedynek hitów i Zgadnij Moba zachowują dostęp zdobyty w poprzednim systemie.",
+      ],
+    },
     {
       version:"v5.7.0",date:"2026-11-17",title:"Zgadnij kto? w Planszówkach",
       changes:[

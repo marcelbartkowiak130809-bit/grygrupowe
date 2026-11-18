@@ -3,6 +3,7 @@
 @media(min-width:901px){
  .home-menu-page{display:flex;flex-direction:column;gap:24px;max-width:1320px;padding-top:36px}
  .home-menu-page>*{order:3}.home-menu-page>.home-hub{order:0}.home-menu-page>.platform-hero{order:1}.home-menu-page>.games-section{order:2}
+ .home-menu-page>[data-weekly-unlock]{order:-1}
  .home-hub{display:block;animation:home-rise .6s ease both}
  .home-hub-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 28px}
  .home-hub-heading .eyebrow{font-size:10px;letter-spacing:.22em;color:#a6a9c4;margin:0 0 14px}
@@ -42,7 +43,7 @@
  .home-menu-page .random-room-button{font-size:10px;padding:0;min-height:30px;border:0;background:none;color:#96a7c0;display:inline-flex;margin:7px 0 0 200px}.home-menu-page .hero-side-actions{display:flex;align-items:center;justify-content:end}.home-menu-page .global-stats-trigger{font-size:11px;min-height:44px;padding:10px}
  .home-menu-page>.games-section{margin:0;background:none;padding:12px 0;border:0;box-shadow:none;animation:none;scroll-margin-top:100px}.home-menu-page .section-intro h2{font-size:25px;letter-spacing:-.03em}.home-menu-page .section-intro .eyebrow{font-size:9px;color:#9b9eb8}
  .home-menu-page .games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.home-menu-page .featured-game{grid-column:span 1}.home-menu-page .game-card{min-height:320px;border-radius:20px;background:#11182a;box-shadow:none}.home-menu-page .game-visual{height:110px}.home-menu-page .game-visual span{font-size:44px}.home-menu-page .game-card-content{padding:16px;min-height:240px}.home-menu-page .game-card h2{font-size:19px;letter-spacing:-.025em}.home-menu-page .game-card-content p{font-size:11px}.home-menu-page .game-card-footer{flex-wrap:wrap;gap:10px}.home-menu-page .players-count{font-size:10px}.home-menu-page .game-card-play-options{display:flex;gap:6px;flex-wrap:wrap}.home-menu-page .game-card-footer button{font-size:11px;min-height:40px;padding:9px 12px}
- .home-menu-page .platform-share-panel{margin:0}.home-menu-page .category-vote-panel{margin:0}
+ .home-menu-page .platform-share-panel,.home-menu-page .weekly-unlock-announcement{margin:0}
 }
 @media(min-width:901px) and (max-width:1100px){.home-menu-page .games-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.home-record{width:210px}.home-feature-copy{padding-left:24px}.home-player-chip{right:12px;padding:10px}.home-quick-picks{flex-wrap:wrap}.home-menu-page .platform-hero{grid-template-columns:1fr}.home-menu-page .hero-side-actions{display:none}}
 @keyframes home-spin{to{transform:rotate(360deg)}}
@@ -55,3 +56,4 @@
 .light-theme .home-category-tile,.light-theme .home-menu-page .platform-hero,.light-theme .home-menu-page .game-card{background:#f6f8ff;border-color:#d6ddec;color:#16223b}
 .light-theme .home-quick-picks button{background:#fff;border-color:#d6ddec;color:#16223b}
 .light-theme .home-music-feature h2{color:#f5f7ff}.light-theme .home-feature-copy p{color:#bec7de}.light-theme .home-hub-heading>p,.light-theme .home-category-tile small{color:#52627c}
+.home-menu-page .weekly-release-highlight{border-color:#facc15}

@@ -896,22 +896,6 @@ export async function voteRemotePoll({ pollId, voterId, optionId, optionIds = po
   }
 }
 
-export async function loadModeCategoryReleases() {
-  if (!canUseRemote()) return null;
-  try {
-    return (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "modeCategoryVoting/releases"))).val() || {};
-  } catch { return null; }
-}
-
-export async function claimModeCategoryRelease(cycleId, release) {
-  if (!canUseRemote() || !release?.categoryId || !release?.modeId) return false;
-  try {
-    const releaseRef = firebaseDatabaseApi.ref(remoteDatabase, `modeCategoryVoting/releases/${cycleId}`);
-    const result = await firebaseDatabaseApi.runTransaction(releaseRef, current => current || release);
-    return Boolean(result?.committed);
-  } catch { return false; }
-}
-
 function moderationLocal() {
   return readLocal(MODERATION_KEY);
 }

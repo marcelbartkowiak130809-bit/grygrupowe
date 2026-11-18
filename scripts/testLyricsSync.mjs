@@ -2,17 +2,13 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {lyricsTracks,createLyricsGame,LyricsEngine,LyricsSoloEngine} from '../js/lyrics.js';
 import {validLyricsSync,lyricsVisibleWordCount} from '../js/lyricsSync.js';
-import {categoryModesRemaining,isCategoryModeReleased,categoryModeProgress,LYRICS_REVOTE_MIN_CYCLE} from '../js/categoryVoting.js';
+import {weeklyModeRelease} from '../js/weeklyUnlocks.js';
 import {isModeLocked} from '../js/upcomingModes.js';
-test('lyrics is locked and votable; historical releases and permanent flags cannot reopen it',()=>{
- assert.equal(isModeLocked('dokoncz-tekst'),true);assert.equal(isCategoryModeReleased('dokoncz-tekst',{}),false);
- const old={'1':{modeId:'dokoncz-tekst',categoryId:'music',cycle:1,winningVotes:20}};
- assert.equal(isCategoryModeReleased('dokoncz-tekst',old),false);
- assert.ok(categoryModesRemaining('music',old,LYRICS_REVOTE_MIN_CYCLE).some(t=>t.id==='dokoncz-tekst'));
- assert.ok(!categoryModesRemaining('music',{},LYRICS_REVOTE_MIN_CYCLE-1).some(t=>t.id==='dokoncz-tekst'));
- assert.equal(categoryModeProgress('music',old).find(t=>t.id==='dokoncz-tekst').released,false);
- const fresh={current:{modeId:'dokoncz-tekst',categoryId:'music',cycle:LYRICS_REVOTE_MIN_CYCLE,winningVotes:1}};
- assert.equal(isCategoryModeReleased('dokoncz-tekst',fresh),true);assert.equal(isCategoryModeReleased('songspot',{}),true);
+test('lyrics reopens only on its weekly release date; SongSpot remains open',()=>{
+ const {unlockAt}=weeklyModeRelease('dokoncz-tekst');
+ assert.equal(isModeLocked('dokoncz-tekst',unlockAt-1),true);
+ assert.equal(isModeLocked('dokoncz-tekst',unlockAt),false);
+ assert.equal(isModeLocked('songspot',unlockAt-1),false);
 });
 test('only URL-bound audio-aligned excerpts are playable in both regions',()=>{
  assert.equal(lyricsTracks.length,5);assert.ok(lyricsTracks.filter(t=>t.region==='global').length>=2);assert.ok(lyricsTracks.filter(t=>t.region==='polish').length>=2);

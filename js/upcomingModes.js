@@ -1,7 +1,6 @@
-import { isCategoryModeReleased } from "./categoryVoting.js?v=20261117-16";
+import { weeklyModeRelease } from "./weeklyUnlocks.js";
 
-// Główne tryby mają własną, niezależną kolejkę. Kategorie Pokémon, planszówki,
-// Minecraft i większość trybów muzycznych otwierają się przez głosowanie na stronie głównej.
+// Główne tryby mają własną, niezależną kolejkę premier.
 export const MODE_UNLOCKS_ENABLED = true;
 export const futureModeUnlocks = {
   quiz: "2026-09-04T20:00:00+02:00",
@@ -19,13 +18,13 @@ export const futureModeUnlocks = {
 };
 export const MANUALLY_LOCKED_MODE_IDS = new Set(["pokemon-dex"]);
 export const upcomingModeUnlocks = MODE_UNLOCKS_ENABLED ? { ...futureModeUnlocks } : {};
-const CATEGORY_MODE_IDS = new Set(["pokemon-dex", "pokemon-last-letter", "pokemon-evolution", "pokemon-auction", "pokemon-types", "pokemon-match-type", "board-chinczyk", "board-slowotwor", "board-statki", "board-reversi", "board-warcaby", "board-cztery", "board-memory", "board-domino", "minecraft-sprint", "minecraft-crafting", "minecraft-mob", "minecraft-biome", "minecraft-truth", "minecraft-redstone", "pojedynek-hitow", "bitwa-hitow", "popularnosc-hitow", "popularnosc-solo", "dokoncz-tekst", "songspot"]);
 
-export function formatUnlockDate(unlockAt) {
+export function formatUnlockDate(unlockAt, { weekday } = {}) {
   const date = new Date(unlockAt);
   if (!Number.isFinite(date.getTime())) return "";
   return new Intl.DateTimeFormat("pl-PL", {
     timeZone: "Europe/Warsaw",
+    weekday,
     day: "numeric",
     month: "long",
     hour: "2-digit",
@@ -64,13 +63,13 @@ export function formatUnlockTime(unlockAt) {
 
 export function modeUnlockInfo(modeId, now = Date.now()) {
   const unlockAt = upcomingModeUnlocks[modeId];
-  const unlockTime = unlockAt ? new Date(unlockAt).getTime() : 0;
+  const weekly = weeklyModeRelease(modeId);
+  const unlockTime = weekly?.unlockAt || (unlockAt ? Date.parse(unlockAt) : 0);
   const manuallyLocked = MANUALLY_LOCKED_MODE_IDS.has(modeId);
-  const categoryMode = CATEGORY_MODE_IDS.has(modeId);
-  const categoryLocked = categoryMode && !isCategoryModeReleased(modeId);
-  const locked = manuallyLocked || categoryLocked || Boolean(unlockAt && Number.isFinite(unlockTime) && unlockTime > now);
-  const label = manuallyLocked ? "Termin zostanie ogłoszony" : categoryLocked ? "Oczekuje na głosowanie" : unlockAt ? formatUnlockDate(unlockAt) : "";
-  return { modeId, unlockAt, unlockTime, locked, manuallyLocked, categoryLocked, label };
+  const locked = manuallyLocked || unlockTime > now;
+  const celebrating = Boolean(weekly && !locked && now < weekly.celebrationEndsAt);
+  const label = manuallyLocked ? "Termin zostanie ogłoszony" : weekly ? "Sobotnia kolejka" : unlockAt ? formatUnlockDate(unlockAt) : "";
+  return { modeId, unlockAt, unlockTime, locked, manuallyLocked, weekly: Boolean(weekly), celebrating, label };
 }
 
 export function isModeLocked(modeId, now = Date.now()) {
@@ -81,7 +80,7 @@ export function lockedModeMessage(mode) {
   const unlock = modeUnlockInfo(mode.id);
   return unlock.manuallyLocked
     ? "Ten tryb jest obecnie zablokowany. Termin ponownego odblokowania zostanie ogłoszony."
-    : unlock.categoryLocked
-      ? "Ten tryb czeka na głosowanie kategorii. Wróć na stronę główną, żeby sprawdzić aktualną kolejkę."
+    : unlock.weekly
+      ? "Ten tryb jest w kolejce. Co sobotę o 20:00 odblokowujemy jeden losowo wybrany tryb."
       : `Ten tryb nie jest jeszcze dostępny. Odblokowanie: ${unlock.label}.`;
 }

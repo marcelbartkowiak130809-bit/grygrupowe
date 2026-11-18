@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {backpackAction as action,createBackpackState,backpackRecipe,backpackLevels,restoreBackpack,saveBackpack,backpackProgress,backpackLight} from '../js/lastBackpackEngine.js';
-import {isCategoryModeReleased,categoryModeProgress,categoryModesRemaining} from '../js/categoryVoting.js';
+import {isModeLocked} from '../js/upcomingModes.js';
 const craft=(s,a,b)=>{action(s,{type:'craft-slot',index:0,item:a});if(b)action(s,{type:'craft-slot',index:3,item:b});assert.ok(backpackRecipe(s.grid));action(s,{type:'craft'});};
 test('original three interactive challenges lead into the expanded campaign',()=>{
  const s=createBackpackState();
@@ -30,12 +30,11 @@ test('bridge accepts alternative routes, disconnected blocks do not win',()=>{
  const s=createBackpackState();for(const i of [2,3,4,5])action(s,{type:'place',index:i,item:'cobblestone'});assert.equal(s.solved,true);
  const t=createBackpackState();for(const i of [2,11,20,29])action(t,{type:'place',index:i,item:'cobblestone'});assert.equal(t.solved,false);
 });
-test('the two owner-released Minecraft adventures are counted outside voting',()=>{
- assert.ok(isCategoryModeReleased('minecraft-backpack',{}));
- assert.ok(isCategoryModeReleased('minecraft-journey',{}));
- assert.equal(categoryModeProgress('minecraft',{}).filter(t=>t.released).length,2);
- assert.equal(categoryModesRemaining('minecraft',{}).length,6);
- assert.ok(!isCategoryModeReleased('minecraft-truth',{}));
+test('the two owner-released Minecraft adventures stay open ahead of the weekly queue',()=>{
+ const now=Date.parse("2026-11-21T18:59:59Z");
+ assert.equal(isModeLocked('minecraft-backpack',now),false);
+ assert.equal(isModeLocked('minecraft-journey',now),false);
+ assert.equal(isModeLocked('minecraft-truth',now),true);
 });
 test('undo restores the exact previous inventory including crafting and solved state',()=>{
  const s=createBackpackState();craft(s,'oak_log');assert.equal(s.stock.oak_planks,4);action(s,{type:'undo'});assert.equal(s.stock.oak_planks,undefined);assert.equal(s.grid[0],'oak_log');
