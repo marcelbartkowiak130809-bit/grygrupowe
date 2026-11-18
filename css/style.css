@@ -1890,6 +1890,41 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .light-theme .lucky-spin-modal .odds-epic strong{color:#86198f}
 .light-theme .lucky-spin-modal .odds-gamepass strong{color:#a16207}
 
+.shop-tabs {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+  padding:5px;
+  margin:20px 0 12px;
+  border:1px solid #7f9bcd38;
+  border-radius:15px;
+  background:#10192e;
+}
+.shop-tab {
+  min-width:0;
+  min-height:44px;
+  padding:8px 4px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  color:#b8c9e6;
+  font-size:clamp(12px,2vw,15px);
+  font-weight:750;
+  cursor:pointer;
+}
+.shop-tab:hover { background:#7097cf24; }
+.shop-tab[aria-selected="true"] {
+  border-color:#74deec8f;
+  background:linear-gradient(135deg,#313067,#174459);
+  color:#f4faff;
+}
+.shop-tab:focus-visible { outline:2px solid #7de8f5; outline-offset:2px; }
+.shop-tab-panel[hidden] { display:none; }
+.light-theme .shop-tabs { background:#eef4ff; border-color:#c5d4ec; }
+.light-theme .shop-tab { color:#364b69; }
+.light-theme .shop-tab[aria-selected="true"] { background:#dbeafe; border-color:#4086a7; color:#183659; }
+.light-theme .shop-tab:focus-visible { outline-color:#185d8c; }
+
 @media(max-width:560px){
   .lucky-spin-modal{width:calc(100vw - 20px);max-width:none;padding:18px}
   .lucky-spin-modal .lucky-wheel-area{min-height:280px;padding:10px}

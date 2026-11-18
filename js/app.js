@@ -60,7 +60,7 @@ import { renderCollectionModes, renderPlatform, updatePlatformActivity } from ".
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-30";
 import { Router } from "./router.js?v=20261118-30";
 import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-30";
-import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
+import { renderShop, stopShopTimer } from "./shop.js?v=20261118-34";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
