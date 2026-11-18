@@ -334,7 +334,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     id: "minecraft-sprint", name: "Minecraft Sprint", description: "Szybkie pytania o Minecrafta. Odpowiadaj pierwszy, zanim czas zniknie.", help: ["W każdej rundzie jeden gracz dostaje pytanie o Minecrafta.", "Pytania rosną od prostych mechanik do zaawansowanych szczegółów.", "Poprawna odpowiedź daje punkt, a po krótkim ujawnieniu kolej przechodzi dalej."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "⛏️", art: "minecraft-sprint", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-sprint"],
   },
   "minecraft-backpack": {
-    id:"minecraft-backpack", name:"Ostatni plecak", description:"30 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
+    id:"minecraft-backpack", name:"Ostatni plecak", description:"50 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
     help:["Wybierz przedmiot z plecaka i przeciągnij na planszę albo do craftingu 3×3.","Na telefonie możesz też dotknąć przedmiotu, a potem pola.","Zbuduj przejście, oświetl kopalnię i przywróć zasilanie. Błędne ruchy nie zużywają przedmiotów.","Składniki można odzyskać. Receptury znajdziesz pod warsztatem."],
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
   },

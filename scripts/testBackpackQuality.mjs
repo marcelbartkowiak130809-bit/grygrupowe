@@ -4,12 +4,15 @@ import {readFileSync} from 'node:fs';
 import {backpackAction as action,backpackLevels,backpackBatch,createBackpackState,restoreBackpack,saveBackpack} from '../js/lastBackpackEngine.js';
 import {shelfPower,railRoute} from '../js/backpackQuality.js';
 import {extraTile} from '../js/backpackPuzzles.js';
+import {solveDeepLevel} from './backpackDeepSolutions.mjs';
 const baseline=JSON.parse(readFileSync(new URL('./fixtures/backpack-v5.5.6.json',import.meta.url),'utf8'));
 const stage=i=>restoreBackpack({version:1,log:baseline.log.slice(0,baseline.starts[i])});
 const put=(s,index,item)=>action(s,{type:'place',index,item,free:true});
 test('all 30 pre-audit starts and completions replay without losing progress',()=>{
  for(let i=0;i<30;i++){for(const [end,solved]of [[baseline.starts[i],false],[baseline.ends[i],true]]){const s=restoreBackpack({version:1,log:baseline.log.slice(0,end)});assert.equal(s.level,i);assert.equal(s.solved,solved);assert.equal(s.log.length,end);}}
- assert.ok(restoreBackpack({version:1,log:baseline.log}).done);
+ const continued=restoreBackpack({version:1,log:baseline.log});
+ assert.equal(continued.level,30);
+ assert.equal(continued.done,false);
 });
 test('a full lamp progress bar completes the puzzle without all three levers, including in old saves',()=>{
  const s=stage(17);
@@ -26,8 +29,9 @@ test('a full lamp progress bar completes the puzzle without all three levers, in
 });
 test('reset affects only the current attempt and chapter changes preserve drafts, unlocks and the completed run',()=>{
  const s=restoreBackpack({version:1,log:baseline.log});
+ for(let i=30;i<50;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
  const {finishedAt,finishedMoves}=s;
- assert.equal(s.completed.filter(Boolean).length,30);
+ assert.equal(s.completed.filter(Boolean).length,50);
  assert.ok(action(s,{type:'level',index:0}));
  assert.ok(action(s,{type:'reset-level'}));
  put(s,18,'cobblestone');
@@ -39,7 +43,7 @@ test('reset affects only the current attempt and chapter changes preserve drafts
  const moves=s.moves;
  assert.ok(action(s,{type:'undo'}));
  assert.equal(s.moves,moves-1);
- assert.equal(s.completed.filter(Boolean).length,30);
+ assert.equal(s.completed.filter(Boolean).length,50);
  const restored=restoreBackpack(saveBackpack(s));
  assert.ok(action(restored,{type:'level',index:17}));
  assert.equal(restored.placed[17],'lever');
@@ -47,6 +51,13 @@ test('reset affects only the current attempt and chapter changes preserve drafts
  assert.equal(restored.finishedAt,finishedAt);
  assert.equal(restored.finishedMoves,finishedMoves);
  assert.equal(action(createBackpackState(),{type:'level',index:1}),false);
+});
+test('old summaries still open the new extension after replaying an earlier level',()=>{
+ const log=[...baseline.log,{type:'level',index:0},{type:'summary'}];
+ const s=restoreBackpack({version:2,legacyActions:baseline.log.length,log});
+ assert.equal(s.level,30);
+ assert.equal(s.completed.filter(Boolean).length,30);
+ assert.equal(restoreBackpack(saveBackpack(s)).level,30);
 });
 test('old rejected placements stay rejected during replay; new free placements are recorded separately',()=>{
  const old=stage(7);action(old,{type:'place',index:18,item:'bookshelf'});assert.equal(old.stock.bookshelf,4);

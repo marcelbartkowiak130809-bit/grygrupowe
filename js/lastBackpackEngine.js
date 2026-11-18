@@ -1,4 +1,4 @@
-import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261118-3';
+import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261118-8';
 import {logicSolved} from './backpackAdvancedPuzzles.js?v=20261118-3';
 import {craftBatchCount} from './backpackQuality.js?v=20261117-10';
 export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso',...puzzleItems};
@@ -146,11 +146,14 @@ export function restoreBackpack(raw){
   s.legacyActions=legacyActions;
   for(let index=0;index<data.log.length;index++){
    if(index===legacyActions&&legacyActions)upgradeCurrentLogicAttempt(s);
-   if(!applyBackpackAction(s,data.log[index],index<legacyActions))return createBackpackState();
+   let action=data.log[index];
+   // Old summaries return to the extension available after level 30.
+   if(!data.campaignLength&&action?.type==='summary'&&s.unlocked===30&&!s.finishedAt)action={type:'level',index:30};
+   if(!applyBackpackAction(s,action,index<legacyActions))return createBackpackState();
   }
   if(legacyActions&&legacyActions===data.log.length)upgradeCurrentLogicAttempt(s);
   if(s.startedAt&&Number.isFinite(data.startedAt)&&data.startedAt>0&&data.startedAt<=Date.now())s.startedAt=data.startedAt;
   if(s.finishedAt&&Number.isFinite(data.finishedAt)&&data.finishedAt>=s.startedAt&&data.finishedAt<=Date.now())s.finishedAt=data.finishedAt;
  }catch{return createBackpackState();}return s;
 }
-export function saveBackpack(state){return JSON.stringify({version:2,log:state.log,legacyActions:state.legacyActions,startedAt:state.startedAt,finishedAt:state.finishedAt});}
+export function saveBackpack(state){return JSON.stringify({version:2,campaignLength:backpackLevels.length,log:state.log,legacyActions:state.legacyActions,startedAt:state.startedAt,finishedAt:state.finishedAt});}

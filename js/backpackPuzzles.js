@@ -1,6 +1,7 @@
 import {shelfPower,railRoute,railPowered} from './backpackQuality.js?v=20261117-10';
 import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe,advancedProgress,advancedPlace} from './backpackAdvancedPuzzles.js?v=20261118-3';
-import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261117-10';
+import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261118-8';
+import {deepLevels,deepTile,deepProgress,deepPlace} from './backpackDeepPuzzles.js?v=20261118-8';
 // Handcrafted additions with independent resource budgets and goal checks.
 export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament',...advancedItems,...expeditionItems};
 const decoys={feather:2,string:3,rotten_flesh:2};
@@ -12,10 +13,11 @@ export const extraBackpackLevels=[
  {kind:'library',theme:'library',name:'Czytelnia zaklęć',goal:'Ustaw cztery biblioteczki, dodaj lazuryt i zaklnij książkę.',tip:'Biblioteczki muszą stać dwa pola od stołu (również po skosie). Pole pomiędzy stołem a każdą biblioteczką musi zostać puste. Do stołu dodaj 1 lazuryt i książkę. To prosta łamigłówka, nie zaklęcie na poziomie 30.',stock:{bookshelf:4,book:1,lapis_lazuli:1,...decoys},table:19},
  {kind:'portal',theme:'portal',name:'Dziesięć sztuk obsydianu',goal:'Zbuduj minimalną ramę portalu i zapal jej wnętrze.',tip:'Narożniki nie są potrzebne: 2 bloki u góry, 2 u dołu i po 3 z każdej strony. Krzemień i sztabka żelaza w craftingu dają krzesiwo. Nie wypełniaj wnętrza obsydianem.',stock:{obsidian:10,flint:1,iron_ingot:1,gravel:3,...decoys},outputs:['flint_and_steel'],frame:[2,3,9,12,17,20,25,28,34,35],inside:[10,11,18,19,26,27]},
  {kind:'mine',theme:'mine',name:'Droga po diament',goal:'Zdobądź diament, stopniowo ulepszając kilof.',tip:'Najpierw zrób drewniany kilof i wydobądź 3 kamienie. Z bruku zrób kamienny kilof, wydobądź 3 rudy żelaza i wytop je w piecu (ruda na górnym polu, węgiel na dolnym). Żelazny kilof dopiero poradzi sobie z diamentem. Kilof: 3 materiały w górnym rzędzie i 2 patyki pod środkiem.',stock:{oak_log:2,coal:1,...decoys},outputs:['oak_planks','stick','wooden_pickaxe','cobblestone','stone_pickaxe','iron_ore','iron_ingot','iron_pickaxe'],stones:[9,17,25],ores:[11,19,27],diamond:21,ore:14,fuel:30,furnace:22}
- ,...advancedLevels,...expeditionLevels
+ ,...advancedLevels,...expeditionLevels,...deepLevels
 ];
 const x=i=>i%8,y=i=>Math.floor(i/8),distance=(a,b)=>Math.max(Math.abs(x(a)-x(b)),Math.abs(y(a)-y(b)));
 export function extraTerrain(level,i,s){
+ if(level.kind==='deep')return level.terrain;
  if(level.expedition)return expeditionTerrain(level,i,s);
  if(level.advanced)return advancedTerrain(level,i,s);
  if(level.kind==='farm')return i===level.pool?(s.puzzle.water?'water_still':'stone_bricks'):level.plots.includes(i)?(s.puzzle.tilled?.includes(i)?'farmland_moist':'dirt'):'moss_block';
@@ -27,6 +29,7 @@ export function extraTerrain(level,i,s){
  return 'stone_bricks';
 }
 export function extraTile(level,i,s){
+ if(level.kind==='deep')return deepTile(level,i,s);
  if(level.expedition)return expeditionTile(level,i,s);
  if(level.advanced)return advancedTile(level,i,s);
  let icon='',label='',mark=false;
@@ -55,7 +58,7 @@ export function extraRecipe(grid){
  if(cells.length===2&&cells.some(c=>c.item==='flint')&&cells.some(c=>c.item==='iron_ingot'))return {item:'flint_and_steel',count:1};
  return null;
 }
-export function extraProgress(l,s){if(l.expedition)return expeditionProgress(l,s);if(l.advanced)return advancedProgress(l,s);const p=s.puzzle;
+export function extraProgress(l,s){if(l.kind==='deep')return deepProgress(l,s);if(l.expedition)return expeditionProgress(l,s);if(l.advanced)return advancedProgress(l,s);const p=s.puzzle;
  if(l.kind==='farm')return {current:(p.planted||[]).length,total:3,label:'obsiane grządki'};
  if(l.kind==='rail')return {current:l.gaps.filter(i=>['rail','powered_rail'].includes(s.placed[i])).length+(railPowered(l,s)?1:0)+(s.solved?1:0),total:7,label:'elementy trasy'};
  if(l.kind==='gravity')return {current:l.columns.filter(col=>s.placed[l.top*8+col]).length,total:3,label:'wyrównane słupki'};
@@ -65,6 +68,7 @@ export function extraProgress(l,s){if(l.expedition)return expeditionProgress(l,s
  return {current:(p.mined||[]).length+(p.smelted?1:0),total:8,label:'etapy wydobycia'};
 }
 export function extraPlace(s,l,i,item,free=false){
+ if(l.kind==='deep')return deepPlace(s,l,i,item);
  if(l.expedition)return expeditionPlace(s,l,i,item);
  if(l.advanced)return advancedPlace(s,l,i,item,free);
  const p=s.puzzle,has=id=>(s.stock[id]||0)>0;

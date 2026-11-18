@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import {solveExpedition} from './backpackExpeditionSolutions.mjs';
+import {solveDeepLevel} from './backpackDeepSolutions.mjs';
 import {backpackAction as action,backpackRecipe,backpackLevels} from '../js/lastBackpackEngine.js';
 export function solveBackpackLevel(s){
+ if(s.level>=30)return solveDeepLevel(s);
  const put=(index,item)=>{assert.ok(action(s,{type:'place',index,item}));};
  const craft=slots=>{for(const [index,item]of slots)assert.ok(action(s,{type:'craft-slot',index,item}));assert.ok(backpackRecipe(s.grid));action(s,{type:'craft'});};
  const sticks=()=>craft([[0,'oak_planks'],[3,'oak_planks']]);

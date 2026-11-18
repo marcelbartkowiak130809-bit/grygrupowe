@@ -79,3 +79,13 @@
 .backpack-page img[src$="/oak_slab.png"],.backpack-drag-ghost[src$="/oak_slab.png"]{
   clip-path:inset(50% 0 0);
 }
+
+.backpack-world.deep .puzzle-deep-ready{box-shadow:inset 0 0 0 2px #daeb9cbb,inset 0 0 20px #dbed813c}
+.backpack-world.deep .puzzle-deep-done{box-shadow:inset 0 0 0 2px #7bd3a890}
+.backpack-world.deep .puzzle-deep-path{box-shadow:inset 0 0 0 2px #aad5fa6b}
+.backpack-world.deep .puzzle-deep-closed{box-shadow:inset 0 0 0 2px #eb987dbb,inset 0 0 20px #e4997e30}
+.backpack-world.deep .puzzle-deep-stop{box-shadow:inset 0 0 0 2px #f0ca7c99,inset 0 0 18px #f0ca7c38}
+.backpack-world.deep .puzzle-deep-lit{box-shadow:inset 0 0 24px #ffc75bb6}
+.backpack-world.deep .puzzle-cargo{box-shadow:inset 0 0 0 2px #f3d990}
+.backpack-world.deep img:is([src$="/water_still.png"],[src$="/lava_still.png"],[src$="/end_portal.png"]){object-fit:cover;object-position:top}
+.backpack-world.deep .backpack-puzzle-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

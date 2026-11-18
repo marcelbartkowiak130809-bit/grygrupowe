@@ -8,8 +8,33 @@ import {backpackTerrain} from '../js/lastBackpackEngine.js';
 for(let level=3;level<backpackLevels.length;level++)test(`new challenge ${level+1}: ${backpackLevels[level].name} is solvable with its own stock`,()=>{
  const s=createBackpackState();s.level=level;s.stock={...backpackLevels[level].stock};solveBackpackLevel(s);assert.equal(backpackProgress(s).current,backpackProgress(s).total);for(const count of Object.values(s.stock))assert.ok(count>=0);
 });
+test('workshop stations expose their earned materials and reject early or incorrect inputs',()=>{
+ const level=30,s=Object.assign(createBackpackState(),{level,stock:{...backpackLevels[level].stock}});
+ const initial={...s.stock};
+ action(s,{type:'place',index:19});
+ action(s,{type:'place',index:10,item:'coal'});
+ assert.deepEqual(s.stock,initial);
+ action(s,{type:'place',index:10,item:'stone_pickaxe'});
+ assert.equal(s.stock.iron_ore,3);
+ assert.ok(backpackLevels[level].outputs.includes('iron_ore'));
+ assert.ok(backpackLevels[level].outputs.includes('iron_ingot'));
+});
+test('a wagon cannot skip track cells or pass a closed gate, and moving is undoable',()=>{
+ const level=32,s=Object.assign(createBackpackState(),{level,stock:{...backpackLevels[level].stock}});
+ action(s,{type:'place',index:10});
+ assert.equal(s.puzzle.cart,undefined);
+ action(s,{type:'place',index:9});
+ action(s,{type:'place',index:10});
+ assert.equal(s.puzzle.cart,9);
+ action(s,{type:'place',index:10,item:'oak_planks'});
+ action(s,{type:'place',index:10});
+ assert.equal(s.puzzle.cart,10);
+ action(s,{type:'undo'});
+ assert.equal(s.puzzle.cart,9);
+ assert.equal(s.stock.oak_planks,0);
+});
 test('whole campaign replays every action, including new mechanics and undo, after reload',()=>{
- let s=createBackpackState();assert.equal(backpackLevels.length,30);
+ let s=createBackpackState();assert.equal(backpackLevels.length,50);
  for(let level=0;level<backpackLevels.length;level++){
   assert.equal(s.level,level);solveBackpackLevel(s);const solvedStock={...s.stock};action(s,{type:'undo'});assert.equal(s.solved,false);
   s=restoreBackpack(saveBackpack(s));assert.equal(s.level,level);
@@ -17,7 +42,7 @@ test('whole campaign replays every action, including new mechanics and undo, aft
   const last=s.log.slice(0,-1).at(-1);assert.ok(action(s,last));assert.ok(s.solved);assert.deepEqual(s.stock,solvedStock);
   action(s,{type:'next'});s=restoreBackpack(saveBackpack(s));
  }
- assert.ok(s.done);assert.equal(s.level,30);
+ assert.ok(s.done);assert.equal(s.level,50);
 });
 test('legacy completed three-level saves continue at the first new puzzle',()=>{
  const s=createBackpackState();for(let i=0;i<3;i++){solveBackpackLevel(s);action(s,{type:'next'});}

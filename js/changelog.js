@@ -20,6 +20,14 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version:"v5.9.0",date:"2026-11-18",title:"Ostatni plecak ma 50 wyzwań",
+      changes:[
+        "Dodano 20 plansz o stopniowo rosnącej trudności, od kuźni pod osuwiskiem po portal powrotny.",
+        "Nowe zagadki łączą crafting, dostawy wagonikiem, rozgałęzione trasy i układy dźwigni.",
+        "Dotychczasowy postęp pozostaje w zapisie. Po przejściu Endu odblokowuje się poziom 31.",
+      ],
+    },
+    {
       version:"v5.8.0",date:"2026-11-18",title:"Sobotnie odblokowania",
       changes:[
         "Co sobotę o 20:00 czasu polskiego odblokowuje się jeden losowo wybrany tryb z kolejki.",
