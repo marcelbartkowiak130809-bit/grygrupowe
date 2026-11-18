@@ -74,3 +74,8 @@
   object-position:top;
 }
 .backpack-slot img[src$="/prismarine.png"]{height:auto;min-height:0}
+
+/* Oak slabs use the same wood grain, with a half-height silhouette. */
+.backpack-page img[src$="/oak_slab.png"],.backpack-drag-ghost[src$="/oak_slab.png"]{
+  clip-path:inset(50% 0 0);
+}
