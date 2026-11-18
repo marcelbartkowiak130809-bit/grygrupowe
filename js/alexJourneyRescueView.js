@@ -3,6 +3,8 @@ import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-10';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-10';
 
+import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
+
 const sessions=new Map(), hints=new Set();
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
 const image=id=>`<img src="${asset(id)}" alt="" draggable="false">`;
@@ -103,7 +105,8 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
   renderAlexRescue(root,{playerId,actions,visuals,selectChapter});
  };
  patchBackpackView(root,`<main class="page journey-page rescue-page ${state.done?'rescue-finished':''}">
-  <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 2</p><h1>Śladami zombie</h1></div><button class="ghost" type="button" data-rescue-home>← Minecraft</button></header>
+  <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 2</p><h1>Śladami zombie</h1></div><div class="game-view-tools">${gameFullscreenButton}<button class="ghost" type="button" data-rescue-home>← Minecraft</button></div></header>
+  ${gameRotationHint}
   ${chapterMenu(2,true)}
   <div class="rescue-layout"><section class="journey-play">
    <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
@@ -120,6 +123,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
   </aside></div>
   <footer class="journey-credit">Nieoficjalna przygoda fanowska · tekstury Minecraft Java Edition 1.21.4 · Mojang / Microsoft</footer>
  </main>`);
+ bindGamePresentation(root);
  bindChapterMenu(root,selectChapter);
  root.querySelector('[data-rescue-home]').onclick=()=>actions.goMinecraftModes?.();
  root.querySelector('[data-rescue-hint]').onclick=()=>{

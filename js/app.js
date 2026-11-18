@@ -3,8 +3,8 @@ import { Audio } from "./audio.js?v=20261117-10";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-10";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
-import { renderLastBackpack } from './lastBackpack.js?v=20261118-8';
-import { renderAlexJourney } from './alexJourney.js?v=20261118-10';
+import { renderLastBackpack } from './lastBackpack.js?v=20261118-11';
+import { renderAlexJourney } from './alexJourney.js?v=20261118-11';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261117-14";

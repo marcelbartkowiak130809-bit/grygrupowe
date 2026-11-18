@@ -1,0 +1,73 @@
+.game-view-tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.game-fullscreen-button{white-space:nowrap}
+.game-rotation-hint{display:none;margin:0 0 10px;color:#bdcec2;font-size:12px}
+body:has(.game-presentation){overflow:hidden}
+.game-presentation{
+ position:fixed;inset:0;z-index:5000;overflow:auto;overscroll-behavior:contain;
+ background:#0e1517;color:#ecf4e8;animation:none!important;
+ padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+.game-presentation>.page{animation:none!important}
+.game-presentation .game-fullscreen-button{
+ position:fixed;z-index:20;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));
+ min-height:40px;background:#19292a;color:#edf9e9;border-color:#9cc79880;padding:7px 12px;
+}
+.game-presentation .game-view-tools{margin-right:150px}
+
+@media(max-width:760px){
+ .game-view-tools{gap:5px}
+ .game-view-tools>button{padding:7px 9px;min-height:40px;font-size:11px}
+ .journey-heading,.backpack-head{flex-wrap:wrap;row-gap:8px}
+ .rescue-node{min-width:30px;min-height:25px}
+ .game-presentation .game-view-tools{margin-right:0}
+ .game-presentation :is(.journey-heading,.backpack-head){padding-top:34px}
+}
+@media(max-width:760px) and (orientation:portrait){
+ .game-rotation-hint{display:block}
+}
+@media(orientation:landscape) and (max-height:600px) and (max-width:1100px){
+ .journey-page:not(.is-finished) .journey-layout,.rescue-layout,.backpack-layout{
+  grid-template-columns:minmax(0,1fr) clamp(166px,29vw,260px);
+  gap:10px;
+ }
+ .journey-page .journey-camera{--visible:16;max-width:100%}
+ .journey-page .journey-track{transform:translateX(calc(var(--camera) * -100% / 160))}
+ .journey-page .journey-look,.journey-page .journey-quick,.journey-page .journey-back-to-world{display:none}
+ .rescue-layout .rescue-pack{grid-row:auto}
+ .journey-layout .journey-inventory,.rescue-layout .journey-inventory{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .journey-layout .journey-slot,.rescue-layout .journey-slot{min-height:38px}
+ .backpack-inventory{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:10px}
+ .backpack-inventory .backpack-slot{height:auto;min-height:32px;aspect-ratio:1;padding:4px}
+ .backpack-inventory .backpack-slot img{width:100%;height:100%}
+ .backpack-inventory .backpack-slot img[src$="/prismarine.png"]{height:auto}
+ .backpack-workbench,.journey-layout .journey-pack{padding:10px}
+ .rescue-foot{flex-wrap:nowrap}.rescue-foot .journey-next{width:auto;margin-left:auto}
+ .backpack-status,.journey-message{height:auto;min-height:23px;padding:3px 0}
+ .backpack-input-tip{min-height:0}
+
+ .game-presentation :is(.journey-page,.backpack-page){margin:0 auto;padding:0 3px 8px}
+ .game-presentation :is(.journey-heading,.backpack-head){min-height:0;height:0;margin:0;padding:0}
+ .game-presentation :is(.journey-heading,.backpack-head)>div:first-child,
+ .game-presentation .game-view-tools>button:not([data-game-fullscreen]),
+ .game-presentation :is(.journey-story-chapters,.journey-chapters,.backpack-chapters,.game-rotation-hint,.journey-credit,.backpack-credit){display:none}
+ .game-presentation .backpack-shell,.game-presentation .journey-play{padding:9px 10px}
+ .game-presentation .journey-quest,.game-presentation .backpack-mission,.game-presentation .rescue-quest{
+  min-height:0;margin-bottom:8px;padding-right:144px;
+ }
+ .game-presentation .journey-quest h2,.game-presentation .backpack-mission h2,.game-presentation .rescue-quest h2{font-size:18px;margin:3px 0}
+ .game-presentation .journey-quest .journey-objective{font-size:13px;margin:4px 0;padding-left:7px}
+ .game-presentation .journey-quest .journey-objective-detail{font-size:11px;margin-bottom:3px;padding-left:10px}
+ .game-presentation :is(.journey-camera,.rescue-camera){
+  width:min(100%,max(250px,calc((100dvh - 115px) * 16 / 9)));margin-inline:auto;
+ }
+ .game-presentation .journey-camera{
+  width:min(100%,max(236px,calc((100dvh - 145px) * 16 / 9)));
+ }
+ .game-presentation .backpack-world{
+  width:min(100%,max(236px,calc((100dvh - 158px) * 8 / 5)));margin-inline:auto;
+ }
+ .game-presentation :is(.rescue-foot,.journey-route-actions){margin-top:4px;min-height:32px}
+ .game-presentation .journey-underworld{margin:5px 0}
+ .game-presentation .journey-next{min-width:108px;min-height:34px;padding:6px 9px}
+ .game-presentation .backpack-objective{margin-top:5px}
+}
