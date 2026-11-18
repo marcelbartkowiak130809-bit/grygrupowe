@@ -109,3 +109,14 @@
 .minecraft-hint-answer p { margin:3px 0 0; line-height:1.5; }
 .minecraft-hint-status { margin:0 0 8px; color:#f4d79d; }
 .minecraft-hint-status:empty { margin:0; }
+.backpack-tools .backpack-reset-needed {
+  border-color: #ffc268;
+  color: #ffe0a9;
+  background: #33261e;
+  animation: backpack-reset-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes backpack-reset-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 #ffc26816; }
+  50% { box-shadow: 0 0 0 4px #ffc26833, 0 0 16px #ffc26840; }
+}

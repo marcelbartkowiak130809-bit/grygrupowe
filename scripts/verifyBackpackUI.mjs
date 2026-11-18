@@ -13,7 +13,9 @@ const stored=new Map();globalThis.localStorage={getItem:k=>stored.get(k)||null,s
 const {renderLastBackpack}=await import('../js/lastBackpack.js');
 const root=document.getElementById('root'),context={playerId:'component-test'};
 const render=()=>renderLastBackpack(root,context,{goMinecraftModes(){}});
-const click=selector=>{const el=root.querySelector(selector);assert.ok(el,selector);assert.ok(!el.hasAttribute('disabled'),selector);el.click();};
+const resetHint=()=>Boolean(root.querySelector('[data-bp-reset-level].backpack-reset-needed'));
+let checkPlayable=true;
+const click=selector=>{const el=root.querySelector(selector);assert.ok(el,selector);assert.ok(!el.hasAttribute('disabled'),selector);el.click();if(checkPlayable)assert.equal(resetHint(),false,`Playable after ${selector} at ${root.querySelector('[aria-current="step"]')?.textContent}`);};
 const item=id=>click(`[data-bp-item="${id}"]`),tile=i=>click(`[data-bp-tile="${i}"]`),slot=i=>click(`[data-bp-craft-slot="${i}"]`);
 const craft=(a,b)=>{item(a);slot(0);if(b){item(b);slot(3);}click('[data-bp-craft]');};
 render();
@@ -102,4 +104,25 @@ assert.equal(root.querySelector('[data-bp-item="cobblestone"]').dataset.suppress
 root.querySelector('[data-bp-item="cobblestone"]').click();assert.ok(!root.querySelector('[data-bp-item="cobblestone"]').dataset.suppressClick);
 const c=root.querySelector('[data-bp-item="cobblestone"]');c.setPointerCapture=()=>{};c.onpointerdown({pointerType:'touch',pointerId:2,clientX:10,clientY:10});c.onpointermove({pointerId:2,clientX:50,clientY:50,preventDefault(){}});c.onpointercancel({type:'pointercancel'});
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
-console.log('PASS: full 60-stage UI, workshops, routes, levers, crafting, drag/drop, save/reload and level reset.');
+
+// Spending too much iron on buckets leaves too little for the compass.
+click('[data-bp-level="50"]');click('[data-bp-reset-level]');
+put(9,'stone_pickaxe');put(17,'iron_ore');put(25,'coal');tile(18);
+const bucketSlots=[[0,'iron_ingot'],[2,'iron_ingot'],[4,'iron_ingot']];
+pattern(bucketSlots);
+for(const [i,id] of bucketSlots){item(id);slot(i);}
+assert.equal(resetHint(),false,'ingredients can still be removed from crafting');
+checkPlayable=false;
+const resetButton=root.querySelector('[data-bp-reset-level]');
+click('[data-bp-craft]');assert.equal(resetHint(),true);
+assert.equal(root.querySelector('[data-bp-reset-level]'),resetButton,'pulse keeps the same button');
+click('[data-bp-undo]');assert.equal(resetHint(),false);
+click('[data-bp-craft]');assert.equal(resetHint(),true);
+click('[data-bp-reset-level]');assert.equal(resetHint(),false);
+
+// An irreversible explosion can also lose the one required item in an earlier level.
+click('[data-bp-level="16"]');click('[data-bp-reset-level]');
+put(0,'tnt');assert.equal(resetHint(),false,'unlit TNT can be moved');
+put(0,'flint_and_steel');assert.equal(resetHint(),true);
+click('[data-bp-undo]');assert.equal(resetHint(),false);
+console.log('PASS: full 60-stage UI, crafting, drag/drop, save/reload, level reset and resource deadlock feedback.');
