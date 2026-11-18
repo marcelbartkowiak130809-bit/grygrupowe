@@ -13,7 +13,7 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine } from "./pokemon.js?v=20260831-11";
+import { PokemonEngine, pokemonAuctionCanBid } from "./pokemon.js?v=20261118-14";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
@@ -98,6 +98,7 @@ export function botActor(room) {
     if (game.phase === "selecting") return bots.find(uid => game.duelists?.includes(uid) && isMissing(game.submissions, uid)) || "";
     if (game.phase === "voting") return bots.find(uid => !game.duelists?.includes(uid) && isMissing(game.votes, uid)) || "";
   }
+  if (room.gameMode === "pokemon-auction") return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode === "songspot" && ["preview", "answering"].includes(game.phase)) return bots.find(uid => isMissing(game.answers, uid)) || "";
@@ -456,7 +457,15 @@ export function botMutation(room) {
         if (game.phase === "answers" && isMissing(game.answers, bot)) { const target = pokemonDex.find(item => item.id === game.target); return g => PokemonEngine.matchType(g, bot, correct() ? target?.types || [] : ["normal"], players, settings); }
         break;
       case "pokemon-auction":
-        if (game.phase === "auction" && !array(game.passed).includes(bot)) return g => { const budget=Number(g.budgets?.[bot]||0), current=Number(g.currentBid||0); if(!g.highestBidder && budget>0)return PokemonEngine.bid(g,bot,Math.min(budget,1+Math.floor(Math.random()*Math.max(1,Math.min(10,budget)))),players); return correct() && budget>current+10 ? PokemonEngine.bid(g,bot,Math.min(budget,current+10+Math.floor(Math.random()*10)),players) : PokemonEngine.pass(g,bot,players); };
+        if (pokemonAuctionCanBid(game, bot)) return g => {
+          const budget = Number(g.budgets[bot]);
+          const current = Number(g.currentBid || 0);
+          const slots = Math.max(1, g.teamSize - (g.teams?.[bot]?.length || 0));
+          const target = pokemonDex.find(item => item.id === g.items?.[g.auctionIndex]);
+          const limit = Math.min(budget, Math.max(1, Math.ceil(budget / slots * ((target?.bst || 300) / 390))));
+          if (limit <= current || (current > 0 && !correct())) return PokemonEngine.pass(g, bot, players);
+          return PokemonEngine.bid(g, bot, Math.min(limit, current + 1 + Math.floor(Math.random() * 3)), players);
+        };
         break;
       case "wavelength":
         if (game.phase === "clue" && bot !== game.guesserUid && !game.clues?.[bot]) return g => WavelengthEngine.clue(g, bot, wavelengthBotClue(g, room, bot), players, settings);

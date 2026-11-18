@@ -27,7 +27,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260903-9";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260903-9";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260903-9";
-import { createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20260903-9";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, stopPokemonTimer } from "./pokemon.js?v=20261118-14";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260903-9";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260903-9";
@@ -55,18 +55,18 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261117-14";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261117-16";
-import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-10";
+import { renderBoardModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-14";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261117-16";
 import { Router } from "./router.js?v=20260901-3";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261117-16";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-14";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
-import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-1";
+import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261010-7";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20260823-2";
-import { scheduleBot } from "./botController.js?v=20261117-16";
+import { scheduleBot } from "./botController.js?v=20261118-14";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -382,6 +382,7 @@ function finalGameOutcome(room) {
   const game=room?.game;
   if(!game?.finished) return "";
   const current=state.currentUser;
+  if (room.gameMode === "pokemon-auction" && !room.game.ranking?.some(row => Number(row.bst) > 0)) return "";
   const explicit=[game.winner,game.result?.winner,game.summary?.winner,game.final?.winner].find(value=>typeof value==="string"&&value);
   if(explicit) return explicit===current?"gameVictory":"gameDefeat";
   const scoreSources=[game.scores,game.roundWins,game.totals,game.points].filter(value=>value&&typeof value==="object");
@@ -601,7 +602,7 @@ async function resolveRoomForJoin(code) {
   if (!result.ok) return result;
   return { ok:true, room:installRemoteRoom(result.room) };
 }
-async function mutateRoomGame(mutator,{sound,after,render:renderOption=true}={}) {
+async function mutateRoomGame(mutator,{sound,after,render:renderOption=true,quietRejected=false}={}) {
   const repaint = () => {
     if (renderOption === false) return;
     if (typeof renderOption === "function") return renderOption();
@@ -622,8 +623,8 @@ async function mutateRoomGame(mutator,{sound,after,render:renderOption=true}={})
     const synced=installRemoteRoom(remote.room);if(after){after(synced);touchRoom(synced);}
     if(sound)typeof sound === "function" ? sound(synced) : Audio.play(sound);repaint();return true;
   }
-  if(remote){if(remote.error)message(remote.error,remote.rejected?"info":"error");return false;}
-  const beforeGame=JSON.stringify(room.game),error=guardedMutation(room.game,room);if(error){message(error,"info");return false;}if(JSON.stringify(room.game)===beforeGame)return false;
+  if(remote){if(remote.error&&!(quietRejected&&remote.rejected))message(remote.error,remote.rejected?"info":"error");return false;}
+  const beforeGame=JSON.stringify(room.game),error=guardedMutation(room.game,room);if(error){if(!quietRejected)message(error,"info");return false;}if(JSON.stringify(room.game)===beforeGame)return false;
   if(after)after(room);touchRoom(room);if(sound)typeof sound === "function" ? sound(room) : Audio.play(sound);repaint();return true;
 }
 function reconcileMusicPlayers(game, room) {
@@ -846,6 +847,7 @@ function settleIdentityResult(room) {
 function settlePokemonResult(room) {
   if (room?.gameMode?.startsWith("pokemon-") !== true || room.game?.phase !== "result" || !room.game.finished || room.game.rewarded) return;
   const scores=room.game.scores || {}, max=Math.max(0,...Object.values(scores).map(Number)), winners=room.gameMode==="pokemon-last-letter"&&room.game.winner?[room.game.winner]:room.players.filter(uid=>Number(scores[uid]||0)===max&&max>0), rounds=Math.max(1,Number(room.gameMode==="pokemon-last-letter" ? room.settings?.hearts : room.settings?.rounds)||5);
+  if (room.gameMode === "pokemon-auction" && !room.game.ranking?.some(row => (row.team?.length || 0) > 0)) return;
   const base={"pokemon-dex":25,"pokemon-last-letter":20,"pokemon-evolution":30,"pokemon-types":25,"pokemon-match-type":25,"pokemon-auction":45}[room.gameMode] || 25;
   room.players.forEach(uid=>addPlayerMoney(uid,base + rounds*8 + Number(scores[uid]||0)*12 + (winners.includes(uid)?50:0)));
   rewardRoomXp(room,35 + rounds*4,winners);playCurrentUserResultSound(winners);room.game.rewarded=true;saveAccounts(state.accounts);touchRoom(room);Audio.play("roundEnd");
@@ -2529,6 +2531,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(roomIsAdult(room)&&roomHasNonAdultPlayer(room))return message("W pokoju jest gracz bez potwierdzonego 18+, wiec nie mozna wystartowac gry 18+.", "info");
     const players = normalizedRoomPlayers(room);
     if (players.length < mode.minPlayers) return message(`Ten tryb wymaga minimum ${mode.minPlayers} graczy.`, "info");
+    if (mode.id === "pokemon-auction" && !canStartPokemonAuction(room.settings)) return message("Wybrane filtry nie dają żadnego Pokémona. Zmień ustawienia puli.", "info");
     const fee=roomEntryFee(room);
     if(fee){const missing=players.find(uid=>playerMoney(room,uid)<fee);if(missing)return message(`Gracz ${state.accounts[missing]?.nick||room.playerProfiles?.[missing]?.nick||"Gracz"} nie ma wystarczających środków na wpisowe.`);}
     room.players = players;
@@ -2683,9 +2686,29 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   pokemonAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta odpowiedź jest już spóźniona.";return PokemonEngine.answer(game,state.currentUser,text,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-answer-${Date.now()}`);return ok;});},
   pokemonMatchType(types, expected={}){return mutateRoomGame((game,room)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.phase!==expected.phase)return "Ta runda jest już zakończona.";return PokemonEngine.matchType(game,state.currentUser,types,room.players,room.settings);},{sound:"submit"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-match-type-${Date.now()}`);return ok;});},
   pokemonSelectType(type, expected={}){return mutateRoomGame((game,room)=>{if(game.phaseEndsAt!==expected.phaseEndsAt)return "Wybór typu jest już zamknięty.";return PokemonEngine.selectType(game,state.currentUser,type,room.players,room.settings);},{sound:"choice"}).then(ok=>{if(ok)Effects.play("choice",`pokemon-type-${Date.now()}`);return ok;});},
-  pokemonBid(amount){return mutateRoomGame((game,room)=>PokemonEngine.bid(game,state.currentUser,amount,room.players),{sound:"bid"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-bid-${Date.now()}`);return ok;});},
-  pokemonPass(){return mutateRoomGame((game,room)=>PokemonEngine.pass(game,state.currentUser,room.players),{sound:"turn"}).then(ok=>{if(ok)Effects.play("auctionBid",`pokemon-pass-${Date.now()}`);return ok;});},
-  pokemonTimeout(expected={}){const room=activeRoom();if(!room?.game||room.game.mode?.startsWith("pokemon")!==true)return;return mutateRoomGame((game,current)=>{if(Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";PokemonEngine.timeout(game,expected.activeUid||state.currentUser,current.players,current.settings);},{sound:"turn"}).then(ok=>{if(ok)Effects.play("roundFail",`pokemon-timeout-${Date.now()}`);return ok;});},
+  pokemonBid(amount, expected) {
+    return mutateRoomGame((game, room) => {
+      if (game.auctionIndex !== expected.auctionIndex || game.phase !== expected.phase) return "Ta aukcja już się zakończyła.";
+      return PokemonEngine.bid(game, state.currentUser, amount, room.players);
+    }, { sound: "bid" });
+  },
+  pokemonPass(expected) {
+    return mutateRoomGame((game, room) => {
+      if (game.auctionIndex !== expected.auctionIndex || game.phase !== expected.phase) return "Ta aukcja już się zakończyła.";
+      return PokemonEngine.pass(game, state.currentUser, room.players);
+    }, { sound: "turn" });
+  },
+  pokemonTimeout(expected = {}) {
+    const room = activeRoom();
+    if (!room?.game?.mode?.startsWith("pokemon")) return;
+    return mutateRoomGame((game, current) => {
+      if (Number(game.phaseEndsAt) !== Number(expected.phaseEndsAt) || game.phase !== expected.phase) return "Faza gry już się zmieniła.";
+      PokemonEngine.timeout(game, expected.activeUid || state.currentUser, current.players, current.settings);
+    }, { sound: room.gameMode === "pokemon-auction" ? undefined : "turn", quietRejected: room.gameMode === "pokemon-auction" }).then(ok => {
+      if (ok && room.gameMode !== "pokemon-auction") Effects.play("roundFail", `pokemon-timeout-${Date.now()}`);
+      return ok;
+    });
+  },
   pokemonNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>PokemonEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   pokemonUseScout(){const room=activeRoom();if(!room?.game||!room.gameMode?.startsWith("pokemon-")||!hasGamePass(profile(),"pokemon-scout"))return message("Nie masz aktywnego Skanera Pokédex.","error");return mutateRoomGame((game,current)=>PokemonEngine.useScout(game,state.currentUser,current.players,current.settings),{sound:"choice"});},
   wavelengthClue(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return WavelengthEngine.clue(game,state.currentUser,text,room.players,room.settings);},{sound:"clue"});},

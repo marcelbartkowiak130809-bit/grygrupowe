@@ -22,7 +22,6 @@ const releaseOrder = [
   "minecraft-sprint",
   "pokemon-match-type",
   "minecraft-truth",
-  "pokemon-auction",
   "board-reversi",
   "board-warcaby",
   "pokemon-types",

@@ -2050,3 +2050,84 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @keyframes partyPanelIn{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:none}}@keyframes secretReveal{from{opacity:0;transform:scale(.96);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}@keyframes charadesFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-9px) rotate(4deg)}}@keyframes spotlightBreathe{0%,100%{opacity:.55;transform:scale(.95)}50%{opacity:1;transform:scale(1.04)}}@keyframes guessIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}@keyframes revealPop{0%{opacity:0;transform:scale(.45) rotate(-14deg)}70%{transform:scale(1.13) rotate(5deg)}100%{opacity:1;transform:none}}@keyframes hangmanDraw{from{stroke-dasharray:140;stroke-dashoffset:140;opacity:.2}to{stroke-dashoffset:0;opacity:1}}@keyframes letterRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:620px){.charades-page,.hangman-page{padding:10px}.charades-panel,.hangman-panel{gap:17px;padding:18px;border-radius:22px}.charades-heading,.hangman-heading{align-items:flex-start}.charades-clock,.hangman-clock{flex-basis:58px;width:58px;height:58px;border-radius:17px}.charades-guess-form{flex-direction:column}.charades-guess-form button{width:100%}.hangman-layout{grid-template-columns:1fr;gap:8px}.hangman-drawing{width:190px}.hangman-keyboard{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.hangman-key{min-height:43px;border-radius:10px}.charades-settings label,.hangman-settings label{align-items:flex-start;flex-direction:column}.charades-settings select,.hangman-settings select{width:100%}}
 @media(prefers-reduced-motion:reduce){.charades-panel,.hangman-panel,.charades-stage>span,.charades-spotlight,.charades-secret,.charades-reveal-burst,.hangman-trophy,.hangman-part,.hangman-word span,.charades-guess,.charades-ranking article,.hangman-ranking article{animation:none!important}.game-card,.panel,.modal,.primary,.secondary,.hangman-key{transition:none!important}}
+
+/* Team Auction */
+.auction-stage { text-align: left; align-items: start; }
+.auction-main { display: grid; gap: 12px; min-width: 0; }
+.auction-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.auction-header h1 { font-size: clamp(22px, 4vw, 40px); margin: 0; }
+.auction-header .eyebrow { margin: 0 0 4px; }
+.auction-header .pokemon-timer { margin: 0; min-width: 56px; }
+.auction-spotlight {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(99, 231, 211, .23);
+  background: radial-gradient(ellipse at 50% 32%, #255452, #131926 68%);
+}
+.auction-spotlight .pokemon-card {
+  display: grid;
+  justify-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 3px;
+  min-height: 190px;
+  padding: 12px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.auction-spotlight .pokemon-card img { width: clamp(96px, 18vw, 158px); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 14px 12px #091a24); }
+.auction-spotlight .pokemon-card b { font-size: clamp(19px, 3vw, 26px); text-transform: capitalize; }
+.auction-spotlight .pokemon-card strong { color: #fff0b0; }
+.auction-price, .auction-outcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 53px;
+  padding: 10px 14px;
+  border: 1px solid rgba(133, 179, 235, .23);
+  border-radius: 14px;
+  background: rgba(11, 21, 37, .7);
+  color: #dce9fc;
+}
+.auction-price strong, .auction-outcome span { color: #80efe1; font-size: 23px; font-weight: 850; }
+.auction-price.is-leading { border-color: #6bdcc6; }
+.auction-price.auction-raised strong { animation: auction-price-pop .36s cubic-bezier(.2,.8,.35,1.35); }
+.auction-price.auction-outbid { border-color: #ffb382; background: #392734; }
+.auction-outcome { min-height: 108px; flex-wrap: wrap; color: #f5ebff; animation: auction-card-in .35s ease-out both; }
+.auction-outcome small { flex-basis: 100%; letter-spacing: .11em; font-weight: 850; color: #c6a8fa; }
+.auction-outcome.is-mine { border-color: #f5cc70; background: radial-gradient(ellipse at 36% 0%, #574321, #1b2334 80%); }
+.auction-outcome.is-mine small, .auction-outcome.is-mine span { color: #ffe298; }
+.auction-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 8px; margin: 0; }
+.auction-controls label { display: grid; gap: 5px; color: #c9d7ea; font-size: 12px; min-width: 0; }
+.auction-controls input { width: 100%; min-width: 0; }
+.auction-controls button { min-height: 44px; }
+.auction-note { margin: 0; min-height: 1.3em; color: #b5c3db; font-size: 12px; }
+.auction-roster { min-width: 0; }
+.auction-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.auction-slot { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 65px; min-width: 0; border-radius: 10px; background: #1d2d41; text-align: center; }
+.auction-slot img, .auction-ranking-team img { width: 36px; height: 36px; object-fit: contain; }
+.auction-slot b { font-size: 10px; overflow-wrap: anywhere; }
+.auction-slot small { color: #9ce7d8; font-size: 10px; }
+.auction-slot.is-empty { background: transparent; color: #9eacc2; border: 1px dashed #48546d; }
+.auction-final { text-align: center; background-image: radial-gradient(ellipse at 50% 0, #3a304b, transparent 66%); }
+.auction-ranking { display: grid; gap: 10px; max-width: 660px; margin: 22px auto; text-align: left; }
+.auction-ranking-row { display: grid; gap: 6px; border: 1px solid #48546d; border-radius: 16px; background: #1a2236; padding: 10px 14px; animation: auction-card-in .35s ease-out both; animation-delay: calc(var(--auction-rank) * 45ms); }
+.auction-ranking-row > div:first-child { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.auction-ranking-row.is-winner { border-color: #e6c16b; box-shadow: 0 0 24px #e6c16b22; }
+.auction-ranking-row.is-winner strong { color: #ffe298; }
+.auction-ranking-team { display: flex; flex-wrap: wrap; gap: 5px; }
+.auction-ranking-team > span { display: grid; justify-items: center; font-size: 10px; }
+@keyframes auction-price-pop { 0% { transform: scale(.86); } 55% { transform: scale(1.17); } }
+@keyframes auction-card-in { from { opacity: 0; transform: translateY(7px); } }
+@media (max-width: 700px) {
+  .auction-stage { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .auction-spotlight .pokemon-card { min-height: 142px; }
+  .auction-slots { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
+  .auction-roster { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auction-price.auction-raised strong, .auction-outcome, .auction-ranking-row { animation: none; }
+}

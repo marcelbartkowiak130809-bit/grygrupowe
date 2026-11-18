@@ -27,7 +27,6 @@ export const IN_GAME_PURCHASES = [
   { id:"clock-second-chance", mode:"zegar", icon:"⏱️", name:"Druga wskazówka", price:1000, visibility:"private", description:"Pozwala raz zatrzymać zegar ponownie, jeśli pierwszy stop był nietrafiony." },
   { id:"marker-scan", mode:"marker", icon:"🖍️", name:"Skan planszy", price:900, visibility:"private", description:"Podświetla przez chwilę obszar, w którym znajduje się szukana liczba." },
   { id:"candy-shield", mode:"zatruty-cukierek", icon:"🍬", name:"Tarcza cukierka", price:1800, visibility:"private", description:"Chroni przed jednym zatruciem w tej grze." },
-  { id:"auction-credit", mode:"pokemon-auction", icon:"💰", name:"Kredyt aukcyjny", price:2200, visibility:"private", description:"Dodaje jednorazowy limit do jednej wybranej licytacji." },
   { id:"ranking-lock", mode:"ranking", icon:"🔒", name:"Blokada rankingu", price:1000, visibility:"private", description:"Zabezpiecza jedną pozycję przed przypadkowym przesunięciem." },
   { id:"unique-life", mode:"unique-answer", icon:"❤️", name:"Dodatkowe życie", price:1500, visibility:"public", description:"Dodaje jedno życie. Wszyscy widzą, że użyto zakupu." },
   { id:"connect-double-vote", mode:"polacz-nas", icon:"🔗", name:"Podwójny głos", price:1200, visibility:"public", description:"Twój głos liczy się podwójnie w jednej rundzie." },
@@ -48,7 +47,7 @@ export function passesForMode(modeId) {
 export function purchasesForMode(modeId) {
   const isBoard = String(modeId || "").startsWith("board-");
   const isMinecraftTimed = ["minecraft-sprint","minecraft-crafting","minecraft-mob","minecraft-biome","minecraft-redstone"].includes(modeId);
-  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (isBoard && item.mode === "board") || (modeId === "pokemon-auction" && item.mode === "pokemon-auction") || (isMinecraftTimed && item.mode === "minecraft"));
+  return IN_GAME_PURCHASES.filter(item => item.mode === modeId || (isBoard && item.mode === "board") || (isMinecraftTimed && item.mode === "minecraft"));
 }
 
 export function commerceAvailable(modeId) {
