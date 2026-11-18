@@ -1,3 +1,5 @@
+import { libraryCategories } from "./gameCategories.js?v=20261118-21";
+
 export const publicRoutes = {
   "/o-grze":"public:o-grze",
   "/jak-grac":"public:jak-grac",
@@ -6,9 +8,9 @@ export const publicRoutes = {
   "/polityka-prywatnosci":"public:polityka-prywatnosci",
   "/kontakt":"public:kontakt",
 };
-const appRoutes = { "/pokemony":"pokemon-select", "/planszowki":"board-select", "/minecraft":"minecraft-select", "/muzyka":"music-select" };
+const appRoutes = Object.fromEntries(libraryCategories.map(({ path, screen }) => [path, screen]));
 const publicScreens = new Set(Object.values(publicRoutes));
-const validScreens = new Set(["platform", "pokemon-select", "board-select", "minecraft-select", "music-select", "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
+const validScreens = new Set(["platform", ...Object.values(appRoutes), "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
 let current = appRoutes[globalThis.window?.location?.pathname || "/"] || publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";
 let listener = () => {};
 
