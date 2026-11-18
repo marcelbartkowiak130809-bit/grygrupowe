@@ -1,8 +1,4 @@
-const tabletopGames = new Set(["bomba", "5-sekund", "wavelength", "hangman", "charades", "word-chain"]);
-
-export function gameCategory(mode) {
-  return tabletopGames.has(mode?.id) ? "board" : mode?.audience;
-}
+const tabletopGames = new Set(["bomba", "5-sekund", "wavelength", "hangman", "charades", "word-chain", "kim-jestem"]);
 
 export const libraryCategories = [
   { id:"music", name:"Muzyka", symbol:"♫", path:"/muzyka", screen:"music-select" },
@@ -11,11 +7,19 @@ export const libraryCategories = [
   { id:"board", name:"Planszówki", symbol:"🎲", path:"/planszowki", screen:"board-select" },
   { id:"pokemon", name:"Pokémon", symbol:"⚡", path:"/pokemony", screen:"pokemon-select" },
   { id:"knowledge", name:"Wiedza", symbol:"💡", path:"/wiedza", screen:"knowledge-select" },
+  { id:"other", name:"Inne", symbol:"✦", path:"/inne", screen:"other-select" },
 ];
 
 const categoryById = new Map(libraryCategories.map(category => [category.id, category]));
+
+export function gameCategory(mode) {
+  if (tabletopGames.has(mode?.id)) return "board";
+  if (categoryById.has(mode?.audience)) return mode.audience;
+  return mode?.collections?.find(id => categoryById.has(id)) || "other";
+}
+
 export function libraryModeCategory(mode) {
-  return categoryById.get(gameCategory(mode)) || categoryById.get(mode.collections?.[0]);
+  return categoryById.get(gameCategory(mode));
 }
 
 export function libraryModesFor(games, category) {
@@ -32,9 +36,8 @@ export function libraryGameTags(mode) {
 }
 
 export function filterLibraryGames(games, filter, input) {
-  if (filter === "category") return [];
   const query = normalize(input);
-  if (filter === "main" && !query) return games.filter(mode => !mode.hiddenFromLibrary && !libraryModeCategory(mode));
+  if (filter === "category" || (filter === "main" && !query)) return [];
   return games.filter(mode => {
     if (mode.hiddenFromLibrary || (!["all","main"].includes(filter) && !libraryGameTags(mode).includes(filter))) return false;
     if (!query) return true;

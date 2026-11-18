@@ -11,9 +11,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261118-20";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261118-29";
-import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-24";
-import { gamesList, getGameMode } from "./games.js?v=20261118-29";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261118-30";
+import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
+import { gamesList, getGameMode } from "./games.js?v=20261118-30";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261118-27";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261118-16";
@@ -55,11 +55,11 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-29";
-import { renderBoardModes, renderCollectionModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-29";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-29";
-import { Router } from "./router.js?v=20261118-24";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-29";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261118-30";
+import { renderBoardModes, renderCollectionModes, renderMinecraftModes, renderMusicModes, renderPlatform, renderPokemonModes, updatePlatformActivity } from "./platform.js?v=20261118-30";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261118-30";
+import { Router } from "./router.js?v=20261118-30";
+import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261118-30";
 import { renderShop, stopShopTimer } from "./shop.js?v=20260901-6";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261117-16";
@@ -2113,9 +2113,16 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   goMinecraftModes() { if(activeRoom())return actions.leaveRoom("platform");try { const url=new URL(window.location.href);url.pathname="/minecraft";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("minecraft-select"); },
   goMusicModes() { if(activeRoom())return actions.leaveRoom("music-select");try { const url=new URL(window.location.href);url.pathname="/muzyka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("music-select"); },
-  goTikTokModes() { if(activeRoom())return actions.leaveRoom("tiktok-select");try { const url=new URL(window.location.href);url.pathname="/hity-tiktoka";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("tiktok-select"); },
-  goKnowledgeModes() { if(activeRoom())return actions.leaveRoom("knowledge-select");try { const url=new URL(window.location.href);url.pathname="/wiedza";url.search="";window.history.pushState(null,"",url); } catch {} Router.go("knowledge-select"); },
-  goModeCategory(mode = getGameMode(state.selectedGameMode)) { const category = gameCategory(mode); if (category === "pokemon") return actions.goPokemonModes(); if (category === "board") return actions.goBoardModes(); if (category === "minecraft") return actions.goMinecraftModes(); if (category === "music") return actions.goMusicModes(); if (mode?.collections?.includes("tiktok")) return actions.goTikTokModes(); if (mode?.collections?.includes("knowledge")) return actions.goKnowledgeModes(); return actions.goPlatform(); },
+  goLibraryCategory(id) {
+    const category = libraryCategories.find(item => item.id === id);
+    if (!category) return actions.goPlatform();
+    if (activeRoom()) return actions.leaveRoom(category.screen);
+    window.history.pushState(null, "", category.path);
+    Router.go(category.screen);
+  },
+  goModeCategory(mode = getGameMode(state.selectedGameMode)) {
+    return actions.goLibraryCategory(gameCategory(mode));
+  },
   goPublicPage(path) { const screen=Router.publicScreenFromPath(path); if(!screen)return actions.goPlatform(); window.history.pushState(null,"",path); Router.go(screen); },
   goLobby() { setModeUrl(state.selectedGameMode); Router.go("lobby"); },
   goHome() { const destination=state.shopReturnScreen||"platform";state.shopReturnScreen=null;Router.go(destination); },
@@ -3344,7 +3351,10 @@ function renderNow(options = {}) {
   if (!musicModeReady(requestedMusic)) return finish(renderMusicLoader(view, requestedMusic));
   if(screen==="solo" && state.selectedGameMode==="minecraft-journey") return preserveJourney ? finish() : finish(renderAlexJourney(view,{playerId:popularitySoloPlayerId()},actions));
   if(screen==="solo" && state.selectedGameMode==="minecraft-backpack") return finish(renderLastBackpack(view,{playerId:popularitySoloPlayerId()},actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions)); if(screen==="tiktok-select") return finish(renderCollectionModes(view,actions,"tiktok")); if(screen==="knowledge-select") return finish(renderCollectionModes(view,actions,"knowledge")); if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "playlista-cup" && preserveCup) return finish(); if(state.selectedGameMode === "playlista-cup") return finish(renderPlaylistTournament(view,{playerId:popularitySoloPlayerId(),getProfile:profile},actions)); if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),getProfile:profile,playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); } if(screen==="pokemon-select") return finish(renderPokemonModes(view,actions)); if(screen==="board-select") return finish(renderBoardModes(view,actions)); if(screen==="minecraft-select") return finish(renderMinecraftModes(view,actions)); if(screen==="music-select") return finish(renderMusicModes(view,actions));
+  const collection = libraryCategories.find(category => category.screen === screen);
+  if (collection) return finish(renderCollectionModes(view,actions,collection.id));
+  if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "playlista-cup" && preserveCup) return finish(); if(state.selectedGameMode === "playlista-cup") return finish(renderPlaylistTournament(view,{playerId:popularitySoloPlayerId(),getProfile:profile},actions)); if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),getProfile:profile,playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
   const room=activeRoom(); if(!room) { ensureRoomPresence(null); return Router.go("platform"); } ensureRoomPresence(room); if(duoRoomHasGonePlayer(room)){ removeRemoteRoom(room.roomId); removeRoomLocally(room.roomId); state.activeRoomId=null; persistSession(); return Router.go("platform"); } if(leaveKickedRoom(room))return; if(closeLonelyFinishedRoom(room,{notify:true}))return;
   if(screen==="game") {
     try {

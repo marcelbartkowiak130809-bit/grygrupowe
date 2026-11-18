@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261118-29";
+import { renderGame } from "./game.js?v=20261118-30";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -52,6 +52,7 @@ export const gamesRegistry = {
     symbol: "⚡",
     art: "prove",
     featured: true,
+    collections: ["knowledge"],
     render: renderGame,
     defaultSettings: { answerTime: 30, rounds: 5 },
   },
@@ -297,7 +298,7 @@ export const gamesRegistry = {
     id: "unique-answer", name: "Bez powtórek", description: "Odpowiedz na wspólne pytanie tak, żeby nikt nie podał tego samego.", help: ["Wszyscy dostają jedno pytanie i wpisują po jednej odpowiedzi.", "Każda powtórzona odpowiedź zabiera życie wszystkim, którzy jej użyli.", "Po utracie wszystkich żyć gracz odpada, a ostatnia osoba w grze wygrywa.", "Przy 5–8 graczach host może sam wymyślać pytania."], allowReports:true, players:"3-8 osób", minPlayers:3, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🧩", art:"unique-answer", audience:"everyone", collections: ["tiktok"], render:renderUniqueAnswerGame, defaultSettings:uniqueAnswerDefaults,
   },
   "polacz-nas": {
-    id: "polacz-nas", name: "Połącz nas", description: "Podajcie po słowie i szukajcie wspólnego skojarzenia, aż oboje wpiszecie to samo.", help: ["W pierwszej rundzie każde z was wpisuje dowolne słowo w tajemnicy.", "Po odsłonięciu oboje wpisujecie po jednym słowie, które łączy poprzednią parę.", "Różne odpowiedzi tworzą nową parę. Gdy wpiszecie to samo, oboje wygrywacie."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔗", art:"connect", audience:"everyone", badges:["new"], render:renderConnectGame, defaultSettings:connectDefaults,
+    id: "polacz-nas", name: "Połącz nas", description: "Podajcie po słowie i szukajcie wspólnego skojarzenia, aż oboje wpiszecie to samo.", help: ["W pierwszej rundzie każde z was wpisuje dowolne słowo w tajemnicy.", "Po odsłonięciu oboje wpisujecie po jednym słowie, które łączy poprzednią parę.", "Różne odpowiedzi tworzą nową parę. Gdy wpiszecie to samo, oboje wygrywacie."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"🔗", art:"connect", audience:"everyone", collections:["tiktok"], badges:["new"], render:renderConnectGame, defaultSettings:connectDefaults,
   },
   klamca: {
     id: "klamca", name: "Kłamca", description: "Wszyscy odpowiadają na to samo pytanie, ale jedna osoba musi skłamać. Znajdźcie kłamcę.", help: ["Wszyscy dostają to samo pytanie o opinię albo doświadczenie.", "Jedna osoba widzi tajną instrukcję i musi odpowiedzieć kłamstwem.", "Po odpowiedziach czytacie wypowiedzi i głosujecie, kto jest Kłamcą.", "Trafiony gracz daje głosującym punkt, a niewykryty Kłamca dostaje 2 punkty."], allowReports: true, players: "3-8 osób", minPlayers: 3, maxPlayers: 8, supportsLobby: true, supportsSolo: false, symbol: "🎭", art: "impostor", audience: "everyone", badges: ["new"], collections: ["tiktok"], render: renderLiarGame, defaultSettings: liarDefaults,
@@ -337,6 +338,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
   },
   "minecraft-backpack": {
     id:"minecraft-backpack", name:"Ostatni plecak", description:"60 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
+    majorUpdateAt: Date.parse("2026-11-18T15:58:49+01:00"),
     help:["Wybierz przedmiot z plecaka i przeciągnij na planszę albo do craftingu 3×3.","Na telefonie możesz też dotknąć przedmiotu, a potem pola.","Zbuduj przejście, oświetl kopalnię i przywróć zasilanie. Błędne ruchy nie zużywają przedmiotów.","Składniki można odzyskać. Receptury znajdziesz pod warsztatem."],
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
   },

@@ -1,22 +1,21 @@
-import { gamesList } from "./games.js?v=20261118-29";
-import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-24";
-import { homeMenuHtml, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-24';
+import { gamesList } from "./games.js?v=20261118-30";
+import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
+import { homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-30';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261118-20";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261118-14";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261118-29";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261118-30";
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261118-14";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261118-29";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261118-30";
 import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
 
 const filters = [
-  ["main", "GŁÓWNE"],
+  ["main", "KATEGORIE"],
   ["all", "WSZYSTKIE"],
   ["new", "NOWE"],
   ["newQuestions", "NOWE PYTANIA"],
   ["popular", "POPULARNE"],
-  ["category", "KATEGORIE"],
   ["everyone", "GRA DLA KAŻDEGO"],
   ["crew", "GRA DLA EKIPY"],
   ["solo", "TRYB SOLO"],
@@ -29,9 +28,9 @@ const boardModes = libraryModesFor(gamesList, "board");
 
 function modeCategory(mode) {
   const category = gameCategory(mode);
-  if (category && libraryModeCategory(mode)?.id === category) return category;
+  if (["pokemon", "music", "minecraft", "board"].includes(category)) return category;
   if (mode.supportsSolo && !mode.supportsLobby) return "solo";
-  return category === "crew" ? "crew" : "everyone";
+  return mode.audience === "crew" ? "crew" : "everyone";
 }
 
 function bindModePlayActions(root, actions) {
@@ -207,7 +206,7 @@ function filterTag(label, css, filter) {
 
 function categoryTag(mode, context) {
   const category = modeCategory(mode);
-  if (category === "pokemon" || category === "music" || (context && libraryModeCategory(mode))) return "";
+  if (category === "pokemon" || category === "music" || (context && gameCategory(mode) !== "other")) return "";
   const labels = { solo:"TRYB SOLO", crew:"GRA DLA EKIPY", everyone:"GRA DLA KAŻDEGO", board:"PLANSZÓWKI", minecraft:"MINECRAFT" };
   const filter = context === "home" && ["solo","crew","everyone"].includes(category) ? category : "";
   return filterTag(labels[category], `tag-category-${category}`, filter);
@@ -418,8 +417,7 @@ function watchWeeklyUnlocks(root, actions) {
       const category = link.dataset.homeCategory;
       link.classList.toggle("weekly-release-highlight", Boolean(mode && (gameCategory(mode) === category || mode.collections?.includes(category))));
     });
-    const musicCount = root.querySelector("[data-home-music-count]");
-    if (musicCount) musicCount.textContent = gamesList.filter(game => game.audience === "music" && !game.hiddenFromLibrary && !isModeLocked(game.id, now)).length;
+    syncHomePicks(root, actions, now);
   }
   syncWeeklyCards(root, actions, now);
   if (snapshot.nextChangeAt) {
@@ -429,19 +427,44 @@ function watchWeeklyUnlocks(root, actions) {
   }
 }
 
+const homeRecommendations = new WeakMap();
+
+function syncHomePicks(root, actions, now) {
+  const slot = root.querySelector("[data-home-picks]");
+  if (!slot) return;
+  const {latest, recommended} = homeModePicks(gamesList, now, homeRecommendations.get(root));
+  homeRecommendations.set(root, recommended);
+  const key = [latest?.mode.id, latest?.updated, ...recommended.map(mode => mode.id)].join("/");
+  if (slot.dataset.picks === key) return;
+  slot.dataset.picks = key;
+  const pick = mode => `<button class="home-pick library-category-${gameCategory(mode)}" type="button" data-play-mode="${mode.id}">
+    <span class="home-pick-icon" aria-hidden="true">${visualSymbol(mode)}</span><span>${escapeHtml(mode.name)}</span><i aria-hidden="true">↗</i>
+  </button>`;
+  slot.innerHTML = `<section aria-labelledby="home-recommended-heading">
+    <h2 id="home-recommended-heading">Polecane</h2>
+    <div class="home-recommended-grid">${recommended.map(pick).join("")}</div>
+  </section>${latest ? `<section class="home-latest" aria-labelledby="home-latest-heading">
+    <h2 id="home-latest-heading">${latest.updated ? "Ostatnio ulepszone" : "Najnowszy tryb"}</h2>
+    ${pick(latest.mode)}
+  </section>` : ""}`;
+  bindModePlayActions(slot, actions);
+}
+
 function bindLibraryFilters(root, actions, initialActivity) {
   const search = root.querySelector("#game-search-input");
   const grid = root.querySelector(".games-grid");
   const categories = root.querySelector(".library-filter-categories");
   const empty = root.querySelector(".library-empty");
+  const mobileLayout = root.querySelector("[data-library-layout]");
   const chips = [...root.querySelectorAll("[data-game-filter]")];
   let filter = "main";
   let rendered;
   const render = () => {
-    const showCategories = filter === "category";
+    const showCategories = filter === "main" && !search.value.trim();
     const matches = filterLibraryGames(gamesList,filter,search.value).sort(compareMainModes);
     const key = matches.map(mode => mode.id).join(",");
     categories.hidden = !showCategories;
+    mobileLayout.hidden = showCategories || !matches.length;
     grid.hidden = showCategories || !matches.length;
     empty.hidden = showCategories || Boolean(matches.length);
     if (rendered === key) return;
@@ -467,7 +490,7 @@ function bindLibraryFilters(root, actions, initialActivity) {
     select(id);
     chips.find(chip => chip.dataset.gameFilter === id)?.focus();
   });
-  search.addEventListener("input", () => filter === "category" ? select("all") : render());
+  search.addEventListener("input", render);
   render();
 }
 
@@ -479,11 +502,13 @@ export function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? pollState(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
     <div data-weekly-unlock aria-live="polite"></div>
-    <nav class="library-categories" aria-label="Kategorie gier">
-      <h2>Kategorie</h2><div class="library-category-grid">${categoryTilesHtml(gamesList)}</div>
-    </nav>
-    <section class="backpack-release" aria-label="Nowa przygoda Minecraft"><img src="./assets/minecraft/backpack/compass.png" alt="Kompas Minecraft"><div><p class="eyebrow">NOWA PRZYGODA MINECRAFT</p><h2>Droga do Alex</h2><p>Spotkaj Alex, rozwiąż zagadki po drodze i odkryj kolejne rozdziały wyprawy.</p></div><button class="primary" data-unlock-mode="minecraft-journey">Wyrusz w drogę →</button><button class="ghost" data-unlock-mode="minecraft-backpack">Ostatni plecak</button></section>
-    ${homeMenuHtml(gamesList,isModeLocked)}
+    <div class="home-picks" data-home-picks></div>
+     <section class="${mobileGamesSectionClass(mobileLayout)}">
+       <div class="section-intro"><h2>Biblioteka gier</h2></div>
+       <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}</nav>
+       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu…"></label><div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div><div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div></div>
+       <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
+    </section>
     <section class="platform-hero">
       <div>
         <p class="eyebrow">GRY GRUPOWE</p>
@@ -502,12 +527,6 @@ export function renderPlatform(root, actions, context = {}) {
     ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
     ${sharePanelHtml()}
-     <section class="${mobileGamesSectionClass(mobileLayout)}">
-       <div class="section-intro"><div><p class="eyebrow">BIBLIOTEKA GIER</p><h2>W co dziś gramy?</h2></div></div>
-       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu…"></label><div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
-       <div class="library-category-grid library-filter-categories" hidden>${categoryTilesHtml(gamesList)}</div>
-       <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
-    </section>
     ${homeInfoHtml()}
   </main>`;
 
@@ -521,7 +540,6 @@ export function renderPlatform(root, actions, context = {}) {
   bindHomeMenu(root, actions);
   bindMobileGameLayout(root);
   root.querySelectorAll("[data-unlock-mode]").forEach(button=>button.addEventListener("click", event => actions.selectGame(event.currentTarget.dataset.unlockMode)));
-  bindModePlayActions(root.querySelector(".home-quick-picks"), actions);
   bindGameCardInteractions(root);
   root.querySelector("#platform-join-form").addEventListener("submit", event => {
     event.preventDefault();
