@@ -1,3 +1,4 @@
+import { mobQuestions } from "./minecraftMobQuestions.js?v=20261118-13";
 import { avatarHtml, escapeHtml, normalizeAnswer, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
 
@@ -108,25 +109,6 @@ const craftingQuestions = [
   { id: "craft-13", difficulty: "expert", icon: block("lodestone_side"), prompt: "Z czego zrobisz magnetyt, który może związać kompas z konkretnym miejscem?", answer: "cegły kamienne i sztabka netherytu", accepted: ["cegły kamienne i sztabka netherytu", "cegly kamienne i sztabka netherytu", "8 cegieł kamiennych i sztabka netherytu", "chiseled stone bricks netherite"] },
   { id: "craft-14", difficulty: "expert", icon: block("respawn_anchor_side0"), prompt: "Jakie bloki są potrzebne do kotwicy odrodzenia?", answer: "obsydian płaczu i glowstone", accepted: ["obsydian płaczu i glowstone", "obsydian placzu i glowstone", "crying obsidian glowstone"] },
   { id: "craft-15", difficulty: "expert", icon: item("conduit"), prompt: "Z czego buduje się aktywną ramę przewodnika?", answer: "prismarine", accepted: ["prismarine", "pryzmaryn", "pryzmaryn i latarnie morskie", "prismarine sea lantern"] },
-];
-
-const mobQuestions = [
-  { id: "mob-01", difficulty: "easy", icon: entity("creeper"), prompt: "Zielony, cichy do momentu syczenia i bardzo wybuchowy.", answer: "creeper", accepted: ["creeper", "creepera", "creeperem"] },
-  { id: "mob-02", difficulty: "easy", icon: entity("zombie"), prompt: "Nocny nieumarły, który powoli idzie w stronę gracza i pali się na słońcu.", answer: "zombie", accepted: ["zombie", "zombi"] },
-  { id: "mob-03", difficulty: "easy", icon: entity("skeleton"), prompt: "Nieumarły łucznik, który potrafi strzelać z dużej odległości.", answer: "szkielet", accepted: ["szkielet", "skeleton"] },
-  { id: "mob-04", difficulty: "easy", icon: entity("spider"), prompt: "Wspina się po ścianach, a w ciemności ma czerwone oczy.", answer: "pająk", accepted: ["pająk", "pajak", "spider"] },
-  { id: "mob-05", difficulty: "medium", icon: entity("enderman"), prompt: "Wysoki, czarny i teleportuje się, gdy spojrzysz mu prosto w oczy.", answer: "enderman", accepted: ["enderman", "endermanem"] },
-  { id: "mob-06", difficulty: "medium", icon: entity("blaze"), prompt: "Lata w Netherze, jest otoczony obracającymi się prętami i strzela ogniem.", answer: "blaze", accepted: ["blaze", "płomyk", "plomyk"] },
-  { id: "mob-07", difficulty: "medium", icon: entity("ghast"), prompt: "Duży, biały mob latający w Netherze i wysyłający ogniste kule.", answer: "ghast", accepted: ["ghast", "ghastem"] },
-  { id: "mob-08", difficulty: "medium", icon: entity("piglin", "piglin"), prompt: "Netherowy humanoid, który lubi złoto i atakuje graczy bez złotej części zbroi.", answer: "piglin", accepted: ["piglin", "piglinem"] },
-  { id: "mob-09", difficulty: "hard", icon: entity("warden"), prompt: "Ślepy strażnik głębin, który wykrywa wibracje i korzysta z ataku sonicznego.", answer: "warden", accepted: ["warden", "strażnik", "straznik"] },
-  { id: "mob-10", difficulty: "hard", icon: entity("allay"), prompt: "Mały niebieski pomocnik, który może przynosić przedmioty podobne do wskazanego.", answer: "allay", accepted: ["allay", "alej"] },
-  { id: "mob-11", difficulty: "hard", icon: entity("phantom"), prompt: "Latający nieumarły, który poluje na graczy długo niespiących.", answer: "phantom", accepted: ["phantom", "fantom"] },
-  { id: "mob-12", difficulty: "hard", icon: entity("shulker"), prompt: "Ukrywa się w fioletowej skorupie i strzela pociskami lewitacji.", answer: "shulker", accepted: ["shulker", "skulker"] },
-  { id: "mob-13", difficulty: "expert", icon: entity("breeze"), prompt: "Nowy przeciwnik z komnat prób, który walczy podmuchami wiatru.", answer: "breeze", accepted: ["breeze", "wiatrak", "bryza"] },
-  { id: "mob-14", difficulty: "expert", icon: entity("sniffer"), prompt: "Starożytny pasywny mob, który węszy i wykopuje nasiona z ziemi.", answer: "sniffer", accepted: ["sniffer", "węszyciel", "weszyciel"] },
-  { id: "mob-15", difficulty: "expert", icon: entity("iron_golem"), prompt: "Duży obrońca wiosek, którego gracz może także zbudować z żelaza i dyni.", answer: "golem żelazny", accepted: ["golem żelazny", "golem zelazny", "iron golem", "żelazny golem"] },
-  { id: "mob-16", difficulty: "expert", icon: entity("wither", "wither"), prompt: "Trójgłowy boss, którego przywołuje się z piasku dusz i czaszek szkieletów.", answer: "wither", accepted: ["wither", "with er"] },
 ];
 
 const biomeQuestions = [
@@ -258,7 +240,14 @@ function questionFor(modeId, settings, usedIds = []) {
   const filtered = pool.filter(question => (difficultyRank[question.difficulty] || 2) <= limit);
   const eligible = filtered.length ? filtered : pool;
   const unused = eligible.filter(question => !usedIds.includes(question.id));
-  return { ...(pick(unused.length ? unused : eligible) || eligible[0]) };
+  if (unused.length) return { ...pick(unused) };
+  if (modeId === "minecraft-mob") {
+    // A rematch may start with a full history. Recycle the least recent eligible mob.
+    const eligibleById = new Map(eligible.map(question => [question.id, question]));
+    const oldestId = usedIds.find(id => eligibleById.has(id));
+    return { ...eligibleById.get(oldestId) };
+  }
+  return { ...pick(eligible) };
 }
 
 function scoresFor(players, scores = {}) {
@@ -304,7 +293,10 @@ function winnerData(game) {
 function beginQuestion(game, settings, players) {
   const question = questionFor(game.mode, settings, game.usedQuestionIds);
   game.question = question;
-  game.usedQuestionIds = unique([...list(game.usedQuestionIds), question.id]);
+  const usedIds = list(game.usedQuestionIds);
+  game.usedQuestionIds = game.mode === "minecraft-mob"
+    ? [...usedIds.filter(id => id !== question.id), question.id].slice(-40)
+    : unique([...usedIds, question.id]);
   game.answers = {};
   game.lastAnswer = null;
   game.roundResult = null;
@@ -444,6 +436,9 @@ export function minecraftBotAnswer(game, room, bot, shouldBeCorrect = true, diff
   return { text: misses[seed % misses.length] };
 }
 
+const mobPortraitsById = new Map(mobQuestions.map(question => [question.id, question.icon]));
+const mobPortrait = (question) => mobPortraitsById.get(question?.id) || minecraftModeIcons["minecraft-mob"];
+
 function imageHtml(src, alt, className = "minecraft-question-icon") {
   const fallback = item("grass_block");
   return `<img class="${className}" src="${escapeHtml(src || fallback)}" alt="${escapeHtml(alt || "Ikona Minecraft")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${fallback}'">`;
@@ -504,14 +499,15 @@ function questionCard(game, currentUser, accounts) {
   if (isTruth) {
     return `<section class="minecraft-question-card minecraft-truth-card"><div class="minecraft-question-heading">${imageHtml(question.icon || item("enchanted_book"), "Książka Minecraft")}<div><p class="eyebrow">STWIERDZENIE</p><h2>${escapeHtml(question.statement || prompt)}</h2></div></div>${turnStatus(game, currentUser, accounts)}<p class="minecraft-instruction">Każdy wybiera własną odpowiedź. Po zebraniu odpowiedzi sprawdzimy fakt.</p><div class="minecraft-choice-grid"><button class="minecraft-choice minecraft-choice-true" data-minecraft-answer-option="0" ${alreadyAnswered || game.phase !== "question" ? "disabled" : ""}>✅ PRAWDA</button><button class="minecraft-choice minecraft-choice-false" data-minecraft-answer-option="1" ${alreadyAnswered || game.phase !== "question" ? "disabled" : ""}>❌ FAŁSZ</button></div>${alreadyAnswered ? '<p class="minecraft-waiting">Odpowiedź zapisana — czekamy na resztę ekipy.</p>' : ""}</section>`;
   }
-  const questionImage = question.icon || minecraftModeIcons[game.mode];
+  const isMob = game.mode === "minecraft-mob";
+  const questionImage = isMob ? mobPortrait(question) : question.icon || minecraftModeIcons[game.mode];
   const promptLabel = game.mode === "minecraft-mob" ? "JAKI TO MOB?" : game.mode === "minecraft-biome" ? "JAKI TO BIOM?" : game.mode === "minecraft-crafting" ? "CRAFTING CHALLENGE" : game.mode === "minecraft-redstone" ? "AWARIA REDSTONE" : "MINECRAFT SPRINT";
   const answerMarkup = game.phase === "turn" && isCurrent ? game.mode === "minecraft-redstone"
     ? `<div class="minecraft-choice-grid minecraft-redstone-options">${list(question.options).map((option, index) => `<button class="minecraft-choice" data-minecraft-answer-option="${index}">${String.fromCharCode(65 + index)}. ${escapeHtml(option)}</button>`).join("")}</div>`
     : `<form class="minecraft-answer-form" data-minecraft-answer-form><input name="answer" maxlength="160" autocomplete="off" placeholder="Wpisz odpowiedź…" autofocus><button class="primary" type="submit">Sprawdź <span>↵</span></button></form>`
     : `<div class="minecraft-waiting-card">${isTurn ? `${imageHtml(minecraftModeIcons[game.mode], "Minecraft")}<span>${escapeHtml(game.currentUid ? `Teraz odpowiada ${accounts?.[game.currentUid]?.nick || "wybrany gracz"}.` : "Czekamy na odpowiedź.")}</span>` : ""}</div>`;
   const questionClass = game.mode === "minecraft-mob" ? " minecraft-mob-question" : "";
-  return `<section class="minecraft-question-card${questionClass} ${isCurrent ? "is-your-turn" : ""}"><div class="minecraft-question-heading">${imageHtml(questionImage, meta.kind, game.mode === "minecraft-mob" ? "minecraft-question-icon minecraft-mob-silhouette" : "minecraft-question-icon")}<div><p class="eyebrow">${promptLabel}</p><h2>${escapeHtml(prompt)}</h2></div></div>${turnStatus(game, currentUser, accounts)}${game.mode === "minecraft-mob" ? `<p class="minecraft-hint-line">Rozpoznaj po zachowaniu, ataku i miejscu występowania.</p>` : ""}${game.mode === "minecraft-biome" ? `<p class="minecraft-hint-line">Klimat, roślinność i bloki zdradzają wszystko.</p>` : ""}${answerMarkup}</section>`;
+  return `<section class="minecraft-question-card${questionClass} ${isCurrent ? "is-your-turn" : ""}"><div class="minecraft-question-heading">${imageHtml(questionImage, isMob ? "Głowa moba" : meta.kind, isMob ? "minecraft-question-icon minecraft-mob-portrait" : "minecraft-question-icon")}<div><p class="eyebrow">${promptLabel}</p><h2>${escapeHtml(prompt)}</h2></div></div>${turnStatus(game, currentUser, accounts)}${game.mode === "minecraft-biome" ? `<p class="minecraft-hint-line">Klimat, roślinność i bloki zdradzają wszystko.</p>` : ""}${answerMarkup}</section>`;
 }
 
 function revealCard(game, accounts) {
@@ -521,7 +517,7 @@ function revealCard(game, accounts) {
   }
   const answerOwner = accounts[result.uid] || { nick: "Gracz" };
   const expected = result.expected || game.question?.answer || "—";
-  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">ODPOWIEDŹ ${result.correct ? "TRAFIONA" : "NIE TRAFIŁA"}</p>${game.mode === "minecraft-mob" ? imageHtml(game.question?.icon, "Rozwiązany mob", "minecraft-reveal-icon") : ""}<div class="minecraft-reveal-owner">${resultPlayerMiniHtml(answerOwner, result.correct ? "win" : "lose")}</div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : "❌"} ${escapeHtml(result.answer || "Brak odpowiedzi")}</strong><p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
+  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">ODPOWIEDŹ ${result.correct ? "TRAFIONA" : "NIE TRAFIŁA"}</p>${game.mode === "minecraft-mob" ? imageHtml(mobPortrait(game.question), "Głowa moba", "minecraft-reveal-icon minecraft-mob-portrait") : ""}<div class="minecraft-reveal-owner">${resultPlayerMiniHtml(answerOwner, result.correct ? "win" : "lose")}</div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : "❌"} ${escapeHtml(result.answer || "Brak odpowiedzi")}</strong><p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
 }
 
 function finalResults(game, accounts, room, currentUser) {

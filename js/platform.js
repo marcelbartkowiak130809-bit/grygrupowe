@@ -8,7 +8,7 @@ import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.
 import { escapeHtml, icon } from "./utils.js?v=20260822-1";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261118-1";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261117-16";
-import { minecraftModeIcons } from "./minecraft.js?v=20260901-8";
+import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
 
 const filters = [
   ["all", "WSZYSTKIE"],

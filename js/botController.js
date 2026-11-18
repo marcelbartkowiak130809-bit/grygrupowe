@@ -34,7 +34,7 @@ import { LyricsEngine } from "./lyrics.js?v=20261117-10";
 import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261117-16";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20260901-10";
-import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20260901-8";
+import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261118-13";
 import { serverNow } from "./firebase.js?v=20261010-7";
 import { gameMomentKey } from "./roomLifecycle.js";
 
