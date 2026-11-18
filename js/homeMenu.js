@@ -1,6 +1,24 @@
 import { libraryCategories, libraryModesFor } from './gameCategories.js?v=20261118-30';
 import { modeUnlockInfo } from './upcomingModes.js?v=20261118-14';
 
+export function homeMusicFeatureHtml() {
+  return `<section class="home-music-feature" aria-labelledby="home-music-heading">
+    <div class="home-feature-copy">
+      <h1 id="home-music-heading">Włącz swój<br><span>tryb grania.</span></h1>
+      <p>Zgaduj polskie i światowe hity lub wybierz zwycięzcę Turnieju hitów.</p>
+      <a class="primary" href="/muzyka" data-home-category="music">Odkryj muzykę <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="home-record-scene" aria-hidden="true">
+      <div class="home-record"><div class="home-record-label">GG<span>GRY GRUPOWE</span></div></div>
+      <div class="home-player-chip">
+        <span>♫</span><div><b>Zgadnij utwór</b><small>Polskie i światowe hity</small></div>
+        <div class="home-equalizer">${[0,1,2,3,4].map(i=>`<i style="--beat:${i}"></i>`).join('')}</div>
+      </div>
+      <span class="home-note home-note-a">♪</span><span class="home-note home-note-b">♫</span>
+    </div>
+  </section>`;
+}
+
 export function categoryTilesHtml(games) {
   return libraryCategories.map(({id,name,symbol,path}) => {
     const count = libraryModesFor(games,id).length;
@@ -10,6 +28,7 @@ export function categoryTilesHtml(games) {
       <span class="library-category-icon" aria-hidden="true">${symbol}</span>
       <span class="library-category-copy"><strong>${name}</strong><small>${count} ${tryby}</small></span>
       <i aria-hidden="true">›</i>
+      <span class="library-category-art" aria-hidden="true">${symbol}</span>
     </a>`;
   }).join("");
 }

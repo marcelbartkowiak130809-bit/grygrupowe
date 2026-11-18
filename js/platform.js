@@ -1,6 +1,6 @@
 import { gamesList } from "./games.js?v=20261118-30";
 import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
-import { homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-30';
+import { homeMusicFeatureHtml, homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261118-31';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261118-20";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261118-14";
@@ -502,6 +502,7 @@ export function renderPlatform(root, actions, context = {}) {
   const currentPollState = POLLS_ENABLED ? pollState(visiblePoll(), context.voterId || "anonymous") : null;
   root.innerHTML = `<main class="page platform-page home-menu-page enter">
     <div data-weekly-unlock aria-live="polite"></div>
+    ${homeMusicFeatureHtml()}
     <div class="home-picks" data-home-picks></div>
      <section class="${mobileGamesSectionClass(mobileLayout)}">
        <div class="section-intro"><h2>Biblioteka gier</h2></div>
