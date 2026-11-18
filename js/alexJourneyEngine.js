@@ -1,4 +1,4 @@
-import {journeyScenes,journeyScene,journeyItems,journeyRecipes,baseJourneyTerrain} from './alexJourneyWorld.js?v=20261117-10';
+import {journeyScenes,journeyScene,journeyItems,journeyRecipes,baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 export {journeyScenes,journeyScene,journeyItems,journeyRecipes};
 export const journeyTier=item=>({wooden_pickaxe:1,stone_pickaxe:2,iron_pickaxe:3}[item]||0);
 export function createJourney(rulesVersion=2){return {version:1,rulesVersion,log:[],undo:[],scene:0,farthest:0,stock:{},discovered:[],grid:Array(9).fill(''),selected:'',world:journeyScenes.map(()=>({nodes:{},placed:{},fuel:{},flags:{}})),completed:Array(10).fill(false),hero:{scene:0,x:6},steps:0,crafted:0,looted:0,food:0,done:false,startedAt:Date.now(),finishedAt:0,message:'Alex czeka po drugiej stronie gór. Zacznij od zapasów.',effect:null};}

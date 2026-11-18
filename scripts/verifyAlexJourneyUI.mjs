@@ -24,11 +24,26 @@ const perform=a=>{
  else if(a.type==='next')click('[data-j-next]');
  else if(a.type==='eat')click('[data-j-eat]');
  else throw Error('Unsupported UI action '+a.type);
+ if(a.type==='tile'&&s.scene===4){
+  const targets=[...root.querySelectorAll('.torch-target')].map(button=>Number(button.dataset.jX));
+  assert.deepEqual(targets,a.x===8?[13]:[]);
+  if(!targets.length)assert.match(root.querySelector('.journey-objective').textContent,/kamienny kilof/);
+ }
  const replayed=restoreJourney(stored.get('grygrupowe-alex-journey-v1:'+playerId));assert.deepEqual(replayed.stock,s.stock,JSON.stringify(a)+' / '+root.querySelector('.journey-message').textContent+' / '+JSON.stringify(replayed.world[replayed.scene].placed));assert.deepEqual(replayed.world,s.world);assert.equal(replayed.scene,s.scene);
  assert.equal(root.querySelector('.journey-track'),track,'camera track persists');assert.equal(root.querySelector('[data-j-scene-panel="0"]'),firstScene,'earlier scenery remains mounted');
  return true;
 };
-for(let scene=0;scene<10;scene++){console.log(`Checking journey scene ${scene+1}/10`);solveJourneyScene(s,{perform});assert.ok(root.querySelector('.journey-message.good'));if(scene<9)perform({type:'next'});}
+for(let scene=0;scene<10;scene++){
+ console.log(`Checking journey scene ${scene+1}/10`);
+ if(scene===4){
+  assert.deepEqual([...root.querySelectorAll('.torch-target')].map(button=>Number(button.dataset.jX)),[7,13]);
+  assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);
+  assert.match(root.querySelector('.journey-objective').textContent,/dwóch złotych kratkach/);
+ }
+ solveJourneyScene(s,{perform});
+ assert.ok(root.querySelector('.journey-message.good'));
+ if(scene<9)perform({type:'next'});
+}
 assert.ok(root.querySelector('.journey-ending'));assert.equal(root.querySelectorAll('[data-j-scene-panel]').length,10);
 assert.equal(root.querySelectorAll('.journey-hearts span').length,8);assert.equal(root.querySelector('[data-j-exit]'),null);assert.match(root.querySelector('.journey-ending').textContent,/czas przejścia/);assert.ok(root.querySelector('.is-finished'));
 // Return to the first scene after the ending: the old log and pig remain depleted.

@@ -1,13 +1,14 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,journeyScene,journeyItems,journeyRecipes,journeyRecipe,journeySurface,journeyTerrain,journeyLit,journeyAssetId} from './alexJourneyEngine.js?v=20261117-10';
-import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261117-10';
-import {journeyObjective,journeyTime} from './alexJourneyObjectives.js?v=20261117-10';
+import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,journeyScene,journeyItems,journeyRecipes,journeyRecipe,journeySurface,journeyTerrain,journeyLit,journeyAssetId} from './alexJourneyEngine.js?v=20261118-6';
+import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
+import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261118-6';
 const asset=id=>new URL(`../assets/minecraft/backpack/${journeyAssetId(id)}.png`,import.meta.url).href;
 const image=(id,alt='',className='')=>`<img src="${asset(id)}" alt="${escapeHtml(alt)}" class="${className}" draggable="false">`;
 const stateByPlayer=new Map(),views=new Map(),motion=new WeakMap();
 const storageKey=id=>`grygrupowe-alex-journey-v1:${id}`;
 const reduced=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const defaultPan=s=>s.scene===4||s.hero.x>9?4:0;
 function load(id){try{return restoreJourney(localStorage.getItem(storageKey(id)));}catch{return createJourney();}}
 function save(id,s){try{localStorage.setItem(storageKey(id),saveJourney(s));return true;}catch{return false;}}
 function skinPiece(id,x,y,w,h,dx,dy,dw=w,dh=h,cls=''){return `<svg class="${cls}" x="${dx}" y="${dy}" width="${dw}" height="${dh}" viewBox="${x} ${y} ${w} ${h}" overflow="hidden"><image href="${asset(id)}" x="0" y="0" width="64" height="64"/></svg>`;}
@@ -48,7 +49,13 @@ function sceneHtml(l,index,s){const w=s.world[index],active=index===s.scene;
   if(l.id==='mine')for(let x=6;x<=14;x++)cells.push([x,4]);
   if(l.id==='forge')cells.push([10,5]);
   if(l.id==='gate')for(const x of [7,8,9,10,11])cells.push([x,5]);
-  for(const [x,y]of cells)html+=`<button class="journey-build ${w.placed[y*16+x]?'occupied':''} ${s.selected?'item-ready':''}" style="${at(x,y)}" data-j-x="${x}" data-j-y="${y}" aria-label="Pole budowy ${x+1}, ${y+1}${w.placed[y*16+x]?', '+journeyItems[w.placed[y*16+x]]:''}" ${s.done?'disabled':''}></button>`;
+  const torchTargets=l.id==='mine'?journeyTorchTargets(s):[];
+  for(const [x,y]of cells){
+   const item=w.placed[y*16+x],target=torchTargets.includes(x);
+   const optional=l.id==='mine'&&!target&&!item;
+   const label=target?'Tu postaw pochodnię':`Pole budowy ${x+1}, ${y+1}${item?', '+journeyItems[item]:''}`;
+   html+=`<button class="journey-build ${item?'occupied':''} ${s.selected?'item-ready':''} ${target?'torch-target':''} ${optional?'torch-optional':''}" style="${at(x,y)}" data-j-x="${x}" data-j-y="${y}" aria-label="${escapeHtml(label)}" ${optional?'tabindex="-1"':''}>${target?image('torch','','torch-target-icon'):''}</button>`;
+  }
   html+=`<button class="journey-exit" style="${at(l.exit,l.id==='ridge'?3:5)}" data-j-exit aria-label="Przejdź na drugi brzeg lub do końca drogi">→</button>`;
  }
  if(l.id==='mine'){for(let x=0;x<16;x++)html+=`<span class="journey-dark ${journeyLit(s,index,x)||x<=5?'is-lit':''}" style="${at(x,1,1,5)}" aria-hidden="true"></span>`;}
@@ -63,10 +70,10 @@ function feedback(root,s,a){if(reduced())return;
 export function renderAlexJourney(root,{playerId='guest'}={},actions={}){
  root.setAttribute('data-journey-player',String(playerId));
  if(!stateByPlayer.has(playerId))stateByPlayer.set(playerId,load(playerId));const s=stateByPlayer.get(playerId);
- if(!views.has(playerId))views.set(playerId,{pan:s.hero.x>9?4:0,lastScene:s.scene,recipes:false,hint:false,until:0});const ui=views.get(playerId);if(ui.lastScene!==s.scene){ui.pan=0;ui.lastScene=s.scene;}
+ if(!views.has(playerId))views.set(playerId,{pan:defaultPan(s),lastScene:s.scene,recipes:false,hint:false,until:0});const ui=views.get(playerId);if(ui.lastScene!==s.scene){ui.pan=defaultPan(s);ui.lastScene=s.scene;}
  const scene=journeyScene(s),objective=journeyObjective(s),finished=s.done&&s.scene===9,recipe=journeyRecipe(s.grid),current=s.discovered.filter(id=>journeyItems[id]).map(id=>[id,journeyItems[id]]);
  const act=a=>{if(Date.now()<ui.until&&a.type!=='undo')return;const before=s.scene;const wasDone=s.done;if(!journeyAction(s,a))return;
-  const persisted=save(playerId,s);if(before!==s.scene){ui.pan=s.hero.x>9?4:0;ui.lastScene=s.scene;ui.until=Date.now()+(reduced()?0:850);}else if(s.hero.scene===s.scene&&s.hero.x>9)ui.pan=4;
+  const persisted=save(playerId,s);if(before!==s.scene){ui.pan=defaultPan(s);ui.lastScene=s.scene;ui.until=Date.now()+(reduced()?0:850);}else if(s.hero.scene===s.scene&&s.hero.x>9)ui.pan=4;
   renderAlexJourney(root,{playerId},actions);if(!persisted){const msg=root.querySelector('.journey-message');msg.textContent+=' Przeglądarka nie zapisała postępu — zostaw kartę otwartą.';}feedback(root,s,a);if(!wasDone&&s.done)root.querySelector('.journey-play').scrollIntoView?.({behavior:reduced()?'auto':'smooth',block:'start'});
  };
  const heroSurface=Math.min(7,journeySurface(s,s.hero.scene,s.hero.x));

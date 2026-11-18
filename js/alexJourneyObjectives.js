@@ -1,6 +1,11 @@
-import {journeyScene,journeyLit,journeyCanCross} from './alexJourneyEngine.js?v=20261117-10';
+import {journeyScene,journeyLit,journeyCanCross} from './alexJourneyEngine.js?v=20261118-6';
 
 export function journeyTime(s){const seconds=Math.max(0,Math.round(((s.done?s.finishedAt:Date.now())-s.startedAt)/1000));return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
+
+export function journeyTorchTargets(s){
+ const scene=journeyScene(s);
+ return s.completed[s.scene]?[]:(scene.lights||[]).filter(x=>!journeyLit(s,s.scene,x));
+}
 
 // One readable, state-dependent next action rather than an unchanged paragraph.
 export function journeyObjective(s){
@@ -16,9 +21,14 @@ export function journeyObjective(s){
  case 3:
   if(!has('wooden_pickaxe')&&!has('stone_pickaxe'))return ['Zbierz drewno i wytwórz drewniany kilof.','Otwórz „Receptury”, przygotuj deski, patyki i kilof. Kliknięcie receptury układa składniki.'];
   return (s.stock.cobblestone||0)<3?['Wybierz kilof i wydobądź 3 sztuki bruku.','Klikaj głaz po prawej. Potem przygotuj kamienny kilof w craftingu.']:['Wytwórz kamienny kilof.','Receptura: 3 sztuki bruku i 2 patyki. Odbierz gotowy kilof strzałką przy craftingu.'];
- case 4:
-  if(!l.lights.every(x=>journeyLit(s,4,x)))return ['Oświetl oba końce tunelu pochodniami.','Wydobądź węgiel kilofem. W craftingu połącz go z patykiem, wybierz pochodnie i kliknij ścianę tunelu.'];
+ case 4:{
+  const missing=journeyTorchTargets(s);
+  if(missing.length)return [
+   missing.length===2?'Postaw po jednej pochodni w dwóch złotych kratkach.':'Postaw pochodnię w ostatniej złotej kratce.',
+   has('torch')?'Wybierz pochodnię z plecaka i kliknij oznaczone pole.':'Wydobądź węgiel i połącz go z patykiem w craftingu.'
+  ];
   return ['Wybierz kamienny kilof i wydobądź żelazo.','Potrzebujesz 3 rudy. Złoże jest w oświetlonej części tunelu.'];
+ }
  case 5:
   if(w.placed[90]!=='furnace'&&!has('furnace'))return ['Zdobądź 8 sztuk bruku i wytwórz piec.','Wybierz kilof, klikaj głaz, a następnie użyj receptury pieca w plecaku.'];
   if(w.placed[90]!=='furnace')return ['Wybierz piec i postaw go na palenisku.','Kliknij kamienną podstawę na środku polany.'];

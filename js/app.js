@@ -4,7 +4,7 @@ import { changelogEntries, latestChangelog } from "./changelog.js?v=20261118-1";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import { Effects } from "./effects.js";
 import { renderLastBackpack } from './lastBackpack.js?v=20261118-3';
-import { renderAlexJourney } from './alexJourney.js?v=20261117-10';
+import { renderAlexJourney } from './alexJourney.js?v=20261118-6';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261117-14";
