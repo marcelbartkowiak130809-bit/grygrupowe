@@ -30,8 +30,11 @@ const perform=a=>{
   assert.deepEqual(targets,a.x===8?[13]:[]);
   if(!targets.length)assert.match(root.querySelector('.journey-objective').textContent,/kamienny kilof/);
  }
- const replayed=restoreJourney(stored.get('grygrupowe-alex-journey-v1:'+playerId));assert.deepEqual(replayed.stock,s.stock,JSON.stringify(a)+' / '+root.querySelector('.journey-message').textContent+' / '+JSON.stringify(replayed.world[replayed.scene].placed));assert.deepEqual(replayed.world,s.world);assert.equal(replayed.scene,s.scene);
- assert.equal(root.querySelector('.journey-track'),track,'camera track persists');assert.equal(root.querySelector('[data-j-scene-panel="0"]'),firstScene,'earlier scenery remains mounted');
+ const replayed=restoreJourney(stored.get('grygrupowe-alex-journey-v1:'+playerId));assert.deepEqual(replayed.stock,s.stock,JSON.stringify(a)+' / '+root.querySelector('.journey-message')?.textContent+' / '+JSON.stringify(replayed.world[replayed.scene].placed));assert.deepEqual(replayed.world,s.world);assert.equal(replayed.scene,s.scene);
+ if(!s.done){
+  assert.equal(root.querySelector('.journey-track'),track,'camera track persists');
+  assert.equal(root.querySelector('[data-j-scene-panel="0"]'),firstScene,'earlier scenery remains mounted');
+ }
  return true;
 };
 for(let scene=0;scene<10;scene++){
@@ -42,9 +45,13 @@ for(let scene=0;scene<10;scene++){
   assert.match(root.querySelector('.journey-objective').textContent,/dwóch złotych kratkach/);
  }
  solveJourneyScene(s,{perform});
- assert.ok(root.querySelector('.journey-message.good'));
+ if(!s.done)assert.ok(root.querySelector('.journey-message.good'));
  if(scene<9)perform({type:'next'});
 }
+assert.ok(root.querySelector('[data-alex-comic="reunion-0"]'));
+for(const frame of [1,2]){click('[data-comic-next]');assert.ok(root.querySelector(`[data-alex-comic="reunion-${frame}"]`));}
+assert.ok(root.querySelector('.alex-hug-alex svg g[transform]'));
+click('[data-comic-next]');
 assert.ok(root.querySelector('.journey-ending'));assert.equal(root.querySelectorAll('[data-j-scene-panel]').length,10);
 assert.equal(root.querySelectorAll('.journey-hearts span').length,8);assert.equal(root.querySelector('[data-j-exit]'),null);assert.match(root.querySelector('.journey-ending').textContent,/czas przejścia/);assert.ok(root.querySelector('.is-finished'));
 // Return to the first scene after the ending: the old log and pig remain depleted.
@@ -53,9 +60,12 @@ const {renderAlexJourney:fresh}=await import('../js/alexJourney.js?fresh-ui-test
 click('[data-j-travel="9"]');assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);assert.ok(root.querySelector('.journey-hearts'));
 const {renderAlexJourney:reloadEnding}=await import('../js/alexJourney.js?ending-reload-test');reloadEnding(root,{playerId},{});assert.match(root.querySelector('.journey-track').getAttribute('style'),/--pan:4/);
 click('[data-journey-chapter="2"]');
+assert.ok(root.querySelector('[data-alex-comic="raid-0"]'));
+for(const frame of [1,2]){click('[data-comic-next]');assert.ok(root.querySelector(`[data-alex-comic="raid-${frame}"]`));}
+click('[data-comic-next]');
 assert.match(root.querySelector('.rescue-quest h2').textContent,/Ten sam dom/);
-click('[data-rescue-node="embrace"]');
-assert.ok(root.querySelector('.effect-abduction'));
+assert.equal(root.querySelector('[data-rescue-node="embrace"]'),null);
+assert.match(root.querySelector('.rescue-foot').textContent,/Zombie porwały Alex/);
 click('[data-rescue-node="trail"]');click('[data-rescue-next]');
 assert.match(root.querySelector('.rescue-quest h2').textContent,/Zbrojownia/);
 const {renderAlexJourney:resumedChapter}=await import('../js/alexJourney.js?chapter-two-reload-test');

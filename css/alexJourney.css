@@ -74,9 +74,6 @@
 .rescue-node.guard-awake svg{animation:rescue-guard .28s ease-out}
 .guard-indicator{position:absolute;top:0;right:0;padding:3px 4px;border-radius:4px;background:#202b35de;color:#feeec3;font-size:clamp(9px,2vw,15px);font-weight:900}
 .rescue-actor{z-index:4;pointer-events:none}
-.rescue-kidnapper,.rescue-captive{opacity:0}
-.effect-abduction .rescue-kidnapper{animation:rescue-kidnap 1.15s ease-in-out both}
-.effect-abduction .rescue-captive{animation:rescue-kidnap 1s .18s ease-in-out both}
 .rescue-horde{transition:left .5s ease;filter:drop-shadow(1px 3px 2px #0008);animation:rescue-bob 1s calc(var(--mob) * -.18s) ease-in-out infinite alternate}
 .effect-flood::after{position:absolute;inset:55% 0 20%;background:linear-gradient(95deg,transparent,#9ae4fc7a 65%,#3bbaf2a8);content:"";pointer-events:none;animation:rescue-water .7s ease-out both}
 .rescue-hero{position:absolute;z-index:5;left:calc((var(--hero) - .5) * 100% / 96);top:44.444%;width:1.25%;height:22.222%;transition:left .55s cubic-bezier(.3,.65,.4,1);pointer-events:none;filter:drop-shadow(2px 3px 2px #0006)}
@@ -86,7 +83,6 @@
 .rescue-foot p{margin:0;color:#dbe7d7;font-size:13px;line-height:1.5}.rescue-foot .journey-next{flex:none}
 .rescue-pack h3{margin:0 0 10px}.rescue-pack p{margin:8px 0 0;color:#b1c9b4;font-size:12px}
 .rescue-finished .rescue-quest h2{color:#ffbed0}
-@keyframes rescue-kidnap{0%{opacity:0;transform:translateX(150%)}45%{opacity:1;transform:translateX(-150%)}100%{opacity:1;transform:translateX(220%)}}
 @keyframes rescue-beam{from{opacity:0}to{opacity:1}}
 @keyframes rescue-guard{from{transform:rotate(-75deg)}to{transform:none}}
 @keyframes rescue-bob{to{transform:translateY(-4px)}}
@@ -259,3 +255,67 @@
 .siege-shards i:nth-child(2) { left:68%; top:6%; width:8%; transform:rotate(-18deg); }
 .siege-shards i:nth-child(3) { left:51%; top:69%; width:15%; transform:rotate(-42deg); }
 .siege-shards i:nth-child(4) { left:16%; top:90%; width:7%; transform:rotate(51deg); }
+
+.alex-comic-page .siege-storyboard { max-width:1000px; }
+.alex-comic-stage,.alex-comic-backdrop,.alex-kidnap-group { position:absolute; inset:0; }
+.alex-comic-backdrop { pointer-events:none; }
+.alex-comic-actor { z-index:6; }
+.alex-comic-actor>svg { position:absolute; inset:0; width:100%; height:100%; }
+.alex-comic-reunion .alex-shot-0 { animation:alex-wide 2.05s ease-out both; }
+.alex-comic-reunion .alex-shot-1 { transform-origin:69% 54%; animation:alex-approach 2.1s ease-out both; }
+.alex-comic-reunion .alex-shot-2 { transform-origin:74% 52%; animation:alex-close 1.6s ease-out both; }
+.alex-comic-reunion .alex-shot-2::after {
+ content:""; position:absolute; inset:21% 9% 12% 45%;
+ background:radial-gradient(ellipse, #ffcd8738,transparent 67%); z-index:4; pointer-events:none;
+}
+.alex-notices { animation:alex-hop .65s .42s ease-out both; }
+.alex-run-steve { animation:alex-rush-steve 1.8s cubic-bezier(.28,.92,.43,1) both; }
+.alex-run-alex { animation:alex-rush-alex 1.7s .08s cubic-bezier(.28,.92,.43,1) both; }
+.alex-hug-steve { transform:rotate(5deg); transform-origin:50% 83%; }
+.alex-hug-alex { transform:rotate(-6deg); transform-origin:50% 83%; }
+.alex-comic-hearts { position:absolute; z-index:8; pointer-events:none; }
+.alex-comic-hearts i {
+ position:absolute; top:51%; left:var(--heart-x); font-style:normal; color:#fd87ad;
+ font-size:clamp(9px,1.65vw,23px); text-shadow:0 0 12px #f873acaf;
+ animation:alex-heart 2.1s var(--heart-delay) ease-out infinite;
+}
+.alex-comic-raid .siege-comic-art { background:linear-gradient(#3d405e,#795b68 65%,#24293a); }
+.alex-comic-raid .alex-comic-backdrop { filter:brightness(.68) saturate(.7); }
+.alex-comic-raid .alex-shot-0 { transform-origin:74% 52%; animation:alex-dusk 2.05s ease-out both; }
+.alex-comic-raid .alex-shot-1 { transform-origin:70% 51%; animation:alex-impact 2.2s ease both; }
+.alex-comic-raid .alex-shot-2 { transform-origin:84% 50%; animation:alex-chase-pan 1.8s ease-out both; }
+.alex-comic-raid .alex-shot-2 .alex-comic-backdrop { filter:brightness(.52) saturate(.78); }
+.alex-startled { animation:alex-hop .46s .24s ease-in-out both; }
+.alex-zombie-left { --raid-delay:0ms; animation:alex-zombie-left 1.85s var(--raid-delay) ease-out both; }
+.alex-zombie-delay { --raid-delay:90ms; }
+.alex-zombie-right { animation:alex-zombie-right 1.65s .14s ease-out both; }
+.alex-door {
+ position:absolute; z-index:3; background-image:var(--door); background-size:100% 60%; image-rendering:pixelated;
+ transform-origin:40% 88%; animation:alex-door 1.1s .2s ease-out both;
+}
+.alex-comic-bang { left:auto; right:12%; bottom:15%; transform:rotate(-9deg); font-style:italic; }
+.alex-kidnap-group { z-index:7; animation:alex-abduct 1.75s .12s cubic-bezier(.43,.08,.66,.92) both; }
+.alex-captive { transform:rotate(-19deg); transform-origin:62% 73%; }
+.alex-reaches { transform:rotate(10deg); transform-origin:50% 94%; }
+.alex-pursuer { animation:alex-pursue 1.25s ease-in-out both; }
+.alex-lost-trail { position:absolute; z-index:4; image-rendering:pixelated; filter:drop-shadow(0 0 5px #e7bf93); }
+
+@keyframes alex-wide { from { transform:scale(1.01); } to { transform:scale(1.1) translateX(-1%); } }
+@keyframes alex-approach { from { transform:scale(1.08); } to { transform:scale(1.28); } }
+@keyframes alex-close { from { transform:scale(1.38); } to { transform:scale(2); } }
+@keyframes alex-hop { 45% { transform:translateY(-12%) rotate(-5deg); } }
+@keyframes alex-rush-steve { 0% { translate:-230% 0; } 37% { translate:-125% -5%; } 68% { translate:-45% -4%; } 100% { translate:0; } }
+@keyframes alex-rush-alex { 0% { translate:56% 0; } 48% { translate:22% -8%; } 100% { translate:0; } }
+@keyframes alex-heart { 0% { opacity:.45; transform:translateY(35%) scale(.7); } 28% { opacity:1; } 100% { opacity:.45; transform:translateY(-65%); } }
+@keyframes alex-dusk { from { transform:scale(2); filter:brightness(1.4); } to { transform:scale(1.52); filter:brightness(1); } }
+@keyframes alex-impact { 0% { transform:scale(1.35); } 13% { transform:scale(1.33) translate(-.9%,.8%); } 24% { transform:scale(1.31) translate(.7%,-.3%); } 100% { transform:scale(1.1); } }
+@keyframes alex-zombie-left { from { translate:-340% 0; } to { translate:50% 0; } }
+@keyframes alex-zombie-right { from { translate:190% 0; } to { translate:-59% 0; } }
+@keyframes alex-door { 0% { transform:rotate(0); } 80%,100% { transform:rotate(-75deg) translate(-16%,30%); } }
+@keyframes alex-chase-pan { from { transform:scale(1.1); } to { transform:scale(1.43) translateX(-2%); } }
+@keyframes alex-abduct { from { translate:0 0; } to { translate:5% 0; opacity:.85; } }
+@keyframes alex-pursue { from { translate:-27% 0; } to { translate:59% 0; } }
+@media (max-width:760px) {
+ .alex-comic-page .siege-comic-art { aspect-ratio:1.36; }
+ .alex-comic-reunion .alex-shot-2,.alex-comic-raid .alex-shot-0 { transform-origin:76% 52%; }
+}

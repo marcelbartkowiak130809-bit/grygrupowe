@@ -1,6 +1,7 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-10';
+import {rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-18';
+import {renderAlexComic} from './alexJourneyComic.js?v=20261118-18';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261118-17';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
@@ -53,10 +54,6 @@ function renderScene(scene,index,state,visuals){
  const flags=state.flags,active=index===state.scene;
  const effect=active?state.effect:'';
  let html=index===0?visuals.home():scenery(scene,state);
- if(index===0){
-  if(!flags.embrace)html+=hearts(11,3.4);
-  if(flags.embrace&&!flags.trail)html+=`<span class="rescue-actor rescue-kidnapper" style="${at(14,4,1.3,2)}">${visuals.person('zombie')}</span><span class="rescue-actor rescue-captive" style="${at(14,4,1.3,2)}">${visuals.person('alex')}</span>`;
- }
  if(index===4&&!flags.flood){
   for(const [i,x]of (flags.ring?[7.5,9,10.5]:[10,12.5,14]).entries()){
    html+=`<span class="rescue-actor rescue-horde" style="${at(x,4,1.2,2)};--mob:${i}">${visuals.person('zombie')}</span>`;
@@ -97,6 +94,17 @@ function storeSession(playerId,state){
 
 export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter}){
  const state=getSession(playerId),scene=rescueScenes[state.scene];
+ if(state.scene===0&&!state.flags.embrace){
+  return renderAlexComic(root,{kind:'raid',playerId,visuals,onHome:()=>actions.goMinecraftModes?.(),onDone:()=>{
+   if(!state.log.length)state.startedAt=Date.now();
+   // The existing opening move keeps both new and older saves replayable.
+   rescueAction(state,{type:'node',id:'embrace'});
+   state.effect='';
+   if(!storeSession(playerId,state))state.message+=' Nie udało się zapisać postępu.';
+   renderAlexRescue(root,{playerId,actions,visuals,selectChapter});
+   root.querySelector('[data-rescue-node="trail"]')?.focus({preventScroll:true});
+  }});
+ }
  const stock=Object.entries(state.stock).filter(([,count])=>count>0);
  const readyToLeave=state.flags[scene.finish]&&!state.done;
  const title=state.scene===0&&state.flags.embrace?'Alex zniknęła. Zbadaj ślady przy drzwiach.':scene.goal;

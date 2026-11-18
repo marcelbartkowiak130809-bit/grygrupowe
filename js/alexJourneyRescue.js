@@ -9,11 +9,11 @@ export const rescueItems={
 export const rescueScenes=[
  {
   name:'Ten sam dom, inna noc',region:'DOM ALEX',biome:'home',
-  goal:'Podejdź do Alex.',
-  hint:'Kliknij Alex. Gdy sytuacja się zmieni, rozejrzyj się za tropem przy drzwiach.',
+  goal:'Zbadaj ślady przy drzwiach.',
+  hint:'Kliknij ślady na prawo od domu. Wskażą, dokąd zabrano Alex.',
   finish:'trail',
   nodes:[
-   node('embrace',12,'Podejdź do Alex','alex',{character:true,hero:10.8,message:'Zombie porwał Alex! Zostawił ślady przy drzwiach.',effect:'abduction'}),
+   node('embrace',12,'Podejdź do Alex','alex',{character:true,hero:10.8,message:'Zombie porwały Alex! Przy drzwiach zostały ślady.',effect:'walk'}),
    node('trail',14,'Zbadaj ślady','rotten_flesh',{after:['embrace'],reveal:true,hero:13,message:'Ślady prowadzą przez wieś w stronę starej kopalni.'}),
   ],
  },{
