@@ -11,6 +11,22 @@ const { SongSpotSoloEngine: engine, bindSongSpotPlaybackButton } = await import(
 const { tournamentCatalogForRegion: musicCatalogForRegion } = await import('../js/tournamentMusic.js');
 const trackFor = state => musicCatalogForRegion(state.region).find(track => String(track.id) === state.trackId);
 
+test('starting new runs and reloading avoids recently played songs and artists', async t => {
+  const { songSpotTrackMetadata, artistIdentity } = await import('../js/songSpotFilters.js');
+  t.mock.method(Math, 'random', () => 0);
+  const id = 'varied-rap-selection';
+  const first = engine.start(id);
+  engine.guess(id, trackFor(first).title, { trackId:first.trackId });
+  const next = engine.next(id);
+  const artists = [first.recentTrackIds[0],next.trackId].map(trackId=>artistIdentity(songSpotTrackMetadata(trackFor({region:"global",trackId})).artists[0]));
+  const restarted=engine.start(id);
+  artists.push(artistIdentity(songSpotTrackMetadata(trackFor(restarted)).artists[0]));
+  const { SongSpotSoloEngine: reloaded } = await import('../js/songSpot.js?test-recent-artists');
+  artists.push(artistIdentity(songSpotTrackMetadata(trackFor(reloaded.start(id))).artists[0]));
+  assert.equal(new Set(artists).size,4);
+  assert.equal(new Set(reloaded.get(id).recentTrackIds).size,4);
+});
+
 test('playback button follows actual play, pause, resume, end and error events', () => {
   const audio = new EventTarget();
   audio.paused = true; audio.ended = false; audio.error = null;

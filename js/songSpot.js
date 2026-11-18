@@ -1,12 +1,12 @@
 import { musicRegionOptions, musicRegionPicker } from "./music.js?v=20261117-10";
-import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261117-10';
+import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261118-12';
 import { musicArtworkUrl } from './musicArtwork.js?v=20261117-10';
 import { Audio } from "./audio.js?v=20261117-10";
 import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
 let disposeSongSpotSharing = () => {};
 export function stopSongSpotSharing() { disposeSongSpotSharing(); disposeSongSpotSharing = () => {}; }
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions } from './songSpotFilters.js?v=20261117-10';
+import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions, songSpotTrackMetadata, artistIdentity } from './songSpotFilters.js?v=20261117-10';
 import { songSpotLevels, songSpotTier, songSpotRoundTier, songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-10';
 
 export const songSpotDifficulties = [
@@ -21,6 +21,8 @@ export const songSpotDefaults = { region: "global", rounds: 5, answerTime: 20, e
 export const songSpotTimes = songSpotDifficulties.map(item => item.seconds);
 const songSpotPoints = new Map([[0.1, 100], [0.5, 80], [2, 60], [8, 40], [15, 25]]);
 const SONG_SPOT_STORAGE_KEY = "grygrupowe-songspot-solo-v1:";
+const RECENT_TRACK_LIMIT = 8;
+const RECENT_ARTIST_LIMIT = 3;
 const safeDifficulty = value => songSpotDifficulties.some(item => item.id === value) ? value : songSpotDifficulties[0].id;
 const safeRegion = value => musicRegionOptions.some(([id]) => id === value) ? value : songSpotDefaults.region;
 const difficultyFor = value => songSpotDifficulties.find(item => item.id === safeDifficulty(value)) || songSpotDifficulties[0];
@@ -111,6 +113,7 @@ function normalizeState(raw, playerId) {
     round: Math.max(0, Number(source.round) || 0),
     trackId: String(source.trackId || ""),
     usedIds: unique(source.usedIds),
+    recentTrackIds: unique(source.recentTrackIds || source.usedIds).slice(-RECENT_TRACK_LIMIT),
     played: Boolean(source.played),
     playbackDone: Boolean(source.playbackDone),
     playbackStartedAt: Number(source.playbackStartedAt) || 0,
@@ -132,23 +135,35 @@ function readState(playerId) {
   return songSpotState;
 }
 
-function chooseTrack(usedIds, region, filters, tier='all') {
-  const sourcePool=trackPool(region);
-  const pool = filterSongSpotTracks(sourcePool, filters).filter(track=>tier==='all'||songSpotTier(track)===tier);
+const primaryArtist = track => artistIdentity(songSpotTrackMetadata(track).artists[0] || track.artist);
+
+function drawTrack(pool, usedIds, recentTrackIds=usedIds) {
   if (!pool.length) return null;
   const used = new Set(usedIds);
   const fresh = pool.filter(track => !used.has(String(track.id)));
-  const source = fresh.length ? fresh : pool;
+  const available = fresh.length ? fresh : pool;
+  const recentIds = new Set(recentTrackIds.slice(-RECENT_TRACK_LIMIT));
+  const older = available.filter(track => !recentIds.has(String(track.id)));
+  const candidates = older.length ? older : available;
+  const recentArtists = new Set(recentTrackIds.slice(-RECENT_ARTIST_LIMIT).map(trackById).filter(Boolean).map(primaryArtist));
+  const varied = recentArtists.size ? candidates.filter(track => !recentArtists.has(primaryArtist(track))) : candidates;
+  const source = varied.length ? varied : candidates;
   return source[Math.floor(Math.random() * source.length)] || null;
+}
+
+function chooseTrack(usedIds, recentTrackIds, region, filters, tier='all') {
+  const sourcePool=trackPool(region);
+  const pool = filterSongSpotTracks(sourcePool, filters).filter(track=>tier==='all'||songSpotTier(track)===tier);
+  return drawTrack(pool,usedIds,recentTrackIds);
 }
 
 function startRound(state) {
   state.currentTier=songSpotRoundTier(state.filters.level,state.round);
-  let track = chooseTrack(state.usedIds, state.region, state.filters,state.currentTier);
+  let track = chooseTrack(state.usedIds,state.recentTrackIds,state.region,state.filters,state.currentTier);
   if(!track && state.filters.level==='cycle') {
     for(let offset=1;offset<3 && !track;offset++) {
       state.currentTier=songSpotRoundTier('cycle',state.round+offset);
-      track=chooseTrack(state.usedIds,state.region,state.filters,state.currentTier);
+      track=chooseTrack(state.usedIds,state.recentTrackIds,state.region,state.filters,state.currentTier);
     }
   }
   if (!track) {
@@ -159,6 +174,7 @@ function startRound(state) {
   }
   state.usedIds = [...new Set([...state.usedIds, String(track.id)])].slice(-Math.max(20, trackPool(state.region).length));
   state.trackId = String(track.id);
+  state.recentTrackIds = [...state.recentTrackIds.filter(id=>id!==state.trackId),state.trackId].slice(-RECENT_TRACK_LIMIT);
   state.enabledTimes = availableSongSpotTimes(state.enabledTimes);
   state.timeIndex = 0;
   state.played = false;
@@ -290,6 +306,7 @@ export const SongSpotSoloEngine = {
       round: 1,
       trackId: "",
       usedIds: [],
+      recentTrackIds: [...previous.recentTrackIds],
       played: false,
       playbackDone: false,
       playbackStartedAt: 0,
@@ -983,12 +1000,8 @@ function songSpotTrackSnapshot(track) {
 }
 
 function pickSongSpotGroupTrack(usedIds, region) {
-  const pool = trackPool(region);
-  if (!pool.length) return null;
-  const used = new Set(unique(usedIds));
-  const fresh = pool.filter(track => !used.has(String(track.id)));
-  const source = fresh.length ? fresh : pool;
-  return songSpotTrackSnapshot(source[Math.floor(Math.random() * source.length)]);
+  const track = drawTrack(trackPool(region), unique(usedIds));
+  return track ? songSpotTrackSnapshot(track) : null;
 }
 
 function groupRoster(players) {

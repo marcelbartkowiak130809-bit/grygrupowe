@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {novemberTrendTracks} from '../js/novemberTrendMusic.js';
+import {americanRapTracks} from '../js/americanRapMusic.js';
 import {tournamentMusicCatalog} from '../js/tournamentMusic.js';
 import {cupTrackKey} from '../js/tournamentMusicKey.js';
 import {songSpotTrackMetadata} from '../js/songSpotFilters.js';
@@ -20,8 +21,9 @@ test('both full current Top 100 lists are covered, including alternate release t
  }
 });
 test('27 valid additions retain the existing 1485 tracks without duplicates',()=>{
- assert.equal(novemberTrendTracks.length,27);assert.equal(tournamentMusicCatalog.length,1512);
- assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,1512);assert.equal(new Set(tournamentMusicCatalog.map(t=>t.id)).size,1512);
+ const priorPool=tournamentMusicCatalog.filter(t=>!americanRapTracks.some(track=>track.id===t.id));
+ assert.equal(novemberTrendTracks.length,27);assert.equal(priorPool.length,1512);
+ assert.equal(new Set(priorPool.map(cupTrackKey)).size,1512);assert.equal(new Set(priorPool.map(t=>t.id)).size,1512);
  assert.equal(novemberTrendTracks.filter(t=>t.region==='polish').length,5);
  for(const t of novemberTrendTracks){const meta=songSpotTrackMetadata(t);assert.ok(meta.year>=1900&&meta.year<=2026);assert.ok(meta.artists.length&&meta.genres.length&&meta.source);assert.match(t.coverUrl,/600x600bb/);assert.match(t.previewUrl,/^https:\/\/audio-ssl\.itunes\.apple\.com\//);}
 });

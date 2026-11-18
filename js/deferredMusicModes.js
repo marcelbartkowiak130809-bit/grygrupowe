@@ -12,14 +12,14 @@ export function musicModeReady(mode) {
 
 export function loadMusicMode(mode) {
   if (mode === "playlista-cup") {
-    const path = "./playlistTournament.js?v=20261117-10";
+    const path = "./playlistTournament.js?v=20261118-12";
     cupRequest ||= import(cupRetries ? `${path}&retry=${cupRetries}` : path)
       .then(module => { cup = module; })
       .catch(error => { cupRequest = null; cupRetries++; throw error; });
     return cupRequest;
   }
   if (mode === "songspot" || mode === "songspot-solo") {
-    const path = "./songSpot.js?v=20261117-10";
+    const path = "./songSpot.js?v=20261118-12";
     songSpotRequest ||= import(songSpotRetries ? `${path}&retry=${songSpotRetries}` : path)
       .then(module => {
         songSpot = module;

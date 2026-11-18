@@ -9,8 +9,9 @@ import {randomCupTracks} from '../js/musicCupSettings.js';
 import {userPlaylistTracks} from '../js/userPlaylistMusic.js';
 import {octoberChartTracks} from '../js/octoberChartMusic.js';
 import {novemberTrendTracks} from '../js/novemberTrendMusic.js';
+import {americanRapTracks} from '../js/americanRapMusic.js';
 test('shared tournament and quiz pool retains the original 1200 and adds user playlist songs',()=>{
- assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200+userPlaylistTracks.length+octoberChartTracks.length+novemberTrendTracks.length);
+ assert.equal(musicPreviewCatalog.length,866);assert.equal(tournamentExtraTracks.length,367);assert.equal(tournamentMusicCatalog.length,1200+userPlaylistTracks.length+octoberChartTracks.length+novemberTrendTracks.length+americanRapTracks.length);
  const baseIds=new Set(musicPreviewCatalog.map(t=>String(t.id))),baseKeys=new Set(musicPreviewCatalog.map(cupTrackKey));
  for(const track of tournamentExtraTracks){assert.ok(!baseIds.has(track.id),track.title);assert.ok(!baseKeys.has(cupTrackKey(track)),track.title);}
  assert.equal(new Set(tournamentMusicCatalog.map(cupTrackKey)).size,tournamentMusicCatalog.length);
@@ -20,6 +21,17 @@ test('shared tournament and quiz pool retains the original 1200 and adds user pl
 test('new additions belong to existing artists and contain genuine Apple previews and high-resolution artwork',()=>{
  const artists=new Set(musicPreviewCatalog.map(t=>cupTrackKey({...t,title:''})));
  for(const t of tournamentExtraTracks){assert.ok(artists.has(cupTrackKey({...t,title:''})),t.artist);assert.match(t.previewUrl,/^https:\/\/audio-ssl\.itunes\.apple\.com\//);assert.match(t.coverUrl,/\/600x600bb/);assert.match(t.externalUrl,/^https:\/\/music\.apple\.com\//);assert.ok(t.title&&t.artist);}
+});
+test('all curated US rap songs enter the global Hip-Hop pool without duplicates',async()=>{
+ const {filterSongSpotTracks,songSpotArtistOptions}=await import('../js/songSpotFilters.js');
+ assert.equal(americanRapTracks.length,97);
+ const global=tournamentCatalogForRegion('global');
+ const hiphop=new Set(filterSongSpotTracks(global,{genre:'hiphop'}).map(t=>t.id));
+ assert.ok(americanRapTracks.every(t=>hiphop.has(t.id)&&t.originalReleaseYear&&t.researchSources.length));
+ const artists=new Map(songSpotArtistOptions(global).map(([id,_name,_cover,count])=>[id,count]));
+ assert.ok(artists.get('lil uzi vert')>=20);
+ assert.ok(artists.get('yeat')>=16);
+ assert.ok(artists.get('a$ap rocky')>=24);
 });
 test('rereleases and guest credits do not duplicate one composition',()=>{
  assert.equal(cupTrackKey({artist:'Taylor Swift',title:'Blank Space'}),cupTrackKey({artist:'Taylor Swift',title:"Blank Space (Taylor's Version)"}));
