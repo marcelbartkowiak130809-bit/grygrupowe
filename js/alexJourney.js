@@ -47,7 +47,7 @@ function scenery(l,index,s){
    for(let y=2;y<=5;y++)for(let x=homeX;x<homeX+homeW;x++){const tex=y===2?'oak_log':y===3&&(x===homeX+1||x===homeX+homeW-2)?'glass':'oak_planks';html+=`<span class="journey-house" style="${at(x,y)};background-image:url('${asset(tex)}')" aria-hidden="true"></span>`;}
   }
  }
- if(l.id==='gate')html+=`<span class="journey-door ${s.world[index].flags.powered?'open':''}" style="${at(12,3,1,3)};background-image:url('${asset('iron_door')}')" aria-hidden="true"></span>`;
+ if(l.id==='gate')html+=`<span class="journey-door ${s.world[index].flags.powered?'open':''}" style="${at(12,4,1,2)}" aria-hidden="true"></span>`;
  if(l.id==='alex')html+=`<div class="journey-meeting-light ${s.world[index].flags.lantern?'lit':''}" style="${at(9,2,5,4)}" aria-hidden="true"></div>`;
  if(l.id==='river'&&s.rulesVersion===2&&!s.world[index].flags.bridgeReleased)html+=`<span class="journey-suspended-log" style="${at(7,4,2,1)};background-image:url('${asset('oak_log')}')" aria-hidden="true"></span>`;
  if(l.id==='village'&&s.rulesVersion===2)html+=`<span class="journey-pulley-rope ${s.world[index].flags.counterweight?'released':''}" style="${at(7,2,2,4)};--wood:url('${asset('oak_planks')}');--stone:url('${asset('cobblestone')}')" aria-hidden="true"><i></i><b></b></span>`;
