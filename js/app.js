@@ -2777,11 +2777,13 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   pokemonTimeout(expected = {}) {
     const room = activeRoom();
     if (!room?.game?.mode?.startsWith("pokemon")) return;
+    const auction = room.gameMode === "pokemon-auction";
+    const drawing = room.gameMode === "pokemon-type-draw" && expected.phase === "type-draw";
     return mutateRoomGame((game, current) => {
       if (Number(game.phaseEndsAt) !== Number(expected.phaseEndsAt) || game.phase !== expected.phase) return "Faza gry już się zmieniła.";
       PokemonEngine.timeout(game, expected.activeUid || state.currentUser, current.players, current.settings);
-    }, { sound: room.gameMode === "pokemon-auction" ? undefined : "turn", quietRejected: room.gameMode === "pokemon-auction" }).then(ok => {
-      if (ok && room.gameMode !== "pokemon-auction") Effects.play("roundFail", `pokemon-timeout-${Date.now()}`);
+    }, { sound: auction ? undefined : "turn", quietRejected: auction || room.gameMode === "pokemon-type-draw" }).then(ok => {
+      if (ok && !auction && !drawing) Effects.play("roundFail", `pokemon-timeout-${Date.now()}`);
       return ok;
     });
   },
