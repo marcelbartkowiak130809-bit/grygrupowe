@@ -1955,6 +1955,13 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .pokemon-draw-static { display:none; }
 .pokemon-draw-stage:not(.is-drawing) .pokemon-picked-type { animation:pokemon-type-land .28s ease-out both; }
 .pokemon-draw-stage .pokemon-answer-form { width:min(100%,520px); }
+.pokemon-draw-stage .pokemon-autocomplete input { width:100%; }
+.pokemon-autocomplete .pokemon-suggestions:empty { display:none; }
+.pokemon-suggestion[aria-selected="true"] {
+  border-color:var(--accent,#61e6d2); background:rgba(97,230,210,.12);
+}
+.pokemon-draw-stage .pokemon-suggestions { max-height:min(300px,40dvh); }
+.pokemon-draw-stage .pokemon-suggestion span { text-transform:capitalize; }
 .pokemon-draw-answer { width:min(100%,460px); margin:12px auto; }
 .pokemon-draw-answer p { margin:8px 0; }
 @keyframes pokemon-type-roll { to { transform:translateY(-864px); } }

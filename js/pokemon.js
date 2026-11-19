@@ -458,7 +458,7 @@ function typeRaceMarkup(game, settings) {
     <p class="eyebrow">RUNDA ${game.round}/${settings.rounds || 5}</p>
     <h1>${drawing ? "Losowanie typów…" : game.drawnTypes.length === 2 ? "Podaj Pokémona z oboma typami" : "Podaj Pokémona z tym typem"}</h1>
     <div class="pokemon-drawn-types">${typeSlots}</div>
-    ${drawing ? "" : `${timerMarkup(game)}${formMarkup("answer")}`}
+    ${drawing ? "" : `${timerMarkup(game)}${pokemonAnswerFormMarkup("answer")}`}
   </div>`;
 }
 
@@ -587,6 +587,67 @@ function dexFormMarkup(answer) { const answered=Boolean(answer), value=answered 
 function pokemonDisplayName(item) { return item?.name?.replace(/-normal$/, "") || ""; }
 function evolutionFormMarkup(base, answers = []) { const chain=pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain), fields=chain.length >= 3 ? 2 : 1, locked=Array.isArray(answers) && answers.length > 0, anchor=`<div class="evolution-anchor" draggable="true" data-evolution-anchor>${sprite(base,"pokemon-evolution-sprite")}<span>${escapeHtml(pokemonDisplayName(base))}</span><small>Przeciągnij między odpowiedzi</small></div>`, slot=index=>`<div class="evolution-answer-slot" data-evolution-slot="${index}"><div class="tiny">${index === 0 && fields > 1 ? "Wcześniejsza ewolucja" : index === 1 ? "Późniejsza ewolucja" : "Ewolucja"}</div><div class="pokemon-autocomplete"><input data-pokemon-evolution-input="${index}" autocomplete="off" placeholder="Nazwa Pokémona" value="${locked ? escapeHtml(pokemonDisplayName(answers[index])) : ""}" ${locked ? "disabled" : ""}><div class="pokemon-suggestions" data-pokemon-evolution-suggestions="${index}"></div></div></div>`; return `<form class="pokemon-evolution-form" data-pokemon-evolution-form><div class="evolution-race-fields">${fields === 1 ? `${anchor}${slot(0)}` : `${slot(0)}${anchor}${slot(1)}`}</div><button class="primary" type="submit" ${locked ? "disabled" : ""}>${locked ? "Wysłano" : "Zatwierdź ewolucję"}</button></form>`; }
 function sprite(item, className = "") { return `<img class="${className}" src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">`; }
+
+function bindPokemonAnswerSuggestions(input, suggestions, pool) {
+  if (!input || !suggestions || input.disabled) return;
+  let active = -1;
+  const close = () => {
+    active = -1;
+    suggestions.replaceChildren();
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+  };
+  const select = option => {
+    input.value = option.dataset.pokemonSuggestion;
+    close();
+    input.focus();
+  };
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-controls", suggestions.id);
+  input.setAttribute("aria-expanded", "false");
+  suggestions.setAttribute("role", "listbox");
+  suggestions.setAttribute("aria-label", "Podpowiedzi nazw Pokémonów");
+  input.addEventListener("input", () => {
+    close();
+    const query = clean(input.value);
+    if (!query) return;
+    const matches = pool.filter(item => clean(item.name).startsWith(query)).slice(0, 8);
+    suggestions.innerHTML = matches.map((item, index) => {
+      const name = escapeHtml(pokemonDisplayName(item));
+      return `<button type="button" tabindex="-1" role="option" aria-label="${name}" aria-selected="false" id="${suggestions.id}-${index}" class="pokemon-suggestion" data-pokemon-suggestion="${name}">${sprite(item, "pokemon-suggestion-sprite")}<span>${name}</span></button>`;
+    }).join("");
+    input.setAttribute("aria-expanded", String(matches.length > 0));
+  });
+  suggestions.addEventListener("pointerdown", event => {
+    if (event.target.closest("[data-pokemon-suggestion]")) event.preventDefault();
+  });
+  suggestions.addEventListener("click", event => {
+    const option = event.target.closest("[data-pokemon-suggestion]");
+    if (option) select(option);
+  });
+  input.addEventListener("blur", close);
+  input.form?.addEventListener("submit", close);
+  input.addEventListener("keydown", event => {
+    const options = suggestions.children;
+    if (!options.length || event.isComposing) return;
+    if (event.key === "Escape" || (event.key === "Enter" && active >= 0)) {
+      event.preventDefault();
+      if (event.key === "Enter") select(options[active]);
+      else close();
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      options[active]?.setAttribute("aria-selected", "false");
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      active = active < 0 && step < 0 ? options.length - 1 : (active + step + options.length) % options.length;
+      const option = options[active];
+      option.setAttribute("aria-selected", "true");
+      input.setAttribute("aria-activedescendant", option.id);
+      option.scrollIntoView({block:"nearest"});
+    }
+  });
+}
 function resultMarkup(game, accounts, actions, title = "Wyniki rundy") { const topPoints = Math.max(0, ...(game.ranking || []).map(row => Number(row.points) || 0)); const rows = (game.ranking || []).map(row => { const team = Array.isArray(row.team) ? `<div class="pokemon-mini-team">${row.team.map(id => { const item = pokemonDex.find(pokemon => pokemon.id === id); return item ? sprite(item) : ""; }).join("")}</div>` : ""; const answer = Array.isArray(row.answer) ? row.answer.map(item => item ? `${sprite(item,"pokemon-result-sprite")} ${escapeHtml(label(item))}` : "").join(" ") : row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : ""; return `<div class="pokemon-result-row"><div>${resultPlayerMiniHtml(accounts[row.uid], Number(row.points) === topPoints && topPoints > 0 ? "win" : "lose")}${team}</div><span>${answer || (row.bst != null ? `${row.bst} BST` : row.difference != null ? (Number.isFinite(row.difference) ? `różnica ${row.difference}` : "brak odpowiedzi") : row.points != null ? `${row.points} pkt` : row.correct ? "trafienie" : "-")}</span></div>`; }).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE</p><h1>${title}</h1><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
 function dexResultMarkup(game, accounts) { const target = pokemonDex.find(item => item.id === game.target); const rows = (game.ranking || []).map((row, index) => `<article class="pokemon-dex-result-row ${index === 0 ? "winner" : ""}"><div>${resultPlayerMiniHtml(accounts[row.uid], index === 0 ? "win" : "lose")}${row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : "Brak odpowiedzi"}</div><strong>${Number.isFinite(row.difference) ? `Różnica: ${row.difference}` : "Poza rankingiem"} · ${Number(game.scores?.[row.uid] || 0)} pkt</strong></article>`).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE POKÉDEXU</p><h1>Numer ${game.target} skrywał...</h1>${target ? `<div class="pokemon-dex-reveal">${sprite(target,"pokemon-reveal-sprite")}<div><b>${escapeHtml(label(target))}</b><small>National Dex #${target.id}</small></div></div>` : ""}<p class="muted">Najbliżej celu był:</p><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
 function card(item, showBst = false) { return `<div class="pokemon-card">${sprite(item)}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${showBst ? `<strong>${item.bst} BST</strong>` : ""}</div></div>`; }
@@ -639,20 +700,11 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   }
   const form = root.querySelector("[data-pokemon-form]"); form?.addEventListener("submit", event => { event.preventDefault(); if (root.querySelector("#pokemon-answer")?.disabled) return; actions.pokemonAnswer(root.querySelector("#pokemon-answer").value, expected); });
   root.querySelector("[data-pokemon-evolution-form]")?.addEventListener("submit", event => { event.preventDefault(); const inputs=[...root.querySelectorAll("[data-pokemon-evolution-input]")]; if (inputs.some(input=>input.disabled)) return; actions.pokemonAnswer(inputs.map(input=>input.value), expected); });
-  if (game.mode === "pokemon-dex" || (game.mode === "pokemon-types" && game.phase === "answer")) {
-    const input = root.querySelector("#pokemon-answer");
-    const suggestions = root.querySelector("#pokemon-suggestions");
-    const updateSuggestions = () => {
-      if (!input || input.disabled || !suggestions) return;
-      const query = clean(input.value);
-      if (!query) { suggestions.innerHTML = ""; return; }
-      const matches = pokemonDex.filter(item => clean(item.name).startsWith(query)).slice(0, 8);
-      suggestions.innerHTML = matches.map(item => `<button type="button" class="pokemon-suggestion" data-pokemon-suggestion="${escapeHtml(pokemonDisplayName(item))}">${sprite(item, "pokemon-suggestion-sprite")}<span>${escapeHtml(pokemonDisplayName(item))}</span></button>`).join("");
-      suggestions.querySelectorAll("[data-pokemon-suggestion]").forEach(button => button.addEventListener("click", () => { input.value = button.dataset.pokemonSuggestion; suggestions.innerHTML = ""; input.focus(); }));
-    };
-    input?.addEventListener("input", updateSuggestions);
-    input?.addEventListener("keydown", event => { if (event.key === "Escape" && suggestions) suggestions.innerHTML = ""; });
-    updateSuggestions();
+  const suggestions = root.querySelector("#pokemon-suggestions");
+  if (suggestions) {
+    // Respect the available generations without revealing which Pokémon have the drawn types.
+    const pool = game.mode === "pokemon-type-draw" ? pokemonCandidates(settings) : pokemonDex;
+    bindPokemonAnswerSuggestions(root.querySelector("#pokemon-answer"), suggestions, pool);
   }
   if (game.mode === "pokemon-evolution") {
     root.querySelectorAll("[data-pokemon-evolution-input]").forEach(input => {
