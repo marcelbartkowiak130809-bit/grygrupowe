@@ -6,8 +6,8 @@ import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,jou
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261119-17';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261119-16';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-16';
-import {renderAlexComic} from './alexJourneyComic.js?v=20261118-18';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-21';
+import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
 import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-16';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
@@ -28,11 +28,17 @@ export function journeyPerson(id='steve',pose=''){
   ${skinPiece(id,48,25,8,4,3,12,10,5)}${skinPiece(id,4,26,4,8,4,24)}${skinPiece(id,4,26,4,8,8,24)}
  </svg>`;
  const armA=skinPiece(id,44,20,4,12,0,8,4,12,'person-arm arm-a');
- const armB=skinPiece(id,36,52,4,12,12,8,id==='alex'?3:4,12,'person-arm arm-b');
- const arms=pose==='reach'?`<g transform="rotate(-60 2 10)">${armA}</g><g transform="rotate(-75 13 10)">${armB}</g>`
+ // The zombie skin repeats the same arm and leg textures on both sides.
+ const armB=id==='zombie'
+  ?skinPiece(id,44,20,4,12,12,8,4,12,'person-arm arm-b')
+  :skinPiece(id,36,52,4,12,12,8,id==='alex'?3:4,12,'person-arm arm-b');
+ const legB=id==='zombie'
+  ?skinPiece(id,4,20,4,12,8,20,4,12,'person-leg leg-b')
+  :skinPiece(id,20,52,4,12,8,20,4,12,'person-leg leg-b');
+ const arms=pose==='reach'?`<g transform="rotate(45 2 10)">${armA}</g><g transform="rotate(-63 13 10)">${armB}</g>`
   :pose==='hug'?(id==='alex'?`<g transform="rotate(55 2 9)">${armA}</g>${armB}`:`${armA}<g transform="rotate(-62 13 9)">${armB}</g>`):armA+armB;
- const bounds=pose==='reach'||pose==='hug'?'-5 0 26 32':'0 0 16 32';
- return `<svg viewBox="${bounds}"${pose?' preserveAspectRatio="xMidYMax meet"':''} class="journey-person" aria-hidden="true">${skinPiece(id,8,8,8,8,4,0)}${skinPiece(id,20,20,8,12,4,8)}${arms}${skinPiece(id,4,20,4,12,4,20,4,12,'person-leg leg-a')}${skinPiece(id,20,52,4,12,8,20,4,12,'person-leg leg-b')}</svg>`;
+ const bounds=pose==='reach'?'-8 0 32 32':pose==='hug'?'-5 0 26 32':'0 0 16 32';
+ return `<svg viewBox="${bounds}"${pose?' preserveAspectRatio="xMidYMax meet"':''} class="journey-person" aria-hidden="true">${skinPiece(id,8,8,8,8,4,0)}${skinPiece(id,20,20,8,12,4,8)}${arms}${skinPiece(id,4,20,4,12,4,20,4,12,'person-leg leg-a')}${legB}</svg>`;
 }
 function pig(){const piece=(x,y,w,h,dx,dy,dw,dh)=>`<svg x="${dx}" y="${dy}" width="${dw}" height="${dh}" viewBox="${x} ${y} ${w} ${h}"><image href="${asset('pig')}" width="64" height="32"/></svg>`;return `<svg viewBox="0 0 20 15" class="journey-pig" aria-hidden="true">${piece(36,16,10,8,6,3,13,8)}${piece(4,20,4,6,7,10,3,5)}${piece(4,20,4,6,15,10,3,5)}${piece(8,8,8,8,0,2,9,9)}${piece(17,17,4,3,2,7,4,3)}</svg>`;}
 const at=(x,y,w=1,h=1)=>`left:${x/16*100}%;top:${y/9*100}%;width:${w/16*100}%;height:${h/9*100}%`;

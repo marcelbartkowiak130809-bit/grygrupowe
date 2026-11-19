@@ -24,7 +24,7 @@ const active = new WeakMap();
 const asset = id => new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
 const at = (x,y,w,h) => `left:${x/16*100}%;top:${y/9*100}%;width:${w/16*100}%;height:${h/9*100}%`;
 const actor = (person,id,x,y,classes='',pose='') =>
- `<span class="siege-actor alex-comic-actor ${classes}" style="${at(x,y,1.65,2.85)}">${person(id,pose)}</span>`;
+ `<span class="siege-actor alex-comic-actor ${classes}" style="${pose==='reach'?at(x-.4,y,2.45,2.85):at(x,y,1.65,2.85)}">${person(id,pose)}</span>`;
 
 function couple(person,hearts) {
  return `${actor(person,'steve',10.7,3.15,'alex-hug-steve','hug')}${actor(person,'alex',11.8,3.15,'alex-hug-alex','hug')}
@@ -46,9 +46,12 @@ function raidArt(frame,person) {
    ${actor(person,'zombie',5.32,3.15,'alex-zombie-left alex-zombie-delay','reach')}
    ${actor(person,'zombie',13.6,3.15,'alex-zombie-right','reach')}`;
  }
- return `${actor(person,'steve',8.3,3.15,'alex-reaches','hug')}
-  ${actor(person,'zombie',10.45,3.15,'alex-pursuer','reach')}
-  <div class="alex-kidnap-group">${actor(person,'zombie',13.55,3.15,'','reach')}${actor(person,'alex',13.0,2.42,'alex-captive')}</div>
+ return `${actor(person,'steve',8.3,3.15,'alex-left-behind')}
+  <div class="alex-kidnap-group">
+   ${actor(person,'zombie',11,3.15,'alex-escort','reach')}
+   ${actor(person,'zombie',13.65,3.15,'alex-escort','reach')}
+   ${actor(person,'alex',12.64,2.72,'alex-captive')}
+  </div>
   <img class="alex-lost-trail" src="${asset('rotten_flesh')}" style="${at(14.18,5.46,.55,.55)}" alt="">`;
 }
 

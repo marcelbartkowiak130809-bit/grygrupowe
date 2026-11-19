@@ -1,7 +1,7 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-18';
-import {renderAlexComic} from './alexJourneyComic.js?v=20261118-18';
+import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261119-16';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
