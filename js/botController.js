@@ -13,7 +13,7 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates } from "./pokemon.js?v=20261118-16";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates } from "./pokemon.js?v=20261119-1";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
@@ -47,7 +47,8 @@ function expired(game) {
   if (!game || game.finished) return false;
   const endsAt = game.variant === "full-test" && game.phase === "test" ? [game.testEndsAt]
     : [game.phaseEndsAt, game.guessEndsAt, game.countdownEndsAt, game.roundEndsAt, game.explodesAt, game.phase === "create" && game.createEndsAt];
-  return endsAt.some(value => Number(value || 0) > 0 && Date.now() >= Number(value));
+  const now = game.mode === "pokemon-auction" ? serverNow() : Date.now();
+  return endsAt.some(value => Number(value || 0) > 0 && now >= Number(value));
 }
 const activeFrom = (game, keys = []) => keys.map(key => game?.[key]).find(Boolean) || "";
 const orderUid = (game, keys = ["order", "turnOrder"], index = "turnIndex") => {
@@ -613,8 +614,8 @@ export function botMutation(room) {
           const slots = Math.max(1, g.teamSize - (g.teams?.[bot]?.length || 0));
           const target = pokemonDex.find(item => item.id === g.items?.[g.auctionIndex]);
           const limit = Math.min(budget, Math.max(1, Math.ceil(budget / slots * ((target?.bst || 300) / 390))));
-          if (limit <= current || (current > 0 && !correct())) return PokemonEngine.pass(g, bot, players);
-          return PokemonEngine.bid(g, bot, Math.min(limit, current + 1 + Math.floor(Math.random() * 3)), players);
+          if (limit <= current) return PokemonEngine.pass(g, bot, players);
+          return PokemonEngine.bid(g, bot, current + 1, players);
         };
         break;
       case "wavelength":
@@ -771,7 +772,7 @@ export function scheduleBot(room, { mutate, onDone }) {
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
-  const timeLeft = Number(deadline || 0) - Date.now();
+  const timeLeft = Number(deadline || 0) - (room.gameMode === "pokemon-auction" ? serverNow() : Date.now());
   const think = botDelay(room, "answer", actor);
   const delay = expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;

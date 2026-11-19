@@ -2142,9 +2142,14 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .auction-outcome small { flex-basis: 100%; letter-spacing: .11em; font-weight: 850; color: #c6a8fa; }
 .auction-outcome.is-mine { border-color: #f5cc70; background: radial-gradient(ellipse at 36% 0%, #574321, #1b2334 80%); }
 .auction-outcome.is-mine small, .auction-outcome.is-mine span { color: #ffe298; }
-.auction-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 8px; margin: 0; }
-.auction-controls label { display: grid; gap: 5px; color: #c9d7ea; font-size: 12px; min-width: 0; }
-.auction-controls input { width: 100%; min-width: 0; }
+.auction-wallet {
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:9px 14px; border-radius:14px; border:1px solid #d4ac5869;
+  background:linear-gradient(120deg,#362a1c,#222333); color:#fff0c9;
+}
+.auction-wallet span { font-weight:750; }
+.auction-wallet strong { color:#ffe38f; font-size:clamp(23px,5vw,30px); font-variant-numeric:tabular-nums; }
+.auction-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, .4fr); gap: 8px; margin: 0; }
 .auction-controls button { min-height: 44px; }
 .auction-note { margin: 0; min-height: 1.3em; color: #b5c3db; font-size: 12px; }
 .auction-roster { min-width: 0; }

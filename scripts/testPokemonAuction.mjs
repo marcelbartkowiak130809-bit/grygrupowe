@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPokemonGame, PokemonEngine, pokemonAuctionCanBid } from "../js/pokemon.js";
+import { createPokemonGame, PokemonEngine, pokemonAuctionCanBid, repairPokemonAuctionClock } from "../js/pokemon.js";
 import { botActor } from "../js/botController.js";
 import { pokemonDex } from "../js/pokemonData.js";
 
@@ -38,27 +38,30 @@ test("passing and expiry advance unsold lots all the way to an empty final", () 
 test("an auction settles once all eligible rivals are out and charges its winner once", () => {
   const players = ["a", "b", "c"];
   const game = play(players);
-  assert.match(PokemonEngine.bid(game, "a", 1.5, players), /pełnych/);
-  PokemonEngine.bid(game, "a", 5, players);
+  assert.match(PokemonEngine.bid(game, "a", 1.5, players), /o 1 monetę/);
+  assert.match(PokemonEngine.bid(game, "a", 10, players), /o 1 monetę/);
+  PokemonEngine.bid(game, "a", 1, players);
   assert.equal(pokemonAuctionCanBid(game, "a"), false);
   assert.match(PokemonEngine.pass(game, "a", players), /prowadzi/);
   PokemonEngine.pass(game, "b", players);
-  PokemonEngine.bid(game, "c", 8, players);
+  PokemonEngine.bid(game, "c", 2, players);
+  PokemonEngine.bid(game, "a", 3, players);
+  PokemonEngine.bid(game, "c", 4, players);
   assert.deepEqual(game.passed, ["b"]);
   assert.equal(game.phase, "auction");
   PokemonEngine.pass(game, "a", players);
   assert.equal(game.phase, "auction-reveal");
-  assert.deepEqual(game.auctionResult, { itemId: 25, winner: "c", price: 8 });
-  assert.equal(game.budgets.c, 2);
+  assert.deepEqual(game.auctionResult, { itemId: 25, winner: "c", price: 4 });
+  assert.equal(game.budgets.c, 6);
   assert.match(PokemonEngine.bid(game, "a", 9, players), /zamknięte/);
   PokemonEngine.timeout(game, "c", players, settings);
-  assert.deepEqual(game.purchases.c, [{ id: 25, price: 8 }]);
+  assert.deepEqual(game.purchases.c, [{ id: 25, price: 4 }]);
 });
 
 test("a departed bidder cannot win and the final ranks BST, including ties", () => {
   const players = ["a", "b", "c"];
   const game = play(players);
-  PokemonEngine.bid(game, "c", 10 - 1, players);
+  PokemonEngine.bid(game, "c", 1, players);
   expire(game, ["a", "b"]);
   assert.equal(game.auctionResult.winner, "");
   assert.equal(game.budgets.c, 10);
@@ -91,4 +94,24 @@ test("the next eligible bot can act after another bot passes", () => {
   assert.equal(botActor(room), "bot:b");
   PokemonEngine.pass(game, "bot:b", players);
   assert.equal(botActor(room), "bot:c");
+});
+
+test("a raise renews the seven-second clock and invalid legacy deadlines are bounded", () => {
+  const players = ["a", "b"];
+  const game = play(players);
+  game.phaseEndsAt = Date.now() + 7_200_000;
+  assert.equal(repairPokemonAuctionClock(game), true);
+  assert.ok(game.phaseEndsAt - Date.now() <= 7000);
+  game.phaseEndsAt = Date.now() + 3_000;
+  assert.equal(PokemonEngine.bid(game, "a", 1, players), undefined);
+  const firstDeadline = game.phaseEndsAt;
+  assert.ok(firstDeadline - Date.now() > 6500);
+  assert.match(PokemonEngine.bid(game, "b", 1, players), /Stawka się zmieniła/);
+  assert.equal(game.phaseEndsAt, firstDeadline);
+  assert.equal(PokemonEngine.bid(game, "b", 2, players), undefined);
+  assert.equal(repairPokemonAuctionClock(game), false);
+  assert.deepEqual(game.budgets, {a:10,b:10});
+  expire(game, players);
+  assert.equal(game.auctionResult.winner, "b");
+  assert.ok(game.phaseEndsAt - Date.now() <= 1250);
 });

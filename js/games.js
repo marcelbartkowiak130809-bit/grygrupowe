@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261118-30";
+import { renderGame } from "./game.js?v=20261119-1";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260903-9";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260903-9";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260903-9";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261118-16";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261119-1";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260903-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260903-9";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260903-9";
@@ -280,7 +280,7 @@ export const gamesRegistry = {
     id: "pokemon-evolution", name: "Evolution Race", description: "Znajdź kolejną lub końcową ewolucję szybciej od innych.", help: ["Gra pokazuje bazowego Pokémona.", "Wpisz nazwę Pokémona z tej samej linii ewolucji.", "Każda odpowiedź ma limit czasu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"↻", art:"pokemon-evolution", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-evolution"],
   },
   "pokemon-auction": {
-    id: "pokemon-auction", name: "Licytacja teamu", description: "Licytuj Pokémony i zbuduj drużynę z najwyższym BST.", help: ["Każdy gracz dostaje ten sam budżet.", "Pokémony są wystawiane po kolei, a każda oferta ma limit czasu.", "Pas zamyka udział w bieżącej aukcji. BST poznasz po jej zakończeniu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"$", art:"pokemon-auction", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-auction"],
+    id: "pokemon-auction", name: "Licytacja teamu", description: "Licytuj Pokémony i zbuduj drużynę z najwyższym BST.", help: ["Każdy gracz dostaje ten sam budżet.", "Podbijaj cenę o jedną monetę. Po każdym ruchu rywale mają 7 sekund na przebicie.", "Pas zamyka udział w bieżącej aukcji. BST poznasz po jej zakończeniu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"$", art:"pokemon-auction", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-auction"],
   },
   "pokemon-types": {
     id: "pokemon-types", name: "Typy na start", description: "Wybierzcie typy i znajdźcie Pokémona pasującego do kombinacji.", help: ["Każdy gracz wybiera jeden typ.", "Po ujawnieniu kombinacji wpisujecie poprawnego Pokémona.", "Brakująca kombinacja odblokowuje ponowny wybór."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"✦", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-types"],

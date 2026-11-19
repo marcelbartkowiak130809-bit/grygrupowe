@@ -11,16 +11,18 @@ const rule=selector=>{
   const matches=[...compact.matchAll(new RegExp(escaped+'\\{([^}]*)\\}','g'))];
   assert.ok(matches.length,selector);return matches.map(match=>match[1]).join(';');
 };
-test('mobile cards keep two columns but room and solo get a full-width row each',()=>{
+test('mobile cards and paired room and solo buttons each use two columns',()=>{
   assert.match(rule('.mobile-games-compact .games-grid'),/repeat\(2,minmax\(0,1fr\)\)/);
   const options=rule('.mobile-games-compact .game-card-play-options');
-  assert.match(options,/grid-template-columns:minmax\(0,1fr\)/);assert.ok(!options.includes('auto-fit'));
+  assert.match(options,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(rule('.mobile-games-compact .game-card-play-options button:only-child'),/grid-column:1\/-1/);
   assert.match(rule('.mobile-games-compact .game-card-play-options button'),/min-height:44px/);
   assert.match(rule('.mobile-games-compact .game-card-play-options button'),/white-space:nowrap/);
 });
 test('badges and full titles wrap instead of being truncated',()=>{
   assert.match(rule('.mobile-games-compact .game-card-top'),/flex-wrap:wrap/);
-  assert.match(rule('.mobile-games-compact .game-card-top'),/max-height:none/);
+  assert.doesNotMatch(rule('.mobile-games-compact .game-card-top'),/max-height:\s*\d/);
+  assert.match(rule('.mobile-games-compact .game-card-top .tag'),/min-height:20px/);
   assert.match(rule('.mobile-games-compact .game-card-top .tag'),/white-space:normal/);
   assert.match(rule('.mobile-games-compact .game-card-content h2'),/-webkit-line-clamp:unset/);
 });
