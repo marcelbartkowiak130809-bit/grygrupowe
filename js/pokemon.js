@@ -441,7 +441,9 @@ export const PokemonEngine = {
 function timerMarkup(game) { return `<div class="pokemon-timer" data-pokemon-countdown="${game.phaseEndsAt}">${Math.max(0, Math.ceil((game.phaseEndsAt - pokemonNow(game)) / 1000))}s</div>`; }
 
 function typeChip(type) {
-  return `<span class="pokemon-picked-type pokemon-type-${type}"><span aria-hidden="true">${typeSymbols[type]}</span> ${typeNames[type]}</span>`;
+  if (!Object.hasOwn(typeNames, type)) return "";
+  const iconUrl = new URL(`../assets/pokemon/types/${type}.svg`, import.meta.url);
+  return `<span class="pokemon-picked-type pokemon-type-${type}"><img src="${iconUrl.href}" width="30" height="30" alt="" draggable="false">${typeNames[type]}</span>`;
 }
 
 function typeRaceMarkup(game, settings) {

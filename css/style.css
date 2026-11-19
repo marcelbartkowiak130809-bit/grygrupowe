@@ -1940,8 +1940,15 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   padding:18px 8px; border-radius:18px; background:radial-gradient(ellipse at center,#36346288,#17213744);
 }
 .pokemon-drawn-types .pokemon-picked-type {
-  display:flex; align-items:center; justify-content:center; gap:7px;
-  min-width:112px; height:48px; padding:0 12px; border-radius:11px; font-size:15px;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  min-width:128px; height:48px; padding:0 12px; border-radius:11px;
+  border:1px solid color-mix(in srgb,var(--type-color) 52%,transparent);
+  background:color-mix(in srgb,var(--type-color) 17%,#101624);
+  color:#f4f7ff; font-size:16px; font-weight:800;
+}
+.pokemon-drawn-types .pokemon-picked-type img {
+  flex:none; width:30px; height:30px; padding:5px; border-radius:50%;
+  background:color-mix(in srgb,var(--type-color) 60%,#101624);
 }
 .pokemon-draw-slot { height:48px; overflow:hidden; border-radius:11px; }
 .pokemon-draw-strip { animation:pokemon-type-roll .8s linear infinite; }
@@ -1954,8 +1961,12 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @keyframes pokemon-type-land { from { opacity:.5; transform:scale(.9); } }
 @media(prefers-reduced-motion:reduce) {
   .pokemon-draw-strip { display:none; }
-  .pokemon-draw-static { display:grid; place-items:center; width:112px; height:48px; color:#fff; background:#243366; }
+  .pokemon-draw-static { display:grid; place-items:center; width:128px; height:48px; color:#fff; background:#243366; }
   .pokemon-draw-stage:not(.is-drawing) .pokemon-picked-type { animation:none; }
+}
+@media(max-width:420px) {
+  .pokemon-drawn-types .pokemon-picked-type { min-width:110px; padding:0 6px; gap:6px; font-size:14px; }
+  .pokemon-draw-static { width:110px; }
 }
 
 @media(max-width:560px){
