@@ -2179,6 +2179,21 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .auction-controls button { min-height: 44px; }
 .auction-note { margin: 0; min-height: 1.3em; color: #b5c3db; font-size: 12px; }
 .auction-roster { min-width: 0; }
+.auction-sidebar { display:grid; gap:10px; min-width:0; }
+.auction-opponents { min-width:0; }
+.auction-opponents h2 { margin:0 0 5px; font-size:12px; }
+.auction-opponent-list { display:grid; gap:5px; list-style:none; margin:0; padding:0; }
+.auction-opponent {
+  min-width:0; padding:6px 8px; border:1px solid var(--line,#29334a);
+  border-radius:9px; background:rgba(255,255,255,.035);
+}
+.auction-opponent-head { display:flex; align-items:center; justify-content:space-between; gap:5px; font-size:12px; }
+.auction-opponent-head b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.auction-opponent-head strong { color:#ffe38f; font-variant-numeric:tabular-nums; }
+.light-theme .auction-opponent-head strong { color:#795006; }
+.auction-opponent-team { display:flex; align-items:center; flex-wrap:wrap; gap:3px; margin-top:2px; }
+.auction-opponent-team img { display:block; width:25px; height:25px; object-fit:contain; }
+.auction-opponent-team small { color:var(--muted,#a7b4ca); font-size:10px; }
 .auction-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .auction-slot { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 65px; min-width: 0; border-radius: 10px; background: #1d2d41; text-align: center; }
 .auction-slot img, .auction-ranking-team img { width: 36px; height: 36px; object-fit: contain; }
@@ -2200,6 +2215,8 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   .auction-spotlight .pokemon-card { min-height: 142px; }
   .auction-slots { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
   .auction-roster { padding: 10px; }
+  .auction-opponent-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .auction-opponent:only-child { grid-column:1/-1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .auction-price.auction-raised strong, .auction-outcome, .auction-ranking-row { animation: none; }

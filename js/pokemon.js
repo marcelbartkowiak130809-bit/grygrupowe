@@ -489,7 +489,24 @@ function auctionTeamMarkup(game, accounts, currentUser) {
   return `<aside class="pokemon-auction-team auction-roster"><div class="pokemon-auction-team-head">${avatarHtml(profile,"pokemon-player-avatar")}<b>Twój team · ${team.length}/${game.teamSize}</b></div><div class="auction-slots">${slots.join("")}</div></aside>`;
 }
 
-function auctionMarkup(game, accounts, currentUser) {
+function auctionOpponentsMarkup(game, accounts, players, currentUser) {
+  const opponents = players.filter(uid => uid !== currentUser);
+  if (!opponents.length) return "";
+  return `<section class="auction-opponents" aria-label="Rywale">
+    <h2>Rywale</h2>
+    <ul class="auction-opponent-list">${opponents.map(uid => {
+      const nick = escapeHtml(accounts[uid]?.nick || "Gracz");
+      const team = (game.teams?.[uid] || []).map(id => byId.get(id)).filter(Boolean);
+      const budget = Number(game.budgets?.[uid] || 0);
+      return `<li class="auction-opponent">
+        <div class="auction-opponent-head"><b title="${nick}">${nick}</b><strong title="Pozostały budżet">${budget}$</strong></div>
+        <div class="auction-opponent-team" aria-label="Team gracza ${nick}">${team.length ? team.map(item => `<span title="${escapeHtml(pokemonDisplayName(item))}">${sprite(item)}</span>`).join("") : "<small>Pusty team</small>"}</div>
+      </li>`;
+    }).join("")}</ul>
+  </section>`;
+}
+
+function auctionMarkup(game, accounts, currentUser, players) {
   const item = byId.get(game.items?.[game.auctionIndex]);
   const revealing = game.phase === "auction-reveal";
   const result = game.auctionResult;
@@ -518,7 +535,8 @@ function auctionMarkup(game, accounts, currentUser) {
           <button class="primary" data-pokemon-bid="${bidFloor}" type="button" ${able ? "" : "disabled"}>${price ? "Przebij" : "Licytuj"} · ${bidFloor}$</button>
           <button class="ghost" id="pokemon-pass" type="button" ${able ? "" : "disabled"}>Pas</button>
         </div><p class="auction-note">${note}</p>`}
-    </div>${auctionTeamMarkup(game, accounts, currentUser)}
+    </div>
+    <div class="auction-sidebar">${auctionTeamMarkup(game, accounts, currentUser)}${auctionOpponentsMarkup(game, accounts, players, currentUser)}</div>
   </div>`;
 }
 
@@ -565,7 +583,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const previousPrice = Number(previousAuction?.dataset.auctionBid || 0);
   const previousLeading = previousAuction?.dataset.auctionLeading === "true";
   if (game.mode === "pokemon-type-draw") body = typeRaceMarkup(game, settings);
-  if (game.mode === "pokemon-auction") body = auctionMarkup(game, accounts, currentUser);
+  if (game.mode === "pokemon-auction") body = auctionMarkup(game, accounts, currentUser, room.players);
   if (game.mode === "pokemon-types") { body = game.phase === "choose" ? `<p class="eyebrow">TYPY NA START</p><h1>Wybierz typ</h1><p class="muted">Każdy gracz wybiera jeden typ. Potem znajdźcie wspólnego Pokémona.</p>${timerMarkup(game)}<div class="pokemon-types">${pokemonTypes.map(type => `<button class="pokemon-type-button pokemon-type-${type}" data-pokemon-type="${type}" data-type-symbol="${typeSymbols[type]}" ${game.selectedTypes[currentUser] ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div>` : `<p class="eyebrow">ODPOWIEDŹ</p><h1>Znajdź Pokémona tych typów</h1><div class="pokemon-picked-types">${Object.values(game.selectedTypes).map(type => `<span class="pokemon-picked-type pokemon-type-${type}">${typeNames[type]}</span>`).join("")}</div>${timerMarkup(game)}${pokemonAnswerFormMarkup("answer")}`; }
   if (game.mode === "pokemon-match-type") { const target = pokemonDex.find(item => item.id === game.target), submitted = Boolean(game.answers?.[currentUser]); body = `<div class="pokemon-match-layout"><div><p class="eyebrow">DOPASUJ TYP · RUNDA ${game.round}</p><h1>Jakie typy ma ten Pokémon?</h1><div class="pokemon-match-target">${matchTypeCard(target)}</div><p class="muted">Zaznacz wszystkie typy tego Pokémona i zatwierdź odpowiedź.</p>${timerMarkup(game)}<div class="pokemon-types pokemon-match-types">${pokemonTypes.map(type => `<button class="pokemon-type-button pokemon-type-${type} ${game.answers?.[currentUser]?.includes(type) ? "is-selected" : ""}" data-pokemon-match-type="${type}" data-type-symbol="${typeSymbols[type]}" ${submitted ? "disabled" : ""}>${typeNames[type]}</button>`).join("")}</div><button class="primary pokemon-match-submit" data-pokemon-match-submit ${submitted ? "disabled" : ""}>Sprawdź</button></div>${matchTypePlayers(game, accounts, settings)}</div>`; }
   const scoutOwned = hasGamePass(accounts?.[currentUser], "pokemon-scout");
