@@ -36,7 +36,7 @@ const nudges = [
 const exact = {
   '1-1': 'Kliknij pień raz i świnię dwa razy. Kiedy zbierzesz drewno i jedzenie, kliknij „Idź dalej”.',
   '1-8': 'Wydobądź 6 bruku. Od miejsca, gdzie zaczyna się budowanie, ułóż trzy bloki obok siebie na dole, dwa nad prawymi dwoma i jeden nad prawym. Wejdź na półkę po prawej.',
-  '2-3': 'Wybierz pochodnię i kliknij uchwyt na lewo od wagonika. Kliknij klin i wagonik. Wybierz kilof, kliknij rudę żelaza i węgiel, a na końcu ślady wysoko po prawej.',
+  '2-3': 'Wybierz pochodnię i kliknij uchwyt na drewnianej podporze. Wyjmij klin spod prawego koła i przesuń wagonik. Wybierz kilof, wydobądź żelazo i węgiel, a na końcu kliknij strzałkę na ścianie.',
   '2-5': 'Kliknij mechanizm po lewej, by zabrać dzwon i łańcuch. Z łańcuchem kliknij śluzę. Wybierz dzwon i kliknij ramę, a potem dźwignię po prawej.',
   '2-6': 'Kliknij wagonik po lewej i właz u góry. Wybierz miecz i kliknij zombie. Wybierz zdobyty klucz, kliknij kratę, a potem Alex.',
   '3-5': 'Wybierz mapę i kliknij znak przy wejściu. Kliknij kamienie w kolejności: listek → gwiazda → tarcza. Na końcu zdejmij łańcuch z bramy.',

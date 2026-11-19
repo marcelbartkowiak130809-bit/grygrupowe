@@ -140,6 +140,10 @@
 .rescue-block{background-size:100% 100%;background-repeat:no-repeat;image-rendering:pixelated;pointer-events:none}
 .rescue-prop{pointer-events:none}.rescue-prop img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .rescue-prop img[src$="/rescue_bed.png"]{object-fit:fill}
+.rescue-rails{
+ position:absolute;pointer-events:none;image-rendering:pixelated;
+ background:url('../assets/minecraft/backpack/rescue_rail_side.png') left center / calc(100% / var(--rail-length)) 100% repeat-x;
+}
 .rescue-light{background:radial-gradient(ellipse,#ffd59155,transparent 68%);pointer-events:none}
 .rescue-sunbeam{background:linear-gradient(#fff5bace,#ffe5a521);clip-path:polygon(0 0,22% 0,100% 100%,50% 100%);pointer-events:none;animation:rescue-beam .45s ease both}
 .rescue-node{z-index:3;display:grid;place-items:center;padding:0;min-height:0;min-width:0;border:0;border-radius:0;background:transparent;color:#e8f5d9;line-height:1;transition:left .55s,filter .2s;touch-action:manipulation;box-shadow:none}
@@ -148,6 +152,14 @@
 .rescue-node.is-blocked{filter:brightness(.75)}.rescue-node:disabled{opacity:1;cursor:default}
 .rescue-node.guard-asleep>.journey-person{transform:translateY(-3%) rotate(-90deg);transform-origin:center}
 .rescue-node[data-rescue-node="locker"] img{position:absolute;inset:0;height:100%;width:100%;object-position:bottom}
+.rescue-node.rescue-fitted-node{min-width:0;min-height:0}
+.rescue-node.rescue-fitted-node img{position:absolute;inset:0;width:100%;height:100%;object-position:bottom}
+.rescue-node.rescue-wall-tile img{object-fit:fill;filter:none}
+.rescue-node[data-rescue-node="lamp"].is-complete img{filter:drop-shadow(0 0 6px #ffc762)}
+.rescue-node[data-rescue-node="marks"]::after{
+ content:"";position:absolute;pointer-events:none;inset:33% 20%;background:#c5b69c;
+ clip-path:polygon(0 38%,55% 38%,55% 10%,70% 10%,100% 50%,70% 90%,55% 90%,55% 62%,0 62%);
+}
 .rescue-wire{width:100%;height:3px;background:#f2c990;box-shadow:0 1px 1px #231b19;pointer-events:none}
 .rescue-wire-target.is-complete .rescue-wire{background:linear-gradient(90deg,#a69178 44%,transparent 44% 56%,#a69178 56%);box-shadow:none}
 .rescue-cord-drop{position:absolute;background:#f2c990;pointer-events:none}

@@ -40,15 +40,15 @@ export const rescueScenes=[
  },{
   name:'Kopalnia z zablokowanym torem',region:'KOPALNIA',biome:'mine',
   goal:'Przesuń wagonik i wydobądź żelazo oraz węgiel.',
-  hint:'Pochodnia pasuje do uchwytu przy torze. Po oświetleniu zwolnij klin, a potem popchnij wagonik na bocznicę. Wybierz kilof do obu złóż.',
+  hint:'Zawieś pochodnię na drewnianej podporze. Wyjmij klin spod koła i przesuń wagonik do końca toru. Wybierz kilof do obu złóż.',
   finish:'marks',
   nodes:[
-   node('lamp',4,'Oświetl tor','tripwire_hook',{need:'torch',take:{torch:1},doneTexture:'torch',effect:'light',message:'Światło odsłoniło klin blokujący koło.'}),
-   node('chock',6,'Wyciągnij klin spod koła','oak_slab',{after:['lamp'],message:'Wagonik może się teraz poruszyć.'}),
-   node('cart',8,'Popchnij wagonik na bocznicę','minecart',{after:['chock'],doneX:10,effect:'roll',message:'Wagonik odsłonił dostęp do złóż.'}),
-   node('ore',11,'Wydobądź dwie rudy żelaza','iron_ore',{after:['cart'],need:'stone_pickaxe',give:{iron_ore:2},effect:'strike',message:'Zebrano dwie rudy żelaza.'}),
-   node('coal',13,'Wydobądź węgiel','coal_ore',{after:['cart'],need:'stone_pickaxe',give:{coal:1},effect:'strike',message:'Masz węgiel na opał.'}),
-   node('marks',14,'Obejrzyj ślady na ścianie','cracked_stone_bricks',{y:3,after:['ore','coal'],message:'Alex wydrapała strzałkę w stronę podziemnej kuźni.'}),
+   node('lamp',4,'Zawieś pochodnię na podporze','tripwire_hook',{y:3.75,width:1,height:1,need:'torch',take:{torch:1},doneTexture:'torch',effect:'light',message:'Światło odsłoniło klin blokujący koło.'}),
+   node('chock',8.7,'Wyciągnij klin spod koła','rescue_chock',{y:5.43,width:.64,height:.4,after:['lamp'],message:'Wagonik może się teraz poruszyć.'}),
+   node('cart',7.8,'Przesuń wagonik do końca toru','rescue_minecart_side',{y:4.89,width:1.2,height:.95,after:['chock'],doneX:9.75,effect:'roll',message:'Możesz zejść z toru przy złożach.'}),
+   node('ore',11,'Wydobądź dwie rudy żelaza','rescue_deepslate_iron_ore',{width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{iron_ore:2},effect:'strike',message:'Zebrano dwie rudy żelaza.'}),
+   node('coal',13,'Wydobądź węgiel','rescue_deepslate_coal_ore',{y:4,width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{coal:1},effect:'strike',message:'Masz węgiel na opał.'}),
+   node('marks',14,'Obejrzyj wyrytą strzałkę','cracked_stone_bricks',{y:3,width:1,height:1,wallTile:true,after:['ore','coal'],message:'Alex wydrapała strzałkę w stronę podziemnej kuźni.'}),
   ],
  },{
   name:'Żelazo ze starego pieca',region:'KUŹNIA',biome:'forge',
@@ -77,7 +77,7 @@ export const rescueScenes=[
   hint:'Przestaw wagonik pod właz, aby nacisnąć płytkę. Otwarty właz wpuści światło i odetnie strażnikowi drogę. Wybierz miecz, pokonaj zombie i użyj klucza na kracie.',
   finish:'rescue',
   nodes:[
-   node('weight',4,'Popchnij wagonik na płytkę','minecart',{doneX:6,effect:'roll',message:'Wagonik nacisnął płytkę pod włazem.'}),
+   node('weight',4,'Popchnij wagonik na płytkę','rescue_minecart_side',{y:4.95,width:1,height:.9,doneX:6,effect:'roll',message:'Wagonik nacisnął płytkę pod włazem.'}),
    node('hatch',7,'Otwórz właz nad strażnikiem','oak_planks',{y:2,after:['weight'],effect:'light',message:'Światło zagrodziło strażnikowi ucieczkę.'}),
    node('warden',10,'Pokonaj zombie z kluczem','zombie',{character:true,after:['hatch'],need:'iron_sword',give:{tripwire_hook:1},effect:'strike',message:'Zombie pokonany. Klucz wpadł do plecaka.'}),
    node('cell',12,'Otwórz kratę kluczem','iron_bars',{after:['warden'],need:'tripwire_hook',take:{tripwire_hook:1},effect:'light',message:'Krata podniosła się. Alex jest wolna!'}),

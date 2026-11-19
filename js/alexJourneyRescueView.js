@@ -1,20 +1,32 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261119-22';
+import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261119-23';
 import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261119-16';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 
 import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
-import {alexHintOptions} from './alexJourneyHints.js?v=20261119-22';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261119-23';
 const sessions=new Map();
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
 const image=id=>`<img src="${asset(id)}" alt="" draggable="false">`;
 const at=(x,y,width=1,height=1)=>`left:${x/16*100}%;top:${y/9*100}%;width:${width/16*100}%;height:${height/9*100}%`;
 const block=(x,y,id)=>`<i class="rescue-block" style="${at(x,y)};background-image:url('${asset(id)}')"></i>`;
 const prop=(x,y,id,height=1,width=1)=>`<span class="rescue-prop" style="${at(x,y,width,height)}">${image(id)}</span>`;
+const rails=(x,length)=>`<i class="rescue-rails" style="${at(x,5.78,length,.22)};--rail-length:${length}"></i>`;
 const hearts=(x,y)=>`<span class="rescue-hearts" style="${at(x,y,2,1)}" aria-hidden="true">♥ ♥ <b>♥</b></span>`;
+
+function mineScenery(lampLit){
+ let html=rails(5,6);
+ for(let y=1;y<6;y++)html+=block(4,y,'rescue_spruce_log');
+ for(const x of [3,5])html+=block(x,1,'rescue_spruce_log');
+ for(const [offset,top] of [5,4,3,2,2].entries()){
+  for(let y=top;y<6;y++)html+=block(11+offset,y,'rescue_deepslate');
+ }
+ if(lampLit)html+=`<span class="rescue-light" style="${at(1.5,1.3,7,6)}"></span>`;
+ return html;
+}
 
 function scenery(scene,state){
  const {biome}=scene,flags=state.flags;
@@ -36,17 +48,13 @@ function scenery(scene,state){
   html+=prop(4,3,'lantern_item')+prop(11,3,'lantern_item');
  }else{
   for(let x=0;x<16;x++)if(biome!=='lair'||x!==7||!flags.hatch)html+=block(x,0,'deepslate_tiles');
-  if(biome==='mine'){
-   for(let x=5;x<12;x++)html+=prop(x,5.65,'rail',.35);
-   if(flags.lamp)html+=`<span class="rescue-light" style="${at(1,1,7,6)}"></span>`;
-  }
+  if(biome==='mine')html+=mineScenery(flags.lamp);
   if(biome==='sluice'){
    html+=block(6,5,'stone_bricks')+block(12,5,'stone_bricks');
    for(let x=7;x<=11;x++)html+=block(x,7,flags.flood?'rescue_water':'rescue_prismarine');
   }
   if(biome==='lair'){
-   for(let x=3;x<7;x++)html+=prop(x,5.65,'rail',.35);
-   html+=prop(6,5.8,'light_weighted_pressure_plate',.2);
+   html+=rails(3,3)+prop(6,5.8,'light_weighted_pressure_plate',.2);
    for(let y=3;y<6;y++)html+=flags.cell?'':block(12,y,'iron_bars');
    if(flags.hatch)html+=`<span class="rescue-sunbeam" style="${at(7,0,4,6)}"></span>`;
   }
@@ -74,9 +82,10 @@ function renderScene(scene,index,state,visuals){
   const wire=entry.id==='tripwire';
   const cell=entry.id==='cell';
   const art=wire?'<span class="rescue-wire"></span>':cell?'':character?visuals.person(entry.texture):image(complete&&entry.doneTexture||entry.texture);
-  const bounds=wire?at(x,entry.y,2.66,.8):cell?at(x,3,1,3):at(x-.2,character?4:entry.y,1.4,character?2:1);
+  const bounds=wire?at(x,entry.y,2.66,.8):cell?at(x,3,1,3):entry.width?at(x,entry.y,entry.width,entry.height):at(x-.2,character?4:entry.y,1.4,character?2:1);
   const classes=[character?'rescue-character':'',complete?'is-complete':'',locked?'is-blocked':'',
    entry.id==='guard'?'guard-asleep':'',wire?'rescue-wire-target':'',
+   entry.width?'rescue-fitted-node':'',entry.wallTile?'rescue-wall-tile':'',
    entry.id==='warden'&&flags.hatch?'warden-lit':'',complete&&entry.doneX!==undefined?'cart-rolled':''].join(' ');
   html+=`<button type="button" class="rescue-node ${classes}" style="${bounds}" data-rescue-node="${entry.id}" aria-label="${escapeHtml(entry.label)}" title="${escapeHtml(entry.label)}" ${!active||state.done||complete&&!entry.repeat?'disabled':''}>${art}${entry.id==='guard'?'<span class="guard-indicator" aria-hidden="true">Zz</span>':''}</button>`;
  }
