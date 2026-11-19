@@ -48,7 +48,7 @@ const modeLabels = {
   "kto-najpredzej":"Kto najpredzej", "test-znajomosci":"Test znajomosci", "zatruty-cukierek":"Zatruty cukierek",
   bomba:"Bomba", "najblizej-prawdy":"Najbliżej prawdy", ranking:"Ranking", "5-sekund":"5 sekund", zegar:"Zegar",
   "pokemon-dex":"Najbliższy numer Pokédex", "pokemon-last-letter":"Ostatnia litera", "pokemon-evolution":"Evolution Race",
-  "pokemon-auction":"Licytacja teamu", "pokemon-types":"Typy na start", "pokemon-match-type":"Dopasuj typ",
+  "pokemon-auction":"Licytacja teamu", "pokemon-types":"Typy na start", "pokemon-match-type":"Dopasuj typ", "pokemon-type-draw":"Losowanie typów",
   wavelength:"Wavelength", quiz:"Quiz", mathematics:"Matematyka", marker:"Marker", sequence:"Zgadnij sekwencję",
   family:"Familiada", "word-chain":"Łańcuch słów", charades:"Kalambury", hangman:"Wisielec", "number-mystery":"Tajemnicza liczba", "unique-answer":"Bez powtórek",
   "polacz-nas":"Połącz nas", klamca:"Kłamca", "falszywa-wiadomosc":"Fałszywa wiadomość", "tajna-zasada":"Tajna zasada",
@@ -145,7 +145,7 @@ const questModeIcons = {
   ranking:"🏆", "5-sekund":"⏱️", zegar:"⏰", wavelength:"🌈", quiz:"🎲", mathematics:"🧮",
   marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", "pokemon-dex":"🔴",
   "pokemon-last-letter":"🔤", "pokemon-evolution":"🧬", "pokemon-auction":"💰",
-  "pokemon-types":"🔥", "pokemon-match-type":"🔗", "number-mystery":"🔢", "unique-answer":"🧩",
+  "pokemon-types":"🔥", "pokemon-match-type":"🔗", "pokemon-type-draw":"🎲", "number-mystery":"🔢", "unique-answer":"🧩",
   "polacz-nas":"🔗", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠",
   "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "popularnosc-solo":"🔥", "dokoncz-tekst":"✍️",
 };
@@ -235,7 +235,7 @@ const questList = now => {
     q(`daily-play-five-seconds-${d}`,"daily","Zagraj w 5 sekund",1,"mode","5S","medium",{mode:"5-sekund"}),
     q(`daily-win-clock-${d}`,"daily","Wygraj gre w Zegarze",1,"winMode","CLOCK+","medium",{mode:"zegar"}),
     q(`daily-play-impostor-${d}`,"daily","Zagraj w Impostora",1,"mode","IMP","medium",{mode:"impostor"}),
-    q(`daily-play-pokemon-${d}`,"daily","Zagraj 2 gry pokemonowe",2,"anyModeGroup","PKM+","medium",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
+    q(`daily-play-pokemon-${d}`,"daily","Zagraj 2 gry pokemonowe",2,"anyModeGroup","PKM+","medium",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type","pokemon-type-draw"]}),
     q(`daily-streak-3-${d}`,"daily","Wygraj 3 gry pod rzad",3,"bestStreak","STK+","hard"),
     q(`daily-win-3-any-${d}`,"daily","Wygraj 3 gry lacznie",3,"anyWin","3W","hard"),
     q(`daily-spend-${d}`,"daily","Wydaj 1000 coinow",1000,"spent","$$","medium"),
@@ -273,7 +273,7 @@ const questList = now => {
     q(`weekly-play-word-chain-${w}`,"weekly","Zagraj 4 gry w Lancuch slow",4,"mode","WORD","medium",{mode:"word-chain"}),
     q(`weekly-play-charades-${w}`,"weekly","Zagraj 4 gry w Kalambury",4,"mode","ACT4","medium",{mode:"charades"}),
     q(`weekly-play-hangman-${w}`,"weekly","Zagraj 4 gry w Wisielca",4,"mode","HANG4","medium",{mode:"hangman"}),
-    q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type"]}),
+    q(`weekly-play-pokemon-${w}`,"weekly","Zagraj 3 gry pokemonowe",3,"anyModeGroup","PKM","hard",{modes:["pokemon-dex","pokemon-last-letter","pokemon-evolution","pokemon-auction","pokemon-types","pokemon-match-type","pokemon-type-draw"]}),
     q(`weekly-spend-${w}`,"weekly","Wydaj 2500 coinow",2500,"spent","$$","medium"),
   ].filter(quest => questIsAvailable(quest, now));
 };

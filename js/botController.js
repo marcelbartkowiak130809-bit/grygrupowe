@@ -13,7 +13,7 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates } from "./pokemon.js?v=20261119-1";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261119-2";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
@@ -47,7 +47,7 @@ function expired(game) {
   if (!game || game.finished) return false;
   const endsAt = game.variant === "full-test" && game.phase === "test" ? [game.testEndsAt]
     : [game.phaseEndsAt, game.guessEndsAt, game.countdownEndsAt, game.roundEndsAt, game.explodesAt, game.phase === "create" && game.createEndsAt];
-  const now = game.mode === "pokemon-auction" ? serverNow() : Date.now();
+  const now = ["pokemon-auction","pokemon-type-draw"].includes(game.mode) ? serverNow() : Date.now();
   return endsAt.some(value => Number(value || 0) > 0 && now >= Number(value));
 }
 const activeFrom = (game, keys = []) => keys.map(key => game?.[key]).find(Boolean) || "";
@@ -128,6 +128,7 @@ export function botActor(room) {
   if (room.gameMode === "pokemon-types" && game.phase === "choose") return bots.find(uid => isMissing(game.selectedTypes, uid)) || "";
   if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
   if (room.gameMode === "pokemon-auction") return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
+  if (room.gameMode === "pokemon-type-draw") return bots.find(uid => !game.raceBotMisses?.includes(uid)) || "";
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
   if (room.gameMode === "songspot" && ["preview", "answering"].includes(game.phase)) return bots.find(uid => isMissing(game.answers, uid)) || "";
@@ -449,6 +450,7 @@ function timeoutMutation(room, game, bot) {
     case "pokemon-types":
     case "pokemon-last-letter":
     case "pokemon-match-type":
+    case "pokemon-type-draw":
     case "pokemon-auction": return g => PokemonEngine.timeout(g, bot, players, settings);
     case "wavelength": return g => WavelengthEngine.timeout(g, players, settings);
     case "quiz": return g => QuizEngine.timeout(g, players, settings);
@@ -606,6 +608,13 @@ export function botMutation(room) {
         break;
       case "pokemon-match-type":
         if (game.phase === "answers" && isMissing(game.answers, bot)) { const target = pokemonDex.find(item => item.id === game.target); return g => PokemonEngine.matchType(g, bot, correct() ? target?.types || [] : ["normal"], players, settings); }
+        break;
+      case "pokemon-type-draw":
+        if (game.phase === "type-race" && bot) return g => {
+          const item = correct() && randomBotChoice(typeRaceCandidates(g.drawnTypes, settings));
+          if (item) return PokemonEngine.answer(g, bot, item.name, players, settings);
+          g.raceBotMisses = [...(g.raceBotMisses || []),bot];
+        };
         break;
       case "pokemon-auction":
         if (pokemonAuctionCanBid(game, bot)) return g => {
@@ -772,8 +781,9 @@ export function scheduleBot(room, { mutate, onDone }) {
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
-  const timeLeft = Number(deadline || 0) - (room.gameMode === "pokemon-auction" ? serverNow() : Date.now());
-  const think = botDelay(room, "answer", actor);
+  const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw"].includes(room.gameMode) ? serverNow() : Date.now());
+  const baseDelay = botDelay(room, "answer", actor);
+  const think = room.gameMode === "pokemon-type-draw" ? Math.max(2500,baseDelay) : baseDelay;
   const delay = expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {

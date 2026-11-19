@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261119-1";
+import { renderGame } from "./game.js?v=20261119-2";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260903-9";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260903-9";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260903-9";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261119-1";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261119-2";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260903-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260903-9";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260903-9";
@@ -287,6 +287,12 @@ export const gamesRegistry = {
   },
   "pokemon-match-type": {
     id: "pokemon-match-type", name: "Dopasuj typ", description: "Rozpoznaj wszystkie typy pokazanego Pokémona szybciej od innych.", help: ["Wszyscy widzą tego samego Pokémona.", "Zaznacz wszystkie jego typy.", "Błędna odpowiedź zabiera serce."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◈", art:"pokemon-types", audience:"pokemon", badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-match-type"],
+  },
+  "pokemon-type-draw": {
+    id:"pokemon-type-draw", name:"Losowanie typów", description:"Jeden lub dwa losowe typy. Kto pierwszy wpisze pasującego Pokémona?",
+    help:["Poczekaj na zatrzymanie losowania.", "Wpisz Pokémona, który ma wszystkie wylosowane typy. Błędną odpowiedź możesz poprawić.", "Pierwsza poprawna odpowiedź daje punkt i kończy rundę."],
+    allowReports:true, players:"2–8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"🎲", art:"pokemon-types", audience:"pokemon",
+    badges:["new"], render:renderPokemonGame, defaultSettings:pokemonDefaults["pokemon-type-draw"],
   },
   wavelength: {
     id: "wavelength", name: "Wavelength", description: "Naprowadź ekipę na ukryty punkt między dwoma przeciwieństwami.", help: ["Opisujący widzi ukryty cel i podaje jedno słowo lub krótkie zdanie.", "Pozostali wspólnie ustawiają wskaźnik na skali.", "Host zatwierdza ustawienie, a wynik zależy od odległości od celu."], allowReports:true, players:"2-8 osób", minPlayers:2, maxPlayers:8, supportsLobby:true, supportsSolo:false, symbol:"◌", art:"wavelength", audience:"everyone", badges:["new"], render:renderWavelengthGame, defaultSettings:wavelengthDefaults,

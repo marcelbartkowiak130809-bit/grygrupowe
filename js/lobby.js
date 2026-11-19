@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20261119-1";
+import { getGameMode } from "./games.js?v=20261119-2";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20261118-27";
 import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
@@ -87,10 +87,11 @@ function presetSettingsFor(mode, preset, { mathematicsVariant = "single" } = {})
   } else if (id === "5-sekund") {
     set("answerTime", 5, 10, 5);
     set("rounds", 3, 10, 8);
-  } else if (["pokemon-dex", "pokemon-evolution", "pokemon-types"].includes(id)) {
+  } else if (["pokemon-dex", "pokemon-evolution", "pokemon-types", "pokemon-type-draw"].includes(id)) {
     set("answerTime", 10, 30, 15);
     set("rounds", 3, 10, 5);
     if (id === "pokemon-types") set("selectTime", 5, 20, 10);
+    if (id === "pokemon-type-draw") set("typeCount", 0, 2, 0);
   } else if (id === "pokemon-last-letter") {
     set("answerTime", 10, 30, 15);
     set("rounds", 3, 15, 10);
@@ -165,6 +166,9 @@ function estimatePreset(mode, preset, playerCount, extra = {}) {
     case "pokemon-dex":
     case "pokemon-evolution":
       seconds = rounds * (averagePhase(settings.answerTime, .5, 7) + 8);
+      break;
+    case "pokemon-type-draw":
+      seconds = rounds * (1.8 + averagePhase(settings.answerTime, .5, 7) + 10);
       break;
     case "pokemon-last-letter": {
       const turns = Number(settings.rounds) || 10;
