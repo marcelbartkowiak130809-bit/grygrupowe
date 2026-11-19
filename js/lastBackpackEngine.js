@@ -1,4 +1,4 @@
-import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261118-28';
+import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261119-5';
 import {logicSolved} from './backpackAdvancedPuzzles.js?v=20261118-28';
 import {craftBatchCount} from './backpackQuality.js?v=20261117-10';
 export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso',...puzzleItems};
@@ -144,15 +144,16 @@ export function restoreBackpack(raw){
   const legacyActions=data.version===1?data.log.length:data.legacyActions??0;
   if(!Number.isInteger(legacyActions)||legacyActions<0||legacyActions>data.log.length)return s;
   s.legacyActions=legacyActions;
+  const oldLength=data.campaignLength??30;
   for(let index=0;index<data.log.length;index++){
    if(index===legacyActions&&legacyActions)upgradeCurrentLogicAttempt(s);
    let action=data.log[index];
    // Replaying an old campaign reaches its first new level in place of its former summary.
-   if(action?.type==='summary'&&[30,50].includes(data.campaignLength)&&s.unlocked>=data.campaignLength&&!s.finishedAt){
-    if(s.level===data.campaignLength)continue;
-    action={type:'level',index:data.campaignLength};
+   if(action?.type==='summary'&&!s.finishedAt&&Number.isInteger(oldLength)&&
+      oldLength>0&&oldLength<backpackLevels.length&&s.completed[oldLength-1]){
+    if(s.level===oldLength)continue;
+    action={type:'level',index:oldLength};
    }
-   if(!data.campaignLength&&action?.type==='summary'&&s.unlocked===30&&!s.finishedAt)action={type:'level',index:30};
    if(!applyBackpackAction(s,action,index<legacyActions))return createBackpackState();
   }
   if(legacyActions&&legacyActions===data.log.length)upgradeCurrentLogicAttempt(s);

@@ -34,7 +34,7 @@ test('a wagon cannot skip track cells or pass a closed gate, and moving is undoa
  assert.equal(s.stock.oak_planks,0);
 });
 test('whole campaign replays every action, including new mechanics and undo, after reload',()=>{
- let s=createBackpackState();assert.equal(backpackLevels.length,60);
+ let s=createBackpackState();assert.equal(backpackLevels.length,70);
  for(let level=0;level<backpackLevels.length;level++){
   assert.equal(s.level,level);solveBackpackLevel(s);const solvedStock={...s.stock};action(s,{type:'undo'});assert.equal(s.solved,false);
   s=restoreBackpack(saveBackpack(s));assert.equal(s.level,level);
@@ -42,7 +42,56 @@ test('whole campaign replays every action, including new mechanics and undo, aft
   const last=s.log.slice(0,-1).at(-1);assert.ok(action(s,last));assert.ok(s.solved);assert.deepEqual(s.stock,solvedStock);
   action(s,{type:'next'});s=restoreBackpack(saveBackpack(s));
  }
- assert.ok(s.done);assert.equal(s.level,60);
+ assert.ok(s.done);assert.equal(s.level,70);
+});
+test('a 60-level save retains its active attempt, cleared levels, undo and first-move time',()=>{
+ const state=createBackpackState();
+ for(let i=0;i<59;i++){solveBackpackLevel(state);action(state,{type:'next'});}
+ action(state,{type:'place',index:9,item:'redstone'});
+ action(state,{type:'craft-slot',index:0,item:'glass'});
+ const old={...JSON.parse(saveBackpack(state)),campaignLength:60};
+ const resumed=restoreBackpack(old);
+ assert.equal(resumed.level,59);
+ assert.equal(resumed.unlocked,59);
+ assert.deepEqual(resumed.completed,state.completed);
+ assert.deepEqual(resumed.stock,state.stock);
+ assert.deepEqual(resumed.grid,state.grid);
+ assert.deepEqual(resumed.puzzle,state.puzzle);
+ assert.equal(resumed.startedAt,old.startedAt);
+ assert.equal(resumed.moves,state.moves);
+ assert.ok(action(resumed,{type:'undo'}));
+ assert.equal(resumed.stock.glass,state.stock.glass+1);
+});
+test('the old 60-level summary continues at 61 and preserves revisited attempts after reload',()=>{
+ const state=createBackpackState();
+ for(let i=0;i<60;i++){
+  solveBackpackLevel(state);
+  if(i<59)action(state,{type:'next'});
+ }
+ const old={...JSON.parse(saveBackpack(state)),campaignLength:60,finishedAt:Date.now()};
+ const solved=restoreBackpack(old);
+ assert.equal(solved.level,59);
+ assert.equal(solved.solved,true);
+ assert.equal(solved.unlocked,60);
+ assert.ok(action(solved,{type:'next'}));
+ assert.equal(solved.level,60);
+
+ const oldSummary={...old,log:[...old.log,{type:'next'}]};
+ const continued=restoreBackpack(oldSummary);
+ assert.equal(continued.level,60);
+ assert.equal(continued.done,false);
+ assert.deepEqual(continued.completed,state.completed);
+ assert.equal(continued.finishedAt,0);
+ assert.equal(continued.startedAt,state.startedAt);
+ assert.equal(continued.moves,state.moves);
+
+ const revisited={...oldSummary,log:[...oldSummary.log,{type:'level',index:59},{type:'reset-level'},
+  {type:'place',index:9,item:'redstone'},{type:'summary'}]};
+ const restored=restoreBackpack(saveBackpack(restoreBackpack(revisited)));
+ assert.equal(restored.level,60);
+ assert.equal(restored.completed.filter(Boolean).length,60);
+ assert.equal(restored.attempts[59].puzzle.stations['wire-a'],true);
+ assert.equal(restored.attempts[59].stock.redstone,1);
 });
 test('legacy completed three-level saves continue at the first new puzzle',()=>{
  const s=createBackpackState();for(let i=0;i<3;i++){solveBackpackLevel(s);action(s,{type:'next'});}
@@ -98,6 +147,11 @@ test('shaped tools and bucket recipes respect materials, placement and mirroring
 test('every new icon and terrain uses a locally available original PNG',()=>{
  const names=new Set(Object.keys(puzzleItems));
  for(let level=3;level<backpackLevels.length;level++){
+  const definition=backpackLevels[level];
+  for(const station of definition.steps||[]){
+   names.add(station.icon);
+   if(station.doneIcon)names.add(station.doneIcon);
+  }
   const s=Object.assign(createBackpackState(),{level,stock:{...backpackLevels[level].stock}});
   for(const phase of [false,true]){s.solved=phase;s.puzzle={water:phase,smelted:phase,ore:phase?3:0,fuel:phase?1:0,planted:phase?[18,20,22]:[]};for(let i=0;i<40;i++){names.add(backpackTerrain(level,i,s));const tile=extraTile(backpackLevels[level],i,s);if(tile.icon)names.add(tile.icon);}}
  }

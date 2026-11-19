@@ -31,7 +31,7 @@ test('reset affects only the current attempt and chapter changes preserve drafts
  const s=restoreBackpack({version:1,log:baseline.log});
  for(let i=30;i<backpackLevels.length;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
  const {finishedAt,finishedMoves}=s;
- assert.equal(s.completed.filter(Boolean).length,60);
+ assert.equal(s.completed.filter(Boolean).length,backpackLevels.length);
  assert.ok(action(s,{type:'level',index:0}));
  assert.ok(action(s,{type:'reset-level'}));
  put(s,18,'cobblestone');
@@ -43,7 +43,7 @@ test('reset affects only the current attempt and chapter changes preserve drafts
  const moves=s.moves;
  assert.ok(action(s,{type:'undo'}));
  assert.equal(s.moves,moves-1);
- assert.equal(s.completed.filter(Boolean).length,60);
+ assert.equal(s.completed.filter(Boolean).length,backpackLevels.length);
  const restored=restoreBackpack(saveBackpack(s));
  assert.ok(action(restored,{type:'level',index:17}));
  assert.equal(restored.placed[17],'lever');

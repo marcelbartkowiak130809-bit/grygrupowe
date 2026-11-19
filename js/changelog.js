@@ -27,7 +27,7 @@ function buildChangelogEntries(now = Date.now()) {
         "Dodano Drogę do Alex, przygodę solo z połączonym światem, wspólnym plecakiem i zagadkami wykorzystującymi surowce, crafting i budowanie.",
         "Śladami zombie to drugi rozdział z sześcioma scenami. Spotkanie Steve’a z Alex i najazd zombie pokazują nowe komiksowe przerywniki.",
         "Każdy rozdział ma własny ranking czasu. Łączny wynik sumuje czasy z jednego podejścia. Nową próbę rankingową można rozpocząć co 5 godzin, a trening w dowolnym momencie.",
-        "Ostatni plecak ma 60 plansz, w tym finałowe wyzwania z przełączaniem torów, ograniczonymi surowcami i wieloetapowym craftingiem. Można wracać do odblokowanych plansz i resetować je pojedynczo.",
+        "Ostatni plecak ma 70 plansz. W ostatnich dziesięciu łączysz przełączanie torów, ograniczone surowce i wieloetapowy crafting. Można wracać do odblokowanych plansz i resetować je pojedynczo.",
         "W obu grach dopracowano sterowanie na telefonie i dodano płatne podpowiedzi za walutę strony.",
         "W bibliotece wyróżniono kategorie, dodano Hity TikToka i Wiedzę oraz zmieniono filtry, by pokazywały od razu konkretne gry.",
       ],

@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261119-4";
+import { renderGame } from "./game.js?v=20261119-5";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -32,7 +32,7 @@ import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylis
 
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261118-16";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261118-13";
-import { renderLastBackpack } from './lastBackpack.js?v=20261118-29';
+import { renderLastBackpack } from './lastBackpack.js?v=20261119-5';
 import { renderAlexJourney } from './alexJourney.js?v=20261118-20';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261118-16";
@@ -343,8 +343,8 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     id: "minecraft-sprint", name: "Minecraft Sprint", description: "Szybkie pytania o Minecrafta. Odpowiadaj pierwszy, zanim czas zniknie.", help: ["W każdej rundzie jeden gracz dostaje pytanie o Minecrafta.", "Pytania rosną od prostych mechanik do zaawansowanych szczegółów.", "Poprawna odpowiedź daje punkt, a po krótkim ujawnieniu kolej przechodzi dalej."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "⛏️", art: "minecraft-sprint", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-sprint"],
   },
   "minecraft-backpack": {
-    id:"minecraft-backpack", name:"Ostatni plecak", description:"60 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
-    majorUpdateAt: Date.parse("2026-11-18T15:58:49+01:00"),
+    id:"minecraft-backpack", name:"Ostatni plecak", description:"70 graficznych łamigłówek: buduj, craftuj, steruj tłokami, odkrywaj skarby, ulepszaj ekwipunek i otwórz portal Endu.",
+    majorUpdateAt: Date.parse("2026-11-19T12:45:00+01:00"),
     help:["Wybierz przedmiot z plecaka i przeciągnij na planszę albo do craftingu 3×3.","Na telefonie możesz też dotknąć przedmiotu, a potem pola.","Zbuduj przejście, oświetl kopalnię i przywróć zasilanie. Błędne ruchy nie zużywają przedmiotów.","Składniki można odzyskać. Receptury znajdziesz pod warsztatem."],
     players:"Tryb solo",minPlayers:1,maxPlayers:1,supportsLobby:false,supportsSolo:true,symbol:"⛏️",art:"minecraft-crafting",audience:"minecraft",badges:["new"],render:renderLastBackpack,soloRender:renderLastBackpack,defaultSettings:{},
   },

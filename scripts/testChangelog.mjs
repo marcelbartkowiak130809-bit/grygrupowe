@@ -10,7 +10,7 @@ test('5.x history contains grouped releases rather than one entry per small fix'
 });
 test('grouped entries keep major features without obsolete playlist and Marker instructions',()=>{
   const entries=[...changelogEntries],text=entries.filter(entry=>entry.version.startsWith('v5.')).flatMap(entry=>entry.changes).join(' ');
-  for(const feature of ['Marker','Impostor','Maryli Rodowicz','128','grafikę','rankingi','Kalambury','Wisielca','60 plansz','Hity TikToka','Zgadnij kto?'])assert.ok(text.includes(feature),feature);
+  for(const feature of ['Marker','Impostor','Maryli Rodowicz','128','grafikę','rankingi','Kalambury','Wisielca','70 plansz','Hity TikToka','Zgadnij kto?'])assert.ok(text.includes(feature),feature);
   assert.ok(!text.includes('Zapisz krzyżyk'));assert.ok(!text.includes('z własnej playlisty'));assert.ok(!text.includes('Własną playlistę można załadować'));
   assert.ok(entries.some(entry=>entry.version==='v4.3.0'));assert.ok(entries.some(entry=>entry.version==='v2.0.0'));
 });

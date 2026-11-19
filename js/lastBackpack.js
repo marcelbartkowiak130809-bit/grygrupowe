@@ -1,9 +1,9 @@
 import {backpackNeedsReset} from './backpackDeadlock.js?v=20261118-29';
 import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
 import {escapeHtml} from './utils.js?v=20260903-7';
-import {backpackItems,backpackLevels,backpackTerrain,backpackRecipe,createBackpackState,backpackAction,backpackLight,backpackProgress,restoreBackpack,saveBackpack,backpackBatch} from './lastBackpackEngine.js?v=20261118-28';
+import {backpackItems,backpackLevels,backpackTerrain,backpackRecipe,createBackpackState,backpackAction,backpackLight,backpackProgress,restoreBackpack,saveBackpack,backpackBatch} from './lastBackpackEngine.js?v=20261119-5';
 import {patchBackpackView,backpackFeedback} from './backpackMotion.js?v=20261118-3';
-import {extraTile,puzzleItems} from './backpackPuzzles.js?v=20261118-28';
+import {extraTile,puzzleItems} from './backpackPuzzles.js?v=20261119-5';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 // Custom-property URLs are resolved at the stylesheet, so use module-relative absolute URLs.
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;

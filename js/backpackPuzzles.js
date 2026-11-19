@@ -3,6 +3,7 @@ import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe
 import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261118-28';
 import {deepLevels,deepTile,deepProgress,deepPlace} from './backpackDeepPuzzles.js?v=20261118-28';
 import {finalBackpackLevels} from './backpackFinalPuzzles.js?v=20261118-28';
+import {masterBackpackLevels} from './backpackMasterPuzzles.js?v=20261119-5';
 // Handcrafted additions with independent resource budgets and goal checks.
 export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament',...advancedItems,...expeditionItems};
 const decoys={feather:2,string:3,rotten_flesh:2};
@@ -14,7 +15,7 @@ export const extraBackpackLevels=[
  {kind:'library',theme:'library',name:'Czytelnia zaklęć',goal:'Ustaw cztery biblioteczki, dodaj lazuryt i zaklnij książkę.',tip:'Biblioteczki muszą stać dwa pola od stołu (również po skosie). Pole pomiędzy stołem a każdą biblioteczką musi zostać puste. Do stołu dodaj 1 lazuryt i książkę. To prosta łamigłówka, nie zaklęcie na poziomie 30.',stock:{bookshelf:4,book:1,lapis_lazuli:1,...decoys},table:19},
  {kind:'portal',theme:'portal',name:'Dziesięć sztuk obsydianu',goal:'Zbuduj minimalną ramę portalu i zapal jej wnętrze.',tip:'Narożniki nie są potrzebne: 2 bloki u góry, 2 u dołu i po 3 z każdej strony. Krzemień i sztabka żelaza w craftingu dają krzesiwo. Nie wypełniaj wnętrza obsydianem.',stock:{obsidian:10,flint:1,iron_ingot:1,gravel:3,...decoys},outputs:['flint_and_steel'],frame:[2,3,9,12,17,20,25,28,34,35],inside:[10,11,18,19,26,27]},
  {kind:'mine',theme:'mine',name:'Droga po diament',goal:'Zdobądź diament, stopniowo ulepszając kilof.',tip:'Najpierw zrób drewniany kilof i wydobądź 3 kamienie. Z bruku zrób kamienny kilof, wydobądź 3 rudy żelaza i wytop je w piecu (ruda na górnym polu, węgiel na dolnym). Żelazny kilof dopiero poradzi sobie z diamentem. Kilof: 3 materiały w górnym rzędzie i 2 patyki pod środkiem.',stock:{oak_log:2,coal:1,...decoys},outputs:['oak_planks','stick','wooden_pickaxe','cobblestone','stone_pickaxe','iron_ore','iron_ingot','iron_pickaxe'],stones:[9,17,25],ores:[11,19,27],diamond:21,ore:14,fuel:30,furnace:22}
- ,...advancedLevels,...expeditionLevels,...deepLevels,...finalBackpackLevels
+ ,...advancedLevels,...expeditionLevels,...deepLevels,...finalBackpackLevels,...masterBackpackLevels
 ];
 const x=i=>i%8,y=i=>Math.floor(i/8),distance=(a,b)=>Math.max(Math.abs(x(a)-x(b)),Math.abs(y(a)-y(b)));
 export function extraTerrain(level,i,s){

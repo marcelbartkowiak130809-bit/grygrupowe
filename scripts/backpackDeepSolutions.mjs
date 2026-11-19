@@ -18,6 +18,14 @@ const recipes={
  iron_pickaxe:[[0,'iron_ingot'],[1,'iron_ingot'],[2,'iron_ingot'],[4,'stick'],[7,'stick']],
  ender_eye:[[0,'ender_pearl'],[1,'blaze_powder']],
  oak_planks:[[0,'oak_log']],
+ stick:[[0,'oak_planks'],[3,'oak_planks']],
+ piston:['oak_planks','oak_planks','oak_planks','cobblestone','iron_ingot','cobblestone','cobblestone','redstone','cobblestone'].map((item,index)=>[index,item]),
+ shears:[[0,'iron_ingot'],[4,'iron_ingot']],
+ oak_slab:[0,1,2].map(index=>[index,'oak_planks']),
+ composter:[0,2,3,5,6,7,8].map(index=>[index,'oak_slab']),
+ conduit:Array.from({length:9},(_,index)=>[index,index===4?'heart_of_the_sea':'nautilus_shell']),
+ bow:[[1,'stick'],[2,'string'],[3,'stick'],[5,'string'],[7,'stick'],[8,'string']],
+ arrow:[[0,'flint'],[3,'stick'],[6,'feather']],
  red_stained_glass:Array.from({length:9},(_,index)=>[index,index===4?'red_dye':'glass']),
  flint_and_steel:[[0,'flint'],[1,'iron_ingot']],
  diamond_chestplate:[0,2,3,4,5,6,7,8].map(index=>[index,'diamond']),
@@ -34,6 +42,9 @@ export function solveDeepLevel(state,perform=action=>backpackAction(state,action
   while((state.stock[item]||0)<count){
    assert.ok(recipes[item],`${level.name}: missing ${item}`);
    const previous=state.stock[item]||0;
+   const needed={};
+   for(const [,ingredient]of recipes[item])needed[ingredient]=(needed[ingredient]||0)+1;
+   for(const [ingredient,amount]of Object.entries(needed))ensure(ingredient,amount);
    for(const [index,ingredient]of recipes[item]){
     assert.ok(state.stock[ingredient]>0,`${level.name}: missing recipe ingredient ${ingredient}`);
     act({type:'craft-slot',index,item:ingredient});
