@@ -482,20 +482,17 @@ export function renderPlatform(root, actions, context = {}) {
        <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}</nav>
        <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
     </section>
-    <section class="platform-hero">
-      <div>
-        <p class="eyebrow">GRY GRUPOWE</p>
-        <h1>Jedna ekipa.<br><span>Wiele sposobów</span> na dobry wieczór.</h1>
-        <p>Wybierz tryb, zaproś znajomych kodem pokoju i zacznijcie grać. Bez instalowania czegokolwiek.</p>
-        <form class="platform-join" id="platform-join-form">
-          <div><p class="eyebrow">MASZ JUŻ POKÓJ?</p><strong>Dołącz kodem pokoju</strong></div>
-          <input id="platform-room-code" placeholder="KOD POKOJU" maxlength="6" autocomplete="off">
-          <input id="platform-room-pass" placeholder="hasło, jeśli prywatny" autocomplete="off">
-          <button class="primary">${icon("userPlus", 17)} Dołącz</button>
-        </form>
-        <button class="ghost random-room-button" id="random-room">Dołącz do losowego pokoju</button>
+    <section class="home-join" aria-labelledby="home-join-heading">
+      <h2 id="home-join-heading">Dołącz do pokoju</h2>
+      <form class="home-join-form" id="platform-join-form">
+        <label for="platform-room-code">Kod pokoju<input id="platform-room-code" placeholder="np. ABC123" maxlength="6" autocomplete="off"></label>
+        <label for="platform-room-pass">Hasło<input id="platform-room-pass" placeholder="Opcjonalne" autocomplete="off"></label>
+        <button class="primary" type="submit">${icon("userPlus", 17)} Dołącz</button>
+      </form>
+      <div class="home-join-options">
+        <button class="ghost" id="random-room" type="button"><span aria-hidden="true">🎲</span> Losowy pokój</button>
+        <button class="ghost" id="open-global-stats" type="button"><span aria-hidden="true">📊</span> Statystyki strony</button>
       </div>
-      <div class="hero-side-actions"><div class="hero-stack" aria-hidden="true"><div></div><div></div><div>⚡</div></div><button class="ghost global-stats-trigger" id="open-global-stats" type="button">📊 Statystyki strony</button></div>
     </section>
     ${modeUnlockAnnouncementHtml()}
     ${pollPanelHtml(context, currentPollState)}
