@@ -43,12 +43,79 @@
 .journey-build.torch-target:hover,.journey-build.torch-target:focus-visible{background:#61441b;outline-color:#fff3ba}
 .torch-target-icon{width:88%;height:88%;object-fit:contain;pointer-events:none}
 .journey-story-chapters{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;margin:0 0 18px}
-.journey-story-chapters>*{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0;gap:4px;padding:10px 14px;border:1px solid #a5cfaf38;border-radius:12px;background:#172b28;color:#d7e8da;text-align:left}
-.journey-story-chapters button[aria-current]{border-color:#b7db8b;background:#263b29;color:#edffd7}
-.journey-story-chapters button:disabled{opacity:.55;cursor:default}
-.journey-story-chapters small{color:#a9cbb0;font-size:9px;font-weight:850;letter-spacing:.12em}
-.journey-story-chapters strong{font-size:13px}.journey-story-chapters span{font-size:10px}.journey-story-chapters time{color:#efcf92;font-size:12px;font-variant-numeric:tabular-nums}
-.journey-story-chapters .journey-third-chapter{background:#282e2a;border-color:#dfb96a45}
+.journey-story-chapters>button{
+ position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;
+ align-items:flex-start;justify-content:center;min-width:0;min-height:96px;gap:4px;padding:10px 14px;
+ border:1px solid color-mix(in srgb,var(--chapter-accent) 34%,transparent);border-radius:12px;
+ background:var(--chapter-base);color:#eef6f0;text-align:left;
+}
+.journey-story-chapters [data-journey-chapter="1"]{--chapter-base:#14261c;--chapter-accent:#c5ec91;--chapter-sky:#587951;--chapter-horizon:#c89555}
+.journey-story-chapters [data-journey-chapter="2"]{--chapter-base:#101e27;--chapter-accent:#9ed1ed;--chapter-sky:#213959;--chapter-horizon:#335956}
+.journey-story-chapters [data-journey-chapter="3"]{--chapter-base:#231c25;--chapter-accent:#f4c880;--chapter-sky:#3f324c;--chapter-horizon:#714542}
+.journey-story-chapters button[aria-current]{border-color:var(--chapter-accent);box-shadow:inset 0 0 20px color-mix(in srgb,var(--chapter-accent) 12%,transparent)}
+.journey-story-chapters button:not(:disabled):hover{border-color:var(--chapter-accent)}
+.journey-story-chapters button:focus-visible{outline:2px solid var(--chapter-accent);outline-offset:3px}
+.journey-story-chapters button:disabled{opacity:1;cursor:default;color:#c6d1d5}
+.journey-story-chapters small{color:var(--chapter-accent);font-size:9px;font-weight:850;letter-spacing:.12em}
+.journey-story-chapters strong{font-size:14px}
+.journey-story-chapters button>span:not(.journey-chapter-art){font-size:11px;color:#c6d1d5}
+.journey-story-chapters time{color:#ffdc9d;font-size:12px;font-variant-numeric:tabular-nums}
+.journey-chapter-art{
+ position:absolute;z-index:-1;inset:0 0 0 36%;pointer-events:none;overflow:hidden;
+ background:linear-gradient(var(--chapter-sky) 5%,var(--chapter-horizon) 92%);image-rendering:pixelated;
+}
+.journey-chapter-art::after{
+ content:"";position:absolute;z-index:1;inset:0;
+ background:linear-gradient(90deg,var(--chapter-base),transparent 42%),linear-gradient(transparent 35%,#0b111b66);
+}
+.journey-story-chapters button:disabled .journey-chapter-art{opacity:.74}
+.journey-chapter-art i{position:absolute;display:block}
+.journey-chapter-light{right:14%;top:13%;width:14px;height:14px;background:#f7d08d;box-shadow:0 0 19px #ffc76ca0}
+.journey-chapter-ground{inset:auto 0 0;height:16px;background:url("../assets/minecraft/backpack/grass_block_side.png") repeat-x bottom / 21px 21px}
+.journey-chapter-landmark{
+ right:20%;bottom:16px;width:73px;height:53px;
+ background:linear-gradient(#d37d2633,#20140933),url("../assets/minecraft/backpack/oak_planks.png") center / 22px repeat;
+ clip-path:polygon(0 40%,14% 40%,14% 26%,28% 26%,28% 12%,42% 12%,42% 0,58% 0,58% 12%,72% 12%,72% 26%,86% 26%,86% 40%,100% 40%,100% 55%,92% 55%,92% 100%,8% 100%,8% 55%,0 55%);
+}
+.journey-chapter-landmark::after{content:"";position:absolute;right:16px;bottom:9px;width:12px;height:11px;background:#ffe09b;box-shadow:0 0 10px #ffbd63}
+.journey-chapter-detail{right:6%;bottom:16px;height:28px;width:8px;background:#614330}
+.journey-chapter-detail::before{
+ content:"";position:absolute;bottom:10px;left:50%;width:29px;height:24px;transform:translateX(-50%);
+ background:linear-gradient(#578c4a88,#25522899),url("../assets/minecraft/backpack/oak_leaves.png") center / 24px;
+ clip-path:polygon(0 40%,18% 40%,18% 16%,35% 16%,35% 0,65% 0,65% 16%,82% 16%,82% 40%,100% 40%,100% 100%,0 100%);
+}
+[data-journey-chapter="2"] .journey-chapter-light{right:25%;background:#c2e4f8;box-shadow:0 0 18px #8fcafeb0,26px 19px 0 -6px #d4f1f9,-22px 4px 0 -6px #d4f1f9}
+[data-journey-chapter="2"] .journey-chapter-landmark{
+ right:0;bottom:11px;width:100%;height:57px;clip-path:polygon(0 73%,16% 73%,16% 56%,32% 56%,32% 36%,47% 36%,47% 55%,63% 55%,63% 70%,82% 70%,82% 48%,100% 48%,100% 100%,0 100%);
+ background:linear-gradient(#31535cf0,#122f35e0),url("../assets/minecraft/backpack/stone_bricks.png") center / 28px repeat;
+}
+[data-journey-chapter="2"] .journey-chapter-landmark::after{content:none}
+[data-journey-chapter="2"] .journey-chapter-ground,[data-journey-chapter="3"] .journey-chapter-ground{background-image:linear-gradient(#131d2d77,#131d2d99),url("../assets/minecraft/backpack/deepslate_tiles.png")}
+[data-journey-chapter="2"] .journey-chapter-detail{
+ right:12%;bottom:16px;width:34px;height:34px;background:url("../assets/minecraft/mob-heads/zombie.png") center / contain no-repeat;
+ filter:drop-shadow(0 3px 6px #0a171b);
+}
+[data-journey-chapter="2"] .journey-chapter-detail::before,[data-journey-chapter="3"] .journey-chapter-detail::before{content:none}
+[data-journey-chapter="3"] .journey-chapter-light{right:6%;width:17px;height:17px;background:#e6ac7f;box-shadow:0 0 22px #ed987da0}
+[data-journey-chapter="3"] .journey-chapter-landmark{
+ right:14%;bottom:12px;width:69px;height:70px;
+ background:linear-gradient(90deg,#121521aa,#73576033),url("../assets/minecraft/backpack/stone_bricks.png") center / 24px repeat;
+ clip-path:polygon(0 0,20% 0,20% 12%,40% 12%,40% 0,60% 0,60% 12%,80% 12%,80% 0,100% 0,100% 29%,92% 29%,92% 100%,8% 100%,8% 29%,0 29%);
+}
+[data-journey-chapter="3"] .journey-chapter-landmark::after{
+ right:18px;bottom:17px;width:7px;height:13px;background:#ffc578;
+ box-shadow:0 0 12px #ef964a, -23px -15px 0 #ffcf89;
+}
+[data-journey-chapter="3"] .journey-chapter-detail{
+ right:49%;bottom:56%;width:19px;height:8px;background:#151826;
+ clip-path:polygon(0 0,30% 12%,48% 47%,56% 39%,76% 11%,100% 0,84% 60%,60% 67%,50% 100%,37% 65%,17% 60%);
+}
+@media(prefers-reduced-motion:no-preference){
+ .journey-chapter-light{animation:journey-chapter-glow 4s ease-in-out infinite}
+ [data-journey-chapter="3"] .journey-chapter-detail{animation:journey-chapter-flight 6s ease-in-out infinite}
+}
+@keyframes journey-chapter-glow{50%{opacity:.68}}
+@keyframes journey-chapter-flight{50%{transform:translate(-8px,-4px)}}
 .rescue-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,255px);gap:16px;align-items:start}
 .rescue-quest{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:0 0 12px}
 .rescue-quest h2{margin:3px 0 6px;color:#f2f8ed;font-size:clamp(19px,3vw,32px);line-height:1.1}
@@ -89,7 +156,11 @@
 @keyframes rescue-water{from{opacity:1;transform:translateX(-70%)}to{opacity:0;transform:translateX(95%)}}
 @keyframes rescue-strike{35%{transform:translateX(28%) rotate(8deg)}}
 @media(max-width:760px){
- .journey-story-chapters{grid-template-columns:1fr 1fr;margin-bottom:12px}.journey-story-chapters>*{padding:8px 10px}.journey-story-chapters .journey-third-chapter{grid-column:1/-1;flex-direction:row;align-items:baseline;justify-content:space-between;gap:7px;flex-wrap:wrap}
+ .journey-story-chapters{grid-template-columns:1fr 1fr;margin-bottom:12px}.journey-story-chapters>button{min-height:84px;padding:8px 10px}.journey-story-chapters .journey-third-chapter{grid-column:1/-1}
+ .journey-story-chapters button:not(.journey-third-chapter) .journey-chapter-art{inset-inline-start:42%}
+ .journey-story-chapters button:not(.journey-third-chapter) .journey-chapter-art::after{background:linear-gradient(90deg,var(--chapter-base),transparent 64%),linear-gradient(transparent 30%,#0b111b80)}
+ .journey-story-chapters [data-journey-chapter="1"] .journey-chapter-landmark{right:12%;width:55px;height:47px}
+ .journey-story-chapters [data-journey-chapter="1"] .journey-chapter-detail{display:none}
  .journey-story-chapters strong{font-size:12px}.rescue-layout{grid-template-columns:1fr;gap:10px}.rescue-pack{grid-row:1;padding:9px 11px}.rescue-pack h3{font-size:13px;margin-bottom:5px}.rescue-pack .journey-slot{min-height:36px}
  .rescue-foot{flex-wrap:wrap}.rescue-foot .journey-next{margin-left:0;width:100%}.rescue-quest p:not(.eyebrow),.rescue-foot p{font-size:12px}
 }

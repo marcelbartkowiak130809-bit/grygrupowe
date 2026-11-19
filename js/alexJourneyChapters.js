@@ -14,19 +14,24 @@ export function chapterCountdown(now = Date.now()) {
  return days ? `${days} d ${clock}` : clock;
 }
 
+const chapterArt = `<span class="journey-chapter-art" aria-hidden="true">
+ <i class="journey-chapter-light"></i><i class="journey-chapter-landmark"></i>
+ <i class="journey-chapter-ground"></i><i class="journey-chapter-detail"></i>
+</span>`;
+
 function thirdChapterCard(active, secondComplete, now) {
  const playable = canPlayThirdChapter(secondComplete,now);
  const upcoming = now < THIRD_CHAPTER_AT;
  return `<button type="button" class="journey-third-chapter" data-journey-chapter="3" data-second-complete="${secondComplete}" ${active===3?'aria-current="page"':''} ${playable?'':'disabled'}>
-  <small>ROZDZIAŁ 3</small><strong>Wieża Kruków</strong>
+  ${chapterArt}<small>ROZDZIAŁ 3</small><strong>Wieża Kruków</strong>
   ${upcoming?`<span>Piątek, 20 listopada · 20:00</span><time datetime="${THIRD_CHAPTER_DATE}" data-journey-countdown>${chapterCountdown(now)}</time>`:playable?'':'<span>Ukończ rozdział 2</span>'}
  </button>`;
 }
 
 export function chapterMenu(active,unlocked,secondComplete=false,now=Date.now()) {
  return `<nav class="journey-story-chapters" aria-label="Rozdziały Drogi do Alex">
-  <button type="button" data-journey-chapter="1" ${active===1?'aria-current="page"':''}><small>ROZDZIAŁ 1</small><strong>Droga do Alex</strong></button>
-  <button type="button" data-journey-chapter="2" ${active===2?'aria-current="page"':''} ${unlocked?'':'disabled'}><small>ROZDZIAŁ 2</small><strong>Śladami zombie</strong>${unlocked?'':'<span>Ukończ rozdział 1</span>'}</button>
+  <button type="button" data-journey-chapter="1" ${active===1?'aria-current="page"':''}>${chapterArt}<small>ROZDZIAŁ 1</small><strong>Droga do Alex</strong></button>
+  <button type="button" data-journey-chapter="2" ${active===2?'aria-current="page"':''} ${unlocked?'':'disabled'}>${chapterArt}<small>ROZDZIAŁ 2</small><strong>Śladami zombie</strong>${unlocked?'':'<span>Ukończ rozdział 1</span>'}</button>
   ${thirdChapterCard(active,secondComplete,now)}
  </nav>`;
 }
