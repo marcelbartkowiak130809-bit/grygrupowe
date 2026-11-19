@@ -67,7 +67,6 @@ body:has(.game-presentation){overflow:hidden}
   width:min(100%,max(236px,calc((100dvh - 158px) * 8 / 5)));margin-inline:auto;
  }
  .game-presentation :is(.rescue-foot,.journey-route-actions){margin-top:4px;min-height:32px}
- .game-presentation .journey-underworld{margin:5px 0}
  .game-presentation .journey-next{min-width:108px;min-height:34px;padding:6px 9px}
  .game-presentation .backpack-objective{margin-top:5px}
 }

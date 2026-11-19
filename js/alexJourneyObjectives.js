@@ -1,4 +1,4 @@
-import {journeyScene,journeyLit,journeyCanCross} from './alexJourneyEngine.js?v=20261118-6';
+import {journeyScene,journeyLit,journeyCanCross} from './alexJourneyEngine.js?v=20261119-17';
 
 export function journeyTime(s){const seconds=Math.max(0,Math.round(((s.done?s.finishedAt:Date.now())-s.startedAt)/1000));return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
 

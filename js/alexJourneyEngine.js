@@ -1,7 +1,7 @@
 import {journeyScenes,journeyScene,journeyItems,journeyRecipes,baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 export {journeyScenes,journeyScene,journeyItems,journeyRecipes};
 export const journeyTier=item=>({wooden_pickaxe:1,stone_pickaxe:2,iron_pickaxe:3}[item]||0);
-export function createJourney(rulesVersion=2){return {version:1,rulesVersion,log:[],undo:[],scene:0,farthest:0,stock:{},discovered:[],grid:Array(9).fill(''),selected:'',world:journeyScenes.map(()=>({nodes:{},placed:{},fuel:{},flags:{}})),completed:Array(10).fill(false),hero:{scene:0,x:6},steps:0,crafted:0,looted:0,food:0,done:false,startedAt:Date.now(),finishedAt:0,message:'Alex czeka po drugiej stronie gór. Zacznij od zapasów.',effect:null};}
+export function createJourney(rulesVersion=2){return {version:1,rulesVersion,log:[],undo:[],scene:0,farthest:0,stock:{},discovered:[],grid:Array(9).fill(''),selected:'',world:journeyScenes.map(()=>({nodes:{},placed:{},fuel:{},flags:{}})),completed:Array(10).fill(false),hero:{scene:0,x:6},steps:0,crafted:0,looted:0,food:0,done:false,startedAt:Date.now(),finishedAt:0,message:'',effect:null};}
 const give=(s,item,n=1)=>{s.stock[item]=(s.stock[item]||0)+n;if(!s.discovered.includes(item))s.discovered.push(item);};
 const has=(s,item,n=1)=>Number.isInteger(n)&&n>0&&(s.stock[item]||0)>=n;
 const take=(s,item,n=1)=>{s.stock[item]-=n;};
@@ -21,26 +21,26 @@ export function journeyCanCross(s,scene){const l=journeyScenes[scene];if(l.id===
 }
 function reachable(s,node){const l=journeyScenes[s.scene];if(l.gap&&node.x>=12&&!journeyCanCross(s,s.scene))return false;if(l.id==='gate'&&node.x>12&&!s.world[s.scene].flags.powered)return false;return true;}
 function complete(s){const w=s.world[s.scene],f=w.flags;const passed=[()=>!!f.food&&!!f.wood,()=>!!f.crossed,()=>!!f.cooked,()=>!!f.stonePick,()=>f.iron>=3&&journeyScenes[4].lights.every(x=>journeyLit(s,4,x)),()=>!!f.ironPick,()=>!!f.map,()=>!!f.crossed,()=>!!f.crossed&&!!f.powered,()=>!!f.greeted&&!!f.lantern][s.scene]();
- if(passed&&!s.completed[s.scene]){s.completed[s.scene]=true;s.message=s.scene===9?'Alex odnaleziona. Cała droga była warta zachodu!':'Droga otwarta. Możesz jeszcze rozejrzeć się po okolicy.';s.effect={kind:'complete'};}
+ if(passed&&!s.completed[s.scene]){s.completed[s.scene]=true;s.message=s.scene===9?'Alex odnaleziona. Cała droga była warta zachodu!':'Droga otwarta.';s.effect={kind:'complete'};}
  if(s.completed[9]&&!s.done){s.done=true;s.finishedAt=Date.now();}
 }
 function execute(s,a){const scene=journeyScene(s),w=s.world[s.scene],item=a.item||s.selected;
  s.effect=null;
- if(a.type==='select'){if(!journeyItems[a.item]||!has(s,a.item))return false;s.selected=a.item;s.message=`Wybrano: ${journeyItems[a.item]}.`;return true;}
+ if(a.type==='select'){if(!journeyItems[a.item]||!has(s,a.item))return false;s.selected=a.item;s.message='';return true;}
  if(a.type==='travel'){
   if(!Number.isInteger(a.scene)||a.scene<0||a.scene>=10||a.scene>s.farthest)return false;
-  s.hero={scene:a.scene,x:s.done&&a.scene===9?11:6};s.scene=a.scene;s.message=s.completed[s.scene]?'Tu już byłeś. Pozostałe zapasy nadal czekają.':journeyScene(s).goal;s.effect={kind:'travel'};complete(s);return true;
+  s.hero={scene:a.scene,x:s.done&&a.scene===9?11:6};s.scene=a.scene;s.message='';s.effect={kind:'travel'};complete(s);return true;
  }
- if(a.type==='next'){if(!s.completed[s.scene]||s.scene>=9)return false;s.scene++;s.farthest=Math.max(s.farthest,s.scene);s.hero={scene:s.scene,x:6};s.message=journeyScene(s).goal;s.steps++;s.effect={kind:'travel'};complete(s);return true;}
+ if(a.type==='next'){if(!s.completed[s.scene]||s.scene>=9)return false;s.scene++;s.farthest=Math.max(s.farthest,s.scene);s.hero={scene:s.scene,x:6};s.message='';s.steps++;s.effect={kind:'travel'};complete(s);return true;}
  if(a.type==='slot'){
   if(!Number.isInteger(a.index)||a.index<0||a.index>8)return false;
-  if(s.grid[a.index]){give(s,s.grid[a.index]);s.grid[a.index]='';}else{if(!journeyItems[item]||!has(s,item))return false;take(s,item);s.grid[a.index]=item;}s.message='Ułóż recepturę. Składniki odzyskasz kliknięciem.';return true;
+  if(s.grid[a.index]){give(s,s.grid[a.index]);s.grid[a.index]='';}else{if(!journeyItems[item]||!has(s,item))return false;take(s,item);s.grid[a.index]=item;}s.message='';return true;
  }
  if(a.type==='clear'){if(!s.grid.some(Boolean))return false;for(const id of s.grid)if(id)give(s,id);s.grid.fill('');return true;}
  if(a.type==='prepare'){
   const recipe=journeyRecipes.find(r=>r.id===a.id);if(!recipe)return false;const available={...s.stock},needed={};for(const id of s.grid)if(id)available[id]=(available[id]||0)+1;for(const [,id]of recipe.slots)needed[id]=(needed[id]||0)+1;
   const missing=Object.entries(needed).filter(([id,n])=>(available[id]||0)<n);if(missing.length){s.message='Brakuje: '+missing.map(([id,n])=>`${n-(available[id]||0)} × ${journeyItems[id]}`).join(', ');return true;}
-  s.stock=available;s.grid.fill('');for(const [i,id]of recipe.slots){take(s,id);s.grid[i]=id;}s.message='Receptura ułożona. Odbierz wynik strzałką.';return true;
+  s.stock=available;s.grid.fill('');for(const [i,id]of recipe.slots){take(s,id);s.grid[i]=id;}s.message='';return true;
  }
  if(a.type==='craft'){
   const recipe=journeyRecipe(s.grid);if(!recipe)return false;give(s,recipe.id,recipe.count);s.grid.fill('');s.selected=recipe.id;s.crafted++;s.steps++;s.message=`Wytworzono: ${recipe.count} × ${journeyItems[recipe.id]}.`;if(recipe.id==='stone_pickaxe')s.world[3].flags.stonePick=true;if(recipe.id==='iron_pickaxe')s.world[5].flags.ironPick=true;s.effect={kind:'craft',item:recipe.id};complete(s);return true;
@@ -114,7 +114,7 @@ function execute(s,a){const scene=journeyScene(s),w=s.world[s.scene],item=a.item
 }
 const snapshot=s=>JSON.stringify({scene:s.scene,farthest:s.farthest,stock:s.stock,discovered:s.discovered,grid:s.grid,selected:s.selected,world:s.world,completed:s.completed,hero:s.hero,steps:s.steps,crafted:s.crafted,looted:s.looted,food:s.food,done:s.done,finishedAt:s.finishedAt});
 export function journeyAction(s,a){if(!a||typeof a!=='object'||!Array.isArray(s.log)||s.done&&!['undo','travel','select'].includes(a.type))return false;
- if(a.type==='undo'){const old=s.undo.pop();if(!old)return false;Object.assign(s,JSON.parse(old));s.message='Cofnięto ostatnią czynność. Świat i plecak wróciły razem.';s.effect={kind:'undo'};s.log.push({type:'undo'});return true;}
+ if(a.type==='undo'){const old=s.undo.pop();if(!old)return false;Object.assign(s,JSON.parse(old));s.message='Cofnięto ostatni ruch.';s.effect={kind:'undo'};s.log.push({type:'undo'});return true;}
  const before=snapshot(s);if(!execute(s,a))return false;
  if(!['select','travel'].includes(a.type)&&snapshot(s)!==before)s.undo.push(before);
  s.log.push({type:a.type,...(typeof a.item==='string'?{item:a.item}:{}),...(typeof a.id==='string'?{id:a.id}:{}),...Object.fromEntries(['scene','index','x','y'].filter(k=>Number.isInteger(a[k])).map(k=>[k,a[k]]))});return true;
