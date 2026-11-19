@@ -72,11 +72,11 @@ body:has(.game-presentation){overflow:hidden}
 }
 
 /* Keep the chapter's live world mounted while changing its presentation. */
-.game-presentation:has(>.journey-page :is(.journey-layout,.rescue-layout,.siege-layout)):not(:has(>.is-finished,>.rescue-finished)){
+.game-presentation:has(>.journey-page :is(.journey-layout,.rescue-layout,.siege-layout)):not(:has(>.is-finished)){
  padding:0;
  overflow:hidden;
 }
-.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished){
+.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished){
  --journey-rail:clamp(155px,23vw,300px);
  --journey-inset:clamp(8px,1.5vw,24px);
  --journey-outline:1px 1px #15201c,-1px 1px #15201c,1px -1px #15201c,-1px -1px #15201c,0 2px 5px #101611;
@@ -86,32 +86,32 @@ body:has(.game-presentation){overflow:hidden}
  margin:0;
  padding:0;
 }
-.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished)>:not(.journey-heading,.journey-layout,.rescue-layout,.siege-layout),
-.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished) .journey-heading>:first-child,
-.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished) .game-view-tools>button:not([data-game-fullscreen]){
+.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished)>:not(.journey-heading,.journey-layout,.rescue-layout,.siege-layout),
+.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished) .journey-heading>:first-child,
+.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished) .game-view-tools>button:not([data-game-fullscreen]){
  display:none;
 }
-.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished) .journey-heading{
+.game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished) .journey-heading{
  position:absolute;
  height:0;
  margin:0;
  padding:0;
 }
-.game-presentation>.journey-page:not(.is-finished,.rescue-finished)>:is(.journey-layout,.rescue-layout,.siege-layout){
+.game-presentation>.journey-page:not(.is-finished)>:is(.journey-layout,.rescue-layout,.siege-layout){
  display:grid;
  grid-template-columns:minmax(0,1fr) var(--journey-rail);
  gap:0;
  height:100%;
  align-items:stretch;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) :is(.journey-layout,.rescue-layout,.siege-layout)>.journey-play{
+.game-presentation .journey-page:not(.is-finished) :is(.journey-layout,.rescue-layout,.siege-layout)>.journey-play{
  position:relative;
  padding:0;
  border:0;
  border-radius:0;
  min-height:0;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-camera,.rescue-camera,.siege-camera){
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-camera,.rescue-camera,.siege-camera){
  --visible:16;
  width:100%;
  max-width:none;
@@ -121,15 +121,15 @@ body:has(.game-presentation){overflow:hidden}
  border-radius:0;
  container-type:inline-size;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) :is(.journey-actor,.rescue-hero,.siege-hero)>.journey-person:first-child{
+.game-presentation .journey-page:not(.is-finished) :is(.journey-actor,.rescue-hero,.siege-hero)>.journey-person:first-child{
  position:absolute;
  bottom:0;
  height:min(100%,13cqw);
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>.journey-camera .journey-track{
+.game-presentation .journey-page:not(.is-finished) .journey-play>.journey-camera .journey-track{
  transform:translateX(calc(var(--camera) * -100% / 160));
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest){
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest){
  position:absolute;
  z-index:12;
  top:max(var(--journey-inset),env(safe-area-inset-top));
@@ -142,12 +142,12 @@ body:has(.game-presentation){overflow:hidden}
  pointer-events:none;
  text-shadow:var(--journey-outline);
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) h2{
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) h2{
  margin:3px 0;
  font-size:clamp(15px,2.3vmin,29px);
  line-height:1.15;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) p:not(.eyebrow){
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) p:not(.eyebrow){
  margin:3px 0 0;
  padding:0;
  border:0;
@@ -155,10 +155,10 @@ body:has(.game-presentation){overflow:hidden}
  font-size:clamp(12px,1.9vmin,17px);
  line-height:1.3;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) :is(.eyebrow,span){
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-quest,.rescue-quest,.siege-quest) :is(.eyebrow,span){
  font-size:clamp(8px,1.45vmin,11px);
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>.minecraft-hints{
+.game-presentation .journey-page:not(.is-finished) .journey-play>.minecraft-hints{
  position:absolute;
  z-index:14;
  bottom:calc(max(var(--journey-inset),env(safe-area-inset-bottom)) + 48px);
@@ -169,11 +169,11 @@ body:has(.game-presentation){overflow:hidden}
  margin:0;
  background:#102017ed;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>.minecraft-hints:not([open]){
+.game-presentation .journey-page:not(.is-finished) .journey-play>.minecraft-hints:not([open]){
  width:max-content;
  max-width:calc(100% - 2 * var(--journey-inset));
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-route-actions,.rescue-foot,.siege-status){
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-route-actions,.rescue-foot,.siege-status){
  position:absolute;
  z-index:12;
  left:max(var(--journey-inset),env(safe-area-inset-left));
@@ -184,10 +184,10 @@ body:has(.game-presentation){overflow:hidden}
  pointer-events:none;
  text-shadow:var(--journey-outline);
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>:is(.journey-route-actions,.rescue-foot,.siege-status) button{
+.game-presentation .journey-page:not(.is-finished) .journey-play>:is(.journey-route-actions,.rescue-foot,.siege-status) button{
  pointer-events:auto;
 }
-.game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play :is(.journey-look,.journey-quick),
+.game-presentation .journey-page:not(.is-finished) .journey-play :is(.journey-look,.journey-quick),
 .game-presentation .journey-pack .journey-back-to-world{
  display:none;
 }
@@ -211,10 +211,10 @@ body:has(.game-presentation){overflow:hidden}
  .game-presentation .journey-pack .journey-recipes>div{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(orientation:portrait) and (max-width:760px){
- .game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished,.rescue-finished){--journey-rail:clamp(116px,36vw,175px)}
+ .game-presentation>.journey-page:has(>:is(.journey-layout,.rescue-layout,.siege-layout)):not(.is-finished){--journey-rail:clamp(116px,36vw,175px)}
  .game-presentation .journey-page .game-fullscreen-button{max-width:calc(var(--journey-rail) - 12px);white-space:normal;font-size:11px}
  .game-presentation .journey-pack .journey-inventory{grid-template-columns:repeat(4,minmax(0,1fr))}
- .game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-route-actions{grid-template-columns:auto minmax(0,1fr);gap:4px}
- .game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-route-actions>:is(.journey-next,.journey-food){grid-column:2;max-width:100%;min-width:0}
- .game-presentation .journey-page:not(.is-finished,.rescue-finished) .journey-play>.minecraft-hints{bottom:calc(max(var(--journey-inset),env(safe-area-inset-bottom)) + 92px)}
+ .game-presentation .journey-page:not(.is-finished) .journey-route-actions{grid-template-columns:auto minmax(0,1fr);gap:4px}
+ .game-presentation .journey-page:not(.is-finished) .journey-route-actions>:is(.journey-next,.journey-food){grid-column:2;max-width:100%;min-width:0}
+ .game-presentation .journey-page:not(.is-finished) .journey-play>.minecraft-hints{bottom:calc(max(var(--journey-inset),env(safe-area-inset-bottom)) + 92px)}
 }

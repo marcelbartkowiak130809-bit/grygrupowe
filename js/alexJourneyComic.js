@@ -26,6 +26,11 @@ const at = (x,y,w,h) => `left:${x/16*100}%;top:${y/9*100}%;width:${w/16*100}%;he
 const actor = (person,id,x,y,classes='',pose='') =>
  `<span class="siege-actor alex-comic-actor ${classes}" style="${pose==='reach'?at(x-.4,y,2.45,2.85):at(x,y,1.65,2.85)}">${person(id,pose)}</span>`;
 
+export function journeyHearts(position) {
+ const points=[[5,50],[8,15],[30,0],[60,0],[88,15],[95,50],[15,80],[85,80]];
+ return `<div class="journey-hearts" style="${position}" aria-hidden="true">${points.map(([x,y],i)=>`<span style="--i:${i};left:${x}%;top:${y}%">♥</span>`).join('')}</div>`;
+}
+
 function couple(person,hearts) {
  return `${actor(person,'steve',10.7,3.15,'alex-hug-steve','hug')}${actor(person,'alex',11.8,3.15,'alex-hug-alex','hug')}
  ${hearts?`<div class="alex-comic-hearts" style="${at(10.3,2.45,3.1,1.7)}">${[12,38,67,88].map((x,i)=>`<i style="--heart-x:${x}%;--heart-delay:${i*-410}ms">♥</i>`).join('')}</div>`:''}`;

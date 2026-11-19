@@ -6,8 +6,8 @@ import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,jou
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261119-17';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261119-16';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-23';
-import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-24';
+import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-24';
 import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-23';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
@@ -62,7 +62,7 @@ function scenery(l,index,s){
  if(l.id==='alex')html+=`<div class="journey-meeting-light ${s.world[index].flags.lantern?'lit':''}" style="${at(9,2,5,4)}" aria-hidden="true"></div>`;
  if(l.id==='river'&&s.rulesVersion===2&&!s.world[index].flags.bridgeReleased)html+=`<span class="journey-suspended-log" style="${at(7,4,2,1)};background-image:url('${asset('oak_log')}')" aria-hidden="true"></span>`;
  if(l.id==='village'&&s.rulesVersion===2)html+=`<span class="journey-pulley-rope ${s.world[index].flags.counterweight?'released':''}" style="${at(7,2,2,4)};--wood:url('${asset('oak_planks')}');--stone:url('${asset('cobblestone')}')" aria-hidden="true"><i></i><b></b></span>`;
- if(l.id==='alex'&&s.done)html+=`<div class="journey-hearts" style="${at(10,2,4,4)}" aria-label="Steve i Alex razem">${[[5,50],[8,15],[30,0],[60,0],[88,15],[95,50],[15,80],[85,80]].map(([x,y],i)=>`<span style="--i:${i};left:${x}%;top:${y}%">♥</span>`).join('')}</div>`;
+ if(l.id==='alex'&&s.done)html+=journeyHearts(at(10,2,4,4));
  return html;
 }
 function nodeLabel(n,ns){if(ns.done)return {chest:'Skrzynia opróżniona',lantern:'Zapalona pochodnia'}[n.type]||'Zebrane';return {log:'Zbierz drewno',pig:'Zdobądź jedzenie',berries:'Zbierz jagody',stone:'Wydobądź bruk',coal:'Wydobądź węgiel',iron:'Wydobądź żelazo',redstone:'Wydobądź redstone',well:ns.opened?'Otwórz odsłoniętą skrzynię':'Usuń głaz ze studni',chest:'Otwórz skrzynię',stove:'Użyj pieca',hearth:'Kamienne palenisko',lantern:'Zapal światło',prop:'Zwolnij podporę kłody',pulley:'Obciąż linę brukiem',alex:'Przywitaj Alex'}[n.type];}

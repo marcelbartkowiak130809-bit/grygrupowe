@@ -1,7 +1,7 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261119-23';
-import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
+import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-24';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261119-16';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
@@ -15,7 +15,18 @@ const at=(x,y,width=1,height=1)=>`left:${x/16*100}%;top:${y/9*100}%;width:${widt
 const block=(x,y,id)=>`<i class="rescue-block" style="${at(x,y)};background-image:url('${asset(id)}')"></i>`;
 const prop=(x,y,id,height=1,width=1)=>`<span class="rescue-prop" style="${at(x,y,width,height)}">${image(id)}</span>`;
 const rails=(x,length)=>`<i class="rescue-rails" style="${at(x,5.78,length,.22)};--rail-length:${length}"></i>`;
-const hearts=(x,y)=>`<span class="rescue-hearts" style="${at(x,y,2,1)}" aria-hidden="true">♥ ♥ <b>♥</b></span>`;
+
+function rescueReunion(person,animate){
+ const actor=(id,x)=>`<div class="rescue-actor rescue-reunion-${id}" style="${at(x,4,2.2,2)}">
+  <div class="rescue-reunion-stand">${person(id,'stand')}</div>
+  <div class="rescue-reunion-hug">${person(id,'hug')}</div>
+ </div>`;
+ return `<div class="rescue-reunion ${animate?'rescue-reuniting':''}" role="img" aria-label="Steve i Alex przytulają się po ucieczce z celi">
+  <span class="rescue-reunion-light" style="${at(9.5,1.9,6.5,5)}"></span>
+  ${actor('steve',11.3)}${actor('alex',12.27)}
+  ${journeyHearts(at(10.8,2.65,4.6,3.65))}
+ </div>`;
+}
 
 function mineScenery(lampLit){
  let html=rails(5,6);
@@ -71,11 +82,11 @@ function renderScene(scene,index,state,visuals){
    html+=`<span class="rescue-actor rescue-horde" style="${at(x,4,1.2,2)};--mob:${i}">${visuals.person('zombie')}</span>`;
   }
  }
- if(index===5&&flags.rescue)html+=hearts(12.8,3.2);
+ if(scene.biome==='lair'&&flags.rescue)html+=rescueReunion(visuals.person,effect==='reunion');
  for(const entry of scene.nodes){
   const complete=Boolean(flags[entry.id]);
   if((entry.reveal&&!entry.after.every(key=>flags[key]))||
-     (complete&&['embrace','warden','cell','ore','coal','shears','chock'].includes(entry.id)))continue;
+     (complete&&['embrace','warden','cell','rescue','ore','coal','shears','chock'].includes(entry.id)))continue;
   const x=complete&&entry.doneX!==undefined?entry.doneX:entry.x;
   const locked=entry.after?.some(key=>!flags[key]);
   const character=entry.character;
@@ -127,7 +138,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,ra
   }});
  }
  const stock=Object.entries(state.stock).filter(([,count])=>count>0);
- const readyToLeave=state.flags[scene.finish]&&!state.done;
+ const readyToLeave=!state.done&&state.flags[scene.finish];
  const title=state.scene===0&&state.flags.embrace?'Alex zniknęła. Zbadaj ślady przy drzwiach.':scene.goal;
  const elapsed=Math.max(1,Math.round((state.finishedAt-state.startedAt)/1000));
  const act=action=>{
@@ -137,6 +148,7 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,ra
   if(!wasDone&&state.done)actions.completeSoloGame?.('minecraft-journey', `chapter-2:${state.startedAt}`, state.startedAt, state.finishedAt);
   if(!storeSession(playerId,state))state.message+=' Nie udało się zapisać postępu.';
   renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank});
+  if(!wasDone&&state.done)root.querySelector('.rescue-quest h2')?.focus({preventScroll:true});
  };
  patchBackpackView(root,`<main class="page journey-page rescue-page ${state.done?'rescue-finished':''}">
   <header class="journey-heading"><div><p class="eyebrow">MINECRAFT · ROZDZIAŁ 2</p><h1>Śladami zombie</h1></div><div class="game-view-tools">${gameFullscreenButton}<button class="ghost" type="button" data-rescue-home>← Minecraft</button></div></header>
@@ -144,14 +156,14 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,ra
   ${chapterMenu(2,true,state.done)}
   ${rank.html()}
   <div class="rescue-layout"><section class="journey-play">
-   <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
+   <div class="rescue-quest"><div><p class="eyebrow">${state.scene+1} / ${rescueScenes.length} · ${scene.region}</p><h2 ${state.done?'tabindex="-1"':''}>${state.done?'Alex uratowana!':scene.name}</h2><p>${state.done?`${state.steps} ruchów · ${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`:escapeHtml(readyToLeave?'Droga wolna. Ruszaj dalej.':title)}</p></div>
    </div>
    ${minecraftHintPanel(root,actions,alexHintOptions(2,state.scene,scene,!state.flags[scene.finish]))}
    <div class="rescue-camera"><div class="rescue-track" style="--scene:${state.scene}">
      ${rescueScenes.map((item,index)=>renderScene(item,index,state,visuals)).join('')}
-     <div class="rescue-hero ${state.effect==='strike'?'hero-strike':''}" style="--hero:${state.scene*16+state.hero}" aria-hidden="true">${visuals.person('steve')}</div>
+     ${state.done?'':`<div class="rescue-hero ${state.effect==='strike'?'hero-strike':''}" style="--hero:${state.scene*16+state.hero}" aria-hidden="true">${visuals.person('steve')}</div>`}
    </div></div>
-   <div class="rescue-foot"><p role="status">${escapeHtml(state.message)}</p>${readyToLeave?'<button class="primary journey-next" type="button" data-rescue-next>Idź dalej →</button>':''}</div>
+   <div class="rescue-foot"><p role="status">${escapeHtml(state.message)}</p>${readyToLeave?'<button class="primary journey-next" type="button" data-rescue-next>Idź dalej →</button>':''}${state.done?'<button class="ghost" type="button" data-rescue-replay>Obejrzyj spotkanie ↻</button>':''}</div>
   </section><aside class="journey-pack rescue-pack"><h3>Plecak</h3>
    ${stock.length?`<div class="journey-inventory">${stock.map(([id,count])=>`<button type="button" class="journey-slot ${state.selected===id?'selected':''}" data-rescue-item="${id}" aria-label="${rescueItems[id]}: ${count}" aria-pressed="${state.selected===id}" ${state.done?'disabled':''}>${image(id)}<b>${count}</b></button>`).join('')}</div>`:'<p>Pusto</p>'}
    ${state.stock[state.selected]>0?`<p class="rescue-selected">${rescueItems[state.selected]}</p>`:''}
@@ -171,4 +183,18 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,ra
  });
  const next=root.querySelector('[data-rescue-next]');
  if(next)next.onclick=()=>act({type:'next'});
+ const replay=root.querySelector('[data-rescue-replay]');
+ if(replay)replay.onclick=()=>{
+  const reunion=root.querySelector('.rescue-reunion');
+  if(!reunion.classList.contains('rescue-reuniting')){
+   state.effect='reunion';
+   renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank});
+  }else{
+   for(const animation of reunion.getAnimations?.({subtree:true})||[]){
+    animation.currentTime=0;
+    animation.play();
+   }
+  }
+  root.querySelector('.rescue-camera')?.scrollIntoView?.({block:'nearest'});
+ };
 }
