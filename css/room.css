@@ -73,6 +73,12 @@
   gap:7px;
 }
 .room-roster-tools { margin-inline-start:auto; }
+/* The lobby entrance animation and the roster panel create separate stacking contexts. */
+.compact-room .lobby-layout:has(.compact-add-bot:is(:hover,:focus-visible)) {
+  position:relative;
+  z-index:3;
+}
+.compact-room .compact-room-roster:has(.compact-add-bot:is(:hover,:focus-visible)) { z-index:2; }
 .compact-room h2 { margin:0; font-size:1.12rem; }
 .compact-room .lobby-settings > h2 { margin-bottom:10px; }
 .room-player-list {
@@ -116,6 +122,13 @@
 @media (max-width:900px) {
   .compact-room .room-header { padding:11px 12px; }
   .room-page.compact-room .lobby-layout { grid-template-columns:minmax(0,1fr); }
+  .compact-add-bot[data-bot-tooltip]::after {
+    inset-inline: auto 0;
+    box-sizing:border-box;
+    max-width:min(300px,calc(100vw - 90px));
+    transform:translateY(4px);
+  }
+  .compact-add-bot[data-bot-tooltip]:is(:hover,:focus-visible)::after { transform:none; }
 }
 @media (max-width:520px) {
   .compact-room .room-header-actions { gap:4px; }

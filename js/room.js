@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261119-6";
+import { getGameMode } from "./games.js?v=20261119-9";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261117-10";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261118-16";
@@ -28,7 +28,7 @@ import { renderConnectLobbySettings } from "./connect.js?v=20261118-27";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
-import { adSenseBlock } from "./publicPages.js?v=20261119-6";
+import { adSenseBlock } from "./publicPages.js?v=20261119-9";
 import { BOT_DIFFICULTIES, botTooltip, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20261118-27";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261117-10";
@@ -213,7 +213,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
       <section class="panel compact-room-roster" aria-labelledby="room-players-title">
         <div class="room-roster-head"><h2 id="room-players-title">Gracze</h2><span class="badge" title="Gracze w pokoju">${room.players.length}/${roomCapacity}</span>
           <div class="room-roster-tools">
-            ${hasSpace && canAddBots ? `<button class="ghost room-icon-action compact-add-bot" data-add-bot ${botTooltip} aria-label="Dodaj bota" title="Dodaj bota">🤖 <span aria-hidden="true">+</span></button>` : ""}
+            ${hasSpace && canAddBots ? `<button class="ghost room-icon-action compact-add-bot" data-add-bot ${botTooltip} aria-label="Dodaj bota">🤖 <span aria-hidden="true">+</span></button>` : ""}
             ${hasSpace && !competitiveQuiz ? `<button class="ghost room-icon-action" id="invite-friend" aria-label="Zaproś znajomego" title="Zaproś znajomego">${icon("userPlus", 18)}</button>` : ""}
           </div>
         </div>
