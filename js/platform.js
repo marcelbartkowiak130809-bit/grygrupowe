@@ -474,8 +474,12 @@ export function renderPlatform(root, actions, context = {}) {
     <div class="home-picks" data-home-picks></div>
      <section class="${mobileGamesSectionClass(mobileLayout)}">
        <div class="section-intro"><h2>Biblioteka gier</h2></div>
+       <div class="game-discovery-tools">
+         <label class="game-search" for="game-search-input"><span aria-hidden="true">${icon("search", 16)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu…" aria-label="Szukaj trybu"></label>
+         <div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div>
+         <div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
+       </div>
        <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}</nav>
-       <div class="game-discovery-tools"><label class="game-search" for="game-search-input"><span>${icon("search", 18)}</span><input id="game-search-input" type="search" autocomplete="off" placeholder="Szukaj trybu…"></label><div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div><div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div></div>
        <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
     </section>
     <section class="platform-hero">

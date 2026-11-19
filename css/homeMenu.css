@@ -1,3 +1,55 @@
+/* Keep the gradient tied to the viewport even when filtering changes page height. */
+body:has(.home-menu-page) {
+  background-attachment:fixed;
+  background-size:100% 100lvh;
+  background-repeat:no-repeat;
+}
+
+.home-menu-page .game-discovery-tools {
+  grid-template-columns:clamp(122px,19%,230px) minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  margin:0 0 12px;
+}
+.home-menu-page .game-search {
+  width:100%;
+  min-width:0;
+  min-height:40px;
+  margin:0;
+  padding:2px 8px;
+  gap:6px;
+  border-radius:12px;
+}
+.home-menu-page .game-search input { padding:6px 0; font-size:12px; }
+.home-menu-page .game-filters {
+  flex-wrap:nowrap;
+  gap:5px;
+  margin:0;
+  padding:4px;
+  border-radius:12px;
+  overflow-x:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#687a97 transparent;
+}
+.home-menu-page .filter-chip {
+  flex:none;
+  padding:6px 10px;
+  min-height:32px;
+  font-size:11px;
+  white-space:nowrap;
+}
+.home-menu-page .game-filters .filter-chip:hover { transform:none; }
+.home-menu-page .game-filters .filter-chip:focus-visible { outline-offset:-2px; }
+.home-menu-page [data-library-layout] { grid-column:1 / -1; }
+@media(min-width:721px) {
+  .home-menu-page [data-library-layout] { display:none; }
+}
+@media(max-width:900px) {
+  .home-menu-page .game-search input { font-size:16px; }
+  .home-menu-page .game-search input::placeholder { font-size:12px; }
+  .home-menu-page .filter-chip { min-height:36px; }
+}
+
 @media(min-width:901px){
  .home-menu-page{display:flex;flex-direction:column;gap:24px;max-width:1320px;padding-top:28px}
  .home-menu-page .platform-hero{display:grid;grid-template-columns:1fr 165px;gap:18px;min-height:0;padding:20px 24px!important;margin:0;border-radius:22px;background:#111829;border-color:#ffffff14;animation:none;box-shadow:none}
