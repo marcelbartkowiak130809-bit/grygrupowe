@@ -65,6 +65,33 @@
 .backpack-chapters .current{outline:2px solid #c4ed78;outline-offset:1px}
 .backpack-chapters .complete::after{content:"✓";position:absolute;right:2px;top:2px;font-size:8px}
 .backpack-finish .backpack-chapters{max-width:100%;margin-inline:auto}
+.backpack-level-picker{width:min(100%,330px);flex:none;min-width:0}
+.backpack-finish .backpack-level-picker{margin-inline:auto}
+.backpack-level-picker>.backpack-chapters{width:100%;margin-top:5px}
+.backpack-level-tools{display:flex;align-items:center;gap:5px}
+.backpack-level-tools>span{min-width:76px;text-align:center;color:#b5c6b3;font-size:11px;font-variant-numeric:tabular-nums}
+.backpack-level-tools>button{min-height:30px;padding:4px 8px;font-size:12px}
+.backpack-level-tools [data-bp-turn-page]{min-width:34px}
+.backpack-level-tools .backpack-all-levels{margin-left:auto}
+.backpack-level-dialog{
+ width:min(500px,calc(100% - 24px));max-height:calc(100dvh - 24px);
+ box-sizing:border-box;padding:15px;overflow:auto;overscroll-behavior:contain;
+ border:1px solid #9cba9e66;border-radius:16px;background:#14211f;color:#ecf5e7;
+ box-shadow:0 20px 60px #0008;
+}
+.backpack-level-dialog::backdrop{background:#080c0bd1}
+.backpack-level-dialog-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.backpack-level-dialog-head h3{margin:0;font-size:17px}
+.backpack-level-dialog-head button{min-width:34px;min-height:34px;padding:3px;font-size:19px}
+.backpack-level-dialog .backpack-chapters{
+ width:100%;max-height:calc(100dvh - 106px);box-sizing:border-box;padding:4px;
+ grid-template-columns:repeat(auto-fit,minmax(36px,1fr));gap:6px;overflow:auto;
+}
+.backpack-level-dialog .backpack-chapters button{height:37px}
+@media(max-width:760px){
+ .backpack-level-picker{width:100%}
+ .backpack-level-picker>.backpack-chapters button{height:29px}
+}
 .backpack-summary-link{width:100%;margin-top:8px}
 .backpack-signal-key{margin:6px 0 0;color:#c6e49a;font-size:.75rem;line-height:1.4}
 

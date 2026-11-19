@@ -46,7 +46,7 @@ export function bindGamePresentation(root){
   boundViews.add(root);
   root.addEventListener('fullscreenchange',()=>setExpanded(native()));
   root.addEventListener('keydown',event=>{
-   if(!expanded()||native())return;
+   if(!expanded()||native()||event.target.closest?.('dialog[open]'))return;
    if(event.key==='Escape'){
     event.preventDefault();
     setExpanded(false);

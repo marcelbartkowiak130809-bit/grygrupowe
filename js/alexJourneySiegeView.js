@@ -3,7 +3,7 @@ import {alexHintOptions} from './alexJourneyHints.js?v=20261119-25';
 import { escapeHtml } from './utils.js?v=20260903-7';
 import { backpackAnimate, backpackReducedMotion, patchBackpackView } from './backpackMotion.js?v=20261117-10';
 import { bindChapterMenu, chapterMenu } from './alexJourneyChapters.js?v=20261119-16';
-import { gameFullscreenButton, gameRotationHint, bindGamePresentation } from './gamePresentation.js?v=20261118-11';
+import { gameFullscreenButton, gameRotationHint, bindGamePresentation } from './gamePresentation.js?v=20261119-26';
 import { createSiege, restoreSiege, saveSiege, siegeAction, siegeCraftReady, siegeItems, siegeScenes } from './alexJourneySiege.js?v=20261118-19';
 
 const sessions = new Map();

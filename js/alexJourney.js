@@ -6,11 +6,11 @@ import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,jou
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261119-17';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261119-16';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-25';
-import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-24';
-import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-25';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-26';
+import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-26';
+import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-26';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
-import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
+import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261119-26';
 const asset=id=>new URL(`../assets/minecraft/backpack/${journeyAssetId(id)}.png`,import.meta.url).href;
 const image=(id,alt='',className='')=>`<img src="${asset(id)}" alt="${escapeHtml(alt)}" class="${className}" draggable="false">`;
 const stateByPlayer=new Map(),views=new Map(),motion=new WeakMap();

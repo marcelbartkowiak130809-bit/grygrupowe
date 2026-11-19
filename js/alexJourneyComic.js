@@ -1,5 +1,5 @@
 import {backpackReducedMotion,patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {bindGamePresentation,gameFullscreenButton} from './gamePresentation.js?v=20261118-11';
+import {bindGamePresentation,gameFullscreenButton} from './gamePresentation.js?v=20261119-26';
 
 const sequences = {
  reunion: {

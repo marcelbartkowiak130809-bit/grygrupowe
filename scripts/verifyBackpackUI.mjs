@@ -18,7 +18,25 @@ let checkPlayable=true;
 const click=selector=>{const el=root.querySelector(selector);assert.ok(el,selector);assert.ok(!el.hasAttribute('disabled'),selector);el.click();if(checkPlayable)assert.equal(resetHint(),false,`Playable after ${selector} at ${root.querySelector('[aria-current="step"]')?.textContent}`);};
 const item=id=>click(`[data-bp-item="${id}"]`),tile=i=>click(`[data-bp-tile="${i}"]`),slot=i=>click(`[data-bp-craft-slot="${i}"]`);
 const craft=(a,b)=>{item(a);slot(0);if(b){item(b);slot(3);}click('[data-bp-craft]');};
+const pageLevels=()=>[...root.querySelectorAll('.backpack-level-picker>.backpack-chapters [data-bp-level]')];
+const openLevels=()=>{
+ const dialog=root.querySelector('.backpack-level-dialog');
+ dialog.showModal=()=>dialog.setAttribute('open','');
+ dialog.close=()=>{dialog.removeAttribute('open');dialog.onclose();};
+ click('[data-bp-all-levels]');
+ return dialog;
+};
+const chooseLevel=index=>{openLevels();click(`.backpack-level-dialog [data-bp-level="${index}"]`);};
 render();
+assert.equal(pageLevels().length,10);
+click('[data-bp-turn-page="1"]');
+assert.equal(pageLevels()[0].textContent,'11');
+assert.ok(pageLevels().every(button=>button.hasAttribute('disabled')));
+click('[data-bp-turn-page="-1"]');
+assert.equal(pageLevels()[0].textContent,'1');
+assert.equal(openLevels().querySelectorAll('[data-bp-level]').length,backpackLevels.length);
+click('[data-bp-close-levels]');
+assert.equal(root.querySelectorAll('.backpack-level-dialog [data-bp-level]').length,0);
 const original=root.querySelector('.backpack-world');item('oak_log');assert.equal(root.querySelector('.backpack-world'),original,'select does not replace the board');
 const originalTile=root.querySelector('[data-bp-tile="0"]'),originalInventory=root.querySelector('[data-bp-item="cobblestone"]');
 // A CSS variable must contain an absolute asset URL: relative URLs resolve at /css/.
@@ -69,7 +87,7 @@ for(const i of [9,17])put(i,'lever');tile(17);assert.ok(root.querySelector('[dat
 for(const i of [10,11,12,18,19,20,26,27,28])put(i,'iron_block');pattern([[0,'glass'],[1,'glass'],[2,'glass'],[3,'glass'],[4,'nether_star'],[5,'glass'],[6,'obsidian'],[7,'obsidian'],[8,'obsidian']]);put(19,'beacon');pattern(Array.from({length:9},(_,i)=>[i,i===4?'blue_dye':'glass']));put(19,'blue_stained_glass');assert.ok(root.querySelector('.puzzle-beam'));click('[data-bp-next]');
 for(const i of [1,2,3,4,5,9,13,17,21,25,29,33,34,35,36,37])put(i,'prismarine');pattern(Array.from({length:9},(_,i)=>[i,i===4?'heart_of_the_sea':'nautilus_shell']));put(19,'conduit');put(20,'water_bucket');
 click('[data-bp-next]');
-for(let level=20;level<30;level++){assert.equal(root.querySelectorAll('[data-bp-level]').length,backpackLevels.length);solveExpedition(level,{put,craft:pattern});assert.ok(root.querySelector('[data-bp-next]'));click('[data-bp-next]');}
+for(let level=20;level<30;level++){assert.equal(pageLevels().length,10);assert.equal(pageLevels()[0].textContent,'21');solveExpedition(level,{put,craft:pattern});assert.ok(root.querySelector('[data-bp-next]'));click('[data-bp-next]');}
 const saveKey='grygrupowe-backpack-v1:'+context.playerId;
 const deep=restoreBackpack(stored.get(saveKey));
 for(let level=30;level<backpackLevels.length;level++){
@@ -94,8 +112,9 @@ assert.match(root.querySelector('[data-bp-next]').textContent,/podsumowanie/);cl
 // A fresh module/session reconstructs the completed game from storage.
 const {renderLastBackpack:fresh}=await import('../js/lastBackpack.js?restore-component-test');fresh(root,context,{});assert.ok(root.querySelector('.backpack-finish'));
 // Touch drag path: one item is consumed once, and a cancelled gesture consumes none.
-click('[data-bp-level="0"]');click('[data-bp-reset-level]');
-assert.equal(root.querySelectorAll('.backpack-chapters .complete').length,backpackLevels.length);
+chooseLevel(0);click('[data-bp-reset-level]');
+assert.equal(openLevels().querySelectorAll('.complete').length,backpackLevels.length);
+click('[data-bp-close-levels]');
 const b=root.querySelector('[data-bp-item="cobblestone"]');b.setPointerCapture=()=>{};
 b.onpointerdown({pointerType:'touch',pointerId:1,clientX:10,clientY:10});b.onpointermove({pointerId:1,clientX:50,clientY:50,preventDefault(){}});
 document.elementFromPoint=()=>root.querySelector('[data-bp-tile="18"]');b.onpointerup({type:'pointerup',pointerId:1,clientX:50,clientY:50});
@@ -106,7 +125,7 @@ const c=root.querySelector('[data-bp-item="cobblestone"]');c.setPointerCapture=(
 assert.ok(!document.querySelector('.backpack-drag-ghost'));assert.equal(root.querySelector('[data-bp-item="cobblestone"] b').textContent,'3');
 
 // Spending too much iron on buckets leaves too little for the compass.
-click('[data-bp-level="50"]');click('[data-bp-reset-level]');
+chooseLevel(50);click('[data-bp-reset-level]');
 put(9,'stone_pickaxe');put(17,'iron_ore');put(25,'coal');tile(18);
 const bucketSlots=[[0,'iron_ingot'],[2,'iron_ingot'],[4,'iron_ingot']];
 pattern(bucketSlots);
@@ -121,7 +140,7 @@ click('[data-bp-craft]');assert.equal(resetHint(),true);
 click('[data-bp-reset-level]');assert.equal(resetHint(),false);
 
 // An irreversible explosion can also lose the one required item in an earlier level.
-click('[data-bp-level="16"]');click('[data-bp-reset-level]');
+chooseLevel(16);click('[data-bp-reset-level]');
 put(0,'tnt');assert.equal(resetHint(),false,'unlit TNT can be moved');
 put(0,'flint_and_steel');assert.equal(resetHint(),true);
 click('[data-bp-undo]');assert.equal(resetHint(),false);

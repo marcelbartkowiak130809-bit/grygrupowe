@@ -49,12 +49,14 @@ body:has(.game-presentation){overflow:hidden}
  .game-presentation :is(.journey-heading,.backpack-head){min-height:0;height:0;margin:0;padding:0}
  .game-presentation :is(.journey-heading,.backpack-head)>div:first-child,
  .game-presentation .game-view-tools>button:not([data-game-fullscreen]),
- .game-presentation :is(.journey-story-chapters,.journey-chapters,.backpack-chapters,.game-rotation-hint,.journey-credit,.backpack-credit){display:none}
+ .game-presentation :is(.journey-story-chapters,.journey-chapters,.game-rotation-hint,.journey-credit,.backpack-credit){display:none}
  .game-presentation .backpack-shell,.game-presentation .journey-play{padding:9px 10px}
  .game-presentation .journey-quest,.game-presentation .backpack-mission,.game-presentation .rescue-quest{
   min-height:0;margin-bottom:8px;padding-right:144px;
  }
  .game-presentation .journey-quest h2,.game-presentation .backpack-mission h2,.game-presentation .rescue-quest h2{font-size:18px;margin:3px 0}
+ .game-presentation .backpack-mission{padding:40px 0 0}
+ .game-presentation .backpack-level-picker{width:min(100%,290px)}
  .game-presentation .journey-quest .journey-objective{font-size:13px;margin:4px 0;padding-left:7px}
  .game-presentation .journey-quest .journey-objective-detail{font-size:11px;margin-bottom:3px;padding-left:10px}
  .game-presentation :is(.journey-camera,.rescue-camera){
