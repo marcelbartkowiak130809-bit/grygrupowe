@@ -1,14 +1,14 @@
 import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
-import {alexHintOptions} from './alexJourneyHints.js?v=20261118-19';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261119-22';
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,journeyScene,journeyItems,journeyRecipes,journeyRecipe,journeySurface,journeyTerrain,journeyLit,journeyAssetId} from './alexJourneyEngine.js?v=20261119-17';
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261119-17';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261119-16';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-21';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-22';
 import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
-import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-16';
+import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-22';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 const asset=id=>new URL(`../assets/minecraft/backpack/${journeyAssetId(id)}.png`,import.meta.url).href;
@@ -23,10 +23,15 @@ function load(id){try{return restoreJourney(localStorage.getItem(storageKey(id))
 function save(id,s){try{localStorage.setItem(storageKey(id),saveJourney(s));return true;}catch{return false;}}
 function skinPiece(id,x,y,w,h,dx,dy,dw=w,dh=h,cls=''){return `<svg class="${cls}" x="${dx}" y="${dy}" width="${dw}" height="${dh}" viewBox="${x} ${y} ${w} ${h}" overflow="hidden"><image href="${asset(id)}" x="0" y="0" width="64" height="64"/></svg>`;}
 export function journeyPerson(id='steve',pose=''){
- if(id==='villager')return `<svg viewBox="0 0 16 32" class="journey-person" aria-hidden="true">
-  ${skinPiece(id,8,8,8,10,4,0)}${skinPiece(id,26,24,8,12,3,10,10,14)}
-  ${skinPiece(id,48,25,8,4,3,12,10,5)}${skinPiece(id,4,26,4,8,4,24)}${skinPiece(id,4,26,4,8,8,24)}
+ if(id==='villager'){
+ const skin='villager_plains';
+ return `<svg viewBox="0 0 16 32" class="journey-person" aria-hidden="true">
+  ${skinPiece(skin,8,8,8,10,4,0)}${skinPiece(skin,26,2,2,4,7,6)}
+  ${skinPiece(skin,4,30,4,8,4,24)}${skinPiece(skin,4,30,4,8,8,24)}
+  ${skinPiece(skin,22,26,8,12,3,10,10,14)}${skinPiece(skin,6,44,8,18,3,10,10,18)}
+  ${skinPiece(skin,44,42,8,4,3,13,10,5)}
  </svg>`;
+ }
  const armA=skinPiece(id,44,20,4,12,0,8,4,12,'person-arm arm-a');
  // The zombie skin repeats the same arm and leg textures on both sides.
  const armB=id==='zombie'

@@ -13,7 +13,7 @@ const nudges = [
   ],
   [
     'Po napastnikach coś zostało. Zajrzyj na prawą stronę domu.',
-    'Strażnik reaguje na hałas. Przyjrzyj się oknu i podłodze przy skrzyni.',
+    'Zobacz, co łączy skrzynię z dzwonem. Na lewej ścianie wisi narzędzie.',
     'Koła wagonika nie są zepsute. Coś blokuje jedno z nich.',
     'Użyj trzech stanowisk po kolei, zaczynając od źródła ciepła.',
     'Zamiast walczyć z grupą, zwab ją tam, gdzie możesz użyć wody.',
@@ -36,7 +36,6 @@ const nudges = [
 const exact = {
   '1-1': 'Kliknij pień raz i świnię dwa razy. Kiedy zbierzesz drewno i jedzenie, kliknij „Idź dalej”.',
   '1-8': 'Wydobądź 6 bruku. Od miejsca, gdzie zaczyna się budowanie, ułóż trzy bloki obok siebie na dole, dwa nad prawymi dwoma i jeden nad prawym. Wejdź na półkę po prawej.',
-  '2-2': 'Kliknij okiennicę po lewej i zabierz białą wełnę z regału. Wybierz wełnę i kliknij pole pod skrzynią. Gdy strażnik śpi, kliknij skrzynię nad wyciszoną deską.',
   '2-3': 'Wybierz pochodnię i kliknij uchwyt na lewo od wagonika. Kliknij klin i wagonik. Wybierz kilof, kliknij rudę żelaza i węgiel, a na końcu ślady wysoko po prawej.',
   '2-5': 'Kliknij mechanizm po lewej, by zabrać dzwon i łańcuch. Z łańcuchem kliknij śluzę. Wybierz dzwon i kliknij ramę, a potem dźwignię po prawej.',
   '2-6': 'Kliknij wagonik po lewej i właz u góry. Wybierz miecz i kliknij zombie. Wybierz zdobyty klucz, kliknij kratę, a potem Alex.',

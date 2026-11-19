@@ -1,10 +1,20 @@
 const node=(id,x,label,texture,options={})=>({id,x,label,texture,y:5,...options});
 
 export const rescueItems={
- white_wool:'Biała wełna',stone_pickaxe:'Kamienny kilof',torch:'Pochodnia',stick:'Patyk',
+ shears:'Nożyce',white_wool:'Biała wełna',stone_pickaxe:'Kamienny kilof',torch:'Pochodnia',stick:'Patyk',
  iron_ore:'Ruda żelaza',coal:'Węgiel',iron_ingot:'Sztabka żelaza',iron_sword:'Żelazny miecz',
  bell:'Dzwon',chain:'Łańcuch',tripwire_hook:'Klucz do celi',
 };
+
+const armoryLoot={stone_pickaxe:1,torch:1,stick:1};
+// Used only to replay moves saved before the tripwire puzzle.
+const legacyArmory=[
+ node('shutter',3,'',''),
+ node('wool',6,'','',{give:{white_wool:1}}),
+ node('guard',9,'','',{repeat:true,hero:7}),
+ node('floor',12,'','',{need:'white_wool',take:{white_wool:1}}),
+ node('locker',12,'','',{after:['shutter','floor'],startle:true,give:armoryLoot}),
+];
 
 export const rescueScenes=[
  {
@@ -18,15 +28,14 @@ export const rescueScenes=[
   ],
  },{
   name:'Zbrojownia na palcach',region:'WIOSKA',biome:'armory',
-  goal:'Weź zapasy ze skrzyni, póki strażnik śpi.',
-  hint:'Domknij okiennicę. Wełna z regału wyciszy skrzypiącą deskę pod skrzynią. Gdy strażnik się obudzi, odsuń się i poczekaj, aż zaśnie.',
+  goal:'Rozbrój alarm przy skrzyni i zabierz zapasy po cichu.',
+  hint:'Weź nożyce z lewej ściany, wybierz je w plecaku i przetnij linkę między skrzynią a dzwonem. Potem otwórz skrzynię.',
   finish:'locker',
   nodes:[
-   node('shutter',3,'Domknij okiennicę','oak_planks',{y:3,message:'Okiennica tłumi wiatr i światło. Strażnikowi będzie łatwiej zasnąć.'}),
-   node('wool',6,'Zabierz wełnę z regału','white_wool',{give:{white_wool:1},message:'Zabrano wełnę. Przyda się do wytłumienia podłogi.'}),
-   node('guard',9,'Śpiący strażnik','villager',{character:true,repeat:true,hero:7}),
-   node('floor',12,'Wycisz skrzypiącą deskę','oak_planks',{y:6,need:'white_wool',take:{white_wool:1},doneTexture:'white_wool',message:'Wełna tłumi deskę. Możesz podejść do skrzyni.'}),
-   node('locker',12,'Otwórz skrzynię z wyposażeniem','chest_minecart',{after:['shutter','floor'],startle:true,give:{stone_pickaxe:1,torch:1,stick:1},message:'Skrzynia otwarta bez hałasu. Masz kilof, pochodnię i patyk.'}),
+   node('shears',3,'Zdejmij nożyce ze ściany','shears',{y:4,give:{shears:1},message:'Masz nożyce. Zobacz, co łączy dzwon ze skrzynią.'}),
+   node('guard',7.8,'Śpiący strażnik','villager',{character:true,repeat:true}),
+   node('tripwire',10.8,'Przetnij linkę alarmu','tripwire_hook',{y:4.15,need:'shears',hero:10.3,message:'Linka przecięta. Dzwon już nie zabrzmi.'}),
+   node('locker',13,'Otwórz skrzynię z wyposażeniem','rescue_chest',{after:['tripwire'],doneTexture:'rescue_chest_open',give:armoryLoot,message:'Masz kilof, pochodnię i patyk. Strażnik dalej śpi.'}),
   ],
  },{
   name:'Kopalnia z zablokowanym torem',region:'KOPALNIA',biome:'mine',
@@ -34,7 +43,7 @@ export const rescueScenes=[
   hint:'Pochodnia pasuje do uchwytu przy torze. Po oświetleniu zwolnij klin, a potem popchnij wagonik na bocznicę. Wybierz kilof do obu złóż.',
   finish:'marks',
   nodes:[
-   node('lamp',4,'Oświetl tor','lantern',{need:'torch',take:{torch:1},doneTexture:'torch',effect:'light',message:'Światło odsłoniło klin blokujący koło.'}),
+   node('lamp',4,'Oświetl tor','tripwire_hook',{need:'torch',take:{torch:1},doneTexture:'torch',effect:'light',message:'Światło odsłoniło klin blokujący koło.'}),
    node('chock',6,'Wyciągnij klin spod koła','oak_slab',{after:['lamp'],message:'Wagonik może się teraz poruszyć.'}),
    node('cart',8,'Popchnij wagonik na bocznicę','minecart',{after:['chock'],doneX:10,effect:'roll',message:'Wagonik odsłonił dostęp do złóż.'}),
    node('ore',11,'Wydobądź dwie rudy żelaza','iron_ore',{after:['cart'],need:'stone_pickaxe',give:{iron_ore:2},effect:'strike',message:'Zebrano dwie rudy żelaza.'}),
@@ -83,6 +92,10 @@ export function createRescue(now=Date.now()){
 }
 
 export function rescueAction(state,action,now=Date.now()){
+ return applyRescueAction(state,action,now,false);
+}
+
+function applyRescueAction(state,action,now,legacy){
  if(!action||state.done)return false;
  const {type,id}=action;
  const scene=rescueScenes[state.scene];
@@ -100,9 +113,12 @@ export function rescueAction(state,action,now=Date.now()){
   state.steps++;
   state.effect='walk';
  }else if(type==='node'){
-  const target=scene.nodes.find(node=>node.id===id);
+  const legacyPuzzle=legacy&&scene.biome==='armory';
+  const target=(legacyPuzzle?legacyArmory:scene.nodes).find(node=>node.id===id);
   if(!target||flags[id]&&!target.repeat||target.reveal&&target.after.some(key=>!flags[key]))return false;
-  if(id==='guard'){
+  if(id==='guard'&&!legacyPuzzle){
+   state.message='Strażnik śpi. Linka między skrzynią a dzwonem może go obudzić.';
+  }else if(id==='guard'){
    if(!flags.alert)state.message='Strażnik śpi. Skrzypiąca deska może go obudzić.';
    else if(!flags.shutter)state.message='Wiatr go niepokoi. Domknij okiennicę.';
    else{
@@ -117,7 +133,7 @@ export function rescueAction(state,action,now=Date.now()){
    state.effect='alert';
    state.message='Strażnik się obudził. Domknij okiennicę i kliknij strażnika, żeby się wycofać.';
   }else if(target.after?.some(key=>!flags[key])){
-   state.message='Jeszcze za wcześnie. Sprawdź, co blokuje ten mechanizm.';
+   state.message=id==='locker'&&!legacyPuzzle?'Jeśli podniesiesz wieko, linka pociągnie za dzwon.':'Jeszcze za wcześnie. Sprawdź, co blokuje ten mechanizm.';
   }else if(target.need&&(target.need!==(action.item||state.selected)||!(state.stock[target.need]>0))){
    state.message=`Wybierz w plecaku: ${rescueItems[target.need]}.`;
   }else if(Object.entries(target.take||{}).some(([item,count])=>state.stock[item]<count||!state.stock[item])){
@@ -128,7 +144,7 @@ export function rescueAction(state,action,now=Date.now()){
    flags[id]=true;
    state.hero=target.hero??Math.max(1,target.x-1);
    state.steps++;
-   state.message=target.message;
+   state.message=target.message||'';
    state.effect=target.effect||'walk';
    if(id==='rescue'){state.done=true;state.finishedAt=now;}
   }
@@ -138,15 +154,29 @@ export function rescueAction(state,action,now=Date.now()){
 }
 
 export function saveRescue(state){
- return JSON.stringify({version:1,log:state.log,startedAt:state.startedAt,finishedAt:state.finishedAt});
+ return JSON.stringify({version:2,log:state.log,legacyMoves:state.legacyMoves,startedAt:state.startedAt,finishedAt:state.finishedAt});
+}
+
+function finishLegacyRescue(state){
+ for(const id of ['shutter','wool','floor','alert'])delete state.flags[id];
+ delete state.stock.white_wool;
+ if(state.selected==='white_wool')state.selected='';
+ if(state.flags.locker)state.flags.tripwire=true;
+ if(rescueScenes[state.scene].biome==='armory')state.message=state.flags.locker?'Zapasy są już w plecaku.':rescueScenes[state.scene].goal;
 }
 
 export function restoreRescue(raw,now=Date.now()){
  const state=createRescue(now);
  try{
   const saved=JSON.parse(raw||'null');
-  if(saved?.version!==1||!Array.isArray(saved.log)||saved.log.length>5000)return state;
-  for(const action of saved.log)if(!rescueAction(state,action,now))return createRescue(now);
+  if(![1,2].includes(saved?.version)||!Array.isArray(saved.log)||saved.log.length>5000)return state;
+  const legacyMoves=saved.version===1?saved.log.length:saved.legacyMoves??0;
+  if(!Number.isInteger(legacyMoves)||legacyMoves<0||legacyMoves>saved.log.length)return state;
+  if(legacyMoves)state.legacyMoves=legacyMoves;
+  for(const [index,action] of saved.log.entries()){
+   if(!applyRescueAction(state,action,now,index<legacyMoves))return createRescue(now);
+   if(index+1===legacyMoves)finishLegacyRescue(state);
+  }
   if(Number.isFinite(saved.startedAt)&&saved.startedAt>0&&saved.startedAt<=now)state.startedAt=saved.startedAt;
   if(state.done&&Number.isFinite(saved.finishedAt)&&saved.finishedAt>=state.startedAt&&saved.finishedAt<=now)state.finishedAt=saved.finishedAt;
   state.effect='';

@@ -6,7 +6,7 @@ import {THIRD_CHAPTER_AT,chapterCountdown,chapterMenu} from '../js/alexJourneyCh
 
 const walkthrough=[
  [['embrace'],['trail']],
- [['shutter'],['wool'],['floor','white_wool'],['locker']],
+ [['shears'],['tripwire','shears'],['locker']],
  [['lamp','torch'],['chock'],['cart'],['ore','stone_pickaxe'],['coal','stone_pickaxe'],['marks']],
  [['fuel','coal'],['smelt','iron_ore'],['sword','iron_ingot']],
  [['gear'],['repair','chain'],['ring','bell'],['flood']],
@@ -35,24 +35,36 @@ test('all six rescue scenes can be solved, resumed, and completed with one inven
  assert.equal(state.stock.iron_sword,1);
 });
 
-test('the guard can wake, block the chest, and fall asleep again without consuming resources',()=>{
+test('the chest requires disarming the tripwire and keeps the shears',()=>{
  const state=createRescue();
  const node=(id,item)=>rescueAction(state,{type:'node',id,item});
- assert.equal(node('trail'),false);
  node('embrace');node('trail');rescueAction(state,{type:'next'});
  node('locker');
- assert.equal(state.flags.alert,true);
  assert.equal(state.stock.stone_pickaxe,undefined);
- node('wool');
- node('floor','white_wool');
- node('shutter');
- node('locker');
- assert.equal(state.stock.stone_pickaxe,undefined);
- node('guard');
- assert.equal(state.flags.alert,false);
+ assert.match(state.message,/linka/);
+ node('shears');
+ node('tripwire');
+ assert.equal(state.flags.tripwire,undefined);
+ node('tripwire','shears');
+ assert.equal(state.flags.tripwire,true);
+ assert.equal(state.stock.shears,1);
  node('locker');
  assert.equal(state.stock.stone_pickaxe,1);
  assert.equal(node('locker'),false);
+});
+
+test('legacy armory saves preserve earned loot and can continue with the new puzzle',()=>{
+ const node=(id,item)=>({type:'node',id,...(item?{item}:{})});
+ const opening=[node('embrace'),node('trail'),{type:'next'},node('shutter'),node('wool')];
+ const partial=restoreRescue(JSON.stringify({version:1,log:opening}));
+ assert.equal(partial.scene,1);
+ assert.equal(partial.stock.white_wool,undefined);
+ for(const move of [node('shears'),node('tripwire','shears'),node('locker')])assert.ok(rescueAction(partial,move));
+ assert.deepEqual(restoreRescue(saveRescue(partial)).stock,partial.stock);
+ const oldFinished=restoreRescue(JSON.stringify({version:1,log:[...opening,node('floor','white_wool'),node('locker'),{type:'next'}]}));
+ assert.equal(oldFinished.scene,2);
+ assert.equal(oldFinished.stock.stone_pickaxe,1);
+ assert.equal(restoreRescue(saveRescue(oldFinished)).scene,2);
 });
 
 test('all chapter props exist and the premiere countdown reaches Friday at 20:00 Poland time',()=>{

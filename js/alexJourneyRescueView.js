@@ -1,19 +1,19 @@
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
-import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261118-18';
+import {createRescue,rescueAction,rescueItems,rescueScenes,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261119-22';
 import {renderAlexComic} from './alexJourneyComic.js?v=20261119-21';
 import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261119-16';
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 
 import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
-import {alexHintOptions} from './alexJourneyHints.js?v=20261118-19';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261119-22';
 const sessions=new Map();
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
 const image=id=>`<img src="${asset(id)}" alt="" draggable="false">`;
 const at=(x,y,width=1,height=1)=>`left:${x/16*100}%;top:${y/9*100}%;width:${width/16*100}%;height:${height/9*100}%`;
 const block=(x,y,id)=>`<i class="rescue-block" style="${at(x,y)};background-image:url('${asset(id)}')"></i>`;
-const prop=(x,y,id,height=1)=>`<span class="rescue-prop" style="${at(x,y,1,height)}">${image(id)}</span>`;
+const prop=(x,y,id,height=1,width=1)=>`<span class="rescue-prop" style="${at(x,y,width,height)}">${image(id)}</span>`;
 const hearts=(x,y)=>`<span class="rescue-hearts" style="${at(x,y,2,1)}" aria-hidden="true">♥ ♥ <b>♥</b></span>`;
 
 function scenery(scene,state){
@@ -22,16 +22,18 @@ function scenery(scene,state){
  let html='';
  for(let x=0;x<16;x++)for(let y=6;y<9;y++){
   const channel=biome==='sluice'&&x>=7&&x<=11&&y===6;
-  html+=block(x,y,channel?flags.flood?'water_still':'prismarine':floor);
+  html+=block(x,y,channel?flags.flood?'rescue_water':'rescue_prismarine':floor);
  }
  if(biome==='armory'){
   for(let x=0;x<16;x++)html+=block(x,1,'oak_log');
   for(const x of [0,15])for(let y=2;y<6;y++)html+=block(x,y,'oak_log');
-  html+=block(3,3,flags.shutter?'oak_planks':'glass')+block(6,5,'bookshelf')+block(9,6,'white_wool');
-  html+=prop(1,3,'lantern')+prop(14,3,'lantern');
+  html+=block(3,3,'glass')+block(4,3,'glass')+block(3,4,'oak_planks');
+  html+=prop(1,3,'lantern_item')+prop(14,3,'lantern_item');
+  html+=prop(6.85,5.55,'rescue_bed',.45,3)+prop(10.3,3.29,'bell');
+  if(!flags.tripwire)html+=`<i class="rescue-cord-drop" style="${at(10.8,4.1,.05,.46)}"></i><i class="rescue-cord-drop" style="${at(13.42,4.55,.05,.68)}"></i>`;
  }else if(biome==='forge'){
   for(const x of [1,5,9,14])html+=block(x,3,'stone_bricks')+block(x,4,'stone_bricks');
-  html+=prop(4,3,'lantern')+prop(11,3,'lantern');
+  html+=prop(4,3,'lantern_item')+prop(11,3,'lantern_item');
  }else{
   for(let x=0;x<16;x++)if(biome!=='lair'||x!==7||!flags.hatch)html+=block(x,0,'deepslate_tiles');
   if(biome==='mine'){
@@ -40,7 +42,7 @@ function scenery(scene,state){
   }
   if(biome==='sluice'){
    html+=block(6,5,'stone_bricks')+block(12,5,'stone_bricks');
-   for(let x=7;x<=11;x++)html+=block(x,7,flags.flood?'water_still':'prismarine');
+   for(let x=7;x<=11;x++)html+=block(x,7,flags.flood?'rescue_water':'rescue_prismarine');
   }
   if(biome==='lair'){
    for(let x=3;x<7;x++)html+=prop(x,5.65,'rail',.35);
@@ -65,16 +67,18 @@ function renderScene(scene,index,state,visuals){
  for(const entry of scene.nodes){
   const complete=Boolean(flags[entry.id]);
   if((entry.reveal&&!entry.after.every(key=>flags[key]))||
-     (complete&&['embrace','warden','cell','ore','coal','wool','chock'].includes(entry.id)))continue;
+     (complete&&['embrace','warden','cell','ore','coal','shears','chock'].includes(entry.id)))continue;
   const x=complete&&entry.doneX!==undefined?entry.doneX:entry.x;
   const locked=entry.after?.some(key=>!flags[key]);
-  const label=entry.id==='guard'&&flags.alert?'Wycofaj się od obudzonego strażnika':entry.label;
   const character=entry.character;
-  const art=character?visuals.person(entry.texture):image(complete&&entry.doneTexture||entry.texture);
+  const wire=entry.id==='tripwire';
+  const cell=entry.id==='cell';
+  const art=wire?'<span class="rescue-wire"></span>':cell?'':character?visuals.person(entry.texture):image(complete&&entry.doneTexture||entry.texture);
+  const bounds=wire?at(x,entry.y,2.66,.8):cell?at(x,3,1,3):at(x-.2,character?4:entry.y,1.4,character?2:1);
   const classes=[character?'rescue-character':'',complete?'is-complete':'',locked?'is-blocked':'',
-   entry.id==='guard'?(flags.alert?'guard-awake':'guard-asleep'):'',
+   entry.id==='guard'?'guard-asleep':'',wire?'rescue-wire-target':'',
    entry.id==='warden'&&flags.hatch?'warden-lit':'',complete&&entry.doneX!==undefined?'cart-rolled':''].join(' ');
-  html+=`<button type="button" class="rescue-node ${classes}" style="${at(x-.2,character?4:entry.y,1.4,character?2:1)}" data-rescue-node="${entry.id}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" ${!active||state.done||complete&&!entry.repeat?'disabled':''}>${art}${entry.id==='guard'?'<span class="guard-indicator" aria-hidden="true">'+(flags.alert?'!':'Zz')+'</span>':''}</button>`;
+  html+=`<button type="button" class="rescue-node ${classes}" style="${bounds}" data-rescue-node="${entry.id}" aria-label="${escapeHtml(entry.label)}" title="${escapeHtml(entry.label)}" ${!active||state.done||complete&&!entry.repeat?'disabled':''}>${art}${entry.id==='guard'?'<span class="guard-indicator" aria-hidden="true">Zz</span>':''}</button>`;
  }
  return `<section class="rescue-scene rescue-${scene.biome} ${index===0?'biome-sunset':''} effect-${effect}" aria-hidden="${!active}" aria-label="${escapeHtml(scene.name)}">${html}</section>`;
 }
