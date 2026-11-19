@@ -13,7 +13,7 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261119-14";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261119-15";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
@@ -35,7 +35,7 @@ import { SongSpotEngine } from "./deferredMusicModes.js?v=20261119-10";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261118-16";
 import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261118-15";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261118-13";
-import { serverNow } from "./firebase.js?v=20261119-10";
+import { serverNow } from "./firebase.js?v=20261119-15";
 import { gameMomentKey } from "./roomLifecycle.js";
 import { hangmanBotLetter, numberMysteryBotAction, randomBotChoice, sequenceBotGuess, shuffledBotChoices } from "./botDeduction.js?v=20261118-16";
 

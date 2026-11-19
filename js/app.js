@@ -11,16 +11,16 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261119-10";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261119-14";
+import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261119-15";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261119-15";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261119-14";
+import { gamesList, getGameMode } from "./games.js?v=20261119-15";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261118-27";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261118-16";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261119-10";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261119-15";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260903-9";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261119-10";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261119-15";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260903-9";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260903-9";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20260903-9";
@@ -29,7 +29,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260903-9";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260903-9";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260903-9";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261119-14";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261119-15";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260903-9";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260903-9";
@@ -56,25 +56,25 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261119-14";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261119-14";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261119-14";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261119-15";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261119-15";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261119-15";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom, refreshRoomSettings } from "./room.js?v=20261119-14";
+import { playerMini, renderRoom } from "./room.js?v=20261119-15";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261118-34";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261119-2";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20261119-10";
+import { loadPresenceUsers } from "./firebase.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
-import { scheduleBot } from "./botController.js?v=20261119-14";
+import { scheduleBot } from "./botController.js?v=20261119-15";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
-import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261118-26";
+import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261119-15";
 import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260831-3";
 
 const root = $("#app");
@@ -297,11 +297,6 @@ function activeRoomSignature(room = activeRoom()) {
   }
   const {updatedAt, presence, joinedAt, gameState, ...visible} = room;
   return stableStringify({...visible, players});
-}
-function roomSettingsOnlyChanged(previous, next) {
-  if (!previous || !next || previous.roomId !== next.roomId || previous.status !== "lobby" || next.status !== "lobby") return false;
-  const withoutSettings = ({settings, updatedAt, presence, ...rest}) => stableStringify(rest);
-  return withoutSettings(previous) === withoutSettings(next) && stableStringify(previous.settings) !== stableStringify(next.settings);
 }
 function lobbySignature() {
   const rooms = state.rooms.filter(room => room.gameMode === state.selectedGameMode && room.status === "lobby").map(room => [room.roomId, room.name, room.maxPlayers, room.isPrivate, room.roomType, room.entryFee, normalizedRoomPlayers(room).join(","), room.hostUid || ""].join("|"));
@@ -2096,6 +2091,7 @@ function animateHostSettingChange(value) {
   const selected = control?.type === "checkbox" ? control.checked : value;
   Audio.play(typeof selected === "boolean" ? (selected ? "toggleOn" : "toggleOff") : "choice");
   lastRenderedScreenSignature = currentScreenSignature();
+  if (Router.current === "room") render({preserveDrafts:true});
 }
 
 let topbarModalRequest = 0;
@@ -3370,22 +3366,23 @@ function renderNow(options = {}) {
   const scope = JSON.stringify([Router.current, state.currentUser, activeRoom()?.roomId, state.selectedGameMode]);
   const previousScope = root.dataset.routeScope;
   const softRender = !options?.forceEnter && previousScope === scope;
-  const drafts = previousScope === scope ? captureInputDrafts(root) : {fields:[]};
+  const screen = Router.current;
+  const oldView = root.querySelector(".route-view");
+  const preserveRoom = softRender && screen === "room" && oldView?.querySelector(".compact-room");
+  const drafts = previousScope === scope && !preserveRoom ? captureInputDrafts(root) : {fields:[]};
   root.dataset.routeScope = scope;
   const preservedScrollY = softRender ? window.scrollY : null;
-  root.classList.toggle("soft-render", softRender);
+  if (!preserveRoom) root.classList.toggle("soft-render", softRender);
   window.__activityStats=activityStats();
   lastRenderedScreenSignature=currentScreenSignature();
   if (!preserveCup) Audio.prepareTrackRerender();
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopCharadesTimer(); stopHangmanTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopPopularityTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
-  const screen = Router.current;
-  const oldView = root.querySelector(".route-view");
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
   const preserveAuction = softRender && auction && ["auction","auction-reveal"].includes(auction.phase)
     && oldView?.querySelector("[data-auction-lot]")?.dataset.auctionLot === String(auction.auctionIndex);
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3397,7 +3394,7 @@ function renderNow(options = {}) {
       if (screen === "game" && !view.querySelector(".adsense-game-rail")) view.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail"));
       activatePublicAds(root,screen);
       restoreInputDrafts(view,drafts);
-      if (softRender && window.scrollY !== preservedScrollY) window.scrollTo({top:preservedScrollY,behavior:"instant"});
+      if (softRender && !preserveRoom && window.scrollY !== preservedScrollY) window.scrollTo({top:preservedScrollY,behavior:"instant"});
       if (previousScope && previousScope !== scope && window.scrollY) window.scrollTo({top:0,behavior:"instant"});
     };
     if (result?.then) return result.finally(after);
@@ -3409,7 +3406,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
-  view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
@@ -3543,10 +3540,6 @@ function connectRooms(){
       return;
     }
     if(["lobby","room","game"].includes(Router.current)&&currentScreenSignature()!==lastRenderedScreenSignature){
-      if(Router.current === "room" && roomSettingsOnlyChanged(previousActiveRoom, room) && refreshRoomSettings(root,{room,currentUser:state.currentUser},actions)){
-        lastRenderedScreenSignature=currentScreenSignature();
-        return;
-      }
       if (Router.current === "game" && room?.gameMode === "songspot" && root.querySelector(".route-game")) repaintSongSpot(); else render({preserveDrafts:true});
     }
   },()=>{
@@ -3561,7 +3554,7 @@ function connectRooms(){
     const local=activeRoom();if(!local||!["room","game"].includes(Router.current))return;
     const remote=await loadRemoteRoom(local.roomId);if(!remote.ok||!remote.room)return;
     const playersChanged=remote.room.players.length!==local.players.length||remote.room.players.some((uid,index)=>uid!==local.players[index]);
-    if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature){if(Router.current === "room" && roomSettingsOnlyChanged(local,remote.room) && refreshRoomSettings(root,{room:remote.room,currentUser:state.currentUser},actions)){lastRenderedScreenSignature=currentScreenSignature();return;}if(Router.current === "game" && remote.room.gameMode === "songspot" && root.querySelector(".route-game")) repaintSongSpot(); else render({preserveDrafts:true});}}
+    if(Number(remote.room.updatedAt||0)>Number(local.updatedAt||0)||playersChanged){installRemoteRoom(remote.room);if(currentScreenSignature()!==lastRenderedScreenSignature){if(Router.current === "game" && remote.room.gameMode === "songspot" && root.querySelector(".route-game")) repaintSongSpot(); else render({preserveDrafts:true});}}
   },5000);
 }
 async function checkFriendNotifications(bucket = null) {

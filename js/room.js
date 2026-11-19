@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20260901-3";
-import { getGameMode } from "./games.js?v=20261119-14";
+import { getGameMode } from "./games.js?v=20261119-15";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261117-10";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261118-16";
@@ -12,7 +12,7 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20260612-3"
 import { renderRankingLobbySettings } from "./ranking.js?v=20260612-2";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20260612-2";
 import { renderClockLobbySettings } from "./clock.js?v=20260831-3";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20261119-14";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20261119-15";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20260903-6";
 import { renderQuizLobbySettings } from "./quiz.js?v=20260823-5";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20260805-1";
@@ -28,7 +28,8 @@ import { renderConnectLobbySettings } from "./connect.js?v=20261118-27";
 import { renderLiarLobbySettings } from "./liar.js?v=20260831-4";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20260831-4";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20260831-5";
-import { adSenseBlock } from "./publicPages.js?v=20261119-14";
+import { adSenseBlock } from "./publicPages.js?v=20261119-15";
+import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botTooltip, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20261118-27";
 import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./music.js?v=20261117-10";
@@ -97,68 +98,59 @@ function settingsHtml(mode, room, isHost, actions) {
 }
 
 function bindRoomSettings(root, actions) {
-  root.querySelectorAll("[data-room-time]").forEach(button => button.addEventListener("click", () => actions.setRoomTime(Number(button.dataset.roomTime))));
-  root.querySelectorAll("[data-room-rounds]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds))));
+  root.querySelectorAll("[data-room-time]").forEach(button => { button.onclick = () => actions.setRoomTime(Number(button.dataset.roomTime)); });
+  root.querySelectorAll("[data-room-rounds]").forEach(button => { button.onclick = () => actions.setModeSetting("rounds", Number(button.dataset.roomRounds)); });
   bindImpostorLobbySettings(root, actions);
-  root.querySelectorAll("[data-impostor-category]").forEach(input => input.addEventListener("change", () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory))));
-  root.querySelectorAll("[data-identity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-identity-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory))));
-  root.querySelectorAll("[data-other-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-other-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-other-category]:checked")].map(item => item.dataset.otherCategory))));
-  root.querySelectorAll("[data-most-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-most-category]").forEach(input => input.addEventListener("change", () => actions.setMostCategories([...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory))));
-  root.querySelectorAll("[data-friend-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-friend-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-friend-category]:checked")].map(item => item.dataset.friendCategory))));
-  root.querySelectorAll("[data-candy-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-bomb-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-bomb-category]").forEach(input => input.addEventListener("change", () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory))));
-  root.querySelectorAll("[data-truth-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-truth-category]").forEach(input => input.addEventListener("change", () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory))));
-  root.querySelectorAll("[data-ranking-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-ranking-category]").forEach(input => input.addEventListener("change", () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory))));
-  root.querySelectorAll("[data-five-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-five-category]").forEach(input => input.addEventListener("change", () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory))));
-  root.querySelectorAll("[data-clock-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-pokemon-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-pokemon-generation]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration)))));
-  root.querySelectorAll("[data-wavelength-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value)));
-  root.querySelectorAll("[data-quiz-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-math-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-math-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory))));
-  root.querySelectorAll("[data-marker-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.markerSetting, input.value)));
-  root.querySelectorAll("[data-sequence-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-family-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-word-chain-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-charades-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.charadesSetting, input.value)));
-  root.querySelectorAll("[data-hangman-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.hangmanSetting, input.value)));
-  root.querySelectorAll("[data-number-mystery-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value)));
-  root.querySelectorAll("[data-unique-answer-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-connect-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.connectSetting, input.value)));
-  root.querySelectorAll("[data-liar-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.liarSetting, input.value)));
-  root.querySelectorAll("[data-false-message-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.falseMessageSetting, input.value)));
-  root.querySelectorAll("[data-false-message-category]").forEach(input => input.addEventListener("change", () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-false-message-category]:checked")].map(item => item.dataset.falseMessageCategory))));
-  root.querySelectorAll("[data-secret-rule-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.secretRuleSetting, input.value)));
-  root.querySelectorAll("[data-secret-rule-category]").forEach(button => button.addEventListener("click", () => actions.setModeSetting("category", button.dataset.secretRuleCategory)));
+  root.querySelectorAll("[data-impostor-category]").forEach(input => { input.onchange = () => actions.setImpostorSetting("categories", [...root.querySelectorAll("[data-impostor-category]:checked")].map(item => item.dataset.impostorCategory)); });
+  root.querySelectorAll("[data-identity-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.identitySetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-identity-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-identity-category]:checked")].map(item => item.dataset.identityCategory)); });
+  root.querySelectorAll("[data-other-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.otherSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-other-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-other-category]:checked")].map(item => item.dataset.otherCategory)); });
+  root.querySelectorAll("[data-most-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.mostSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-most-category]").forEach(input => { input.onchange = () => actions.setMostCategories([...root.querySelectorAll("[data-most-category]:checked")].map(item => item.dataset.mostCategory)); });
+  root.querySelectorAll("[data-friend-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.friendSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-friend-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-friend-category]:checked")].map(item => item.dataset.friendCategory)); });
+  root.querySelectorAll("[data-candy-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.candySetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-bomb-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-bomb-category]").forEach(input => { input.onchange = () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory)); });
+  root.querySelectorAll("[data-truth-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-truth-category]").forEach(input => { input.onchange = () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory)); });
+  root.querySelectorAll("[data-ranking-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-ranking-category]").forEach(input => { input.onchange = () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory)); });
+  root.querySelectorAll("[data-five-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.fiveSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-five-category]").forEach(input => { input.onchange = () => actions.setFiveSecondsCategories([...root.querySelectorAll("[data-five-category]:checked")].map(item => item.dataset.fiveCategory)); });
+  root.querySelectorAll("[data-clock-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.clockSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-pokemon-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-pokemon-generation]").forEach(input => { input.onchange = () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration))); });
+  root.querySelectorAll("[data-wavelength-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value); });
+  root.querySelectorAll("[data-quiz-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-math-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-math-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory)); });
+  root.querySelectorAll("[data-marker-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.markerSetting, input.value); });
+  root.querySelectorAll("[data-sequence-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.sequenceSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-family-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.familySetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-word-chain-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.wordChainSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-charades-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.charadesSetting, input.value); });
+  root.querySelectorAll("[data-hangman-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.hangmanSetting, input.value); });
+  root.querySelectorAll("[data-number-mystery-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.numberMysterySetting, input.value); });
+  root.querySelectorAll("[data-unique-answer-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.uniqueAnswerSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-connect-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.connectSetting, input.value); });
+  root.querySelectorAll("[data-liar-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.liarSetting, input.value); });
+  root.querySelectorAll("[data-false-message-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.falseMessageSetting, input.value); });
+  root.querySelectorAll("[data-false-message-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-false-message-category]:checked")].map(item => item.dataset.falseMessageCategory)); });
+  root.querySelectorAll("[data-secret-rule-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.secretRuleSetting, input.value); });
+  root.querySelectorAll("[data-secret-rule-category]").forEach(button => { button.onclick = () => actions.setModeSetting("category", button.dataset.secretRuleCategory); });
   root.querySelector("#secret-rule-random-category")?.addEventListener("click", () => actions.randomSecretRuleCategory());
-  root.querySelectorAll("[data-music-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.musicSetting, input.value)));
-  root.querySelectorAll("[data-lyrics-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.lyricsSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-popularity-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.popularitySetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-songspot-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.songspotSetting, input.type === "checkbox" ? input.checked : input.value)));
-  root.querySelectorAll("[data-board-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.boardSetting, input.value)));
-  root.querySelectorAll("[data-minecraft-setting]").forEach(input => input.addEventListener("change", () => actions.setModeSetting(input.dataset.minecraftSetting, input.value)));
+  root.querySelectorAll("[data-music-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.musicSetting, input.value); });
+  root.querySelectorAll("[data-lyrics-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.lyricsSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-popularity-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.popularitySetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-songspot-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.songspotSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-board-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.boardSetting, input.value); });
+  root.querySelectorAll("[data-minecraft-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.minecraftSetting, input.value); });
 }
 
 function roomSettingsHtml(mode, room, isHost, actions) {
   return `<h2>Ustawienia</h2>${settingsHtml(mode, room, isHost, actions)}${commerceSummaryHtml(room.gameMode, room.settings, { readOnly:true })}`;
-}
-
-export function refreshRoomSettings(root, { room, currentUser }, actions) {
-  const panel = root.querySelector(".lobby-settings");
-  if (!panel || !room || room.status !== "lobby") return false;
-  const mode = getGameMode(room.gameMode);
-  panel.innerHTML = roomSettingsHtml(mode, room, room.hostUid === currentUser, actions);
-  bindRoomSettings(panel, actions);
-  return true;
 }
 
 function roomPlayerRow(uid, room, accounts, currentUser, isHost, canReport) {
@@ -193,9 +185,9 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
   const hasSpace = room.status === "lobby" && room.players.length < roomCapacity;
   const canStart = room.players.length >= mode.minPlayers;
   const activity = Array.isArray(room.activity) ? room.activity.slice().reverse() : [];
-  const activityPanel = activity.length ? `<details class="panel room-activity-panel compact-room-activity"><summary>Aktywność <span class="badge">${activity.length}</span></summary><div class="room-activity-list">${activity.map(item => `<div class="room-activity-item"><i></i><span>${escapeHtml(item.text)}</span><time>${new Date(Number(item.createdAt)||Date.now()).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</time></div>`).join("")}</div></details>` : "";
+  const activityPanel = `<details class="panel room-activity-panel compact-room-activity" ${activity.length ? "" : "hidden"}><summary>Aktywność <span class="badge">${activity.length}</span></summary><div class="room-activity-list">${activity.map(item => `<div class="room-activity-item"><i></i><span>${escapeHtml(item.text)}</span><time>${new Date(Number(item.createdAt)||Date.now()).toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</time></div>`).join("")}</div></details>`;
   room.viewerUid = currentUser;
-  root.innerHTML = `<main class="page room-page compact-room enter">
+  const mounted = patchRoomView(root, JSON.stringify([room.roomId, mode.id, currentUser]), `<main class="page room-page compact-room enter">
     <section class="panel room-header">
       <div class="room-heading"><p class="eyebrow">${modeVisual(mode)} ${mode.name}</p><h1>${escapeHtml(room.name)}</h1>
         ${room.roomType === "betting" ? `<span class="room-type-badge is-betting">◈ Zakład · ${Number(room.entryFee || 0).toLocaleString("pl-PL")}$</span>` : ""}
@@ -205,7 +197,7 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
         <button class="ghost room-icon-action" id="copy-invite-link" aria-label="Kopiuj link zaproszenia" title="Kopiuj link zaproszenia">${icon("copy", 17)}</button>
         <button class="ghost room-icon-action" id="share-invite-link" aria-label="Udostępnij zaproszenie" title="Udostępnij zaproszenie">${icon("share", 17)}</button>
         <button class="ghost room-icon-action info-button" id="mode-info" aria-label="Jak grać" title="Jak grać">i</button>
-        ${isHost && room.status === "lobby" ? '<div class="host-announcement-anchor" data-host-announcement-anchor></div>' : ""}
+        <div class="host-announcement-anchor" data-host-announcement-anchor ${isHost && room.status === "lobby" ? "" : "hidden"}></div>
         <button class="ghost compact-room-leave" id="leave-room" aria-label="Wyjdź" title="Wyjdź">${icon("logout", 17)} <span>Wyjdź</span></button>
       </div>
     </section>
@@ -224,18 +216,18 @@ export function renderRoom(root, { room, accounts, currentUser }, actions) {
     </section>
     ${activityPanel}
     ${adSenseBlock("Reklama", "lobby")}
-  </main>`;
-  root.querySelector("#leave-room").addEventListener("click", () => actions.leaveRoom());
-  root.querySelector("#mode-info").addEventListener("click", () => actions.showGameInfo(mode.id));
-  if (mode.id === "ranking") actions.showRankingIntro?.();
-  root.querySelector("#copy-invite-link")?.addEventListener("click", () => actions.copyInviteLink(room.roomId));
-  root.querySelector("#share-invite-link")?.addEventListener("click", () => actions.shareInviteLink(room.roomId));
-  root.querySelector("#invite-friend")?.addEventListener("click", () => actions.openFriends({ inviteMode:true }));
+  </main>`);
+  root.querySelector("#leave-room").onclick = () => actions.leaveRoom();
+  root.querySelector("#mode-info").onclick = () => actions.showGameInfo(mode.id);
+  if (mounted && mode.id === "ranking") actions.showRankingIntro?.();
+  { const button = root.querySelector("#copy-invite-link"); if (button) button.onclick = () => actions.copyInviteLink(room.roomId); }
+  { const button = root.querySelector("#share-invite-link"); if (button) button.onclick = () => actions.shareInviteLink(room.roomId); }
+  { const button = root.querySelector("#invite-friend"); if (button) button.onclick = () => actions.openFriends({ inviteMode:true }); }
   bindRoomSettings(root, actions);
-  root.querySelector("#save-identity-words")?.addEventListener("click", () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value));
-  root.querySelectorAll("[data-kick]").forEach(button => button.addEventListener("click", () => actions.kickPlayer(button.dataset.kick)));
-  root.querySelectorAll("[data-add-bot]").forEach(button => button.addEventListener("click", () => actions.addBot()));
-  root.querySelectorAll("[data-bot-difficulty]").forEach(select => select.addEventListener("change", event => actions.setBotDifficulty(select.dataset.botDifficulty, event.target.value)));
-  root.querySelectorAll("[data-report-player]").forEach(button => button.addEventListener("click", () => actions.openReportModal(button.dataset.reportPlayer)));
-  root.querySelector("#start-game")?.addEventListener("click", actions.startGame);
+  { const button = root.querySelector("#save-identity-words"); if (button) button.onclick = () => actions.saveIdentityWords(root.querySelector("#identity-custom-words").value); }
+  root.querySelectorAll("[data-kick]").forEach(button => { button.onclick = () => actions.kickPlayer(button.dataset.kick); });
+  root.querySelectorAll("[data-add-bot]").forEach(button => { button.onclick = () => actions.addBot(); });
+  root.querySelectorAll("[data-bot-difficulty]").forEach(select => { select.onchange = event => actions.setBotDifficulty(select.dataset.botDifficulty, event.target.value); });
+  root.querySelectorAll("[data-report-player]").forEach(button => { button.onclick = () => actions.openReportModal(button.dataset.reportPlayer); });
+  { const button = root.querySelector("#start-game"); if (button) button.onclick = actions.startGame; }
 }
