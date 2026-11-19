@@ -6,7 +6,7 @@ import {patchBackpackView,backpackFeedback} from './backpackMotion.js?v=20261118
 import {extraTile,puzzleItems} from './backpackPuzzles.js?v=20261119-5';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 // Custom-property URLs are resolved at the stylesheet, so use module-relative absolute URLs.
-const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;
+const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png${id==='potion'?'?v=20261119-6':''}`,import.meta.url).href;
 const img=(id,label='',className='')=>`<img src="${asset(id)}" alt="${escapeHtml(label)}" class="${className}" draggable="false">`;
 const sessions=new Map();
 const key=id=>`grygrupowe-backpack-v1:${id}`;
