@@ -206,10 +206,12 @@ export function renderAlexSiege(root,context) {
   if (!['frame','replay'].includes(action.type) && !rank.canMove(3)) return;
   if (moving && action.type === "node") return;
   const before = state.message;
+  const wasFinished = state.finishedAt;
   if (!siegeAction(state,action)) {
    if (before !== state.message) rerender();
    return;
   }
+  if (!wasFinished && state.finishedAt) actions.completeSoloGame?.('minecraft-journey', `chapter-3:${state.startedAt}`, state.startedAt, state.finishedAt);
   if (action.type === 'next' && !reduced) {
    clearTimeout(motion?.timer);
    const slide = {playerId,scene:state.scene,until:performance.now()+770};

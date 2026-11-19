@@ -21,6 +21,8 @@ let firebaseDatabaseApi;
 let remoteFunctions;
 let firebaseFunctionsApi;
 let remoteFunctionsUnavailable = false;
+let getStatsIdentity;
+let statsIdentity;
 let serverTimeOffset = 0;
 let localPresenceTimer;
 let remotePresenceStop = () => {};
@@ -56,6 +58,16 @@ export async function initFirebaseAuth() {
     databaseApi.onValue(databaseApi.ref(remoteDatabase, ".info/serverTimeOffset"), snapshot => {
       serverTimeOffset = Number(snapshot.val()) || 0;
     });
+    // A separate Firebase app keeps guest stats independent of the game's sign-in session.
+    getStatsIdentity = async () => {
+      const statsApp = initializeApp(config, "site-statistics");
+      const auth = authApi.getAuth(statsApp);
+      if (auth.authStateReady) await auth.authStateReady();
+      const user = auth.currentUser || (await authApi.signInAnonymously(auth)).user;
+      return { uid:user.uid, database:databaseApi.getDatabase(statsApp) };
+    };
+    void flushSoloSiteEvents();
+    window.addEventListener("online", flushSoloSiteEvents);
   }
   remoteFunctions = functionsApi.getFunctions(app);
   return true;
@@ -128,25 +140,31 @@ export function loadSiteStats() {
   return { gamesPlayed:0, roomsCreated:0, registeredUsers:localRegistered, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{}, ...data, registeredUsers:Math.max(localRegistered, Number(data.registeredUsers) || 0) };
 }
 
-function aggregateSiteStatEvents(events = {}) {
+export function aggregateSiteStatEvents(events = {}) {
   const stats = { gamesPlayed:0, roomsCreated:0, registeredUsers:0, coinsEarned:0, playedMinutes:0, peakOnline:0, modeCounts:{} };
+  const solo = {gamesPlayed:0, playedMinutes:0, modeCounts:{}};
+  const soloIds = new Set();
   Object.values(events || {}).forEach(userEvents => Object.values(userEvents || {}).forEach(event => {
     if (!SITE_STAT_EVENT_TYPES.has(event?.type)) return;
     if (event.type === "gameFinished") {
-      stats.gamesPlayed += 1;
-      stats.playedMinutes += Math.max(0, Number(event.minutes) || 0);
       const modeId = String(event.modeId || "unknown").slice(0, 80);
-      stats.modeCounts[modeId] = (Number(stats.modeCounts[modeId]) || 0) + 1;
+      const isSolo = String(event.eventId || "").startsWith(`solo:${modeId}:`);
+      if (isSolo && soloIds.has(event.eventId)) return;
+      if (isSolo) soloIds.add(event.eventId);
+      const total = isSolo ? solo : stats;
+      total.gamesPlayed += 1;
+      total.playedMinutes += Math.max(0, Number(event.minutes) || 0);
+      total.modeCounts[modeId] = (Number(total.modeCounts[modeId]) || 0) + 1;
     }
     if (event.type === "roomCreated") stats.roomsCreated += 1;
     if (event.type === "userRegistered") stats.registeredUsers += 1;
     if (event.type === "coinsEarned") stats.coinsEarned += Math.max(0, Number(event.amount) || 0);
     if (event.type === "onlinePeak") stats.peakOnline = Math.max(stats.peakOnline, Number(event.value) || 0);
   }));
-  return stats;
+  return {stats, solo};
 }
 
-function mergeSiteStats(globalStats = {}, eventStats = {}) {
+export function mergeSiteStats(globalStats = {}, eventStats = {}, solo = {}) {
   const counters = ["gamesPlayed", "roomsCreated", "registeredUsers", "coinsEarned", "playedMinutes", "peakOnline"];
   const stats = { ...globalStats, ...eventStats };
   counters.forEach(key => {
@@ -159,42 +177,100 @@ function mergeSiteStats(globalStats = {}, eventStats = {}) {
   Object.keys(eventStats.modeCounts || {}).forEach(modeId => {
     stats.modeCounts[modeId] = Math.max(Number(globalStats.modeCounts?.[modeId]) || 0, Number(eventStats.modeCounts[modeId]) || 0);
   });
+  stats.gamesPlayed += Number(solo.gamesPlayed) || 0;
+  stats.playedMinutes += Number(solo.playedMinutes) || 0;
+  for (const [modeId, count] of Object.entries(solo.modeCounts || {})) {
+    stats.modeCounts[modeId] = (Number(stats.modeCounts[modeId]) || 0) + count;
+  }
   return stats;
 }
 
 export function subscribeSiteStats(callback) {
-  if (canUseRemote()) {
-    const eventsRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStatEvents");
+  if (remoteDatabase) {
     const globalRef = firebaseDatabaseApi.ref(remoteDatabase, "siteStats/global");
     let eventStats = {};
+    let soloStats = {};
     let globalStats = {};
     let registeredUsers = 0;
     let profilesLoadedAt = 0;
     let profilesRequest = null;
     let emitSequence = 0;
-    const refreshRegisteredUsers = async () => {
+    let disposed = false;
+    let stopEvents = () => {};
+    const refreshRegisteredUsers = async database => {
       if (profilesLoadedAt && Date.now() - profilesLoadedAt < 60000) return;
-      if (!profilesRequest) profilesRequest = firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, "publicProfiles"))
-        .then(snapshot => { registeredUsers = Object.keys(snapshot.val() || {}).length; profilesLoadedAt = Date.now(); })
+      if (!profilesRequest) profilesRequest = firebaseDatabaseApi.get(firebaseDatabaseApi.ref(database, "publicProfiles"))
+        .then(snapshot => { registeredUsers = Object.values(snapshot.val() || {}).filter(profile => profile && !profile.nickOnly).length; profilesLoadedAt = Date.now(); })
         .catch(() => { profilesLoadedAt = Date.now(); })
         .finally(() => { profilesRequest = null; });
       await profilesRequest;
     };
-    const emit = async () => {
+    const emit = async database => {
       const sequence = ++emitSequence;
-      const stats = mergeSiteStats(globalStats, eventStats);
-      await refreshRegisteredUsers();
-      if (sequence !== emitSequence) return;
+      const stats = mergeSiteStats(globalStats, eventStats, soloStats);
+      if (database) await refreshRegisteredUsers(database);
+      if (disposed || sequence !== emitSequence) return;
       stats.registeredUsers = Math.max(Number(stats.registeredUsers) || 0, registeredUsers);
       callback(stats);
     };
-    const stopEvents = firebaseDatabaseApi.onValue(eventsRef, snapshot => { const events = snapshot.val() || {}; eventStats = Object.keys(events).length ? aggregateSiteStatEvents(events) : {}; emit(); }, () => emit());
-    const stopGlobal = firebaseDatabaseApi.onValue(globalRef, snapshot => { globalStats = snapshot.val() || {}; emit(); }, () => emit());
-    return () => { stopEvents(); stopGlobal(); };
+    let statsDatabase;
+    const stopGlobal = firebaseDatabaseApi.onValue(globalRef, snapshot => { globalStats = snapshot.val() || {}; void emit(statsDatabase); }, () => void emit(statsDatabase));
+    const identity = siteStatsIdentity().catch(() => canUseRemote() ? {database:remoteDatabase} : null);
+    void identity.then(connection => {
+      if (disposed || !connection) return;
+      statsDatabase = connection.database;
+      const eventsRef = firebaseDatabaseApi.ref(statsDatabase, "siteStatEvents");
+      stopEvents = firebaseDatabaseApi.onValue(eventsRef, snapshot => {
+        ({stats:eventStats, solo:soloStats} = aggregateSiteStatEvents(snapshot.val()));
+        void emit(statsDatabase);
+      }, () => void emit(statsDatabase));
+    }).catch(() => {});
+    return () => { disposed = true; stopEvents(); stopGlobal(); };
   }
   const emit = () => callback(loadSiteStats());
   window.addEventListener("storage", emit);
   return () => window.removeEventListener("storage", emit);
+}
+
+function siteStatsIdentity() {
+  if (!getStatsIdentity) return Promise.resolve(null);
+  statsIdentity ||= getStatsIdentity().catch(error => { statsIdentity = null; throw error; });
+  return statsIdentity;
+}
+
+const SOLO_EVENT_PREFIX = "udowodnij_solo_event:";
+const pendingSoloEvents = new Map();
+let flushSoloEvents;
+
+export function recordSoloSiteEvent(event) {
+  if (!event || pendingSoloEvents.has(event.eventId)) return;
+  pendingSoloEvents.set(event.eventId, event);
+  try { localStorage.setItem(SOLO_EVENT_PREFIX + event.eventId, JSON.stringify(event)); } catch {}
+  void flushSoloSiteEvents();
+}
+
+function flushSoloSiteEvents() {
+  if (!getStatsIdentity || flushSoloEvents || navigator.onLine === false) return flushSoloEvents;
+  flushSoloEvents = (async () => {
+    try {
+      for (const key of Object.keys(localStorage).filter(key => key.startsWith(SOLO_EVENT_PREFIX))) {
+        const event = JSON.parse(localStorage.getItem(key));
+        if (event?.eventId) pendingSoloEvents.set(event.eventId, event);
+      }
+    } catch {}
+    if (!pendingSoloEvents.size) return;
+    const { uid, database } = await siteStatsIdentity();
+    for (const [id, event] of pendingSoloEvents) {
+      const ref = firebaseDatabaseApi.ref(database, `siteStatEvents/${uid}/${id.replace(/[.#$\[\]/]/g, "_")}`);
+      try { await firebaseDatabaseApi.set(ref, {...event, eventId:ref.key, createdAt:Math.floor(serverNow())}); }
+      catch (error) {
+        if (!(await firebaseDatabaseApi.get(ref)).exists()) throw error;
+      }
+      pendingSoloEvents.delete(id);
+      try { localStorage.removeItem(SOLO_EVENT_PREFIX + id); } catch {}
+    }
+  })().catch(() => {}).finally(() => { flushSoloEvents = null; });
+  return flushSoloEvents;
 }
 
 async function recordSiteEventInDatabase(event) {

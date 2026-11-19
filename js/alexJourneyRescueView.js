@@ -119,7 +119,9 @@ export function renderAlexRescue(root,{playerId,actions,visuals,selectChapter,ra
  const elapsed=Math.max(1,Math.round((state.finishedAt-state.startedAt)/1000));
  const act=action=>{
   if(!rank.canMove(2))return;
+  const wasDone=state.done;
   if(!rescueAction(state,action))return;
+  if(!wasDone&&state.done)actions.completeSoloGame?.('minecraft-journey', `chapter-2:${state.startedAt}`, state.startedAt, state.finishedAt);
   if(!storeSession(playerId,state))state.message+=' Nie udało się zapisać postępu.';
   renderAlexRescue(root,{playerId,actions,visuals,selectChapter,rank});
  };

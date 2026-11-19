@@ -134,6 +134,8 @@ export function renderPlaylistTournament(root, {playerId = 'guest', profile = {}
   root.querySelectorAll('[data-cup-choice]').forEach(button => button.addEventListener('click', () => {
     const side = button.dataset.cupChoice;
     if (!engine.choose(playerId, side, matchKey)) return;
+    const result = engine.get(playerId);
+    if (result.status === 'done') actions.completeSoloGame?.('playlista-cup', result.session, result.startedAt, result.finishedAt);
     Audio.stopTrackAudio(audio); activeSide = ''; cancelAnimationFrame(frame);
     root.querySelectorAll('[data-cup-choice]').forEach(b => b.disabled = true);
     root.querySelector(`[data-cup-card="${side}"]`).classList.add('is-winner');

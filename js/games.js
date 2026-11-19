@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20261119-9";
+import { renderGame } from "./game.js?v=20261119-10";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20261118-20";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20261119-10";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20260903-9";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20260903-9";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20260903-9";
@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20260903-9";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20260903-9";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20260903-9";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261119-4";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261119-10";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20260903-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20260903-9";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20260903-9";
@@ -28,12 +28,12 @@ import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=2026
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261117-10";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261117-10";
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20260926-1";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261117-16";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261119-10";
 
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261118-16";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261118-13";
-import { renderLastBackpack } from './lastBackpack.js?v=20261119-6';
-import { renderAlexJourney } from './alexJourney.js?v=20261118-20';
+import { renderLastBackpack } from './lastBackpack.js?v=20261119-10';
+import { renderAlexJourney } from './alexJourney.js?v=20261119-10';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261118-16";
 

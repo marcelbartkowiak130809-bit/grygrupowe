@@ -12,7 +12,7 @@ export function musicModeReady(mode) {
 
 export function loadMusicMode(mode) {
   if (mode === "playlista-cup") {
-    const path = "./playlistTournament.js?v=20261118-12";
+    const path = "./playlistTournament.js?v=20261119-10";
     cupRequest ||= import(cupRetries ? `${path}&retry=${cupRetries}` : path)
       .then(module => { cup = module; })
       .catch(error => { cupRequest = null; cupRetries++; throw error; });

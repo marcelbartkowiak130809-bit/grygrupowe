@@ -6,9 +6,9 @@ import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,jou
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261118-6';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261118-17';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261118-20';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-10';
 import {renderAlexComic} from './alexJourneyComic.js?v=20261118-18';
-import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261118-20';
+import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-10';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 const asset=id=>new URL(`../assets/minecraft/backpack/${journeyAssetId(id)}.png`,import.meta.url).href;
@@ -145,7 +145,10 @@ export function renderAlexJourney(root,{playerId='guest'}={},actions={}){
  const scene=journeyScene(s),objective=journeyObjective(s),finished=s.done&&s.scene===9,recipe=journeyRecipe(s.grid),current=s.discovered.filter(id=>journeyItems[id]).map(id=>[id,journeyItems[id]]);
  const act=a=>{if(!rank.canMove(1)&&a.type!=='travel')return;if(Date.now()<ui.until&&a.type!=='undo')return;const before=s.scene;const wasDone=s.done;if(!journeyAction(s,a))return;
   const persisted=save(playerId,s);if(before!==s.scene){ui.pan=defaultPan(s);ui.lastScene=s.scene;ui.until=Date.now()+(reduced()?0:850);}else if(s.hero.scene===s.scene&&s.hero.x>9)ui.pan=4;
-  if(!wasDone&&s.done)ui.showReunion=true;
+  if(!wasDone&&s.done){
+   ui.showReunion=true;
+   actions.completeSoloGame?.('minecraft-journey', `chapter-1:${s.startedAt}`, s.startedAt, s.finishedAt);
+  }
   renderAlexJourney(root,{playerId},actions);
   const msg=root.querySelector('.journey-message');
   if(!persisted&&msg)msg.textContent+=' Przeglądarka nie zapisała postępu — zostaw kartę otwartą.';
