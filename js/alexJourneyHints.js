@@ -15,9 +15,9 @@ const nudges = [
     'Po napastnikach coś zostało. Zajrzyj na prawą stronę domu.',
     'Zobacz, co łączy skrzynię z dzwonem. Na lewej ścianie wisi narzędzie.',
     'Koła wagonika nie są zepsute. Coś blokuje jedno z nich.',
-    'Użyj trzech stanowisk po kolei, zaczynając od źródła ciepła.',
-    'Zamiast walczyć z grupą, zwab ją tam, gdzie możesz użyć wody.',
-    'Zobacz, co wagonik może nacisnąć. Strażnik nie lubi światła.',
+    'Ogień i ruda trafiają do różnych otworów tego samego pieca. Kształt miecza widać na stole.',
+    'Nad suchym kanałem jest zaczep. Zasuwa musi być połączona z dźwignią, zanim popłynie woda.',
+    'Zobacz, dokąd biegnie czerwony przewód od płytki. Światło daje szansę podejść do strażnika.',
   ],
   [
     'Poszukaj w domu zapasów i czegoś, co wskaże bezpieczną drogę.',
@@ -36,9 +36,6 @@ const nudges = [
 const exact = {
   '1-1': 'Kliknij pień raz i świnię dwa razy. Kiedy zbierzesz drewno i jedzenie, kliknij „Idź dalej”.',
   '1-8': 'Wydobądź 6 bruku. Od miejsca, gdzie zaczyna się budowanie, ułóż trzy bloki obok siebie na dole, dwa nad prawymi dwoma i jeden nad prawym. Wejdź na półkę po prawej.',
-  '2-3': 'Wybierz pochodnię i kliknij uchwyt na drewnianej podporze. Wyjmij klin spod prawego koła i przesuń wagonik. Wybierz kilof, wydobądź żelazo i węgiel, a na końcu kliknij strzałkę na ścianie.',
-  '2-5': 'Kliknij mechanizm po lewej, by zabrać dzwon i łańcuch. Z łańcuchem kliknij śluzę. Wybierz dzwon i kliknij ramę, a potem dźwignię po prawej.',
-  '2-6': 'Kliknij wagonik po lewej i właz u góry. Wybierz miecz i kliknij zombie. Wybierz zdobyty klucz, kliknij kratę, a potem Alex.',
   '3-5': 'Wybierz mapę i kliknij znak przy wejściu. Kliknij kamienie w kolejności: listek → gwiazda → tarcza. Na końcu zdejmij łańcuch z bramy.',
   '3-8': 'Kliknij tablicę nad torem. Ustaw dźwignie od lewej na ↑ ↓ ↑. Wybierz łańcuch, kliknij wagon i odbierz klucz oraz korbę ze skrytki po prawej.',
   '3-9': 'Kliknij sylwetkę Alex. Naciśnij płytki w kolejności: słońce → pióro → klucz. Wybierz klucz ze skrytki i kliknij kratę.',

@@ -20,6 +20,7 @@ export const rescueScenes=[
  {
   name:'Ten sam dom, inna noc',region:'DOM ALEX',biome:'home',
   goal:'Zbadaj ślady przy drzwiach.',
+  clue:'Ślady zaczynają się przy wyłamanych drzwiach i prowadzą w prawo.',
   hint:'Kliknij ślady na prawo od domu. Wskażą, dokąd zabrano Alex.',
   finish:'trail',
   nodes:[
@@ -29,6 +30,7 @@ export const rescueScenes=[
  },{
   name:'Zbrojownia na palcach',region:'WIOSKA',biome:'armory',
   goal:'Rozbrój alarm przy skrzyni i zabierz zapasy po cichu.',
+  clue:'Podniesienie wieka pociągnie za linkę dzwonu.',
   hint:'Weź nożyce z lewej ściany, wybierz je w plecaku i przetnij linkę między skrzynią a dzwonem. Potem otwórz skrzynię.',
   finish:'locker',
   nodes:[
@@ -39,47 +41,55 @@ export const rescueScenes=[
   ],
  },{
   name:'Kopalnia z zablokowanym torem',region:'KOPALNIA',biome:'mine',
-  goal:'Przesuń wagonik i wydobądź żelazo oraz węgiel.',
-  hint:'Zawieś pochodnię na drewnianej podporze. Wyjmij klin spod koła i przesuń wagonik do końca toru. Wybierz kilof do obu złóż.',
+  goal:'Zbierz zapasy do kuźni i sprawdź znak na ścianie.',
+  clue:'Wagonik zastawia dojście do złóż. W ciemności trudno zobaczyć, co trzyma jego koło.',
+  hint:'Zawieś pochodnię na drewnianej podporze. Wyjmij klin spod koła i odsuń wagonik w lewo. Zbierz kilofem obie rudy i odczytaj znak.',
   finish:'marks',
+  requires:['ore','coal'],
   nodes:[
    node('lamp',4,'Zawieś pochodnię na podporze','tripwire_hook',{y:3.75,width:1,height:1,need:'torch',take:{torch:1},doneTexture:'torch',effect:'light',message:'Światło odsłoniło klin blokujący koło.'}),
-   node('chock',8.7,'Wyciągnij klin spod koła','rescue_chock',{y:5.43,width:.64,height:.4,after:['lamp'],message:'Wagonik może się teraz poruszyć.'}),
-   node('cart',7.8,'Przesuń wagonik do końca toru','rescue_minecart_side',{y:4.89,width:1.2,height:.95,after:['chock'],doneX:9.75,effect:'roll',message:'Możesz zejść z toru przy złożach.'}),
-   node('ore',11,'Wydobądź dwie rudy żelaza','rescue_deepslate_iron_ore',{width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{iron_ore:2},effect:'strike',message:'Zebrano dwie rudy żelaza.'}),
-   node('coal',13,'Wydobądź węgiel','rescue_deepslate_coal_ore',{y:4,width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{coal:1},effect:'strike',message:'Masz węgiel na opał.'}),
-   node('marks',14,'Obejrzyj wyrytą strzałkę','cracked_stone_bricks',{y:3,width:1,height:1,wallTile:true,after:['ore','coal'],message:'Alex wydrapała strzałkę w stronę podziemnej kuźni.'}),
+   node('chock',8.7,'Wyciągnij klin spod koła','rescue_chock',{y:5.43,width:.64,height:.4,after:['lamp'],message:'Klin wyjęty. Koła są wolne.'}),
+   node('cart',7.8,'Odsuń wagonik od złóż','rescue_minecart_side',{y:4.89,width:1.2,height:.95,after:['chock'],doneX:5.1,effect:'roll',message:'Wagonik odsunięty. Podejście do złóż jest wolne.'}),
+   node('ore',10,'Wydobądź dwie rudy żelaza','rescue_deepslate_iron_ore',{width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{iron_ore:2},effect:'strike',message:'Zebrano dwie rudy żelaza.'}),
+   node('coal',11,'Wydobądź węgiel','rescue_deepslate_coal_ore',{y:4,width:1,height:1,wallTile:true,after:['cart'],need:'stone_pickaxe',give:{coal:1},effect:'strike',message:'Masz węgiel na opał.'}),
+   node('marks',14,'Obejrzyj wyrytą strzałkę','cracked_stone_bricks',{y:3,width:1,height:1,wallTile:true,message:'Strzałka Alex wskazuje podziemną kuźnię.'}),
   ],
  },{
   name:'Żelazo ze starego pieca',region:'KUŹNIA',biome:'forge',
   goal:'Rozpal piec, wytop żelazo i wykonaj miecz.',
-  hint:'Wybierz węgiel do paleniska i rudę do pieca. Przy stole wybierz sztabkę. Do miecza potrzebne są dwie sztabki i patyk ze zbrojowni.',
+  clue:'Palenisko jest na dole pieca, otwór na rudę na górze. Stół pokazuje kształt ostrza i rękojeści.',
+  hint:'Rozgrzej piec węglem od dołu, a od góry dodaj rudę. Ułóż przy stole dwie sztabki nad patykiem i odbierz miecz.',
   finish:'sword',
   nodes:[
-   node('fuel',4,'Rozpal palenisko węglem','campfire',{need:'coal',take:{coal:1},effect:'light',message:'Ciepło dotarło do pieca.'}),
-   node('smelt',7,'Wytop dwie sztabki','furnace_front',{after:['fuel'],need:'iron_ore',take:{iron_ore:2},give:{iron_ingot:2},doneTexture:'furnace_front_on',effect:'light',message:'Dwie sztabki są gotowe.'}),
-   node('sword',12,'Wykonaj miecz ze sztabek i patyka','smithing_table_front',{after:['smelt'],need:'iron_ingot',take:{iron_ingot:2,stick:1},give:{iron_sword:1},doneTexture:'iron_sword',effect:'strike',message:'Żelazny miecz gotowy. Z jaskini dobiega pomruk.'}),
+   node('fuel',6,'Dolny otwór pieca · opał','coal',{y:5,width:1,height:1,need:'coal',take:{coal:1},doneTexture:'furnace_front_on',effect:'light',message:'Piec rozgrzany. Górny otwór przyjmie rudę.'}),
+   node('smelt',6,'Górny otwór pieca · przetop rudę','iron_ore',{y:4,width:1,height:1,after:['fuel'],need:'iron_ore',take:{iron_ore:2},give:{iron_ingot:2},doneTexture:'iron_ingot',effect:'light',message:'Dwie sztabki są w plecaku. Połącz je z patykiem na stole.'}),
+   node('bladeTop',11,'Górna część ostrza · sztabka żelaza','iron_ingot',{y:2,width:1,height:1,slot:true,need:'iron_ingot',take:{iron_ingot:1},message:'Pierwsza część ostrza osadzona.'}),
+   node('bladeBottom',11,'Dolna część ostrza · sztabka żelaza','iron_ingot',{y:3,width:1,height:1,slot:true,need:'iron_ingot',take:{iron_ingot:1},message:'Druga część ostrza osadzona.'}),
+   node('hilt',11,'Rękojeść · patyk','stick',{y:4,width:1,height:1,slot:true,need:'stick',take:{stick:1},message:'Rękojeść na miejscu.'}),
+   node('sword',13,'Odbierz miecz','iron_sword',{y:3,width:1,height:1,slot:true,after:['bladeTop','bladeBottom','hilt'],give:{iron_sword:1},effect:'strike',message:'Żelazny miecz gotowy. Z jaskini dobiega pomruk.'}),
   ],
  },{
   name:'Echo przy śluzie',region:'JASKINIA ZOMBIE',biome:'sluice',
   goal:'Zwab grupę zombie w boczny kanał i rozpraw się z nią za pomocą śluzy.',
-  hint:'Najpierw zabierz dzwon i łańcuch z porzuconego mechanizmu. Napraw śluzę łańcuchem. Zawieś dzwon na ramie i pociągnij za dźwignię, gdy zombie podejdą.',
+  clue:'Dźwignia nie poruszy zasuwą bez łańcucha. Pusta rama stoi nad kanałem.',
+  hint:'Weź dzwon i łańcuch ze skrzyni. Połącz zerwany napęd łańcuchem i zawieś dzwon nad kanałem. Kiedy zombie podejdą pod dzwon, użyj dźwigni.',
   finish:'flood',
   nodes:[
-   node('gear',3,'Zdejmij dzwon i łańcuch','chain',{give:{chain:1,bell:1},message:'Łańcuch pasuje do śluzy, a dzwon może odciągnąć zombie.'}),
-   node('repair',6,'Podepnij łańcuch do śluzy','chain',{y:4,need:'chain',take:{chain:1},message:'Śluza jest sprawna. Potrzebujesz przynęty.'}),
-   node('ring',9,'Zawieś i uderz w dzwon','bell',{y:4,after:['repair'],need:'bell',take:{bell:1},effect:'lure',message:'Zombie zeszły do kanału. Zwolnij śluzę.'}),
-   node('flood',12,'Otwórz śluzę','lever',{y:4,after:['ring'],effect:'flood',message:'Nurt zmiótł zombie do zamkniętego szybu. Droga do celi jest wolna.'}),
+   node('gear',2,'Skrzynia serwisowa · dzwon i łańcuch','rescue_chest',{width:1,height:1,doneTexture:'rescue_chest_open',give:{chain:1,bell:1},message:'Ze skrzyni zabrano łańcuch i dzwon.'}),
+   node('repair',5,'Połącz zerwany napęd łańcuchem','chain',{y:3.65,width:1,height:1,need:'chain',take:{chain:1},message:'Łańcuch znów łączy dźwignię z zasuwą.'}),
+   node('ring',9.5,'Zawieś dzwon na ramie nad kanałem','tripwire_hook',{y:3.4,width:1,height:1,hero:6.35,need:'bell',take:{bell:1},doneTexture:'bell',effect:'lure',message:'Dzwon zwabił zombie na dno kanału.'}),
+   node('flood',4,'Pociągnij dźwignię śluzy','lever',{y:4.5,width:1,height:1,after:['repair','ring'],effect:'flood',message:'Zasuwa się podniosła. Nurt zepchnął zombie do szybu.'}),
   ],
  },{
   name:'Promień nad celą',region:'LEGOWISKO',biome:'lair',
   goal:'Unieruchom strażnika, odzyskaj klucz i uwolnij Alex.',
-  hint:'Przestaw wagonik pod właz, aby nacisnąć płytkę. Otwarty właz wpuści światło i odetnie strażnikowi drogę. Wybierz miecz, pokonaj zombie i użyj klucza na kracie.',
+  clue:'Przewód biegnie od płytki pod torem do rygla włazu. Zombie przy kracie ma klucz.',
+  hint:'Popchnij wagonik na płytkę. Kiedy przewód zaświeci, otwórz odblokowany właz. Użyj miecza na zombie w świetle i klucza na kracie.',
   finish:'rescue',
   nodes:[
    node('weight',4,'Popchnij wagonik na płytkę','rescue_minecart_side',{y:4.95,width:1,height:.9,doneX:6,effect:'roll',message:'Wagonik nacisnął płytkę pod włazem.'}),
-   node('hatch',7,'Otwórz właz nad strażnikiem','oak_planks',{y:2,after:['weight'],effect:'light',message:'Światło zagrodziło strażnikowi ucieczkę.'}),
-   node('warden',10,'Pokonaj zombie z kluczem','zombie',{character:true,after:['hatch'],need:'iron_sword',give:{tripwire_hook:1},effect:'strike',message:'Zombie pokonany. Klucz wpadł do plecaka.'}),
+   node('hatch',9,'Otwórz właz w suficie','oak_planks',{y:.05,width:1,height:.6,after:['weight'],effect:'light',message:'Promień oślepił strażnika. Możesz użyć miecza.'}),
+   node('warden',9,'Pokonaj zombie z kluczem','zombie',{character:true,after:['hatch'],need:'iron_sword',give:{tripwire_hook:1},effect:'strike',message:'Zombie upuścił klucz. Pasuje do zamka na kracie.'}),
    node('cell',12,'Otwórz kratę kluczem','iron_bars',{after:['warden'],need:'tripwire_hook',take:{tripwire_hook:1},effect:'light',message:'Krata podniosła się. Alex jest wolna!'}),
    node('rescue',14,'Podejdź do uratowanej Alex','alex',{character:true,after:['cell'],hero:13,message:'Alex uratowana. Zza włazu dobiega jeszcze jedno echo…',effect:'reunion'}),
   ],
@@ -91,11 +101,31 @@ export function createRescue(now=Date.now()){
   startedAt:now,finishedAt:0,message:'Dom Alex. Chwilę temu znaleźliście się po długiej wędrówce.',effect:''};
 }
 
-export function rescueAction(state,action,now=Date.now()){
- return applyRescueAction(state,action,now,false);
+export function rescueSceneReady(state,scene=rescueScenes[state.scene]){
+ return Boolean(state.flags[scene.finish]&&(scene.requires||[]).every(id=>state.flags[id]));
 }
 
-function applyRescueAction(state,action,now,legacy){
+const classicPrerequisites={marks:['ore','coal'],sword:['smelt'],ring:['repair'],flood:['ring']};
+const blockedBy={
+ trail:'Ślady zaczynają się przy drzwiach.',
+ locker:'Jeśli podniesiesz wieko, linka pociągnie za dzwon.',
+ chock:'Przy kole jest za ciemno. Rozejrzyj się za uchwytem na pochodnię.',
+ cart:'Pod kołem tkwi klin. Bez jego wyjęcia wagonik nie ruszy.',
+ ore:'Wagonik zastawia podejście do złoża.',
+ coal:'Wagonik zastawia podejście do złoża.',
+ smelt:'Piec jest zimny. Przyjrzyj się jego dolnemu otworowi.',
+ sword:'Przy stole wciąż brakuje części miecza. Zobacz obrysy na polach.',
+ hatch:'Rygiel trzyma właz. Płytka pod torem jest jeszcze zwolniona.',
+ warden:'Strażnik widzi w ciemności. Oślep go promieniem przez właz.',
+ cell:'Krata ma zamek. Klucz ma zombie obok celi.',
+ rescue:'Alex wciąż jest za kratą. Otwórz zamek.',
+};
+
+export function rescueAction(state,action,now=Date.now()){
+ return applyRescueAction(state,action,now,false,false);
+}
+
+function applyRescueAction(state,action,now,legacy,classic){
  if(!action||state.done)return false;
  const {type,id}=action;
  const scene=rescueScenes[state.scene];
@@ -104,9 +134,8 @@ function applyRescueAction(state,action,now,legacy){
  if(type==='select'){
   if(!Object.hasOwn(rescueItems,id)||!(state.stock[id]>0))return false;
   state.selected=id;
-  state.message=`Wybrano: ${rescueItems[id]}.`;
  }else if(type==='next'){
-  if(!flags[scene.finish]||state.scene>=rescueScenes.length-1)return false;
+  if(!rescueSceneReady(state,scene)||state.scene>=rescueScenes.length-1)return false;
   state.scene++;
   state.hero=2;
   state.message=rescueScenes[state.scene].goal;
@@ -114,8 +143,14 @@ function applyRescueAction(state,action,now,legacy){
   state.effect='walk';
  }else if(type==='node'){
   const legacyPuzzle=legacy&&scene.biome==='armory';
-  const target=(legacyPuzzle?legacyArmory:scene.nodes).find(node=>node.id===id);
-  if(!target||flags[id]&&!target.repeat||target.reveal&&target.after.some(key=>!flags[key]))return false;
+  const entry=(legacyPuzzle?legacyArmory:scene.nodes).find(node=>node.id===id);
+  const target=classic&&id==='sword'&&entry
+   ?{...entry,need:'iron_ingot',take:{iron_ingot:2,stick:1}}
+   :entry;
+  if(!target||flags[id]&&!target.repeat)return false;
+  const prerequisites=(classic&&classicPrerequisites[id])||target.after||[];
+  const missing=Object.entries(target.take||{}).find(([item,count])=>(state.stock[item]||0)<count);
+  if(target.reveal&&prerequisites.some(key=>!flags[key]))return false;
   if(id==='guard'&&!legacyPuzzle){
    state.message='Strażnik śpi. Linka między skrzynią a dzwonem może go obudzić.';
   }else if(id==='guard'){
@@ -132,16 +167,22 @@ function applyRescueAction(state,action,now,legacy){
    state.hero=9.7;
    state.effect='alert';
    state.message='Strażnik się obudził. Domknij okiennicę i kliknij strażnika, żeby się wycofać.';
-  }else if(target.after?.some(key=>!flags[key])){
-   state.message=id==='locker'&&!legacyPuzzle?'Jeśli podniesiesz wieko, linka pociągnie za dzwon.':'Jeszcze za wcześnie. Sprawdź, co blokuje ten mechanizm.';
+  }else if(prerequisites.some(key=>!flags[key])){
+   state.message=id==='flood'
+    ?(!flags.repair?'Dźwignia jest odłączona. Brakuje łańcucha do zasuwy.':'Zombie stoją poza kanałem. Sprowadź je pod ramę.')
+    :blockedBy[id]||scene.clue;
   }else if(target.need&&(target.need!==(action.item||state.selected)||!(state.stock[target.need]>0))){
-   state.message=`Wybierz w plecaku: ${rescueItems[target.need]}.`;
-  }else if(Object.entries(target.take||{}).some(([item,count])=>state.stock[item]<count||!state.stock[item])){
-   state.message='Brakuje materiałów. Sprawdź wskazówkę przy planszy.';
+   state.message=state.stock[target.need]>0
+    ?`Potrzebny przedmiot z plecaka · ${rescueItems[target.need]}.`
+    :`Brakuje przedmiotu · ${rescueItems[target.need]}.`;
+  }else if(missing){
+   const [item,count]=missing;
+   state.message=`Do tego potrzeba: ${rescueItems[item]} ×${count}.`;
   }else{
    for(const [item,count]of Object.entries(target.take||{}))state.stock[item]-=count;
    for(const [item,count]of Object.entries(target.give||{}))state.stock[item]=(state.stock[item]||0)+count;
    flags[id]=true;
+   if(classic&&id==='sword')flags.bladeTop=flags.bladeBottom=flags.hilt=true;
    state.hero=target.hero??Math.max(1,target.x-1);
    state.steps++;
    state.message=target.message||'';
@@ -154,7 +195,7 @@ function applyRescueAction(state,action,now,legacy){
 }
 
 export function saveRescue(state){
- return JSON.stringify({version:2,log:state.log,legacyMoves:state.legacyMoves,startedAt:state.startedAt,finishedAt:state.finishedAt});
+ return JSON.stringify({version:3,log:state.log,legacyMoves:state.legacyMoves,classicMoves:state.classicMoves,startedAt:state.startedAt,finishedAt:state.finishedAt});
 }
 
 function finishLegacyRescue(state){
@@ -169,12 +210,15 @@ export function restoreRescue(raw,now=Date.now()){
  const state=createRescue(now);
  try{
   const saved=JSON.parse(raw||'null');
-  if(![1,2].includes(saved?.version)||!Array.isArray(saved.log)||saved.log.length>5000)return state;
+  if(![1,2,3].includes(saved?.version)||!Array.isArray(saved.log)||saved.log.length>5000)return state;
   const legacyMoves=saved.version===1?saved.log.length:saved.legacyMoves??0;
-  if(!Number.isInteger(legacyMoves)||legacyMoves<0||legacyMoves>saved.log.length)return state;
+  // Early clicks that used to be blocked must stay blocked when replaying older logs.
+  const classicMoves=saved.version<3?saved.log.length:saved.classicMoves??0;
+  if(!Number.isInteger(legacyMoves)||!Number.isInteger(classicMoves)||legacyMoves<0||legacyMoves>classicMoves||classicMoves>saved.log.length)return state;
   if(legacyMoves)state.legacyMoves=legacyMoves;
+  if(classicMoves)state.classicMoves=classicMoves;
   for(const [index,action] of saved.log.entries()){
-   if(!applyRescueAction(state,action,now,index<legacyMoves))return createRescue(now);
+   if(!applyRescueAction(state,action,now,index<legacyMoves,index<classicMoves))return createRescue(now);
    if(index+1===legacyMoves)finishLegacyRescue(state);
   }
   if(Number.isFinite(saved.startedAt)&&saved.startedAt>0&&saved.startedAt<=now)state.startedAt=saved.startedAt;

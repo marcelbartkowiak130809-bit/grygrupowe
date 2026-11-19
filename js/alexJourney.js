@@ -1,14 +1,14 @@
 import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261118-19';
-import {alexHintOptions} from './alexJourneyHints.js?v=20261119-23';
+import {alexHintOptions} from './alexJourneyHints.js?v=20261119-25';
 import {escapeHtml} from './utils.js?v=20260903-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {createJourney,restoreJourney,saveJourney,journeyAction,journeyScenes,journeyScene,journeyItems,journeyRecipes,journeyRecipe,journeySurface,journeyTerrain,journeyLit,journeyAssetId} from './alexJourneyEngine.js?v=20261119-17';
 import {baseJourneyTerrain} from './alexJourneyWorld.js?v=20261118-6';
 import {journeyObjective,journeyTime,journeyTorchTargets} from './alexJourneyObjectives.js?v=20261119-17';
 import {chapterMenu,bindChapterMenu,canPlayThirdChapter} from './alexJourneyChapters.js?v=20261119-16';
-import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-24';
+import {renderAlexRescue,hasCompletedRescue,resetAlexRescue} from './alexJourneyRescueView.js?v=20261119-25';
 import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-24';
-import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-23';
+import {renderAlexSiege,resetAlexSiege} from './alexJourneySiegeView.js?v=20261119-25';
 import {alexSpeedrun} from './alexSpeedrunView.js?v=20261118-20';
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261118-11';
 const asset=id=>new URL(`../assets/minecraft/backpack/${journeyAssetId(id)}.png`,import.meta.url).href;

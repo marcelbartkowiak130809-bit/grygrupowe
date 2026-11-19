@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {existsSync} from 'node:fs';
-import {createRescue,rescueAction,rescueScenes,restoreRescue,saveRescue} from '../js/alexJourneyRescue.js';
+import {createRescue,rescueAction,rescueScenes,rescueSceneReady,restoreRescue,saveRescue} from '../js/alexJourneyRescue.js';
 import {THIRD_CHAPTER_AT,chapterCountdown,chapterMenu} from '../js/alexJourneyChapters.js';
 
 const walkthrough=[
  [['embrace'],['trail']],
  [['shears'],['tripwire','shears'],['locker']],
- [['lamp','torch'],['chock'],['cart'],['ore','stone_pickaxe'],['coal','stone_pickaxe'],['marks']],
- [['fuel','coal'],['smelt','iron_ore'],['sword','iron_ingot']],
- [['gear'],['repair','chain'],['ring','bell'],['flood']],
+ [['marks'],['lamp','torch'],['chock'],['cart'],['ore','stone_pickaxe'],['coal','stone_pickaxe']],
+ [['fuel','coal'],['smelt','iron_ore'],['bladeTop','iron_ingot'],['bladeBottom','iron_ingot'],['hilt','stick'],['sword']],
+ [['gear'],['ring','bell'],['repair','chain'],['flood']],
  [['weight'],['hatch'],['warden','iron_sword'],['cell','tripwire_hook'],['rescue']],
 ];
 
@@ -65,6 +65,29 @@ test('legacy armory saves preserve earned loot and can continue with the new puz
  assert.equal(oldFinished.scene,2);
  assert.equal(oldFinished.stock.stone_pickaxe,1);
  assert.equal(restoreRescue(saveRescue(oldFinished)).scene,2);
+});
+
+test('old unsuccessful clicks and the old sword recipe keep their original results when replayed',()=>{
+ const state=createRescue();
+ const action=(id,item)=>({type:'node',id,...(item?{item}:{})});
+ for(const scene of walkthrough.slice(0,2)){
+  for(const [id,item] of scene)assert.ok(rescueAction(state,action(id,item)));
+  assert.ok(rescueAction(state,{type:'next'}));
+ }
+ const oldMine=[action('marks'),...walkthrough[2].slice(1).map(([id,item])=>action(id,item)),action('marks'),{type:'next'}];
+ const oldForge=[action('fuel','coal'),action('smelt','iron_ore'),action('sword','iron_ingot'),{type:'next'}];
+ const legacy=restoreRescue(JSON.stringify({version:2,log:[...state.log,...oldMine,...oldForge,action('gear'),action('ring','bell')]}));
+ assert.equal(legacy.scene,4);
+ assert.equal(legacy.stock.iron_sword,1);
+ assert.equal(legacy.flags.ring,undefined);
+ assert.equal(legacy.stock.bell,1);
+ assert.ok(rescueAction(legacy,action('ring','bell')));
+ assert.ok(rescueAction(legacy,action('flood')));
+ assert.equal(rescueSceneReady(legacy),false);
+ assert.match(legacy.message,/łańcucha/);
+ assert.ok(rescueAction(legacy,action('repair','chain')));
+ assert.ok(rescueAction(legacy,action('flood')));
+ assert.equal(rescueSceneReady(restoreRescue(saveRescue(legacy))),true);
 });
 
 test('all chapter props exist and the premiere countdown reaches Friday at 20:00 Poland time',()=>{

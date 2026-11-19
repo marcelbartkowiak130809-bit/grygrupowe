@@ -129,6 +129,7 @@
 .rescue-quest{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:0 0 12px}
 .rescue-quest h2{margin:3px 0 6px;color:#f2f8ed;font-size:clamp(19px,3vw,32px);line-height:1.1}
 .rescue-quest p:not(.eyebrow){margin:0;color:#cae2c5;font-size:14px}.rescue-quest .eyebrow{margin:0;color:#b5d59f}
+.rescue-quest p.rescue-clue{margin-top:3px;color:#a4b8ad;font-size:12px}
 .rescue-camera{position:relative;aspect-ratio:16/9;overflow:clip;border:4px solid #3d4b42;border-radius:10px;isolation:isolate;background:#151d24}
 .rescue-track{position:relative;display:flex;width:600%;height:100%;transform:translateX(calc(var(--scene) * -100% / 6));transition:transform .8s cubic-bezier(.4,0,.2,1)}
 .rescue-scene{position:relative;flex:0 0 calc(100% / 6);height:100%;overflow:hidden;isolation:isolate;background:linear-gradient(#121521,#34414c 68%,#172020)}
@@ -150,6 +151,19 @@
 .rescue-node img,.rescue-node svg,.rescue-actor svg,.rescue-hero svg{width:100%;height:100%;object-fit:contain;pointer-events:none}
 .rescue-node:not(.rescue-character) img{width:78%;height:78%;filter:drop-shadow(0 3px 2px #05070999)}
 .rescue-node.is-blocked{filter:brightness(.75)}.rescue-node:disabled{opacity:1;cursor:default}
+.rescue-node.rescue-character>.journey-person{position:absolute;inset:0}
+.rescue-node.is-tool-target{outline:1px dashed #d3f0a6;outline-offset:-2px}
+.rescue-node:focus-visible,.rescue-node:hover:not(:disabled){z-index:8}
+.rescue-target-label{
+ display:none;position:absolute;z-index:1;pointer-events:none;bottom:100%;left:50%;translate:-50% -5px;
+ width:max-content;max-width:min(164px,30vw);padding:4px 6px;border-radius:4px;
+ background:#151f24;color:#fff4d9;font-size:clamp(9px,1.05vw,12px);line-height:1.15;text-align:center;
+}
+.rescue-node:focus-visible .rescue-target-label{display:block}
+@media(hover:hover){.rescue-node:not(:disabled):hover .rescue-target-label{display:block}}
+.rescue-node[data-rescue-node="hatch"] .rescue-target-label{bottom:auto;top:100%;translate:-50% 5px}
+.rescue-node[data-rescue-node="trail"] .rescue-target-label{left:auto;right:0;translate:0 -5px}
+.rescue-node[data-rescue-node="chock"]::before{content:"";position:absolute;inset:-30% -25% -35% 0}
 .rescue-node.guard-asleep>.journey-person{transform:translateY(-3%) rotate(-90deg);transform-origin:center}
 .rescue-node[data-rescue-node="locker"] img{position:absolute;inset:0;height:100%;width:100%;object-position:bottom}
 .rescue-node.rescue-fitted-node{min-width:0;min-height:0}
@@ -163,10 +177,46 @@
 .rescue-wire{width:100%;height:3px;background:#f2c990;box-shadow:0 1px 1px #231b19;pointer-events:none}
 .rescue-wire-target.is-complete .rescue-wire{background:linear-gradient(90deg,#a69178 44%,transparent 44% 56%,#a69178 56%);box-shadow:none}
 .rescue-cord-drop{position:absolute;background:#f2c990;pointer-events:none}
+.rescue-footprint{position:absolute;background:#291e19;transform:skewX(-22deg);opacity:.85;pointer-events:none}
+.rescue-recipe-board{position:absolute;background:#1c2227;border:2px solid #6b746e;border-radius:4px;pointer-events:none}
+.rescue-recipe-arrow{position:absolute;display:grid;place-items:center;color:#dde3d6;font-size:clamp(11px,2.8vw,22px);pointer-events:none}
+.rescue-node.rescue-recipe-slot{border:1px solid #687973;background:#34434166}
+.rescue-node.rescue-recipe-slot:not(.is-complete) img{opacity:.36;scale:.78}
+.rescue-node[data-rescue-node="sword"]:not(.is-blocked) img,.rescue-node.rescue-recipe-slot.is-complete img{opacity:1;scale:.8}
+.rescue-node[data-rescue-node="sword"].is-complete img{opacity:.35}
+.rescue-sluice-gate,.rescue-drive,.rescue-hatch-wire,.rescue-open-hatch,.rescue-cell-bars{position:absolute;pointer-events:none}
+.rescue-sluice-gate{background:var(--gate-texture) center / 100% 65% repeat-y;image-rendering:pixelated;transition:top .45s ease}
+.rescue-spill{
+ position:absolute;pointer-events:none;image-rendering:pixelated;
+ background:url('../assets/minecraft/backpack/rescue_water.png') center / 50% 33% repeat;
+ clip-path:polygon(0 0,45% 3%,99% 84%,100% 100%,61% 100%,19% 56%);
+}
+.rescue-drive{
+ background-image:repeating-linear-gradient(90deg,#615e5a 0 4px,#a49e8c 4px 7px);
+ clip-path:polygon(0 0,40% 0,40% 100%,62% 100%,62% 0,100% 0,100% 100%,0 100%);
+}
+.rescue-drive.connected{clip-path:none}
+.rescue-hatch-wire{background:#66231d}
+.rescue-hatch-wire.powered{background:#ea5843;box-shadow:0 0 5px #ef543e99}
+.rescue-open-hatch{background:var(--hatch-texture) center / 100% 100%;image-rendering:pixelated;transform-origin:100% 50%;transform:rotate(-42deg)}
+.rescue-cell-bars{
+ border-block:2px solid #9aabae;
+ background:repeating-linear-gradient(90deg,#a7b1b2 0 7%,#697779 7% 12%,transparent 12% 24%);
+}
+.rescue-cell-lock{width:38%;aspect-ratio:1;background:#b99652;border:1px solid #382817;box-shadow:0 0 0 1px #dbc17e}
+.rescue-key-marker{position:absolute;right:0;top:54%;width:35%;height:23%;pointer-events:none}
+.rescue-node.warden-lit{filter:brightness(1.22) saturate(.72)}
 .guard-indicator{position:absolute;top:0;right:0;padding:3px 4px;border-radius:4px;background:#202b35de;color:#feeec3;font-size:clamp(9px,2vw,15px);font-weight:900}
 .rescue-actor{z-index:4;pointer-events:none}
-.rescue-horde{transition:left .5s ease;filter:drop-shadow(1px 3px 2px #0008);animation:rescue-bob 1s calc(var(--mob) * -.18s) ease-in-out infinite alternate}
-.effect-flood::after{position:absolute;inset:55% 0 20%;background:linear-gradient(95deg,transparent,#9ae4fc7a 65%,#3bbaf2a8);content:"";pointer-events:none;animation:rescue-water .7s ease-out both}
+.rescue-horde{transition:left .5s ease,top .5s ease;filter:drop-shadow(1px 3px 2px #0008);animation:rescue-bob 1s calc(var(--mob) * -.18s) ease-in-out infinite alternate}
+.rescue-horde-swept{animation:rescue-swept .72s calc(var(--mob) * 45ms) ease-in both}
+@media(prefers-reduced-motion:reduce){.rescue-horde-swept{display:none}}
+@keyframes rescue-swept{
+ from{translate:0;opacity:1}
+ 65%{translate:170% 18%;rotate:14deg;opacity:.85}
+ to{translate:310% 45%;rotate:25deg;opacity:0}
+}
+.effect-flood::after{position:absolute;inset:59% 16% 20% 42%;background:linear-gradient(95deg,transparent,#9ae4fc7a 65%,#3bbaf2a8);content:"";pointer-events:none;animation:rescue-water .7s ease-out both}
 .rescue-hero{position:absolute;z-index:5;left:calc((var(--hero) - .5) * 100% / 96);top:44.444%;width:1.25%;height:22.222%;transition:left .55s cubic-bezier(.3,.65,.4,1);pointer-events:none;filter:drop-shadow(2px 3px 2px #0006)}
 .rescue-hero.hero-strike svg{animation:rescue-strike .35s ease-out}
 .rescue-reunion{position:absolute;inset:0;z-index:5;pointer-events:none}
