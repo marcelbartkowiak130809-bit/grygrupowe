@@ -97,6 +97,25 @@ test("alternate forms use the Mega slot, keep free evolution and change battle d
   assert.equal(auctionBattlePokemon(primal).signature[0],"Precipice Blades");
 });
 
+test("Hoopa can change form with no free evolutions in the team unless Mega used the slot",()=>{
+  const game={teams:{a:[720,6],b:[720,6]},budgets:{a:10,b:10}};
+  const duel=["a","b"];
+  prepareAuctionBattle(game,duel,1000);
+  const prep=(uid,kind,slot,target)=>auctionBattlePrep(game,uid,{kind,slot,target},duel,2000);
+  assert.ok(battleTeam(game,"a").every(unit=>auctionBattlePokemon(unit.id).evolutions.length===0));
+  const [unbound]=auctionBattlePokemon(720).forms;
+  assert.equal(auctionBattlePokemon(unbound).name,"Hoopa Unbound");
+  assert.equal(prep("a","form",0,unbound),undefined);
+  assert.equal(game.budgets.a,5);
+  assert.equal(battleTeam(game,"a")[0].id,unbound);
+  assert.equal(game.battle.prep.a.evolved,undefined);
+  const [mega]=auctionBattlePokemon(6).megas;
+  assert.equal(prep("b","mega",1,mega),undefined);
+  assert.match(prep("b","form",0,unbound),/wykorzystane/);
+  assert.equal(game.budgets.b,5);
+  assert.equal(battleTeam(game,"b")[0].id,720);
+});
+
 test("turns, types, timeout and post-hit knockout work without reviving defeated players",()=>{
   const game=makeGame();
   prepareAuctionBattle(game,players,1000);

@@ -28,14 +28,21 @@ function prepMarkup(game, accounts, uid, players, timer) {
   const ready = game.battle.prep?.[uid] || {};
   const budget = Number(game.budgets?.[uid] || 0);
   const upgradeUsed = battleUpgradeUsed(ready);
+  const species = team.map(unit => auctionBattlePokemon(unit.id));
+  const evolutionStatus = ready.evolved ? "Darmowa ewolucja wykorzystana"
+    : species.some(pokemon => pokemon.evolutions.length) ? "1 darmowa ewolucja" : "Brak Pokémonów do ewolucji";
+  let upgradeStatus = `1 Mega lub zmiana formy za ${battleUpgradePrice}$`;
+  if (upgradeUsed) upgradeStatus = "Wspólny limit Mega i zmiany formy wykorzystany";
+  else if (!species.some(pokemon => pokemon.megas.length || pokemon.forms.length)) upgradeStatus = "Brak dostępnej Megaewolucji lub zmiany formy";
+  else if (budget < battleUpgradePrice) upgradeStatus = `Do Mega lub zmiany formy brakuje ${battleUpgradePrice - budget}$`;
   const cards = battleSlots(game,uid).map((slot,position) => {
     const unit = team[slot];
-    const pokemon = auctionBattlePokemon(unit.id);
+    const pokemon = species[slot];
     const choices = (kind, ids) => {
       const paid = kind !== "evolve";
       const disabled = ready.ready || (paid ? upgradeUsed || budget < battleUpgradePrice : ready.evolved);
       return ids.map(id => `<button type="button" class="ghost" data-battle-upgrade="${kind}" data-slot="${slot}" data-evolution="${id}" ${disabled ? "disabled" : ""}>
-        ${paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${battleUpgradePrice}$` : ""}
+        ${kind === "form" ? "Zmień formę na " : paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${battleUpgradePrice}$` : ""}
       </button>`).join("");
     };
     return `<article class="battle-unit ${formClass(pokemon.formKind)}" data-battle-prep-slot="${slot}">
@@ -47,7 +54,7 @@ function prepMarkup(game, accounts, uid, players, timer) {
   });
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-preparation">
     <header class="battle-heading"><div><p class="eyebrow">LICYTACJA TEAMU · PRZYGOTOWANIE</p><h1>Przygotuj drużynę</h1></div>${timer}</header>
-    <div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${ready.evolved?"Ewolucja wykorzystana":"1 darmowa ewolucja"} · ${upgradeUsed?"Płatne ulepszenie wykorzystane":`1 Mega lub zmiana formy za ${battleUpgradePrice}$`}</span></div>
+    ${team.length ? `<div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${evolutionStatus} · ${upgradeStatus}</span></div>` : ""}
     <p class="muted">Ustaw kolejność strzałkami. Szybkość prowadzącego decyduje, kto rozpoczyna bitwę.</p>
     <div class="battle-prep-team">${cards.join("") || "<p>Nie masz Pokémonów w składzie. Możesz obserwować bitwę.</p>"}</div>
     <footer class="battle-footer"><button class="primary" type="button" data-battle-ready ${!team.length||ready.ready?"disabled":""}>${ready.ready?"Drużyna gotowa":"Gotowe do bitwy"}</button>

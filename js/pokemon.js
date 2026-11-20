@@ -4,7 +4,7 @@ import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, prepareAuctionBattle } from "./pokemonAuctionBattle.js?v=20261120-5";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-5";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-7";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
