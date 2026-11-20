@@ -1,6 +1,6 @@
 import { mobQuestions } from "./minecraftMobQuestions.js?v=20261118-13";
 import { avatarHtml, escapeHtml, normalizeAnswer, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261120-10";
 
 // The Explorer page itself returns HTML for a file URL. The assets subdomain
 // is the raw 16x16/32x32 PNG host, so game cards do not accidentally display

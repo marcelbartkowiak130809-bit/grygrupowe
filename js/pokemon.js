@@ -1,10 +1,10 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { hasGamePass } from "./gamePasses.js?v=20260901-13";
+import { hasGamePass } from "./gamePasses.js?v=20261120-10";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261120-8";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-8";
+import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261120-10";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-10";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -593,7 +593,7 @@ function auctionFinalMarkup(game, accounts) {
   const rows = (game.ranking || []).map((row, index) => {
     const won = winners.includes(row.uid);
     const team = (row.team || []).map(id => game.battle ? auctionBattlePokemon(id) : byId.get(id)).filter(Boolean).map(item => `<span>${sprite(item)}${game.battle?"":`<b>${item.bst}</b>`}</span>`);
-    const score = game.battle ? `${row.remaining || 0}/${team.length} aktywnych` : `${row.bst} BST`;
+    const score = battleSurrendered(game,row.uid) ? "Poddanie" : game.battle ? `${row.remaining || 0}/${team.length} aktywnych` : `${row.bst} BST`;
     return `<article class="auction-ranking-row ${won ? "is-winner" : ""}" style="--auction-rank:${index}"><div>${resultPlayerMiniHtml(accounts[row.uid] || { nick: "Gracz" }, won ? "win" : "lose")}<strong>${score}</strong></div><div class="auction-ranking-team">${team.join("") || "<small>Pusty skład</small>"}</div></article>`;
   });
   return `<section class="panel pokemon-panel auction-final" data-auction-final><p class="eyebrow">${game.battle?"BITWA ZAKOŃCZONA":"LICYTACJA ZAKOŃCZONA"}</p><h1>${champion}</h1><div class="auction-ranking">${rows.join("")}</div><button class="primary" id="pokemon-lobby">Wróć do lobby</button></section>`;

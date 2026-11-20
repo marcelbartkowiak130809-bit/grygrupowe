@@ -1,6 +1,7 @@
 import { escapeHtml } from "./utils.js?v=20260822-1";
 
 const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
+export const pokemonBattleScoutPass = "pokemon-battle-scout";
 
 export const GAMEPASS_DEFINITIONS = [
   { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:10000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
@@ -10,6 +11,7 @@ export const GAMEPASS_DEFINITIONS = [
   { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwie szerokie, nieprecyzyjne podpowiedzi o twoim numerze w jednej grze." },
   { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:9500, scope:"Wavelength", description:"Raz na rundę pokazuje szeroki, nieprecyzyjny zakres celu — nigdy dokładnego miejsca." },
   { id:"pokemon-scout", icon:"🧬", name:"Skaner Pokédex", price:12000, scope:"Pokémon", description:"Raz na rundę pokazuje małą, bezpieczną wskazówkę do zadania Pokémon." },
+  { id:pokemonBattleScoutPass, icon:"🎯", name:"Analiza typów", price:15000, scope:"Licytacja teamu", description:"W bitwie podświetla cele, przeciw którym atak specjalny wybranego Pokémona ma zwykłą lub super skuteczność." },
   { id:"survivor-charm", icon:"🍀", name:"Amulet przetrwania", price:11000, scope:"Zatruty cukierek", description:"Raz w grze absorbuje trafienie tylko przy realnym ryzyku utraty wszystkich żyć; nie działa przy 1 życiu." },
   { id:"creative-license", icon:"💡", name:"Licencja kreatywności", price:7500, scope:"Tryby kreatywne", description:"Raz w grze pozwala poprawić własną odpowiedź; w Tajnej zasadzie odblokowuje wcześniejsze zgadywanie." },
   { id:"wavelength-second-chance", icon:"↺", name:"Drugi pomiar", price:7000, scope:"Wavelength", description:"Raz na grę po pierwszym nietrafionym pomiarze pokazuje tylko kierunek celu i daje drugi pomiar." },
@@ -39,9 +41,10 @@ export const IN_GAME_PURCHASES = [
 ];
 
 export function passesForMode(modeId) {
+  const isAuctionScout = item => modeId === "pokemon-auction" && item.id === pokemonBattleScoutPass;
   const isBoard = String(modeId || "").startsWith("board-");
   const isMinecraftTimed = ["minecraft-sprint","minecraft-crafting","minecraft-mob","minecraft-biome","minecraft-redstone"].includes(modeId);
-  return GAMEPASS_DEFINITIONS.filter(item => item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license") || (isBoard && item.id === "board-pace-control") || (isMinecraftTimed && item.id === "minecraft-redstone-clock"));
+  return GAMEPASS_DEFINITIONS.filter(item => isAuctionScout(item) || item.scope === "ogólny" || item.scope.toLocaleLowerCase("pl-PL").includes(String(modeId || "").replaceAll("-", " ")) || (modeId === "impostor" && item.id === "impostor-compensation") || (modeId === "kim-jestem" && item.id === "identity-insight") || (modeId === "number-mystery" && item.id === "number-oracle") || (modeId === "wavelength" && item.id === "wavelength-pro") || (String(modeId || "").startsWith("pokemon-") && item.id === "pokemon-scout") || (modeId === "zatruty-cukierek" && item.id === "survivor-charm") || (["klamca","falszywa-wiadomosc","tajna-zasada"].includes(modeId) && item.id === "creative-license") || (isBoard && item.id === "board-pace-control") || (isMinecraftTimed && item.id === "minecraft-redstone-clock"));
 }
 
 export function purchasesForMode(modeId) {

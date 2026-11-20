@@ -16,7 +16,7 @@ export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved
 export const battleUpgradeUsed = prep => Boolean(prep.transformed || prep.mega);
 export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit"];
 const prepMs = 60000;
-const turnMs = 18000;
+const turnMs = 20000;
 const hitMs = 770;
 const dex = new Map(pokemonDex.map(item => [item.id, item]));
 const fallbackSignatures = {
@@ -49,7 +49,9 @@ export const auctionBattlePokemon = id => catalog.get(id);
 export const battleTeam = (game, uid) => game.battle?.teams?.[uid] || [];
 export const battleSignature = unit => unit.copiedSignature || catalog.get(unit.id).signature;
 export const battleSlots = (game, uid) => game.battle?.prep?.[uid]?.order || battleTeam(game, uid).map((_, slot) => slot);
-const living = (game, players) => players.filter(uid => battleTeam(game, uid).some(unit => unit.hp > 0));
+export const battleHasUnits = (game, uid) => battleTeam(game, uid).some(unit => unit.hp > 0);
+export const battleSurrendered = (game, uid) => game.battle?.surrendered?.includes(uid);
+const living = (game, players) => players.filter(uid => battleHasUnits(game, uid));
 const createUnit = id => {
   const maxHp = 44 + catalog.get(id).stats.hp;
   return {id, hp:maxHp, maxHp, signatureSpent:false};
@@ -137,11 +139,20 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   else player.evolutionsUsed = used + 1;
 }
 
+function moveTypeFactor(type, targetSpecies) {
+  return targetSpecies.types.reduce((value, defense) => value * (battleTypeFactors[type]?.[defense] ?? 1), 1);
+}
+
+export function battleSignatureEffectiveness(attacker, target) {
+  const [,type, power] = battleSignature(attacker);
+  return power ? moveTypeFactor(type, catalog.get(target.id)) : 0;
+}
+
 export function auctionBattleDamage(attacker, target, move) {
   const from = catalog.get(attacker.id), to = catalog.get(target.id);
   const [, type, power, kind] = move === "signature" ? battleSignature(attacker) : battleMoveData[0];
   if (!power) return {damage:0, factor:1, copies:true};
-  const factor = to.types.reduce((value, defense) => value * (battleTypeFactors[type]?.[defense] ?? 1), 1);
+  const factor = moveTypeFactor(type, to);
   if (!factor) return {damage:0, factor};
   const [offense, defense] = kind === "special"
     ? [from.stats.specialAttack, to.stats.specialDefense] : [from.stats.attack, to.stats.defense];
@@ -172,6 +183,17 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
   battle.last = {turn:battle.turn, uid, slot:action.slot, targetUid:action.targetUid, targetSlot:action.targetSlot, name, ...hit, knockedOut:target.hp === 0};
   game.phase = "auction-hit";
   game.phaseEndsAt = now + hitMs;
+}
+
+export function auctionBattleSurrender(game, uid, players, now) {
+  if (!["auction-battle","auction-hit"].includes(game.phase) || !players.includes(uid) || !battleHasUnits(game, uid)) {
+    return "Nie możesz się teraz poddać.";
+  }
+  game.battle.surrendered = [...(game.battle.surrendered || []), uid];
+  for (const unit of battleTeam(game, uid)) unit.hp = 0;
+  const survivors = living(game, players);
+  if (survivors.length < 2) finishBattle(game, players, survivors);
+  else if (game.phase === "auction-battle" && game.battle.activeUid === uid) nextBattleTurn(game, players, now);
 }
 
 export function auctionBattleBotAction(game, uid, players, now, automated = false) {

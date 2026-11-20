@@ -3,8 +3,9 @@ import {test} from "node:test";
 import {createPokemonGame, PokemonEngine} from "../js/pokemon.js";
 import {
   auctionBattleAttack, auctionBattleBotAction, auctionBattleDamage, auctionBattlePokemon,
-  auctionBattlePrep, auctionBattleTimeout, battleSlots, battleTeam, prepareAuctionBattle,
+  auctionBattlePrep, auctionBattleSurrender, auctionBattleTimeout, battleSignatureEffectiveness, battleSlots, battleTeam, prepareAuctionBattle,
 } from "../js/pokemonAuctionBattle.js";
+import { gamePassById, passesForMode, pokemonBattleScoutPass } from "../js/gamePasses.js";
 
 const players=["a","b","c"];
 const makeGame=()=>({
@@ -152,6 +153,42 @@ test("zero evolutions and disabled Mega are enforced and legacy usage still coun
   game.battle.prep.a = {evolved:true};
   delete game.battleRules;
   assert.match(prep("evolve",0,6),/Brak dostępnych/);
+});
+
+test("surrender works off-turn, advances an active player and awards the last survivor",()=>{
+  const game={teams:{a:[94],b:[1],c:[4],d:[7]},budgets:{}};
+  const roster=["a","b","c","d"];
+  prepareAuctionBattle(game,roster,1000);
+  assert.ok(auctionBattleSurrender(game,"a",roster,2000));
+  auctionBattleTimeout(game,roster,61000);
+  assert.equal(game.battle.activeUid,"a");
+  assert.equal(game.phaseEndsAt,81000);
+  assert.equal(auctionBattleSurrender(game,"b",roster,61500),undefined);
+  assert.equal(game.phaseEndsAt,81000);
+  assert.equal(game.battle.activeUid,"a");
+  assert.ok(auctionBattleSurrender(game,"b",roster,61600));
+  assert.equal(auctionBattleSurrender(game,"a",roster,62000),undefined);
+  assert.equal(game.battle.activeUid,"c");
+  assert.equal(game.phaseEndsAt,82000);
+  assert.equal(auctionBattleSurrender(game,"d",roster,62500),undefined);
+  assert.equal(game.phase,"result");
+  assert.deepEqual(game.winners,["c"]);
+  assert.deepEqual(game.battle.surrendered,["b","a","d"]);
+  assert.equal(game.ranking[0].uid,"c");
+  assert.equal(game.ranking.find(row=>row.uid==="a").remaining,0);
+});
+
+test("type analysis matches signature effectiveness and belongs to the auction pass",()=>{
+  const fire={id:6,hp:100,copiedSignature:["Fire Punch","fire",75,"physical"]};
+  for (const [id,factor] of [[3,2],[25,1],[7,.5],[597,4]]) {
+    const target={id,hp:100};
+    assert.equal(battleSignatureEffectiveness(fire,target),factor);
+    assert.equal(auctionBattleDamage(fire,target,"signature").factor,factor);
+  }
+  assert.equal(battleSignatureEffectiveness({id:132},{id:25}),0);
+  assert.equal(gamePassById(pokemonBattleScoutPass).price,15000);
+  assert.ok(passesForMode("pokemon-auction").some(item=>item.id===pokemonBattleScoutPass));
+  assert.ok(!passesForMode("pokemon-dex").some(item=>item.id===pokemonBattleScoutPass));
 });
 
 test("turns, types, timeout and post-hit knockout work without reviving defeated players",()=>{

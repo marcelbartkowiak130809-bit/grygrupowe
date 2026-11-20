@@ -1,5 +1,5 @@
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { inGamePurchaseById } from "./gamePasses.js?v=20260901-13";
+import { inGamePurchaseById } from "./gamePasses.js?v=20261120-10";
 import { Audio } from "./audio.js?v=20261117-10";
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261117-10";
 import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
