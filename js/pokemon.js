@@ -596,7 +596,7 @@ function sprite(item, className = "") { return `<img class="${className}" src="$
 
 const pokemonSuggestionPools = new WeakMap();
 
-function bindPokemonAnswerSuggestions(input, suggestions, pool) {
+function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=false} = {}) {
   if (!input || !suggestions || input.disabled) return;
   const bound = pokemonSuggestionPools.has(input);
   pokemonSuggestionPools.set(input, pool);
@@ -642,10 +642,18 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool) {
   input.addEventListener("keydown", event => {
     const options = suggestions.children;
     if (!options.length || event.isComposing) return;
-    if (event.key === "Escape" || (event.key === "Enter" && active >= 0)) {
+    if (event.key === "Tab" && tabComplete && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
       event.preventDefault();
-      if (event.key === "Enter") select(options[active]);
-      else close();
+      select(options[active] || options[0]);
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    }
+    if (event.key === "Enter" && active >= 0) {
+      if (!tabComplete) event.preventDefault();
+      select(options[active]);
     }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
@@ -735,7 +743,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   if (suggestions) {
     // Respect the available generations without revealing which Pokémon have the drawn types.
     const pool = game.mode === "pokemon-type-draw" ? pokemonCandidates(settings) : pokemonDex;
-    bindPokemonAnswerSuggestions(root.querySelector("#pokemon-answer"), suggestions, pool);
+    bindPokemonAnswerSuggestions(root.querySelector("#pokemon-answer"), suggestions, pool, {tabComplete:game.mode === "pokemon-type-draw"});
   }
   if (game.mode === "pokemon-evolution") {
     root.querySelectorAll("[data-pokemon-evolution-input]").forEach(input => {
