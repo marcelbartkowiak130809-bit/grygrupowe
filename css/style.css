@@ -2191,7 +2191,13 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   padding:9px 14px; border-radius:14px; border:1px solid #d4ac5869;
   background:linear-gradient(120deg,#362a1c,#222333); color:#fff0c9;
 }
-.auction-wallet span { font-weight:750; }
+.auction-wallet span { display:inline-flex; align-items:center; gap:7px; font-weight:750; }
+.auction-wallet-coin {
+  display:inline-grid; place-items:center; flex:none; width:18px; height:18px;
+  border:1px solid #ffdd8b; border-radius:50%;
+  background:linear-gradient(145deg,#ffe9a4,#d89a38); color:#533413;
+  font-size:12px; font-style:normal; font-weight:900; line-height:1;
+}
 .auction-wallet strong { color:#ffe38f; font-size:clamp(23px,5vw,30px); font-variant-numeric:tabular-nums; }
 .auction-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, .4fr); gap: 8px; margin: 0; }
 .auction-controls button { min-height: 44px; }

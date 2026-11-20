@@ -545,7 +545,7 @@ function auctionMarkup(game, accounts, currentUser, players) {
   return `<div class="pokemon-auction-layout auction-stage" data-auction-lot="${game.auctionIndex}" data-auction-item="${item?.id || 0}" data-auction-bid="${price}" data-auction-leading="${leading}">
     <div class="auction-main">
       <header class="auction-header"><div><p class="eyebrow">POKÉMON · ${game.auctionIndex + 1}/${game.items.length}</p><h1>Licytacja teamu</h1></div>${timerMarkup(game)}</header>
-      <div class="auction-wallet" aria-label="Twój portfel"><span>🪙 Twój portfel</span><strong>${budget}$</strong></div>
+      <div class="auction-wallet" aria-label="Twój portfel"><span><i class="auction-wallet-coin" aria-hidden="true">$</i> Twój portfel</span><strong>${budget}$</strong></div>
       <div class="auction-spotlight">${item ? card(item, revealing) : "<p>Brak Pokémona do licytacji.</p>"}</div>
       <div class="auction-turn">
       ${revealing ? `<div class="auction-outcome ${winner === currentUser ? "is-mine" : ""}" role="status"><small>${winner ? "SPRZEDANO" : "BEZ OFERT"}</small><strong>${outcome}</strong>${winner ? `<span>${Number(result.price)}$</span>` : ""}</div>` : `
