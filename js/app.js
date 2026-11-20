@@ -12,9 +12,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261119-15";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261120-12";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261120-13";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261120-12";
+import { gamesList, getGameMode } from "./games.js?v=20261120-13";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261120-10";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261120-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261120-10";
@@ -29,7 +29,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260903-9";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260903-9";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260903-9";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261120-12";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261120-13";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261120-10";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261120-10";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
@@ -57,11 +57,11 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261120-10";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261120-10";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261120-12";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261120-12";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261120-12";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261120-13";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261120-13";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261120-13";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261120-12";
+import { playerMini, renderRoom } from "./room.js?v=20261120-13";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261120-10";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261119-2";
@@ -69,12 +69,12 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-1
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
-import { scheduleBot } from "./botController.js?v=20261120-12";
+import { scheduleBot } from "./botController.js?v=20261120-13";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261120-10";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
-import { QUICK_REACTIONS, renderQuickReactions } from "./quickReactions.js?v=20260804-1";
+import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261120-13";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261119-15";
 import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20260831-3";
 
@@ -2310,7 +2310,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       game.quickReactions[state.currentUser] = { id:reaction.id, text:reaction.text, expiresAt:now + 2200 };
       if (useChat && Array.isArray(game.chat)) game.chat.push({ uid:state.currentUser, text:reaction.text, reaction:true, createdAt:now });
     }, { sound:"notification" });
-    window.setTimeout(() => { if (Router.current === "game" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); }, 2300);
+    if (room.gameMode !== "pokemon-auction") {
+      window.setTimeout(() => { if (Router.current === "game" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); }, 2300);
+    }
     return result;
   },
   sendHostAnnouncement(announcementId) {
@@ -3410,10 +3412,11 @@ function renderNow(options = {}) {
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
+  if (!auction) clearSideReactions(root);
+  const activeAuctionLots = ["auction","auction-reveal"].includes(auction?.phase);
   const preserveAuctionResult = softRender && auction?.phase === "result" && oldView?.querySelector("[data-auction-final]");
   const preserveAuctionBattle = softRender && auctionBattlePhases.includes(auction?.phase) && oldView?.querySelector("[data-auction-battle]");
-  const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && auction && ["auction","auction-reveal"].includes(auction.phase)
-    && oldView?.querySelector("[data-auction-lot]")?.dataset.auctionLot === String(auction.auctionIndex));
+  const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
   const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
@@ -3465,13 +3468,14 @@ function renderNow(options = {}) {
       const repaired=repairGameStateForPlayers(room);
       if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}}
       settleAllResults(room); trackFinishedGame(room); recordCurrentUserGameHistory(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
-      const finalOutcome=finalGameOutcome(room); markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
+      const finalOutcome=finalGameOutcome(room); if (!activeAuctionLots) markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}:${room.game.finishedAt||""}`);
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
-      if (preserveAuction || preserveTypeRace) view.querySelectorAll(".quick-reactions-bar,.quick-reaction-bubble-layer").forEach(node => node.remove());
-      if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
+      if (preserveTypeRace) view.querySelectorAll(".quick-reactions-bar,.quick-reaction-bubble-layer").forEach(node => node.remove());
+      if (auction) renderSideReactions(root, room, state.accounts, actions);
+      else if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});
       return finish(rendered);

@@ -75,7 +75,8 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
   const canAttack = activeUid===uid && game.phase==="auction-battle";
   const attacker = battleTeam(game,uid)[selection.slot], target = battleTeam(game,selection.targetUid)[selection.targetSlot];
   const pokemon = auctionBattlePokemon(attacker?.id);
-  const showMatchups = canAttack && attacker?.hp > 0 && !attacker.signatureSpent && hasGamePass(accounts[uid], pokemonBattleScoutPass);
+  const ownsMatchups = hasGamePass(accounts[uid], pokemonBattleScoutPass);
+  const showMatchups = canAttack && attacker?.hp > 0 && !attacker.signatureSpent && ownsMatchups;
   const teams = players.map(player => `<section class="battle-team ${player===activeUid?"is-active":""}">
     <h2>${player===uid?"Twój team":nickname(accounts,player)}${battleSurrendered(game,player)?' <small>· Poddanie</small>':""}</h2>
     <div class="battle-party">${battleSlots(game,player).map(slot=>{
@@ -84,7 +85,7 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
       const species = auctionBattlePokemon(unit.id);
       const factor = showMatchups && player!==uid && unit.hp>0 ? battleSignatureEffectiveness(attacker,unit) : 0;
       const matchup = factor>1 ? "super" : factor===1 ? "effective" : "";
-      const badge = matchup ? `<small class="battle-matchup-label">${matchup==="super" ? `×${factor} Super` : "×1 Skuteczny"}</small>` : "";
+      const badge = player!==uid && ownsMatchups ? `<small class="battle-matchup-label"${matchup ? "" : ' aria-hidden="true"'}>${matchup==="super" ? `×${factor} Super` : matchup ? "×1 Skuteczny" : "&nbsp;"}</small>` : "";
       return `<button type="button" class="battle-unit ${formClass(species.formKind)} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" ${matchup ? `data-battle-matchup="${matchup}"` : ""} aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species)}${badge}</button>`;
     }).join("")||'<span class="muted">Pusty skład</span>'}</div></section>`);
   const moveButton = (kind,label,spent=false) => {

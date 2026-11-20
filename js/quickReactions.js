@@ -15,6 +15,16 @@ export const QUICK_REACTIONS = [
 
 const reactionById = id => QUICK_REACTIONS.find(item => item.id === id);
 const reactionCooldowns = new Map();
+const sideReactions = new WeakMap();
+
+function reactionBubble(uid, item, room, accounts) {
+  const reaction = reactionById(item.id) || { text:String(item.text || "") };
+  const bubble = document.createElement("div");
+  bubble.className = "quick-reaction-bubble";
+  bubble.dataset.reactionUid = uid;
+  bubble.innerHTML = `<span>${escapeHtml(reaction.text)}</span><small>${escapeHtml(accounts?.[uid]?.nick || room?.playerProfiles?.[uid]?.nick || "Gracz")}</small>`;
+  return bubble;
+}
 
 function addBubbles(view, room, accounts) {
   const reactions = room?.game?.quickReactions || {};
@@ -23,11 +33,7 @@ function addBubbles(view, room, accounts) {
   const layer = document.createElement("div");
   layer.className = "quick-reaction-bubble-layer";
   active.forEach(([uid, item]) => {
-    const reaction = reactionById(item.id) || { text:String(item.text || "") };
-    const bubble = document.createElement("div");
-    bubble.className = "quick-reaction-bubble";
-    bubble.dataset.reactionUid = uid;
-    bubble.innerHTML = `<span>${escapeHtml(reaction.text)}</span><small>${escapeHtml(accounts?.[uid]?.nick || room?.playerProfiles?.[uid]?.nick || "Gracz")}</small>`;
+    const bubble = reactionBubble(uid, item, room, accounts);
     const player = [...view.querySelectorAll("[data-player-uid]")].find(item => item.dataset.playerUid === uid);
     if (player) player.append(bubble);
     else { bubble.classList.add("quick-reaction-floating"); layer.append(bubble); }
@@ -35,25 +41,76 @@ function addBubbles(view, room, accounts) {
   view.append(layer);
 }
 
-export function renderQuickReactions(view, room, accounts, actions) {
-  const panel = document.createElement("div");
-  panel.className = "quick-reactions-bar";
-  panel.setAttribute("aria-label", "Szybkie reakcje");
-  panel.innerHTML = `<span class="quick-reactions-label">Reakcje</span>${QUICK_REACTIONS.map(item => `<button type="button" class="quick-reaction-button" data-quick-reaction="${item.id}" aria-label="Reakcja ${item.label}">${item.label}</button>`).join("")}`;
+function createReactionPicker(view, room, actions, collapsible) {
+  const panel = document.createElement(collapsible ? "details" : "div");
+  panel.className = collapsible ? "quick-reactions-side" : "quick-reactions-bar";
+  const buttons = QUICK_REACTIONS.map(item => `<button type="button" class="quick-reaction-button" data-quick-reaction="${item.id}" aria-label="Reakcja ${item.label}">${item.label}</button>`).join("");
+  if (collapsible) {
+    panel.innerHTML = `<summary aria-label="Reakcje" title="Reakcje">☺</summary><div class="quick-reactions-bar" aria-label="Szybkie reakcje">${buttons}</div>`;
+    panel.addEventListener("keydown", event => {
+      if (event.key !== "Escape" || !panel.open) return;
+      panel.open = false;
+      panel.querySelector("summary").focus();
+    });
+  } else {
+    panel.setAttribute("aria-label", "Szybkie reakcje");
+    panel.innerHTML = `<span class="quick-reactions-label">Reakcje</span>${buttons}`;
+  }
   const cooldownKey = room?.roomId || "local";
   const applyCooldown = () => {
     const remaining = Math.max(0, Number(reactionCooldowns.get(cooldownKey) || 0) - Date.now());
     panel.classList.toggle("is-cooldown", remaining > 0);
     panel.querySelectorAll("[data-quick-reaction]").forEach(button => { button.disabled = remaining > 0; });
-    if (remaining > 0) window.setTimeout(applyCooldown, remaining + 20);
+    if (remaining > 0) window.setTimeout(() => { if (panel.isConnected) applyCooldown(); }, remaining + 20);
   };
   applyCooldown();
   panel.querySelectorAll("[data-quick-reaction]").forEach(button => button.addEventListener("click", () => {
     if (Number(reactionCooldowns.get(cooldownKey) || 0) > Date.now()) return;
     reactionCooldowns.set(cooldownKey, Date.now() + 2000);
     applyCooldown();
-    actions.quickReact(button.dataset.quickReaction, Boolean(view.querySelector(".chat-messages")));
+    actions.quickReact(button.dataset.quickReaction, !collapsible && Boolean(view.querySelector(".chat-messages")));
   }));
+  return panel;
+}
+
+export function renderQuickReactions(view, room, accounts, actions) {
+  const panel = createReactionPicker(view, room, actions, false);
   view.append(panel);
   if (!view.querySelector(".chat-messages")) addBubbles(view, room, accounts);
+}
+
+export function clearSideReactions(root) {
+  const current = sideReactions.get(root);
+  if (!current) return;
+  current.panel.remove();
+  current.layer.remove();
+  sideReactions.delete(root);
+}
+
+export function renderSideReactions(root, room, accounts, actions) {
+  const key = JSON.stringify([room.roomId, room.game.siteGameId || room.game.startedAt]);
+  let current = sideReactions.get(root);
+  if (current?.key !== key || !current.panel.isConnected) {
+    clearSideReactions(root);
+    const panel = createReactionPicker(root, room, actions, true);
+    const layer = document.createElement("div");
+    layer.className = "quick-reaction-bubble-layer quick-reaction-side-layer";
+    root.append(panel, layer);
+    current = {key, panel, layer};
+    sideReactions.set(root, current);
+  }
+  const bubbles = new Map([...current.layer.children].map(node => [node.dataset.reactionUid,node]));
+  const now = Date.now();
+  for (const [uid, item] of Object.entries(room.game.quickReactions || {})) {
+    if (!(item?.expiresAt > now)) continue;
+    const previous = bubbles.get(uid);
+    bubbles.delete(uid);
+    if (previous?.dataset.expiresAt === String(item.expiresAt)) continue;
+    const bubble = reactionBubble(uid,item,room,accounts);
+    bubble.dataset.expiresAt = String(item.expiresAt);
+    if (previous) previous.replaceWith(bubble);
+    else current.layer.append(bubble);
+    window.setTimeout(() => bubble.remove(), item.expiresAt - now);
+  }
+  for (const bubble of bubbles.values()) bubble.remove();
 }

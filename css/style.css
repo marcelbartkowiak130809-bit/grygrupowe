@@ -2166,6 +2166,7 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .auction-spotlight .pokemon-card img { width: clamp(96px, 18vw, 158px); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 14px 12px #091a24); }
 .auction-spotlight .pokemon-card b { font-size: clamp(19px, 3vw, 26px); text-transform: capitalize; }
 .auction-spotlight .pokemon-card strong { color: #fff0b0; }
+.auction-spotlight .pokemon-card strong[aria-hidden] { visibility: hidden; }
 .auction-price, .auction-outcome {
   display: flex;
   align-items: center;
@@ -2236,6 +2237,7 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 @keyframes auction-card-in { from { opacity: 0; transform: translateY(7px); } }
 @media (max-width: 700px) {
   .auction-stage { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .auction-turn { min-height: 151px; align-content: start; }
   .auction-spotlight .pokemon-card { min-height: 142px; }
   .auction-slots { grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); }
   .auction-roster { padding: 10px; }
