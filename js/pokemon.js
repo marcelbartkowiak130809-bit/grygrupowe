@@ -30,7 +30,7 @@ export const pokemonDefaults = {
   "pokemon-dex": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, rounds:5 },
   "pokemon-last-letter": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
   "pokemon-evolution": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, difficulty:"any", evolutionMode:"both", rounds:5 },
-  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true, battleAfterAuction:false, ...auctionBattleDefaults },
+  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true, requireFullTeams:false, battleAfterAuction:false, ...auctionBattleDefaults },
   "pokemon-types": { generations:[1,2,3,4,5,6,7,8,9], selectTime:10, answerTime:15, rounds:5 },
   "pokemon-type-draw": { generations:[1,2,3,4,5,6,7,8,9], typeCount:0, answerTime:15, rounds:5 },
   "pokemon-match-type": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
@@ -127,6 +127,7 @@ export function createPokemonGame(mode, players, settings) {
     }
     const game = {
       mode, phase: "auction", round: 1, scores, teamSize, battleAfterAuction:settings.battleAfterAuction===true,
+      requireFullTeams:settings.requireFullTeams===true,
       battleRules:sanitizeAuctionBattleRules(settings),
       items: pool.slice(0, count).map(item => item.id), auctionIndex: 0,
       budgets: Object.fromEntries(players.map(uid => [uid, budget])),
@@ -231,12 +232,21 @@ function settleAuction(game, players) {
   game.phaseEndsAt = serverNow() + auctionRevealMs;
 }
 
-function advanceAuction(game, players) {
+function advanceAuction(game, players, settings) {
   game.auctionIndex = Number(game.auctionIndex || 0) + 1;
-  if (game.auctionIndex >= (game.items?.length || 0) ||
-      !players.some(uid => auctionHasSlot(game, uid) && Number(game.budgets?.[uid] || 0) >= 1)) {
+  if (!players.some(uid => auctionHasSlot(game, uid) && Number(game.budgets?.[uid] || 0) >= 1)) {
     finishAuction(game, players);
     return;
+  }
+  if (game.auctionIndex >= (game.items?.length || 0)) {
+    const seen = new Set(game.items);
+    const next = game.requireFullTeams === true && game.auctionIndex === game.items?.length
+      && randomItem(pokemonCandidates(settings).filter(item => !seen.has(item.id)));
+    if (!next) {
+      finishAuction(game, players);
+      return;
+    }
+    game.items = [...game.items, next.id];
   }
   game.round = game.auctionIndex + 1;
   game.currentBid = 0;
@@ -405,7 +415,7 @@ export const PokemonEngine = {
     if (game.mode === "pokemon-last-letter") { const activeUid = game.order?.[game.turnIndex] || uid; if (activeUid) loseLastLetterHeart(game, activeUid, settings); }
     if (game.mode === "pokemon-match-type") { const active = players.filter(player => !game.eliminated?.includes(player)); active.forEach(player => { if (!game.answers?.[player]) { game.answers = game.answers || {}; game.answers[player] = []; loseMatchTypeHeart(game, player, settings); } }); finishMatchTypeRound(game, players, settings); }
     if (game.mode === "pokemon-auction" && serverNow() >= Number(game.phaseEndsAt)) {
-      if (game.phase === "auction-reveal") advanceAuction(game, players);
+      if (game.phase === "auction-reveal") advanceAuction(game, players, settings);
       else if (game.phase === "auction") settleAuction(game, players);
       else if (auctionBattlePhases.includes(game.phase)) auctionBattleTimeout(game, players, serverNow());
     }
@@ -787,7 +797,7 @@ export function renderPokemonLobbySettings(room, isHost) {
     <label class="check"><input data-pokemon-setting="megaEnabled" type="checkbox" ${battleSettings.megaEnabled ? "checked" : ""} ${hostOnly}> Megaewolucje i zmiany formy</label>
     <label>Cena Mega lub zmiany formy ($) <input data-pokemon-setting="megaPrice" type="number" min="0" max="${auctionBattleLimits.megaPrice}" value="${battleSettings.megaPrice}" ${!battleSettings.megaEnabled || !isHost ? "disabled" : ""}></label>
   ` : "";
-  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Bez bitwy wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="battleAfterAuction" type="checkbox" ${s.battleAfterAuction===true ? "checked" : ""} ${isHost ? "" : "disabled"}> Bitwa drużyn po licytacji</label>${battleControls}<label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
+  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><label class="check"><input data-pokemon-setting="requireFullTeams" type="checkbox" ${s.requireFullTeams===true ? "checked" : ""} ${hostOnly}> Licytuj do pełnych drużyn</label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Bez bitwy wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="battleAfterAuction" type="checkbox" ${s.battleAfterAuction===true ? "checked" : ""} ${isHost ? "" : "disabled"}> Bitwa drużyn po licytacji</label>${battleControls}<label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
   return `<div class="pokemon-settings">${room.gameMode === "pokemon-auction" ? auctionDisplay : questionSettings}${typeCountSetting}${generationSettings}</div>`;
 }
 
