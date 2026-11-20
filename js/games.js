@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261120-5";
+import { renderGame } from "./game.js?v=20261120-6";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261117-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261118-16";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -31,7 +31,7 @@ import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261119-10";
 
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261118-16";
-import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261118-13";
+import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261120-6";
 import { renderLastBackpack } from './lastBackpack.js?v=20261119-26';
 import { renderAlexJourney } from './alexJourney.js?v=20261119-26';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
@@ -357,7 +357,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     id: "minecraft-crafting", name: "Crafting Rush", description: "Rozpoznaj recepturę albo składniki szybciej niż reszta ekipy.", help: ["Gra pokazuje przedmiot i pytanie o jego recepturę albo składniki.", "Wpisujesz krótką odpowiedź, a system akceptuje również popularne polskie i angielskie nazwy.", "Każdy poprawny crafting daje punkt."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🛠️", art: "minecraft-crafting", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-crafting"],
   },
   "minecraft-mob": {
-    id: "minecraft-mob", name: "Zgadnij Moba", description: "Poznaj moba po zachowaniu, ataku i miejscu występowania.", help: ["Rozpoznaj twarz moba i wskazówkę o jego zachowaniu.", "Wpisz nazwę po polsku albo angielsku — działają najczęstsze warianty.", "Trudniejsze poziomy sięgają Netheru, Endu i najnowszych mobów."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "👾", art: "minecraft-mob", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-mob"],
+    id: "minecraft-mob", name: "Zgadnij Moba", description: "Poznaj moba po zachowaniu, ataku i miejscu występowania.", help: ["Rozpoznaj moba po opisie.", "Wpisz nazwę po polsku albo angielsku — działają najczęstsze warianty.", "Trudniejsze poziomy sięgają Netheru, Endu i najnowszych mobów."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "👾", art: "minecraft-mob", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-mob"],
   },
   "minecraft-biome": {
     id: "minecraft-biome", name: "Jaki to biom?", description: "Odczytaj klimat, roślinność i bloki — zgadnij biom Minecrafta.", help: ["Opis i ikona bloku prowadzą cię od Overworldu do Netheru i Endu.", "Akceptowane są polskie nazwy oraz angielskie nazwy biomów.", "Ekspert dorzuca rzadsze biomy, takie jak Deep Dark i Dripstone Caves."], allowReports: true, players: "1–8 osób", minPlayers: 1, maxPlayers: 8, supportsLobby: true, supportsSolo: true, symbol: "🌍", art: "minecraft-biome", audience: "minecraft", badges: ["new"], render: renderMinecraftGame, defaultSettings: minecraftDefaults["minecraft-biome"],

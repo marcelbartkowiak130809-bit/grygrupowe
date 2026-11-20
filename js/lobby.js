@@ -1,8 +1,8 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20260822-1";
-import { getGameMode } from "./games.js?v=20261120-5";
+import { getGameMode } from "./games.js?v=20261120-6";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20261118-27";
-import { minecraftModeIcons } from "./minecraft.js?v=20261118-13";
+import { minecraftModeIcons } from "./minecraft.js?v=20261120-6";
 import { musicRegionPicker } from "./music.js?v=20261117-10";
 
 const isBotId = uid => String(uid || "").startsWith("bot:");

@@ -507,7 +507,10 @@ function questionCard(game, currentUser, accounts) {
     : `<form class="minecraft-answer-form" data-minecraft-answer-form><input name="answer" maxlength="160" autocomplete="off" placeholder="Wpisz odpowiedź…" autofocus><button class="primary" type="submit">Sprawdź <span>↵</span></button></form>`
     : `<div class="minecraft-waiting-card">${isTurn ? `${imageHtml(minecraftModeIcons[game.mode], "Minecraft")}<span>${escapeHtml(game.currentUid ? `Teraz odpowiada ${accounts?.[game.currentUid]?.nick || "wybrany gracz"}.` : "Czekamy na odpowiedź.")}</span>` : ""}</div>`;
   const questionClass = game.mode === "minecraft-mob" ? " minecraft-mob-question" : "";
-  return `<section class="minecraft-question-card${questionClass} ${isCurrent ? "is-your-turn" : ""}"><div class="minecraft-question-heading">${imageHtml(questionImage, isMob ? "Głowa moba" : meta.kind, isMob ? "minecraft-question-icon minecraft-mob-portrait" : "minecraft-question-icon")}<div><p class="eyebrow">${promptLabel}</p><h2>${escapeHtml(prompt)}</h2></div></div>${turnStatus(game, currentUser, accounts)}${game.mode === "minecraft-biome" ? `<p class="minecraft-hint-line">Klimat, roślinność i bloki zdradzają wszystko.</p>` : ""}${answerMarkup}</section>`;
+  const questionIcon = isMob
+    ? `<span class="minecraft-question-icon minecraft-mob-portrait" aria-hidden="true">${imageHtml(questionImage, "Głowa moba", "minecraft-mob-silhouette")}</span>`
+    : imageHtml(questionImage, meta.kind);
+  return `<section class="minecraft-question-card${questionClass} ${isCurrent ? "is-your-turn" : ""}"><div class="minecraft-question-heading">${questionIcon}<div><p class="eyebrow">${promptLabel}</p><h2>${escapeHtml(prompt)}</h2></div></div>${turnStatus(game, currentUser, accounts)}${game.mode === "minecraft-biome" ? `<p class="minecraft-hint-line">Klimat, roślinność i bloki zdradzają wszystko.</p>` : ""}${answerMarkup}</section>`;
 }
 
 function revealCard(game, accounts) {

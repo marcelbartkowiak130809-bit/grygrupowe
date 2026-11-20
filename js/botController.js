@@ -35,7 +35,7 @@ import { PopularityEngine } from "./popularity.js?v=20260905-1";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261119-10";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261118-16";
 import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261118-15";
-import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261118-13";
+import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261120-6";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { gameMomentKey } from "./roomLifecycle.js";
 import { hangmanBotLetter, numberMysteryBotAction, randomBotChoice, sequenceBotGuess, shuffledBotChoices } from "./botDeduction.js?v=20261118-16";
