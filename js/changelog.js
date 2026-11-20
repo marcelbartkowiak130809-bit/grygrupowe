@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.14.0",
+      date: "2026-11-20",
+      title: "Bitwa Pokémon po Licytacji teamu",
+      changes: [
+        "Gospodarz może włączyć turową bitwę drużyn kupionych w Licytacji teamu.",
+        "Minuta przygotowania pozwala ustawić kolejność drużyny, raz ewoluować za darmo i kupić jedną Megaewolucję za 5$ z budżetu aukcji. Obie ewolucje mają animację.",
+        "W bitwie wybierasz atakującego i cel. Statystyki, typy, ataki specjalne i pozostałe HP decydują o wyniku.",
+      ],
+    },
+    {
       version: "v5.11.0",
       date: "2026-11-18",
       title: "Minecraft · Droga do Alex i Ostatni plecak",

@@ -13,7 +13,8 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20260612-3";
 import { RankingEngine } from "./ranking.js?v=20260612-2";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20260612-2";
 import { ClockEngine } from "./clock.js?v=20260831-3";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261120-1";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261120-2";
+import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261120-2";
 import { WavelengthEngine } from "./wavelength.js?v=20260903-6";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20260823-5";
 import { MathematicsEngine } from "./mathematics.js?v=20260805-1";
@@ -127,7 +128,11 @@ export function botActor(room) {
   if (room.gameMode === "quiz" && game.phase?.endsWith("-buzz")) return bots.find(uid => !game.eliminated?.includes(uid)) || "";
   if (room.gameMode === "pokemon-types" && game.phase === "choose") return bots.find(uid => isMissing(game.selectedTypes, uid)) || "";
   if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
-  if (room.gameMode === "pokemon-auction") return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
+  if (room.gameMode === "pokemon-auction") {
+    if (game.phase === "auction-prep") return bots.find(uid => battleTeam(game, uid).length && !game.battle.prep?.[uid]?.ready) || "";
+    if (game.phase === "auction-battle") return bots.includes(game.battle.activeUid) ? game.battle.activeUid : "";
+    return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
+  }
   if (room.gameMode === "pokemon-type-draw") return bots.find(uid => !game.raceBotMisses?.includes(uid)) || "";
   if (room.gameMode === "popularnosc-hitow" && game.phase === "choosing") return bots.find(uid => isPopularityChoiceMissing(game.choices, uid)) || "";
   if (room.gameMode === "dokoncz-tekst" && game.phase === "answering") return bots.find(uid => isMissing(game.answers, uid)) || "";
@@ -617,6 +622,7 @@ export function botMutation(room) {
         };
         break;
       case "pokemon-auction":
+        if (bot && ["auction-prep","auction-battle"].includes(game.phase)) return g => auctionBattleBotAction(g, bot, players, serverNow());
         if (pokemonAuctionCanBid(game, bot)) return g => {
           const budget = Number(g.budgets[bot]);
           const current = Number(g.currentBid || 0);

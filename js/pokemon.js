@@ -3,6 +3,8 @@ import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
+import { auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, prepareAuctionBattle } from "./pokemonAuctionBattle.js?v=20261120-2";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-2";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -28,7 +30,7 @@ export const pokemonDefaults = {
   "pokemon-dex": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, rounds:5 },
   "pokemon-last-letter": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
   "pokemon-evolution": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, difficulty:"any", evolutionMode:"both", rounds:5 },
-  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true },
+  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true, battleAfterAuction:false },
   "pokemon-types": { generations:[1,2,3,4,5,6,7,8,9], selectTime:10, answerTime:15, rounds:5 },
   "pokemon-type-draw": { generations:[1,2,3,4,5,6,7,8,9], typeCount:0, answerTime:15, rounds:5 },
   "pokemon-match-type": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
@@ -124,7 +126,7 @@ export function createPokemonGame(mode, players, settings) {
       [pool[index], pool[other]] = [pool[other], pool[index]];
     }
     const game = {
-      mode, phase: "auction", round: 1, scores, teamSize,
+      mode, phase: "auction", round: 1, scores, teamSize, battleAfterAuction:settings.battleAfterAuction===true,
       items: pool.slice(0, count).map(item => item.id), auctionIndex: 0,
       budgets: Object.fromEntries(players.map(uid => [uid, budget])),
       teams: Object.fromEntries(players.map(uid => [uid, []])),
@@ -197,6 +199,7 @@ function auctionLeader(game, players) {
 }
 
 function finishAuction(game, players) {
+  if (game.battleAfterAuction && prepareAuctionBattle(game, players, serverNow())) return;
   game.ranking = players.map(uid => {
     const team = game.teams?.[uid] || [];
     const bst = team.reduce((sum, id) => sum + (byId.get(id)?.bst || 0), 0);
@@ -403,6 +406,7 @@ export const PokemonEngine = {
     if (game.mode === "pokemon-auction" && serverNow() >= Number(game.phaseEndsAt)) {
       if (game.phase === "auction-reveal") advanceAuction(game, players);
       else if (game.phase === "auction") settleAuction(game, players);
+      else if (auctionBattlePhases.includes(game.phase)) auctionBattleTimeout(game, players, serverNow());
     }
   },
   selectType(game, uid, type, players, settings) {
@@ -577,10 +581,11 @@ function auctionFinalMarkup(game, accounts) {
   const champion = winners.length > 1 ? "Remis na szczycie" : winners.length ? `${escapeHtml(accounts[winners[0]]?.nick || "Gracz")} wygrywa` : "Bez zwycięzcy";
   const rows = (game.ranking || []).map((row, index) => {
     const won = winners.includes(row.uid);
-    const team = (row.team || []).map(id => byId.get(id)).filter(Boolean).map(item => `<span>${sprite(item)}<b>${item.bst}</b></span>`);
-    return `<article class="auction-ranking-row ${won ? "is-winner" : ""}" style="--auction-rank:${index}"><div>${resultPlayerMiniHtml(accounts[row.uid] || { nick: "Gracz" }, won ? "win" : "lose")}<strong>${row.bst} BST</strong></div><div class="auction-ranking-team">${team.join("") || "<small>Pusty skład</small>"}</div></article>`;
+    const team = (row.team || []).map(id => game.battle ? auctionBattlePokemon(id) : byId.get(id)).filter(Boolean).map(item => `<span>${sprite(item)}${game.battle?"":`<b>${item.bst}</b>`}</span>`);
+    const score = game.battle ? `${row.remaining || 0}/${team.length} aktywnych` : `${row.bst} BST`;
+    return `<article class="auction-ranking-row ${won ? "is-winner" : ""}" style="--auction-rank:${index}"><div>${resultPlayerMiniHtml(accounts[row.uid] || { nick: "Gracz" }, won ? "win" : "lose")}<strong>${score}</strong></div><div class="auction-ranking-team">${team.join("") || "<small>Pusty skład</small>"}</div></article>`;
   });
-  return `<section class="panel pokemon-panel auction-final" data-auction-final><p class="eyebrow">LICYTACJA ZAKOŃCZONA</p><h1>${champion}</h1><div class="auction-ranking">${rows.join("")}</div><button class="primary" id="pokemon-lobby">Wróć do lobby</button></section>`;
+  return `<section class="panel pokemon-panel auction-final" data-auction-final><p class="eyebrow">${game.battle?"BITWA ZAKOŃCZONA":"LICYTACJA ZAKOŃCZONA"}</p><h1>${champion}</h1><div class="auction-ranking">${rows.join("")}</div><button class="primary" id="pokemon-lobby">Wróć do lobby</button></section>`;
 }
 function formMarkup(id, placeholder = "Nazwa Pokémona") { return `<form class="pokemon-answer-form" data-pokemon-form="${id}"><input id="pokemon-answer" autocomplete="off" placeholder="${placeholder}"><button class="primary" type="submit">Odpowiedz</button></form>`; }
 function pokemonAnswerFormMarkup(id) { return `<form class="pokemon-answer-form" data-pokemon-form="${id}"><div class="pokemon-autocomplete"><input id="pokemon-answer" autocomplete="off" placeholder="Nazwa Pokémona"><div id="pokemon-suggestions" class="pokemon-suggestions"></div></div><button class="primary" type="submit">Odpowiedz</button></form>`; }
@@ -666,10 +671,16 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const current = game.mode === "pokemon-last-letter" ? game.order[game.turnIndex] : currentUser;
   window.clearTimeout(renderPokemonGame.timer);
   window.clearInterval(renderPokemonGame.countdown);
+  if (game.mode === "pokemon-auction" && auctionBattlePhases.includes(game.phase)) {
+    renderAuctionBattle(root, room, accounts, currentUser, actions, timerMarkup(game));
+    startPokemonTimer(root, game, {phase:game.phase,phaseEndsAt:game.phaseEndsAt,turn:game.battle.turn}, actions);
+    return;
+  }
   let body = "";
   if (game.phase === "result" && game.mode === "pokemon-auction") {
     const key = JSON.stringify(["auction-final", room.roomId, game.siteGameId || game.startedAt]);
-    patchRoomView(root, key, `<main class="page pokemon-game-page enter">${auctionFinalMarkup(game, accounts)}</main>`);
+    const profiles = game.battle ? {...room.playerProfiles,...accounts} : accounts;
+    patchRoomView(root, key, `<main class="page pokemon-game-page enter">${auctionFinalMarkup(game, profiles)}</main>`);
     root.querySelector("#pokemon-lobby").onclick = actions.returnToRoom;
     return;
   }
@@ -732,7 +743,12 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const passButton = root.querySelector("#pokemon-pass");
   if (passButton) passButton.onclick = () => actions.pokemonPass(expected);
   root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound);
-  window.clearTimeout(renderPokemonGame.timer); window.clearInterval(renderPokemonGame.countdown); renderPokemonGame.countdown = window.setInterval(() => { const timer = root.querySelector("[data-pokemon-countdown]"); if (timer) timer.textContent = `${Math.max(0, Math.ceil((game.phaseEndsAt - pokemonNow(game)) / 1000))}s`; }, 1000); renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - pokemonNow(game) + 50));
+  startPokemonTimer(root, game, expected, actions);
+}
+
+function startPokemonTimer(root, game, expected, actions) {
+  renderPokemonGame.countdown = window.setInterval(() => { const timer = root.querySelector("[data-pokemon-countdown]"); if (timer) timer.textContent = `${Math.max(0, Math.ceil((game.phaseEndsAt - pokemonNow(game)) / 1000))}s`; }, 1000);
+  renderPokemonGame.timer = window.setTimeout(() => actions.pokemonTimeout(expected), Math.max(100, game.phaseEndsAt - pokemonNow(game) + 50));
 }
 
 export function renderPokemonLobbySettings(room, isHost) {
@@ -742,7 +758,7 @@ export function renderPokemonLobbySettings(room, isHost) {
   const questionSettings = `<label>Czas odpowiedzi <input data-pokemon-setting="answerTime" type="number" min="5" max="60" value="${s.answerTime || 15}" ${isHost ? "" : "disabled"}></label>${room.gameMode === "pokemon-types" ? `<label>Czas wyboru typu <input data-pokemon-setting="selectTime" type="number" min="5" max="30" value="${s.selectTime || 10}" ${isHost ? "" : "disabled"}></label>` : ""}${roundOrHearts}${room.gameMode === "pokemon-evolution" ? `<label>Dozwolone kierunki<select data-pokemon-setting="evolutionMode" ${isHost ? "" : "disabled"}><option value="both" ${s.evolutionMode !== "later" ? "selected" : ""}>Wcześniejsze i późniejsze ewolucje</option><option value="later" ${s.evolutionMode === "later" ? "selected" : ""}>Tylko późniejsze ewolucje</option></select></label>` : ""}`;
   const typeCountSetting = room.gameMode === "pokemon-type-draw" ? `<label>Liczba typów<select data-pokemon-setting="typeCount" ${isHost ? "" : "disabled"}>${[[0,"Losowo"],[1,"Jeden typ"],[2,"Dwa typy"]].map(([value,label]) => `<option value="${value}" ${Number(s.typeCount || 0) === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>` : "";
   const generationSettings = `<div><p class="tiny">GENERACJE</p><div class="pokemon-types">${generations}</div></div>`;
-  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
+  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Bez bitwy wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="battleAfterAuction" type="checkbox" ${s.battleAfterAuction===true ? "checked" : ""} ${isHost ? "" : "disabled"}> Bitwa drużyn po licytacji</label><label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
   return `<div class="pokemon-settings">${room.gameMode === "pokemon-auction" ? auctionDisplay : questionSettings}${typeCountSetting}${generationSettings}</div>`;
 }
 
