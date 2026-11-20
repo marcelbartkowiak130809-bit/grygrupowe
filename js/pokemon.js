@@ -180,6 +180,13 @@ function auctionHasSlot(game, uid) {
   return (game.teams?.[uid]?.length || 0) < Number(game.teamSize || 6);
 }
 
+function auctionAutomaticBuyer(game, players) {
+  if (game.requireFullTeams !== true || players.length < 2) return "";
+  const openTeams = players.filter(uid => auctionHasSlot(game, uid));
+  const buyer = openTeams[0];
+  return openTeams.length === 1 && Number(game.budgets?.[buyer] || 0) >= 1 ? buyer : "";
+}
+
 export function repairPokemonAuctionClock(game) {
   if (!["auction", "auction-reveal"].includes(game.phase)) return false;
   const now = serverNow(), deadline = Number(game.phaseEndsAt);
@@ -218,8 +225,10 @@ function finishAuction(game, players) {
 
 function settleAuction(game, players) {
   const item = byId.get(game.items?.[game.auctionIndex]);
-  const winner = item ? auctionLeader(game, players) : "";
-  const price = winner ? Number(game.currentBid) : 0;
+  const leader = item ? auctionLeader(game, players) : "";
+  const automatic = item && !leader ? auctionAutomaticBuyer(game, players) : "";
+  const winner = leader || automatic;
+  const price = leader ? Number(game.currentBid) : automatic ? 1 : 0;
   if (winner) {
     game.budgets[winner] -= price;
     game.teams ||= {};
@@ -228,6 +237,7 @@ function settleAuction(game, players) {
     game.purchases[winner] = [...(game.purchases[winner] || []), { id: item.id, price }];
   }
   game.auctionResult = { itemId: item?.id || 0, winner, price };
+  if (automatic) game.auctionResult.automatic = true;
   game.phase = "auction-reveal";
   game.phaseEndsAt = serverNow() + auctionRevealMs;
 }
@@ -255,6 +265,7 @@ function advanceAuction(game, players, settings) {
   game.auctionResult = null;
   game.phase = "auction";
   game.phaseEndsAt = auctionEnd();
+  if (auctionAutomaticBuyer(game, players)) settleAuction(game, players);
 }
 
 function checkAuctionSettlement(game, players) {
@@ -448,6 +459,7 @@ export const PokemonEngine = {
   pass(game, uid, players) {
     const error = auctionActionError(game, uid, players);
     if (error) return error;
+    if (auctionAutomaticBuyer(game, players) === uid) return "Ostatnie wolne miejsca uzupełniają się automatycznie.";
     game.passed = [...(Array.isArray(game.passed) ? game.passed : []), uid];
     checkAuctionSettlement(game, players);
   },
@@ -532,11 +544,13 @@ function auctionMarkup(game, accounts, currentUser, players) {
   const leading = game.highestBidder === currentUser;
   const passed = auctionPassed(game, currentUser);
   const able = pokemonAuctionCanBid(game, currentUser);
+  const automatic = !revealing && auctionAutomaticBuyer(game, players);
   const price = Number(game.currentBid || 0);
   const bidFloor = price + 1;
   const budget = Number(game.budgets?.[currentUser] || 0);
   const status = leading ? "Prowadzisz" : game.highestBidder ? `${leaderName} prowadzi` : "Czekamy na pierwszą ofertę";
-  const note = passed ? "Spasowałeś. Wrócisz do gry przy następnym Pokémonie."
+  const note = automatic ? "Ostatnie wolne miejsca uzupełniają się automatycznie za 1$ za Pokémona."
+    : passed ? "Spasowałeś. Wrócisz do gry przy następnym Pokémonie."
     : !auctionHasSlot(game, currentUser) ? "Twój team jest pełny."
     : !able && !leading ? "Za mało monet, żeby przebić ofertę."
     : leading ? "Czekasz na przebicie albo pas." : "Pas dotyczy tego Pokémona.";
@@ -548,11 +562,11 @@ function auctionMarkup(game, accounts, currentUser, players) {
       <div class="auction-wallet" aria-label="Twój portfel"><span><i class="auction-wallet-coin" aria-hidden="true">$</i> Twój portfel</span><strong>${budget}$</strong></div>
       <div class="auction-spotlight">${item ? card(item, revealing) : "<p>Brak Pokémona do licytacji.</p>"}</div>
       <div class="auction-turn">
-      ${revealing ? `<div class="auction-outcome ${winner === currentUser ? "is-mine" : ""}" role="status"><small>${winner ? "SPRZEDANO" : "BEZ OFERT"}</small><strong>${outcome}</strong>${winner ? `<span>${Number(result.price)}$</span>` : ""}</div>` : `
+      ${revealing ? `<div class="auction-outcome ${winner === currentUser ? "is-mine" : ""}" role="status"><small>${result?.automatic ? "AUTOMATYCZNY ZAKUP" : winner ? "SPRZEDANO" : "BEZ OFERT"}</small><strong>${outcome}</strong>${winner ? `<span>${Number(result.price)}$</span>` : ""}</div>` : `
         <div class="auction-price ${leading ? "is-leading" : ""}" role="status"><span>${status}</span><strong>${price}$</strong></div>
         <div class="auction-controls">
           <button class="primary" data-pokemon-bid="${bidFloor}" type="button" ${able ? "" : "disabled"}>${price ? "Przebij" : "Licytuj"} · ${bidFloor}$</button>
-          <button class="ghost" id="pokemon-pass" type="button" ${able ? "" : "disabled"}>Pas</button>
+          <button class="ghost" id="pokemon-pass" type="button" ${able && !automatic ? "" : "disabled"}>Pas</button>
         </div><p class="auction-note">${note}</p>`}
       </div>
     </div>

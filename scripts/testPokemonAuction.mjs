@@ -41,25 +41,43 @@ test("full-team auctions add unseen lots until both teams fill and then enter ba
   const game = createPokemonGame(mode, players, rules);
   const original = game.items.slice();
   Object.assign(game, {
-    auctionIndex:3, round:4, teams:{a:original.slice(0,2),b:original.slice(2,3)},
+    auctionIndex:3, round:4, teams:{a:original.slice(0,1),b:original.slice(1,2)},
   });
+  assert.equal(PokemonEngine.pass(game,"a",players),undefined);
   assert.equal(PokemonEngine.pass(game,"b",players),undefined);
   expire(game,players,rules);
   assert.equal(game.phase,"auction");
   assert.equal(game.round,5);
   assert.deepEqual(game.passed,[]);
-  expire(game,players,rules); // The first extra lot gets no bids.
+  assert.equal(PokemonEngine.bid(game,"a",1,players),undefined);
+  assert.equal(PokemonEngine.pass(game,"b",players),undefined);
   expire(game,players,rules);
+  assert.equal(game.phase,"auction-reveal");
   assert.equal(game.round,6);
   assert.equal(game.items.length,6);
   assert.equal(new Set(game.items).size,6);
   assert.ok(game.items.every(id=>id<=151));
-  assert.equal(pokemonAuctionCanBid(game,"a"),false);
-  assert.equal(PokemonEngine.bid(game,"b",1,players),undefined);
+  assert.deepEqual(game.auctionResult,{itemId:game.items[5],winner:"b",price:1,automatic:true});
+  assert.equal(game.budgets.b,9);
   expire(game,players,rules);
   assert.equal(game.teams.b.length,2);
   assert.equal(game.items.length,6);
   assert.equal(game.phase,"auction-prep");
+});
+
+test("an already open lot cannot be skipped when only one team has space", () => {
+  const players = ["a", "b"];
+  const rules = {...settings, requireFullTeams:true};
+  const game = {...play(players),requireFullTeams:true,auctionIndex:2,teams:{a:[25,133],b:[]}};
+  assert.match(PokemonEngine.pass(game,"b",players),/automatycznie/);
+  expire(game,players,rules);
+  assert.deepEqual(game.auctionResult,{itemId:149,winner:"b",price:1,automatic:true});
+  expire(game,players,rules);
+  assert.deepEqual(game.teams.b,[149,150]);
+  assert.equal(game.budgets.b,8);
+  expire(game,players,rules);
+  assert.equal(game.phase,"result");
+  assert.equal(game.items.length,4);
 });
 
 test("full-team auctions stop when the budget or the filtered pool runs out", () => {
