@@ -1,9 +1,10 @@
 import { escapeHtml } from "./utils.js?v=20260903-7";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattleDamage, auctionBattlePokemon, battleSignature, battleSlots, battleTeam, megaPrice } from "./pokemonAuctionBattle.js?v=20261120-2";
+import { auctionBattleDamage, auctionBattlePokemon, battleSignature, battleSlots, battleTeam, battleUpgradePrice, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261120-5";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
+const formClass = kind => kind && kind !== "evolve" ? `is-${kind}` : "";
 const nickname = (accounts, uid) => escapeHtml(accounts[uid]?.nick || "Gracz");
 const sprite = pokemon => `<img class="battle-sprite" src="${pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
 const chips = pokemon => pokemon.types.map(type =>
@@ -26,22 +27,27 @@ function prepMarkup(game, accounts, uid, players, timer) {
   const team = battleTeam(game, uid);
   const ready = game.battle.prep?.[uid] || {};
   const budget = Number(game.budgets?.[uid] || 0);
+  const upgradeUsed = battleUpgradeUsed(ready);
   const cards = battleSlots(game,uid).map((slot,position) => {
     const unit = team[slot];
     const pokemon = auctionBattlePokemon(unit.id);
-    const choices = (kind, ids) => ids.map(id => `<button type="button" class="ghost" data-battle-upgrade="${kind}" data-slot="${slot}" data-evolution="${id}" ${ready.ready || (kind==="mega" ? ready.mega || budget<megaPrice : ready.evolved) ? "disabled" : ""}>
-      ${kind==="evolve"?"Ewoluuj w ":""}${escapeHtml(name(auctionBattlePokemon(id)))}${kind==="mega"?" · 5$":""}
-    </button>`).join("");
-    return `<article class="battle-unit ${unit.id>1025?"is-mega":""}" data-battle-prep-slot="${slot}">
+    const choices = (kind, ids) => {
+      const paid = kind !== "evolve";
+      const disabled = ready.ready || (paid ? upgradeUsed || budget < battleUpgradePrice : ready.evolved);
+      return ids.map(id => `<button type="button" class="ghost" data-battle-upgrade="${kind}" data-slot="${slot}" data-evolution="${id}" ${disabled ? "disabled" : ""}>
+        ${paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${battleUpgradePrice}$` : ""}
+      </button>`).join("");
+    };
+    return `<article class="battle-unit ${formClass(pokemon.formKind)}" data-battle-prep-slot="${slot}">
       <div class="battle-order"><span>${position===0?"1 · Prowadzący":position+1}</span>
       <button type="button" class="ghost" data-battle-reorder="-1" data-slot="${slot}" aria-label="Przesuń ${escapeHtml(name(pokemon))} wcześniej" ${position===0||ready.ready?"disabled":""}>←</button>
       <button type="button" class="ghost" data-battle-reorder="1" data-slot="${slot}" aria-label="Przesuń ${escapeHtml(name(pokemon))} później" ${position===team.length-1||ready.ready?"disabled":""}>→</button></div>
       ${unitArt(unit,pokemon)}<small>${stats(pokemon)}</small>
-      <div class="battle-upgrades">${choices("evolve",pokemon.evolutions)}${choices("mega",pokemon.megas)}</div></article>`;
+      <div class="battle-upgrades">${choices("evolve",pokemon.evolutions)}${choices("mega",pokemon.megas)}${choices("form",pokemon.forms)}</div></article>`;
   });
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-preparation">
     <header class="battle-heading"><div><p class="eyebrow">LICYTACJA TEAMU · PRZYGOTOWANIE</p><h1>Przygotuj drużynę</h1></div>${timer}</header>
-    <div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${ready.evolved?"Ewolucja wykorzystana":"1 darmowa ewolucja"} · ${ready.mega?"Mega wykorzystana":"1 Mega za 5$"}</span></div>
+    <div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${ready.evolved?"Ewolucja wykorzystana":"1 darmowa ewolucja"} · ${upgradeUsed?"Płatne ulepszenie wykorzystane":`1 Mega lub zmiana formy za ${battleUpgradePrice}$`}</span></div>
     <p class="muted">Ustaw kolejność strzałkami. Szybkość prowadzącego decyduje, kto rozpoczyna bitwę.</p>
     <div class="battle-prep-team">${cards.join("") || "<p>Nie masz Pokémonów w składzie. Możesz obserwować bitwę.</p>"}</div>
     <footer class="battle-footer"><button class="primary" type="button" data-battle-ready ${!team.length||ready.ready?"disabled":""}>${ready.ready?"Drużyna gotowa":"Gotowe do bitwy"}</button>
@@ -60,7 +66,7 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
       const unit = battleTeam(game,player)[slot];
       const selected = player===uid ? slot===selection.slot : player===selection.targetUid && slot===selection.targetSlot;
       const species = auctionBattlePokemon(unit.id);
-      return `<button type="button" class="battle-unit ${unit.id>1025?"is-mega":""} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species)}</button>`;
+      return `<button type="button" class="battle-unit ${formClass(species.formKind)} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species)}</button>`;
     }).join("")||'<span class="muted">Pusty skład</span>'}</div></section>`);
   const moveButton = (kind,label,spent=false) => {
     const hit=attacker&&target&&auctionBattleDamage(attacker,target,kind);
@@ -102,9 +108,10 @@ function animateEvolution(root, event) {
   former.src=pokemon.sprite;
   former.alt="";
   const flash=root.ownerDocument.createElement("span");
-  flash.className=`battle-evolution-flash ${event.mega?"is-mega":""}`;
+  const effect = formClass(event.kind || (event.mega ? "mega" : ""));
+  flash.className=`battle-evolution-flash ${effect}`;
   art.append(former,flash);
-  const duration=event.mega?1450:1050;
+  const duration=effect?1450:1050;
   former.animate([{opacity:1},{opacity:1,filter:"brightness(0) invert(1)",offset:.28},{opacity:0,scale:1.2,offset:.58},{opacity:0}],{duration,fill:"forwards"});
   evolved.animate([{opacity:0},{opacity:0,offset:.42},{opacity:1,scale:1.19,offset:.7},{opacity:1,scale:1}],{duration});
   flash.animate([{opacity:0,scale:.4},{opacity:1,scale:1,offset:.48},{opacity:0,scale:2.1}],{duration}).onfinish=()=>{former.remove();flash.remove();};

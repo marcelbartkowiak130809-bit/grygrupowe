@@ -1,7 +1,8 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-2";
+import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
 
-export const megaPrice = 5;
+export const battleUpgradePrice = 5;
+export const battleUpgradeUsed = prep => Boolean(prep.transformed || prep.mega);
 export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit"];
 const prepMs = 60000;
 const turnMs = 18000;
@@ -19,15 +20,17 @@ const fallbackSignatures = {
 
 const catalog = new Map(Object.entries(battleSpeciesData).map(([key, entry]) => {
   const id = Number(key);
-  const [[hp, attack, defense, specialAttack, specialDefense, speed], signature, evolutions, megas, megaName, megaTypes, baseId] = entry;
+  const [[hp, attack, defense, specialAttack, specialDefense, speed], signature, evolutions, megas, formName, formTypes, baseId] = entry;
   const base = dex.get(baseId || id);
+  const form = battleAlternateForms[baseId]?.includes(id);
   const spritePath = id===10301 ? "other/official-artwork/10301.png" : `${id}.png`;
   return [id, {
-    ...base, id, name:megaName || base.name, types:megaTypes || base.types, bst:hp+attack+defense+specialAttack+specialDefense+speed,
-    sprite:megaName ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spritePath}` : base.sprite,
-    spriteFallback:megaName ? base.sprite : base.spriteFallback,
+    ...base, id, name:formName || base.name, types:formTypes || base.types, bst:hp+attack+defense+specialAttack+specialDefense+speed,
+    sprite:formName ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spritePath}` : base.sprite,
+    spriteFallback:formName ? base.sprite : base.spriteFallback,
+    formKind:form ? "form" : formName ? "mega" : "",
     stats:{hp, attack, defense, specialAttack, specialDefense, speed},
-    signature:fallbackSignatures[id] || battleMoveData[signature], evolutions, megas,
+    signature:fallbackSignatures[id] || battleMoveData[signature], evolutions, megas, forms:battleAlternateForms[id] || [],
   }];
 }));
 
@@ -105,17 +108,18 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   }
   const unit = battleTeam(game, uid)[action.slot];
   const species = catalog.get(unit?.id);
-  const mega = action.kind === "mega";
-  if (!mega && action.kind !== "evolve") return "Nieznana akcja.";
-  const options = mega ? species?.megas : species?.evolutions;
-  if (!options?.includes(action.target)) return "Ten Pokémon nie ma takiej ewolucji.";
-  const used = mega ? "mega" : "evolved";
-  if (player[used]) return "Ta ewolucja została już wykorzystana.";
-  if (mega && Number(game.budgets?.[uid] || 0) < megaPrice) return "Megaewolucja kosztuje 5$ z budżetu aukcji.";
-  if (mega) game.budgets[uid] -= megaPrice;
+  const {kind} = action;
+  if (!["evolve","mega","form"].includes(kind)) return "Nieznana akcja.";
+  const paid = kind !== "evolve";
+  const options = {evolve:species?.evolutions, mega:species?.megas, form:species?.forms}[kind];
+  if (!options?.includes(action.target)) return "Ten Pokémon nie ma takiego ulepszenia.";
+  if (paid && battleUpgradeUsed(player)) return "Płatne ulepszenie zostało już wykorzystane.";
+  if (!paid && player.evolved) return "Darmowa ewolucja została już wykorzystana.";
+  if (paid && Number(game.budgets?.[uid] || 0) < battleUpgradePrice) return `Ulepszenie kosztuje ${battleUpgradePrice}$ z budżetu aukcji.`;
+  if (paid) game.budgets[uid] -= battleUpgradePrice;
   battleTeam(game, uid)[action.slot] = createUnit(action.target);
-  player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, mega, sequence:(player.evolution?.sequence || 0)+1};
-  player[used] = true;
+  player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, kind, sequence:(player.evolution?.sequence || 0)+1};
+  player[paid ? "transformed" : "evolved"] = true;
 }
 
 export function auctionBattleDamage(attacker, target, move) {
@@ -158,10 +162,15 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
 export function auctionBattleBotAction(game, uid, players, now, automated = false) {
   if (game.phase === "auction-prep") {
     const team = battleTeam(game, uid);
-    for (const [kind, key] of [["evolve","evolutions"],["mega","megas"]]) {
-      const slot = team.findIndex(unit => catalog.get(unit.id)[key].length);
-      if (slot >= 0) auctionBattlePrep(game, uid, {kind, slot, target:catalog.get(team[slot].id)[key][0]}, players, now);
-    }
+    const slot = team.findIndex(unit => catalog.get(unit.id).evolutions.length);
+    if (slot >= 0) auctionBattlePrep(game, uid, {kind:"evolve", slot, target:catalog.get(team[slot].id).evolutions[0]}, players, now);
+    const upgrades = team.flatMap((unit, slot) => {
+      const pokemon = catalog.get(unit.id);
+      return [...pokemon.megas, ...pokemon.forms].map(target => ({
+        kind:catalog.get(target).formKind, slot, target, gain:catalog.get(target).bst - pokemon.bst,
+      }));
+    }).sort((a,b) => b.gain - a.gain);
+    if (upgrades.length) auctionBattlePrep(game, uid, upgrades[0], players, now);
     return auctionBattlePrep(game, uid, {kind:"ready"}, players, now);
   }
   let best;

@@ -40,7 +40,7 @@ test("evolutions are validated, only available once, and Mega spends auction cas
   assert.equal(battleTeam(game,"a")[0].id,mega);
   assert.equal(game.battle.prep.a.evolution.fromId,6);
   assert.equal(game.battle.prep.a.evolution.toId,mega);
-  assert.equal(game.battle.prep.a.evolution.mega,true);
+  assert.equal(game.battle.prep.a.evolution.kind,"mega");
   assert.ok(prep("a","mega",0,mega));
   assert.ok(prep("b","mega",0,auctionBattlePokemon(3).megas[0]));
   assert.equal(game.budgets.b,4);
@@ -60,6 +60,41 @@ test("lineup order locks when ready and the lead's speed determines who starts",
   assert.match(auctionBattlePrep(game,"a",move,duel,2000),/gotowy/);
   auctionBattlePrep(game,"b",{kind:"ready"},duel,2000);
   assert.equal(game.battle.activeUid,"b");
+});
+
+test("alternate forms use the Mega slot, keep free evolution and change battle data",()=>{
+  const game={teams:{a:[888,383,6,133],b:[383,6],c:[383]},budgets:{a:10,b:10,c:4}};
+  prepareAuctionBattle(game,players,1000);
+  const prep=(uid,kind,slot,target)=>auctionBattlePrep(game,uid,{kind,slot,target},players,2000);
+  const [crowned]=auctionBattlePokemon(888).forms;
+  const [primal]=auctionBattlePokemon(383).forms;
+  const [mega]=auctionBattlePokemon(6).megas;
+  assert.ok(prep("a","form",0,primal));
+  assert.ok(prep("a","evolve",0,crowned));
+  assert.equal(prep("a","form",0,crowned),undefined);
+  assert.equal(game.budgets.a,5);
+  assert.deepEqual(game.battle.prep.a.evolution,{slot:0,fromId:888,toId:crowned,kind:"form",sequence:1});
+  assert.deepEqual(auctionBattlePokemon(crowned).types,["fairy","steel"]);
+  assert.equal(auctionBattlePokemon(crowned).signature[0],"Behemoth Blade");
+  assert.equal(auctionBattleDamage({id:888},{id:crowned,hp:160},"signature").factor,.5);
+  assert.ok(prep("a","form",1,primal));
+  assert.ok(prep("a","mega",2,mega));
+  assert.equal(prep("a","evolve",3,134),undefined);
+  assert.equal(game.budgets.a,5);
+  assert.ok(prep("c","form",0,primal));
+  assert.equal(battleTeam(game,"c")[0].id,383);
+  assert.equal(game.budgets.c,4);
+  game.battle.prep.c = {mega:true};
+  game.budgets.c = 5;
+  assert.ok(prep("c","form",0,primal));
+  assert.equal(game.budgets.c,5);
+  auctionBattleBotAction(game,"b",players,2000);
+  assert.equal(game.battle.prep.b.ready,true);
+  assert.equal(battleTeam(game,"b")[0].id,primal);
+  assert.equal(game.budgets.b,5);
+  assert.deepEqual(auctionBattlePokemon(primal).types,["ground","fire"]);
+  assert.equal(auctionBattlePokemon(primal).stats.attack,180);
+  assert.equal(auctionBattlePokemon(primal).signature[0],"Precipice Blades");
 });
 
 test("turns, types, timeout and post-hit knockout work without reviving defeated players",()=>{

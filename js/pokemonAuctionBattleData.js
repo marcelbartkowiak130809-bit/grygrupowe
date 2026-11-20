@@ -1123,6 +1123,30 @@ export const battleSpeciesData = {
  "10323":[[68,65,90,135,125,92],406,[],[],"Mega Tatsugiri TATSUGIRI-DROOPY-MEGA",["dragon","water"],978],
  "10324":[[68,65,90,135,125,92],406,[],[],"Mega Tatsugiri TATSUGIRI-STRETCHY-MEGA",["dragon","water"],978],
  "10325":[[115,175,117,105,101,87],862,[],[],"Mega Baxcalibur",["dragon","ice"],998],
+ "10001":[[50,180,20,180,20,150],354,[],[],"Deoxys Attack",["psychic"],386],
+ "10002":[[50,70,160,70,160,90],354,[],[],"Deoxys Defense",["psychic"],386],
+ "10003":[[50,95,90,95,90,180],354,[],[],"Deoxys Speed",["psychic"],386],
+ "10006":[[100,103,75,120,75,127],465,[],[],"Shaymin Sky",["grass","flying"],492],
+ "10007":[[150,120,100,120,100,90],467,[],[],"Giratina Origin",["ghost","dragon"],487],
+ "10077":[[100,150,90,180,160,90],618,[],[],"Primal Kyogre",["water"],382],
+ "10078":[[100,180,160,150,90,90],619,[],[],"Primal Groudon",["ground","fire"],383],
+ "10086":[[80,160,60,170,130,80],621,[],[],"Hoopa Unbound",["psychic","dark"],720],
+ "10188":[[92,150,115,80,115,148],781,[],[],"Zacian Crowned Sword",["fairy","steel"],888],
+ "10189":[[92,120,140,80,140,128],782,[],[],"Zamazenta Crowned Shield",["fighting","steel"],889],
+ "10245":[[100,100,120,150,120,90],459,[],[],"Dialga Origin",["steel","dragon"],483],
+ "10246":[[90,100,100,150,120,120],460,[],[],"Palkia Origin",["water","dragon"],484],
+};
+export const battleAlternateForms = {
+ "382":[10077],
+ "383":[10078],
+ "386":[10001,10002,10003],
+ "483":[10245],
+ "484":[10246],
+ "487":[10007],
+ "492":[10006],
+ "720":[10086],
+ "888":[10188],
+ "889":[10189],
 };
 export const battleMoveData = {
  "0":["Uderzenie",null,60,"physical"],
@@ -1375,6 +1399,9 @@ export const battleMoveData = {
  "910":["Mighty Cleave","rock",95,"physical"],
  "911":["Tachyon Cutter","steel",50,"special"],
  "919":["Malignant Chain","poison",100,"special"],
+ "621":["Hyperspace Fury","dark",100,"physical"],
+ "781":["Behemoth Blade","steel",100,"physical"],
+ "782":["Behemoth Bash","steel",100,"physical"],
 };
 export const battleTypeFactors = {
  "normal":{"rock":0.5,"ghost":0.0,"steel":0.5},

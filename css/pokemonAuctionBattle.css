@@ -22,6 +22,7 @@
 .battle-unit small { font-size:10px;color:#c2d1e2; }
 .battle-unit[aria-pressed="true"] { outline:2px solid #84eddd;outline-offset:1px;background:#254558; }
 .battle-unit.is-mega { border-color:#c6a0ff; }
+.battle-unit.is-form { border-color:#efcb82; }
 .battle-unit:disabled:not(.is-out) { opacity:1; }
 .battle-unit.is-out { opacity:.45; }
 .battle-unit-art { position:relative;width:62px;height:57px; }
@@ -29,6 +30,7 @@
 .battle-evolution-old,.battle-evolution-flash { position:absolute;inset:0;pointer-events:none; }
 .battle-evolution-flash { z-index:2;border-radius:50%;background:radial-gradient(circle,#f6fffad9,#69edda55 45%,transparent 70%);opacity:0; }
 .battle-evolution-flash.is-mega { background:radial-gradient(circle,#fff4ffe6,#bc6bff77 48%,transparent 72%); }
+.battle-evolution-flash.is-form { background:radial-gradient(circle,#fff7d8,#ffc75f99 48%,transparent 72%); }
 .battle-order { display:flex;align-items:center;justify-content:flex-end;gap:3px;width:100%; }
 .battle-order span { margin-right:auto;color:#beebdc;font-size:10px; }
 .battle-order button { min-width:26px;min-height:28px;padding:2px 4px;font-size:12px; }

@@ -25,7 +25,7 @@ function buildChangelogEntries(now = Date.now()) {
       title: "Bitwa Pokémon po Licytacji teamu",
       changes: [
         "Gospodarz może włączyć turową bitwę drużyn kupionych w Licytacji teamu.",
-        "Minuta przygotowania pozwala ustawić kolejność drużyny, raz ewoluować za darmo i kupić jedną Megaewolucję za 5$ z budżetu aukcji. Obie ewolucje mają animację.",
+        "W ciągu minuty przygotowań ustawisz drużynę i wykonasz jedną darmową ewolucję. Za 5$ z budżetu aukcji możesz też wybrać Megaewolucję lub specjalną formę, np. Zacian Crowned Sword albo Primal Groudon.",
         "W bitwie wybierasz atakującego i cel. Statystyki, typy, ataki specjalne i pozostałe HP decydują o wyniku.",
       ],
     },
