@@ -3,8 +3,8 @@ import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, prepareAuctionBattle } from "./pokemonAuctionBattle.js?v=20261120-5";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-7";
+import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261120-8";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-8";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -30,7 +30,7 @@ export const pokemonDefaults = {
   "pokemon-dex": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, rounds:5 },
   "pokemon-last-letter": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
   "pokemon-evolution": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, difficulty:"any", evolutionMode:"both", rounds:5 },
-  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true, battleAfterAuction:false },
+  "pokemon-auction": { generations:[1,2,3,4,5,6,7,8,9], budget:50, teamSize:6, strongOnly:false, legendaries:true, mythicals:true, battleAfterAuction:false, ...auctionBattleDefaults },
   "pokemon-types": { generations:[1,2,3,4,5,6,7,8,9], selectTime:10, answerTime:15, rounds:5 },
   "pokemon-type-draw": { generations:[1,2,3,4,5,6,7,8,9], typeCount:0, answerTime:15, rounds:5 },
   "pokemon-match-type": { generations:[1,2,3,4,5,6,7,8,9], answerTime:15, hearts:3 },
@@ -127,6 +127,7 @@ export function createPokemonGame(mode, players, settings) {
     }
     const game = {
       mode, phase: "auction", round: 1, scores, teamSize, battleAfterAuction:settings.battleAfterAuction===true,
+      battleRules:sanitizeAuctionBattleRules(settings),
       items: pool.slice(0, count).map(item => item.id), auctionIndex: 0,
       budgets: Object.fromEntries(players.map(uid => [uid, budget])),
       teams: Object.fromEntries(players.map(uid => [uid, []])),
@@ -779,7 +780,14 @@ export function renderPokemonLobbySettings(room, isHost) {
   const questionSettings = `<label>Czas odpowiedzi <input data-pokemon-setting="answerTime" type="number" min="5" max="60" value="${s.answerTime || 15}" ${isHost ? "" : "disabled"}></label>${room.gameMode === "pokemon-types" ? `<label>Czas wyboru typu <input data-pokemon-setting="selectTime" type="number" min="5" max="30" value="${s.selectTime || 10}" ${isHost ? "" : "disabled"}></label>` : ""}${roundOrHearts}${room.gameMode === "pokemon-evolution" ? `<label>Dozwolone kierunki<select data-pokemon-setting="evolutionMode" ${isHost ? "" : "disabled"}><option value="both" ${s.evolutionMode !== "later" ? "selected" : ""}>Wcześniejsze i późniejsze ewolucje</option><option value="later" ${s.evolutionMode === "later" ? "selected" : ""}>Tylko późniejsze ewolucje</option></select></label>` : ""}`;
   const typeCountSetting = room.gameMode === "pokemon-type-draw" ? `<label>Liczba typów<select data-pokemon-setting="typeCount" ${isHost ? "" : "disabled"}>${[[0,"Losowo"],[1,"Jeden typ"],[2,"Dwa typy"]].map(([value,label]) => `<option value="${value}" ${Number(s.typeCount || 0) === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>` : "";
   const generationSettings = `<div><p class="tiny">GENERACJE</p><div class="pokemon-types">${generations}</div></div>`;
-  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Bez bitwy wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="battleAfterAuction" type="checkbox" ${s.battleAfterAuction===true ? "checked" : ""} ${isHost ? "" : "disabled"}> Bitwa drużyn po licytacji</label><label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
+  const battleSettings = sanitizeAuctionBattleRules(s);
+  const hostOnly = isHost ? "" : "disabled";
+  const battleControls = s.battleAfterAuction === true ? `
+    <label>Darmowe ewolucje na gracza <input data-pokemon-setting="freeEvolutions" type="number" min="0" max="${auctionBattleLimits.freeEvolutions}" value="${battleSettings.freeEvolutions}" ${hostOnly}></label>
+    <label class="check"><input data-pokemon-setting="megaEnabled" type="checkbox" ${battleSettings.megaEnabled ? "checked" : ""} ${hostOnly}> Megaewolucje i zmiany formy</label>
+    <label>Cena Mega lub zmiany formy ($) <input data-pokemon-setting="megaPrice" type="number" min="0" max="${auctionBattleLimits.megaPrice}" value="${battleSettings.megaPrice}" ${!battleSettings.megaEnabled || !isHost ? "disabled" : ""}></label>
+  ` : "";
+  const auctionDisplay = room.gameMode === "pokemon-auction" ? `<div class="pokemon-auction-settings"><label>Budżet <input data-pokemon-setting="budget" type="number" min="10" max="500" value="${s.budget || 50}" ${isHost ? "" : "disabled"}></label><label>Wielkość teamu <input data-pokemon-setting="teamSize" type="number" min="2" max="10" value="${Math.max(2,Math.min(10,Number(s.teamSize)||6))}" ${isHost ? "" : "disabled"}></label><p class="tiny">Każde przebicie podnosi cenę o 1 monetę i daje rywalom ${auctionBidMs / 1000} s. Bez bitwy wygrywa najwyższa suma BST składu.</p><label class="check"><input data-pokemon-setting="battleAfterAuction" type="checkbox" ${s.battleAfterAuction===true ? "checked" : ""} ${isHost ? "" : "disabled"}> Bitwa drużyn po licytacji</label>${battleControls}<label class="check"><input data-pokemon-setting="strongOnly" type="checkbox" ${s.strongOnly ? "checked" : ""} ${isHost ? "" : "disabled"}> Tylko mocniejsze Pokémony</label><label class="check"><input data-pokemon-setting="legendaries" type="checkbox" ${s.legendaries !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Legendy</label><label class="check"><input data-pokemon-setting="mythicals" type="checkbox" ${s.mythicals !== false ? "checked" : ""} ${isHost ? "" : "disabled"}> Mythical</label></div>` : "";
   return `<div class="pokemon-settings">${room.gameMode === "pokemon-auction" ? auctionDisplay : questionSettings}${typeCountSetting}${generationSettings}</div>`;
 }
 

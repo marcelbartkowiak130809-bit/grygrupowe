@@ -116,6 +116,44 @@ test("Hoopa can change form with no free evolutions in the team unless Mega used
   assert.equal(battleTeam(game,"b")[0].id,720);
 });
 
+test("host battle rules control both allowances and the shared upgrade price",()=>{
+  const game=createPokemonGame("pokemon-auction",players,{
+    battleAfterAuction:true,freeEvolutions:"2",megaPrice:"8",
+  });
+  assert.deepEqual(game.battleRules,{freeEvolutions:2,megaEnabled:true,megaPrice:8});
+  Object.assign(game,{teams:{a:[4,720,133],b:[4,720],c:[6]},budgets:{a:9,b:7,c:0}});
+  prepareAuctionBattle(game,players,1000);
+  const prep=(uid,kind,slot,target)=>auctionBattlePrep(game,uid,{kind,slot,target},players,2000);
+  assert.equal(prep("a","evolve",0,5),undefined);
+  assert.equal(prep("a","evolve",0,6),undefined);
+  assert.match(prep("a","evolve",2,134),/Brak dostępnych/);
+  assert.equal(prep("a","form",1,10086),undefined);
+  assert.equal(game.budgets.a,1);
+  auctionBattleBotAction(game,"b",players,2000);
+  assert.deepEqual(battleTeam(game,"b").map(unit=>unit.id),[6,720]);
+  assert.equal(game.budgets.b,7);
+  const [mega]=auctionBattlePokemon(6).megas;
+  assert.match(prep("c","mega",0,mega),/8\$/);
+  game.battleRules.megaPrice=0;
+  assert.equal(prep("c","mega",0,mega),undefined);
+  assert.equal(game.budgets.c,0);
+});
+
+test("zero evolutions and disabled Mega are enforced and legacy usage still counts",()=>{
+  const game=createPokemonGame("pokemon-auction",players,{freeEvolutions:0,megaEnabled:false,megaPrice:0});
+  assert.deepEqual(game.battleRules,{freeEvolutions:0,megaEnabled:false,megaPrice:0});
+  Object.assign(game,{teams:{a:[5,6,720],b:[3],c:[94]},budgets:{a:10,b:10,c:10}});
+  prepareAuctionBattle(game,players,1000);
+  const prep=(kind,slot,target)=>auctionBattlePrep(game,"a",{kind,slot,target},players,2000);
+  assert.match(prep("evolve",0,6),/Brak dostępnych/);
+  assert.match(prep("mega",1,auctionBattlePokemon(6).megas[0]),/wyłączył/);
+  assert.match(prep("form",2,10086),/wyłączył/);
+  assert.equal(game.budgets.a,10);
+  game.battle.prep.a = {evolved:true};
+  delete game.battleRules;
+  assert.match(prep("evolve",0,6),/Brak dostępnych/);
+});
+
 test("turns, types, timeout and post-hit knockout work without reviving defeated players",()=>{
   const game=makeGame();
   prepareAuctionBattle(game,players,1000);

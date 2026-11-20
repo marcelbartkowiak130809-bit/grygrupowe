@@ -1,6 +1,6 @@
 import { escapeHtml } from "./utils.js?v=20260903-7";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattleDamage, auctionBattlePokemon, battleSignature, battleSlots, battleTeam, battleUpgradePrice, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261120-5";
+import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleSignature, battleSlots, battleTeam, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261120-8";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
@@ -27,22 +27,29 @@ function prepMarkup(game, accounts, uid, players, timer) {
   const team = battleTeam(game, uid);
   const ready = game.battle.prep?.[uid] || {};
   const budget = Number(game.budgets?.[uid] || 0);
+  const {freeEvolutions, megaEnabled, megaPrice} = game.battleRules || auctionBattleDefaults;
+  const evolutionsLeft = Math.max(0, freeEvolutions - battleEvolutionsUsed(ready));
   const upgradeUsed = battleUpgradeUsed(ready);
   const species = team.map(unit => auctionBattlePokemon(unit.id));
-  const evolutionStatus = ready.evolved ? "Darmowa ewolucja wykorzystana"
-    : species.some(pokemon => pokemon.evolutions.length) ? "1 darmowa ewolucja" : "Brak Pokémonów do ewolucji";
-  let upgradeStatus = `1 Mega lub zmiana formy za ${battleUpgradePrice}$`;
-  if (upgradeUsed) upgradeStatus = "Wspólny limit Mega i zmiany formy wykorzystany";
+  let evolutionStatus = `Darmowe ewolucje · ${evolutionsLeft}/${freeEvolutions}`;
+  if (!freeEvolutions) evolutionStatus = "Darmowe ewolucje wyłączone";
+  else if (!evolutionsLeft) evolutionStatus = "Limit darmowych ewolucji wykorzystany";
+  else if (!species.some(pokemon => pokemon.evolutions.length)) evolutionStatus = "Brak Pokémonów do ewolucji";
+  const upgradePrice = megaPrice ? `${megaPrice}$` : "za darmo";
+  let upgradeStatus = `1 Mega lub zmiana formy · ${upgradePrice}`;
+  if (!megaEnabled) upgradeStatus = "Mega i zmiany formy wyłączone";
+  else if (upgradeUsed) upgradeStatus = "Wspólny limit Mega i zmiany formy wykorzystany";
   else if (!species.some(pokemon => pokemon.megas.length || pokemon.forms.length)) upgradeStatus = "Brak dostępnej Megaewolucji lub zmiany formy";
-  else if (budget < battleUpgradePrice) upgradeStatus = `Do Mega lub zmiany formy brakuje ${battleUpgradePrice - budget}$`;
+  else if (budget < megaPrice) upgradeStatus = `Do Mega lub zmiany formy brakuje ${megaPrice - budget}$`;
   const cards = battleSlots(game,uid).map((slot,position) => {
     const unit = team[slot];
     const pokemon = species[slot];
     const choices = (kind, ids) => {
       const paid = kind !== "evolve";
-      const disabled = ready.ready || (paid ? upgradeUsed || budget < battleUpgradePrice : ready.evolved);
+      if (paid ? !megaEnabled : !freeEvolutions) return "";
+      const disabled = ready.ready || (paid ? upgradeUsed || budget < megaPrice : !evolutionsLeft);
       return ids.map(id => `<button type="button" class="ghost" data-battle-upgrade="${kind}" data-slot="${slot}" data-evolution="${id}" ${disabled ? "disabled" : ""}>
-        ${kind === "form" ? "Zmień formę na " : paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${battleUpgradePrice}$` : ""}
+        ${kind === "form" ? "Zmień formę na " : paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${upgradePrice}` : ""}
       </button>`).join("");
     };
     return `<article class="battle-unit ${formClass(pokemon.formKind)}" data-battle-prep-slot="${slot}">
