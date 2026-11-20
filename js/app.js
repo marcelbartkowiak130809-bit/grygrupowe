@@ -12,9 +12,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261119-15";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261119-26";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261120-1";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261119-26";
+import { gamesList, getGameMode } from "./games.js?v=20261120-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261118-27";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261117-10";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261118-16";
@@ -29,7 +29,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260903-9";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260903-9";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260903-9";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261119-15";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261120-1";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20260903-9";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20260903-9";
@@ -56,11 +56,11 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261118-16";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261118-13";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261119-26";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261119-26";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261119-26";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261120-1";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261120-1";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261120-1";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261119-26";
+import { playerMini, renderRoom } from "./room.js?v=20261120-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261118-34";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261119-2";
@@ -68,7 +68,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-1
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
 import { loadPresenceUsers } from "./firebase.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
-import { scheduleBot } from "./botController.js?v=20261119-15";
+import { scheduleBot } from "./botController.js?v=20261120-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20260903-1";
 import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
@@ -3380,8 +3380,9 @@ function renderNow(options = {}) {
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
-  const preserveAuction = softRender && auction && ["auction","auction-reveal"].includes(auction.phase)
-    && oldView?.querySelector("[data-auction-lot]")?.dataset.auctionLot === String(auction.auctionIndex);
+  const preserveAuctionResult = softRender && auction?.phase === "result" && oldView?.querySelector("[data-auction-final]");
+  const preserveAuction = preserveAuctionResult || (softRender && auction && ["auction","auction-reveal"].includes(auction.phase)
+    && oldView?.querySelector("[data-auction-lot]")?.dataset.auctionLot === String(auction.auctionIndex));
   const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
@@ -3406,7 +3407,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
-  if (!preserveRoom) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom && !preserveAuctionResult) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));

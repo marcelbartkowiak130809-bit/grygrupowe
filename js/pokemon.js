@@ -2,6 +2,7 @@ import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
 import { hasGamePass } from "./gamePasses.js?v=20260901-13";
 import { serverNow } from "./firebase.js?v=20261119-15";
+import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -579,7 +580,7 @@ function auctionFinalMarkup(game, accounts) {
     const team = (row.team || []).map(id => byId.get(id)).filter(Boolean).map(item => `<span>${sprite(item)}<b>${item.bst}</b></span>`);
     return `<article class="auction-ranking-row ${won ? "is-winner" : ""}" style="--auction-rank:${index}"><div>${resultPlayerMiniHtml(accounts[row.uid] || { nick: "Gracz" }, won ? "win" : "lose")}<strong>${row.bst} BST</strong></div><div class="auction-ranking-team">${team.join("") || "<small>Pusty skład</small>"}</div></article>`;
   });
-  return `<section class="panel pokemon-panel auction-final"><p class="eyebrow">LICYTACJA ZAKOŃCZONA</p><h1>${champion}</h1><div class="auction-ranking">${rows.join("")}</div><button class="primary" id="pokemon-lobby">Wróć do lobby</button></section>`;
+  return `<section class="panel pokemon-panel auction-final" data-auction-final><p class="eyebrow">LICYTACJA ZAKOŃCZONA</p><h1>${champion}</h1><div class="auction-ranking">${rows.join("")}</div><button class="primary" id="pokemon-lobby">Wróć do lobby</button></section>`;
 }
 function formMarkup(id, placeholder = "Nazwa Pokémona") { return `<form class="pokemon-answer-form" data-pokemon-form="${id}"><input id="pokemon-answer" autocomplete="off" placeholder="${placeholder}"><button class="primary" type="submit">Odpowiedz</button></form>`; }
 function pokemonAnswerFormMarkup(id) { return `<form class="pokemon-answer-form" data-pokemon-form="${id}"><div class="pokemon-autocomplete"><input id="pokemon-answer" autocomplete="off" placeholder="Nazwa Pokémona"><div id="pokemon-suggestions" class="pokemon-suggestions"></div></div><button class="primary" type="submit">Odpowiedz</button></form>`; }
@@ -666,7 +667,13 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   window.clearTimeout(renderPokemonGame.timer);
   window.clearInterval(renderPokemonGame.countdown);
   let body = "";
-  if (game.phase === "result") { root.innerHTML = `<main class="page pokemon-game-page enter">${game.mode === "pokemon-dex" ? dexResultMarkup(game, accounts) : game.mode === "pokemon-last-letter" ? lastLetterResultMarkup(game, accounts, settings) : game.mode === "pokemon-match-type" ? matchTypeResultMarkup(game, accounts, settings) : game.mode === "pokemon-auction" ? auctionFinalMarkup(game, accounts) : game.mode === "pokemon-type-draw" ? typeRaceResult(game, accounts, room.players) : resultMarkup(game, accounts, actions)}</main>`; root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound); root.querySelector("#pokemon-lobby")?.addEventListener("click", actions.returnToRoom); return; }
+  if (game.phase === "result" && game.mode === "pokemon-auction") {
+    const key = JSON.stringify(["auction-final", room.roomId, game.siteGameId || game.startedAt]);
+    patchRoomView(root, key, `<main class="page pokemon-game-page enter">${auctionFinalMarkup(game, accounts)}</main>`);
+    root.querySelector("#pokemon-lobby").onclick = actions.returnToRoom;
+    return;
+  }
+  if (game.phase === "result") { root.innerHTML = `<main class="page pokemon-game-page enter">${game.mode === "pokemon-dex" ? dexResultMarkup(game, accounts) : game.mode === "pokemon-last-letter" ? lastLetterResultMarkup(game, accounts, settings) : game.mode === "pokemon-match-type" ? matchTypeResultMarkup(game, accounts, settings) : game.mode === "pokemon-type-draw" ? typeRaceResult(game, accounts, room.players) : resultMarkup(game, accounts, actions)}</main>`; root.querySelector("#pokemon-next")?.addEventListener("click", actions.pokemonNextRound); root.querySelector("#pokemon-lobby")?.addEventListener("click", actions.returnToRoom); return; }
   if (game.mode === "pokemon-dex") { const target = pokemonDex.find(item => item.id === game.target), answer=game.answers?.[currentUser]; body = `<p class="eyebrow">NAJBLIŻSZY NUMER POKEDEX · RUNDA ${game.round}/${settings.rounds || 5}</p><h1>Znajdź Pokémona najbliżej numeru</h1><div class="pokemon-target">${target ? `#${target.id}` : "Cel niedostępny"}</div><p class="muted">Wpisz nazwę, ale nie podawaj numeru Dex.</p>${target ? `${timerMarkup(game)}${dexFormMarkup(answer)}` : `<p class="warning">Ta runda ma niepełny cel. Przejdź do podsumowania.</p>`}`; }
   if (game.mode === "pokemon-last-letter") { const previous = game.chain.at(-1), start = Math.max(0, game.chain.length - 8); body = `<div class="pokemon-last-letter-layout"><div><p class="eyebrow">OSTATNIA LITERA</p><h1>${current === currentUser ? "Twoja kolej" : `${escapeHtml(accounts[current]?.nick || "Gracz")} odpowiada`}</h1><p class="muted">${previous ? `Następny Pokémon zaczyna się na: ${clean(previous.name).slice(-1).toUpperCase()}` : "Zacznij łańcuch Pokémonów."}</p><div class="pokemon-chain">${game.chain.slice(-8).map((item, index) => lastLetterCard(item, game.chainAuthors?.[start + index], accounts)).join("")}</div>${timerMarkup(game)}${current === currentUser ? formMarkup("answer") : "<p class=muted>Czekamy na odpowiedź gracza.</p>"}</div>${lastLetterPlayers(game, accounts, settings, current)}</div>`; }
   if (game.mode === "pokemon-evolution") { const base = pokemonDex.find(item => item.id === game.baseId); body = `<p class="eyebrow">EVOLUTION RACE · RUNDA ${game.round}/${settings.rounds || 5}</p><h1>Ułóż linię ewolucji</h1><p class="muted">Wpisz Pokémony przed i po wylosowanym. Każde poprawne pole daje punkt.</p>${timerMarkup(game)}${evolutionFormMarkup(base, game.answers?.[currentUser])}`; }
