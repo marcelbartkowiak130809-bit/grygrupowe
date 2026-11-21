@@ -43,6 +43,10 @@
 @media(prefers-reduced-motion:reduce){.backpack-page *{animation:none!important;transition:none!important}.backpack-slot:not(:disabled):active{transform:none}}
 .backpack-puzzle-label{position:absolute;z-index:2;bottom:1px;left:1px;right:1px;padding:2px 0;background:#08110cbd;color:#ecf8dc;font-size:7px;line-height:1.1;letter-spacing:.02em;pointer-events:none;text-shadow:0 1px #000}
 .backpack-tile.puzzle-target:after{content:'';position:absolute;inset:2px;border:1px dashed #daedb879;pointer-events:none;z-index:2}.backpack-tile.has-item.puzzle-target:after{border-style:solid;border-color:#c0e49544}
+.backpack-tile img.backpack-placement-template {
+ opacity:.55;
+ filter:grayscale(1) brightness(.76);
+}
 .backpack-world.rail .backpack-tile img[src$="rail.png"]{transform:rotate(90deg)}.backpack-world.rail.powered img[src$="powered_rail.png"]{filter:drop-shadow(0 0 6px #ff6c20)}
 .backpack-world.library .backpack-tile img[src$="enchanted_book.png"]{filter:drop-shadow(0 0 9px #e78aff)}
 .backpack-chapters{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;width:286px;flex:none}.backpack-chapters button{width:100%;height:28px}

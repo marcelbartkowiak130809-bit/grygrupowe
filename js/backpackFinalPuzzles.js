@@ -1,4 +1,4 @@
-import { deep as final, step, use, carry } from './backpackDeepPuzzles.js?v=20261118-28';
+import { deep as final, step, use, carry } from './backpackDeepPuzzles.js?v=20261121-1';
 
 export const finalBackpackLevels = [
  final('Dwa odlewy, jedno palenisko',

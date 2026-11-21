@@ -206,12 +206,13 @@ export function deepTile(level,index,state){
  const signal=level.route?.signals?.[index];
  if(switchIndex>=0){
   const power=state.puzzle.switches?.[switchIndex];
-  return {mark:true,icon:'lever',label:`${'ABC'[switchIndex]} · ${power===undefined?'MONTAŻ':power?'ON':'OFF'}`};
+  return {mark:true,icon:'lever',template:power===undefined,label:`${'ABC'[switchIndex]} · ${power===undefined?'MONTAŻ':power?'ON':'OFF'}`};
  }
  const finished=station&&done(state,station.id);
  return {
   mark:Boolean(station||path),
   icon:cart?'minecart':station?(finished&&station.doneIcon||station.icon):index===level.route?.finish?'light_weighted_pressure_plate':path?'rail':'',
+  template:!cart&&!finished&&Boolean(station?.take?.[station.icon]),
   label:station?`${station.label}${finished?' ✓':''}`:signal?`${signal.map((on,i)=>on?'ABC'[i]:'–').join(' ')}`:blocked?'BLOKADA':stop?'BOCZNICA':cart?'WAGONIK':index===level.route?.finish?'META':'',
   fx:cart?'cargo':finished?(station.fx==='lit'?'deep-lit':station.fx||'deep-done'):station&&ready(station,state)?'deep-ready':blocked?'deep-closed':stop?'deep-stop':path?'deep-path':'',
  };

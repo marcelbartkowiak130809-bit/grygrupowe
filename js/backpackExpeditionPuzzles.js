@@ -25,7 +25,7 @@ export function expeditionTerrain(l,i,s){const p=s.puzzle;
  if(l.kind==='compost'){if((p.growth||0)>=1&&i===22)return 'oak_log';if((p.growth||0)>=2&&i===14||(p.growth||0)>=3&&[13,15].includes(i))return 'oak_leaves';return 'moss_block';}
  return l.kind==='wool'?'moss_block':'stone_bricks';
 }
-export function expeditionTile(l,i,s){const p=s.puzzle;let icon='',label='',mark=false,fx='',surface=false;
+export function expeditionTile(l,i,s){const p=s.puzzle;let icon='',label='',mark=false,fx='',surface=false,template=false;
  if(l.kind==='pistons'){const pos=p.cargo??l.start;if(i===pos){icon='cobblestone';fx='cargo';}if(l.controls.includes(i)){mark=true;label=['→','↓','←'][l.controls.indexOf(i)];}if(i===l.end){label='META';if(!icon)icon='light_weighted_pressure_plate';}mark=mark||l.route.includes(i);}
  if(l.kind==='archaeology'){if(l.sites.includes(i)){mark=true;label=p.brushed?.[i]>=2?'ODKRYTE':`OCZYŚĆ ${p.brushed?.[i]||0}/2`;}if(i===l.pedestal){mark=true;label='DZBAN';}}
  if(l.kind==='wool'){if(l.sources.includes(i)){label=(p.sheared||[]).includes(i)?'OSTRZYŻONE':'RUNO';if(!(p.sheared||[]).includes(i))icon='white_wool';}if(l.targets.includes(i)){mark=true;icon=l.colors[l.targets.indexOf(i)];label=['CZERWONY','NIEBIESKI','ŻÓŁTY'][l.targets.indexOf(i)];}surface=l.targets.includes(i);}
@@ -35,8 +35,8 @@ export function expeditionTile(l,i,s){const p=s.puzzle;let icon='',label='',mark
  if(l.kind==='smith'){if(i===l.table){icon=(p.forged||0)?'netherite_chestplate':'smithing_table_front';label=(p.forged||0)?'ZDOBIENIE':'ULEPSZENIE';if(s.solved)fx='beam';}for(const [field,text]of [['template','SZABLON'],['armor','ZBROJA'],['material','MATERIAŁ']])if(i===l[field]){mark=true;label=text;if(p.inputs?.[field])icon=p.inputs[field];}}
  if(l.kind==='melody'){if(l.notes.includes(i)){mark=true;label=s.placed[i]?noteNames[p.pitches?.[i]||0]:'BLOK';if(s.placed[i])fx='note';}if(i===l.switch){mark=true;label=s.solved?'OTWARTE':'SPRAWDŹ';if(!s.placed[i])icon='iron_door';}}
  if(l.kind==='copper'&&l.blocks.includes(i)){mark=true;label=`${copperNames[l.ages[l.blocks.indexOf(i)]]}${(p.waxed||[]).includes(i)?' ✓':''}`;if((p.waxed||[]).includes(i))fx='waxed';}
- if(l.kind==='endgate'){if(l.frame.includes(i)){mark=true;if(l.filled.includes(i)||(p.eyes||[]).includes(i))icon='ender_eye';else label='OKO';}if(i===l.center)label=p.open?'WEJDŹ':'PORTAL';}
- return {icon,label,mark,fx,surface};
+ if(l.kind==='endgate'){if(l.frame.includes(i)){mark=true;icon='ender_eye';template=!l.filled.includes(i)&&!(p.eyes||[]).includes(i);if(template)label='OKO';}if(i===l.center)label=p.open?'WEJDŹ':'PORTAL';}
+ return {icon,label,mark,fx,surface,template};
 }
 export function expeditionRecipe(grid){
  const cells=grid.map((item,i)=>({item,x:i%3,y:Math.floor(i/3)})).filter(c=>c.item);if(!cells.length)return null;

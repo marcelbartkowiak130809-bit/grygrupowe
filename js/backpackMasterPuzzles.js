@@ -1,4 +1,4 @@
-import {deep, step, use, carry} from './backpackDeepPuzzles.js?v=20261118-28';
+import {deep, step, use, carry} from './backpackDeepPuzzles.js?v=20261121-1';
 
 export const masterBackpackLevels = [
  deep('Szyb pod ciśnieniem',
