@@ -3,8 +3,8 @@ import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v
 import { hasGamePass } from "./gamePasses.js?v=20261120-10";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261120-10";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261120-13";
+import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261121-3";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -820,6 +820,7 @@ export function renderPokemonLobbySettings(room, isHost) {
   const battleSettings = sanitizeAuctionBattleRules(s);
   const hostOnly = isHost ? "" : "disabled";
   const battleControls = s.battleAfterAuction === true ? `
+    <label class="check"><input data-pokemon-setting="showDamagePreview" type="checkbox" ${battleSettings.showDamagePreview ? "checked" : ""} ${hostOnly}> Pokazuj obrażenia przed atakiem</label>
     <label>Darmowe ewolucje na gracza <input data-pokemon-setting="freeEvolutions" type="number" min="0" max="${auctionBattleLimits.freeEvolutions}" value="${battleSettings.freeEvolutions}" ${hostOnly}></label>
     <label class="check"><input data-pokemon-setting="megaEnabled" type="checkbox" ${battleSettings.megaEnabled ? "checked" : ""} ${hostOnly}> Megaewolucje i zmiany formy</label>
     <label>Cena Mega lub zmiany formy ($) <input data-pokemon-setting="megaPrice" type="number" min="0" max="${auctionBattleLimits.megaPrice}" value="${battleSettings.megaPrice}" ${!battleSettings.megaEnabled || !isHost ? "disabled" : ""}></label>

@@ -1,7 +1,7 @@
 import { escapeHtml } from "./utils.js?v=20260903-7";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261120-10";
-import { auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261120-10";
+import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261121-3";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
@@ -89,8 +89,16 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
       return `<button type="button" class="battle-unit ${formClass(species.formKind)} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" ${matchup ? `data-battle-matchup="${matchup}"` : ""} aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species)}${badge}</button>`;
     }).join("")||'<span class="muted">Pusty skład</span>'}</div></section>`);
   const moveButton = (kind,label,spent=false) => {
-    return `<button type="button" class="${kind==="signature"?"primary":"ghost"}" data-battle-move="${kind}" ${!canAttack||!attacker?.hp||!target?.hp||spent?"disabled":""}>
-     <span>${escapeHtml(label)}</span>${spent ? "<small>Odnowisz zwykłym atakiem</small>" : ""}
+    const available = canAttack && attacker?.hp > 0 && target?.hp > 0 && !spent;
+    let note = spent ? "<small>Odnowisz zwykłym atakiem</small>" : "";
+    if (!spent && game.battleRules?.showDamagePreview === true && canAttack) {
+      const hit = available ? auctionBattleDamage(attacker,target,kind) : null;
+      const preview = !hit ? (attacker?.hp ? "Wybierz cel" : "Wybierz Pokémona")
+        : hit.copies ? "Kopiuje formę lub ruch" : hit.factor === 0 ? "Brak efektu" : `−${hit.damage} HP`;
+      note = `<small data-damage-preview>${preview}</small>`;
+    }
+    return `<button type="button" class="${kind==="signature"?"primary":"ghost"}" data-battle-move="${kind}" ${available?"":"disabled"}>
+     <span>${escapeHtml(label)}</span>${note}
     </button>`;
   };
   const event = last ? `<p class="battle-event" role="status"><b>${escapeHtml(last.name)}</b> · ${last.copies?(last.name==="Transform"?"skopiowano formę":"skopiowano ruch"):last.damage?`−${last.damage} HP`:"brak efektu"}${last.knockedOut?" · nokaut":""}${last.factor>1?" · super skuteczny":last.factor>0&&last.factor<1?" · mało skuteczny":""}</p>` : '<p class="battle-event" role="status"></p>';

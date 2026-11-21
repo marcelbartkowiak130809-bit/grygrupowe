@@ -119,9 +119,9 @@ test("Hoopa can change form with no free evolutions in the team unless Mega used
 
 test("host battle rules control both allowances and the shared upgrade price",()=>{
   const game=createPokemonGame("pokemon-auction",players,{
-    battleAfterAuction:true,freeEvolutions:"2",megaPrice:"8",
+    battleAfterAuction:true,freeEvolutions:"2",megaPrice:"8",showDamagePreview:true,
   });
-  assert.deepEqual(game.battleRules,{freeEvolutions:2,megaEnabled:true,megaPrice:8});
+  assert.deepEqual(game.battleRules,{freeEvolutions:2,megaEnabled:true,megaPrice:8,showDamagePreview:true});
   Object.assign(game,{teams:{a:[4,720,133],b:[4,720],c:[6]},budgets:{a:9,b:7,c:0}});
   prepareAuctionBattle(game,players,1000);
   const prep=(uid,kind,slot,target)=>auctionBattlePrep(game,uid,{kind,slot,target},players,2000);
@@ -142,7 +142,7 @@ test("host battle rules control both allowances and the shared upgrade price",()
 
 test("zero evolutions and disabled Mega are enforced and legacy usage still counts",()=>{
   const game=createPokemonGame("pokemon-auction",players,{freeEvolutions:0,megaEnabled:false,megaPrice:0});
-  assert.deepEqual(game.battleRules,{freeEvolutions:0,megaEnabled:false,megaPrice:0});
+  assert.deepEqual(game.battleRules,{freeEvolutions:0,megaEnabled:false,megaPrice:0,showDamagePreview:false});
   Object.assign(game,{teams:{a:[5,6,720],b:[3],c:[94]},budgets:{a:10,b:10,c:10}});
   prepareAuctionBattle(game,players,1000);
   const prep=(kind,slot,target)=>auctionBattlePrep(game,"a",{kind,slot,target},players,2000);

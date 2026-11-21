@@ -1,7 +1,7 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
 
-export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5 };
+export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
 export function sanitizeAuctionBattleRules(settings = {}) {
   const integer = key => {
@@ -9,7 +9,7 @@ export function sanitizeAuctionBattleRules(settings = {}) {
     return (typeof value === "number" || typeof value === "string" && value.trim()) && Number.isFinite(Number(value))
       ? Math.min(auctionBattleLimits[key], Math.max(0, Math.trunc(Number(value)))) : auctionBattleDefaults[key];
   };
-  return {freeEvolutions:integer("freeEvolutions"), megaEnabled:settings.megaEnabled !== false, megaPrice:integer("megaPrice")};
+  return {freeEvolutions:integer("freeEvolutions"), megaEnabled:settings.megaEnabled !== false, megaPrice:integer("megaPrice"), showDamagePreview:settings.showDamagePreview === true};
 }
 
 export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved ? 1 : 0);
