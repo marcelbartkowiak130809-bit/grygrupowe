@@ -54,6 +54,7 @@ import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotG
 
 import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
+let stopOnlineCountTooltip = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261121-9";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-9";
@@ -561,6 +562,43 @@ function updateOnlineCountPill() {
   pill.dataset.count=String(state.onlineCount);
   pill.dataset.tooltip=label;
   pill.innerHTML=`<i></i><b>${state.onlineCount}</b> online`;
+  const tooltip=document.getElementById("online-count-tooltip");
+  if(tooltip&&!tooltip.hidden)tooltip.textContent=label;
+}
+function bindOnlineCountTooltip(pill) {
+  const controller=new AbortController(), options={signal:controller.signal};
+  const tooltip=document.createElement("div");
+  tooltip.id="online-count-tooltip";
+  tooltip.className="online-count-tooltip";
+  tooltip.setAttribute("role","tooltip");
+  tooltip.hidden=true;
+  pill.tabIndex=0;
+  document.body.append(tooltip);
+  const hide=()=>{
+    tooltip.hidden=true;
+    pill.removeAttribute("aria-describedby");
+  };
+  const show=()=>{
+    tooltip.textContent=pill.dataset.tooltip;
+    tooltip.hidden=false;
+    pill.setAttribute("aria-describedby",tooltip.id);
+    const anchor=pill.getBoundingClientRect();
+    const width=tooltip.offsetWidth;
+    const left=Math.max(8,Math.min(anchor.right-width,window.innerWidth-width-8));
+    tooltip.style.left=`${left}px`;
+    tooltip.style.top=`${anchor.bottom+8}px`;
+    tooltip.style.maxHeight=`${Math.max(0,window.innerHeight-anchor.bottom-16)}px`;
+  };
+  pill.addEventListener("pointerenter",event=>{if(event.pointerType!=="touch")show();},options);
+  pill.addEventListener("pointerleave",event=>{if(event.pointerType!=="touch"&&!pill.matches(":focus-visible"))hide();},options);
+  pill.addEventListener("focus",()=>{if(pill.matches(":focus-visible"))show();},options);
+  pill.addEventListener("blur",hide,options);
+  pill.addEventListener("click",event=>{if(event.pointerType==="touch")tooltip.hidden?show():hide();},options);
+  document.addEventListener("pointerdown",event=>{if(!pill.contains(event.target))hide();},options);
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")hide();},options);
+  window.addEventListener("resize",hide,options);
+  window.addEventListener("scroll",hide,{...options,capture:true});
+  return ()=>{controller.abort();tooltip.remove();};
 }
 function moveCurrentProfile(remote, current = profile()) {
   if(!state.currentUser||!remote?.uid||!current)return false;
@@ -3339,6 +3377,7 @@ function syncAppShell() {
     return;
   }
   stopMobileHeader();
+  stopOnlineCountTooltip();
   const shell = document.createElement("template");
   shell.innerHTML = markup;
   const header = shell.content.firstElementChild;
@@ -3350,6 +3389,7 @@ function syncAppShell() {
   renderedTopBar = signature;
   $("#brand-home").addEventListener("click",actions.goPlatform); $("#install-app")?.addEventListener("click",requestPwaInstall); $("#open-progression")?.addEventListener("click",actions.openProgression); $("#open-changelog")?.addEventListener("click",changelogModal); $("#open-equipment")?.addEventListener("click",actions.openEquipment); $("#open-settings")?.addEventListener("click",actions.openSettings); $("#account").addEventListener("click",actions.openAccount); $("#open-shop")?.addEventListener("click",actions.openShop); $("#open-friends")?.addEventListener("click",()=>actions.openFriends()); $("#open-inbox")?.addEventListener("click",actions.openInbox); $("#open-report")?.addEventListener("click",()=>actions.openReportModal()); updateConnectionStatus();
   stopMobileHeader = bindMobileHeader(header);
+  stopOnlineCountTooltip = bindOnlineCountTooltip(header.querySelector(".online-count-pill"));
 }
 
 function renderMusicLoader(view, mode) {
