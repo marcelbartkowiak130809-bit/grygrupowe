@@ -12,9 +12,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-14";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-14";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-15";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261121-14";
+import { gamesList, getGameMode } from "./games.js?v=20261121-15";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-14";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261121-14";
@@ -34,6 +34,8 @@ import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } f
 import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-14";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-9";
+import { applyChartForecastAction, chartForecastMode, createChartForecastGame } from "./chartForecast.js?v=20261121-15";
+import { stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261121-15";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261121-8";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-8";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-8";
@@ -60,11 +62,11 @@ let stopOnlineCountTooltip = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261121-14";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-14";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-14";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-14";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-15";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-15";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-15";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261121-14";
+import { playerMini, renderRoom } from "./room.js?v=20261121-15";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261121-8";
@@ -989,6 +991,7 @@ const additionalModeRewardConfig = Object.freeze({
   "board-reversi": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   "board-warcaby": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   "board-szachy": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
+  [chartForecastMode]: { point:.45, scoreCap:100, winner:18, xp:45 },
   "board-cztery": { participation:50, point:12, scoreCap:8, winner:70, xp:60 },
   "board-memory": { participation:45, point:10, scoreCap:8, winner:65, xp:55 },
   "board-domino": { participation:45, point:9, scoreCap:10, winner:65, xp:55 },
@@ -2378,7 +2381,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       game.quickReactions[state.currentUser] = { id:reaction.id, text:reaction.text, expiresAt:now + 2200 };
       if (useChat && Array.isArray(game.chat)) game.chat.push({ uid:state.currentUser, text:reaction.text, reaction:true, createdAt:now });
     }, { sound:"notification" });
-    if (room.gameMode !== "pokemon-auction" && room.gameMode !== "board-szachy") {
+    if (room.gameMode !== "pokemon-auction" && room.gameMode !== "board-szachy" && room.gameMode !== chartForecastMode) {
       window.setTimeout(() => { if (Router.current === "game" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); }, 2300);
     }
     return result;
@@ -2675,7 +2678,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.players = players;
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
      room.status = "playing"; room.everStarted = true; addRoomActivity(room, "Host rozpoczął grę."); room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):mode.id==="dokoncz-tekst"?sanitizeLyricsSettings(room.settings):mode.id==="songspot"?sanitizeSongSpotSettings(room.settings):mode.audience==="board"?sanitizeBoardSettings(room.settings,mode.id):mode.audience==="minecraft"?sanitizeMinecraftSettings(room.settings,mode.id):room.settings;
-     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
+     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === chartForecastMode ? createChartForecastGame(room.players, room.settings, serverNow()): mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
@@ -2683,6 +2686,14 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     touchRoom(room); setRoomUrl(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
   },
   returnToRoom() { const room = activeRoom(); if (room) { if(closeLonelyFinishedRoom(room,{notify:true}))return; keepRoomCategoryUsage(room); room.status = "lobby"; room.game = null; touchRoom(room); setRoomUrl(room); Router.go("room"); } },
+  chartForecastAction(action,payload,expected) {
+    const room=activeRoom();
+    if(room?.gameMode!==chartForecastMode || (action==="next" && room.hostUid!==state.currentUser)) return false;
+    return mutateRoomGame((game,current)=>{
+      if(game.phase!==expected.phase || game.phaseEndsAt!==expected.phaseEndsAt) return "Ta runda już się zmieniła.";
+      return applyChartForecastAction(game,state.currentUser,action,payload,current.players,serverNow());
+    },{sound:action==="submit"?"submit":"turn",after:settleAdditionalModeResult,quietRejected:action!=="submit"});
+  },
   submitInitialBid(value) {
     const amount=Math.max(1,Math.min(50,parseInt(value||"1",10)));
     return mutateRoomGame((game,room)=>{if(game.phase!=="initialBid"||game.starter!==state.currentUser)return"Pierwszą deklarację podaje teraz inny gracz.";game.phase="bidding";game.currentBid=amount;game.currentBidder=state.currentUser;game.decisionPlayer=nextProvePlayer(room.players,state.currentUser);game.phaseEndsAt=provePhaseEnd(Math.round(room.settings.answerTime/2));},{sound:"bid"});
@@ -3454,6 +3465,10 @@ function renderNow(options = {}) {
   const preserveRoom = softRender && screen === "room" && oldView?.querySelector(".compact-room");
   const typeRace = screen === "game" && markerRoom?.gameMode === "pokemon-type-draw" ? markerRoom.game : null;
   const preserveTypeRace = previousScope === scope && ["type-draw","type-race"].includes(typeRace?.phase) && oldView?.querySelector("[data-type-race-view]");
+  const chartForecast = screen === "game" && markerRoom?.gameMode === chartForecastMode;
+  const preserveChartForecast = softRender && chartForecast && oldView?.querySelector("[data-chart-forecast]");
+  stopChartForecastTimer();
+  if (!chartForecast) stopChartForecastView();
   const chess = screen === "game" && markerRoom?.gameMode === "board-szachy";
   const preserveChess = softRender && chess && oldView?.querySelector("[data-chess-game]");
   const drafts = previousScope === scope && !preserveRoom && !typeRace ? captureInputDrafts(root) : {fields:[]};
@@ -3467,12 +3482,12 @@ function renderNow(options = {}) {
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
-  if (!auction && !chess) clearSideReactions(root);
+  if (!auction && !chess && !chartForecast) clearSideReactions(root);
   const activeAuctionLots = ["auction","auction-reveal"].includes(auction?.phase);
   const preserveAuctionResult = softRender && auction?.phase === "result" && oldView?.querySelector("[data-auction-final]");
   const preserveAuctionBattle = softRender && auctionBattlePhases.includes(auction?.phase) && oldView?.querySelector("[data-auction-battle]");
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3496,7 +3511,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
-  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess && !preserveChartForecast) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
@@ -3529,7 +3544,7 @@ function renderNow(options = {}) {
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
       if (preserveTypeRace) view.querySelectorAll(".quick-reactions-bar,.quick-reaction-bubble-layer").forEach(node => node.remove());
-      if (auction || chess) renderSideReactions(root, room, state.accounts, actions);
+      if (auction || chess || chartForecast) renderSideReactions(root, room, state.accounts, actions);
       else if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser);

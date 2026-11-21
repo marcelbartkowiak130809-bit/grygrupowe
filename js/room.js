@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261121-14";
+import { getGameMode } from "./games.js?v=20261121-15";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-14";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -14,6 +14,8 @@ import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20261121-8";
 import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
 import { renderPokemonLobbySettings } from "./pokemon.js?v=20261121-14";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
+import { chartForecastMode } from "./chartForecast.js?v=20261121-15";
+import { renderChartForecastLobby } from "./chartForecastView.js?v=20261121-15";
 import { renderQuizLobbySettings } from "./quiz.js?v=20261121-8";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20261121-8";
 import { renderMarkerLobbySettings } from "./marker.js?v=20261121-8";
@@ -28,7 +30,7 @@ import { renderConnectLobbySettings } from "./connect.js?v=20261121-8";
 import { renderLiarLobbySettings } from "./liar.js?v=20261121-9";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20261121-9";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20261121-9";
-import { adSenseBlock } from "./publicPages.js?v=20261121-14";
+import { adSenseBlock } from "./publicPages.js?v=20261121-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botTooltip, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20261121-9";
@@ -59,6 +61,7 @@ function lobbyAgeBadge(uid, room, accounts) {
 }
 
 function settingsHtml(mode, room, isHost, actions) {
+  if (mode.id === chartForecastMode) return renderChartForecastLobby(room,isHost);
   if (mode.id === "udowodnij") return `<p class="tiny">Czas odpowiedzi</p><div class="time-pills">${[15,30,45,60].map(time => `<button data-room-time="${time}" ${isHost ? "" : "disabled"} class="${Number(room.settings.answerTime) === time ? "active" : ""}">${time}s</button>`).join("")}</div><p class="tiny rounds-setting-label">Liczba rund</p><div class="time-pills">${[3,5,7,10].map(rounds => `<button data-room-rounds="${rounds}" ${isHost ? "" : "disabled"} class="${Number(room.settings.rounds || 5) === rounds ? "active" : ""}">${rounds}</button>`).join("")}</div>`;
   if (mode.id === "impostor") return renderImpostorLobbySettings(room, isHost);
   if (mode.id === "kim-jestem") return renderIdentityLobbySettings(room, isHost);
@@ -123,6 +126,7 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-pokemon-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value); });
   root.querySelectorAll("[data-pokemon-generation]").forEach(input => { input.onchange = () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration))); });
   root.querySelectorAll("[data-wavelength-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value); });
+  root.querySelectorAll("[data-chart-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.chartSetting, Number(input.value)); });
   root.querySelectorAll("[data-quiz-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.quizSetting, input.type === "checkbox" ? input.checked : input.value); });
   root.querySelectorAll("[data-math-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.mathSetting, input.type === "checkbox" ? input.checked : input.value); });
   root.querySelectorAll("[data-math-category]").forEach(input => { input.onchange = () => actions.setModeSetting("categories", [...root.querySelectorAll("[data-math-category]:checked")].map(item => item.dataset.mathCategory)); });

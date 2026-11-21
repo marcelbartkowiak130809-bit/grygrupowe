@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261121-14";
+import { renderGame } from "./game.js?v=20261121-15";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-14";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
@@ -13,6 +13,8 @@ import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=2
 import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
 import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-14";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-9";
+import { chartForecastDefaults, chartForecastMode } from "./chartForecast.js?v=20261121-15";
+import { renderChartForecastGame } from "./chartForecastView.js?v=20261121-15";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-8";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-8";
@@ -197,6 +199,14 @@ export const gamesRegistry = {
     badges: [],
     render: renderBombGame,
     defaultSettings: bombDefaults,
+  },
+  [chartForecastMode]: {
+    id:chartForecastMode, name:"Dorysuj wykres",
+    description:"Przewiduj dalszy ciąg prawdziwych danych i porównuj swój wykres z liniami znajomych.",
+    help:["Przeciągnij od punktu startowego do końca wykresu.","Każdy fragment możesz przerysować albo cofnąć ostatnią zmianę.","Najwyższa średnia trafność ze wszystkich rund wygrywa."],
+    players:"2–8 osób", minPlayers:2, maxPlayers:8, allowReports:true,
+    supportsLobby:true, supportsSolo:false, supportsBots:false, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
+    render:renderChartForecastGame, defaultSettings:chartForecastDefaults,
   },
   "najblizej-prawdy": {
     id: "najblizej-prawdy",

@@ -65,7 +65,7 @@ test('non-category filters and search reach individual modes inside categories',
  assert.deepEqual(filterLibraryGames(gamesList,'category',''),[]);
 });
 test('Udowodnij comes first in Wiedza and the category is available as a direct route',()=>{
- const expected=['udowodnij','najblizej-prawdy','quiz','mathematics','family'];
+ const expected=['udowodnij','dorysuj-wykres','najblizej-prawdy','quiz','mathematics','family'];
  const modes=libraryModesFor(gamesList,'knowledge');
  assert.deepEqual(modes.map(mode=>mode.id),expected);
  assert.equal(Router.appScreenFromPath('/wiedza'),'knowledge-select');

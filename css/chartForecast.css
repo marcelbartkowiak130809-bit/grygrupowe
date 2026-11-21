@@ -1,0 +1,102 @@
+.chart-forecast-page {
+  --chart-fill: #131d30;
+  --chart-hidden: #21334b;
+  --chart-grid: #7285a63a;
+  --chart-label: #b2c0d5;
+  --chart-divider: #83a0c4;
+  --chart-text: #f4f7ff;
+  --chart-actual: #f2f7fd;
+  --chart-own: #49c5d9;
+  --chart-edge: #7490ba47;
+  color: var(--chart-text);
+  max-width: 1010px;
+  margin-inline: auto;
+}
+.chart-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 13px; }
+.chart-heading p { margin: 0 0 5px; }
+.chart-heading h1 { margin: 0; max-width: 24ch; font-size: clamp(26px, 4.2vw, 47px); line-height: 1.08; text-wrap: balance; }
+.chart-progress { flex: none; display: grid; justify-items: end; gap: 5px; color: var(--chart-label); font-size: 12px; }
+.chart-steps { display: flex; gap: 4px; }
+.chart-steps span { width: 12px; height: 4px; border-radius: 6px; background: var(--chart-edge); }
+.chart-steps .is-past { background: #4898b6; }
+.chart-steps .is-current { background: #78e4da; }
+.chart-progress time { min-width: 52px; padding: 4px 7px; border-radius: 6px; text-align: center; color: var(--chart-text); background: var(--chart-fill); font: 750 14px/1.3 system-ui; font-variant-numeric: tabular-nums; }
+.chart-progress time.is-low { color: #ff93ac; }
+.chart-stage, .chart-final, .chart-review {
+  min-width: 0;
+  padding: clamp(10px,2vw,22px);
+  border: 1px solid var(--chart-edge);
+  border-radius: 17px;
+  background: var(--chart-fill);
+}
+.chart-stage h2, .chart-review h2 { margin: 0 0 8px; font-size: clamp(17px,2vw,22px); }
+.chart-unit { margin: 0 0 2px 6px; color: var(--chart-label); font-size: 13px; }
+.chart-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 53vh, 510px);
+  user-select: none;
+}
+.chart-canvas[tabindex] { cursor: crosshair; touch-action: none; }
+.chart-canvas:focus-visible { border-radius: 5px; outline: 2px solid #59cddd; }
+.chart-drawing-footer, .chart-actions, .chart-legend, .chart-footer, .chart-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.chart-drawing-footer { justify-content: space-between; margin-top: 11px; }
+.chart-drawing-footer > span { color: var(--chart-label); font-size: 13px; }
+.chart-actions .primary { min-width: 112px; }
+.chart-legend { margin-top: 12px; }
+.chart-legend button { display: inline-flex; align-items: center; gap: 6px; min-height: 35px; padding: 5px 8px; }
+.chart-legend button[aria-pressed="true"], .chart-review-tabs button[aria-pressed="true"] { border-color: #49b3cf; }
+.chart-legend button::before, .chart-actual-label::before {
+  content: "";
+  width: 12px;
+  height: 3px;
+  border-radius: 7px;
+  background: var(--series-color,var(--chart-actual));
+}
+.chart-actual-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--chart-label); }
+.chart-stats { margin: 10px 0; }
+.chart-stats strong { color: var(--chart-actual); font-size: clamp(24px, 4vw, 36px); font-variant-numeric: tabular-nums; }
+.chart-stats span, .chart-source { color: var(--chart-label); font-size: 13px; }
+.chart-source { text-decoration: underline; text-underline-offset: 3px; }
+.chart-footer { margin-top: 11px; padding-inline-end: 46px; }
+.chart-footer button { min-height: 36px; padding-block: 6px; }
+.chart-score-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.chart-score-list li { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; align-items: center; gap: 7px; min-width: 0; padding: 6px 9px; border: 1px solid var(--chart-edge); border-radius: 10px; }
+.chart-score-list .is-you { background: #41b8cf18; border-color: #49b3cf; }
+.chart-score-list .mini-player { min-width: 0; }
+.chart-score-list .nick { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.chart-score-list .mini-player > :is(.avatar,.level-badge) { flex-shrink: 0; }
+.chart-review { margin-top: 10px; }
+.chart-review-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.chart-review-tabs button { min-height: 36px; padding: 6px 9px; font-size: 12px; }
+.chart-review-tabs b { margin-inline-start: 4px; }
+.chart-review .chart-stage { margin-top: 8px; padding: 10px; }
+.chart-review .chart-canvas { height: clamp(235px,43vh,365px); }
+.game-visual-chart-forecast {
+  background: linear-gradient(145deg,#263551b0,#153c51), repeating-linear-gradient(0deg,transparent 0 18px,#61c7db2b 19px 20px);
+}
+.light-theme .chart-forecast-page {
+  --chart-fill: #f6f9ff;
+  --chart-hidden: #e4edf8;
+  --chart-grid: #6f88ac51;
+  --chart-label: #455c75;
+  --chart-divider: #5d789b;
+  --chart-text: #132441;
+  --chart-actual: #172747;
+  --chart-own: #077f9c;
+  --chart-edge: #5a77915c;
+}
+.light-theme .chart-progress time.is-low { color: #a21841; }
+@media(max-width:560px) {
+  .chart-heading { align-items: start; gap: 8px; }
+  .chart-heading h1 { font-size: clamp(21px,6vw,27px); }
+  .chart-steps span { width: 7px; }
+  .chart-canvas { height: clamp(270px,48svh,400px); }
+  .chart-drawing-footer { margin-top: 7px; }
+  .chart-drawing-footer > span { max-width: 19ch; }
+}
