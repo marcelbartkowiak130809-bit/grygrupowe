@@ -1,7 +1,7 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { hasGamePass } from "./gamePasses.js?v=20261121-9";
-import { serverNow } from "./firebase.js?v=20261121-8";
+import { serverNow } from "./firebase.js?v=20261121-11";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
 import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261121-9";

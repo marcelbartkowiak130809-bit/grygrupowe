@@ -1,162 +1,244 @@
-import { clearVoiceSignals, hasVoiceSignaling, pushVoiceIceCandidate, setVoiceSignal, subscribeVoiceSignals } from "./firebase.js?v=20261121-8";
+import { clearVoiceSession, hasVoiceSignaling, setVoiceSignal, subscribeVoiceSignals, serverNow } from "./firebase.js?v=20261121-11";
+import { isBotId } from "./bots.js?v=20261121-8";
 
-const rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }, { urls:"stun:stun1.l.google.com:19302" }] };
-const now = () => Date.now();
+const rtcConfig = { iceServers:[{ urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"] }] };
+const signalingError = "Brak połączenia z usługą czatu głosowego. Spróbuj połączyć ponownie.";
+const iceConnected = pc => pc.connectionState === "connected" || ["connected","completed"].includes(pc.iceConnectionState);
 
 export function createIdentityVoiceChat(onChange = () => {}) {
-  let roomId = "", uid = "", players = [], game = null, stream = null, stopSignals = () => {};
-  let signalsRoomId = "", signalsUid = "";
-  let manualMuted = false, micError = "", requesting = false, cleanupStarted = false;
-  let lastStateJson = "";
-  const peers = new Map(), processedIce = new Set(), remoteAudio = new Map(), offeredPeers = new Set();
-
-  const connectedPeerCount = () => [...peers.values()].filter(pc => ["connected", "completed"].includes(pc.iceConnectionState) || pc.connectionState === "connected").length;
-  const state = () => ({ supported:hasVoiceSignaling(), connected:Boolean(stream), requesting, error:micError, manualMuted, allowedToSpeak:canSpeak(), remoteCount:connectedPeerCount(), peerCount:Math.max(0, players.length - 1) });
-  const emit = () => { const next = JSON.stringify(state()); if (next !== lastStateJson) { lastStateJson = next; onChange(); } };
+  let roomId = "", uid = "", gameId = "", players = [], game = null, stream = null, session = null;
+  let manualMuted = false, micError = "", requesting = false, repeatTimer, lastStateJson = "", snapshot = {};
+  const peers = new Map();
+  const supported = () => Boolean(globalThis.RTCPeerConnection && navigator.mediaDevices?.getUserMedia);
+  const state = () => ({
+    supported:supported() && hasVoiceSignaling(uid), connected:Boolean(stream), requesting, error:micError,
+    manualMuted, allowedToSpeak:canSpeak(), audioBlocked:[...peers.values()].some(peer=>peer.audioBlocked),
+    remoteCount:[...peers.values()].filter(peer=>iceConnected(peer.pc)).length, peerCount:players.length,
+    connectionFailed:[...peers.values()].some(peer=>peer.failed),
+  });
+  function emit() {
+    const next = JSON.stringify(state());
+    if (next !== lastStateJson) { lastStateJson = next; onChange(); }
+  }
 
   function canSpeak() {
     if (!game || !uid) return false;
     const active = game.order?.[game.turnIndex];
     if (game.phase === "turn") return uid === active;
-    if (game.phase === "responses") {
-      if (Number(game.repeatUntil || 0) > now()) return uid === active;
-      return uid !== active;
-    }
-    return false;
+    if (game.phase !== "responses") return false;
+    return Number(game.repeatUntil || 0) > serverNow() ? uid === active : uid !== active;
   }
 
   function applyMute() {
-    const enabled = Boolean(stream && canSpeak() && !manualMuted);
-    stream?.getAudioTracks().forEach(track => { track.enabled = enabled; });
+    clearTimeout(repeatTimer);
+    const repeatLeft = Number(game?.repeatUntil || 0) - serverNow();
+    if (game?.phase === "responses" && repeatLeft > 0) repeatTimer = setTimeout(applyMute,repeatLeft);
+    stream?.getAudioTracks().forEach(track => { track.enabled = canSpeak() && !manualMuted; });
     emit();
   }
 
-  async function ensureMic() {
-    if (stream || requesting) return Boolean(stream);
-    if (!navigator.mediaDevices?.getUserMedia) { micError = "Ta przegladarka nie obsluguje dostepu do mikrofonu."; emit(); return false; }
-    requesting = true; micError = ""; emit();
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }, video:false });
-      requesting = false; applyMute(); return true;
-    } catch (error) {
-      requesting = false;
-      micError = error?.name === "NotAllowedError" ? "Odmowiono dostepu do mikrofonu. Zezwol w przegladarce, zeby rozmawiac przez gre." : "Nie udalo sie uruchomic mikrofonu.";
-      emit(); return false;
+  function dropPeer(peerUid) {
+    const peer = peers.get(peerUid);
+    if (!peer) return;
+    peers.delete(peerUid);
+    clearTimeout(peer.timer);
+    peer.pc.close();
+    if(peer.audio) {
+      peer.audio.srcObject = null;
+      peer.audio.remove();
     }
   }
 
-  function audioFor(peerUid) {
-    let element = remoteAudio.get(peerUid);
-    if (!element) {
-      element = document.createElement("audio");
-      element.autoplay = true;
-      element.playsInline = true;
-      element.dataset.identityVoicePeer = peerUid;
-      element.style.display = "none";
-      document.body.append(element);
-      remoteAudio.set(peerUid, element);
-    }
-    return element;
+  async function playAudio(peer) {
+    if (!peer.audio) return;
+    try { await peer.audio.play(); peer.audioBlocked = false; }
+    catch (error) { peer.audioBlocked = error?.name === "NotAllowedError"; }
+    if (peers.get(peer.uid) === peer) emit();
   }
 
-  function makePeer(peerUid) {
-    if (peers.has(peerUid) || !stream) return peers.get(peerUid);
+  function makePeer(peerUid, remoteSession, active) {
     const pc = new RTCPeerConnection(rtcConfig);
-    peers.set(peerUid, pc);
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
-    pc.onicecandidate = event => {
-      if (event.candidate) pushVoiceIceCandidate(roomId, uid, peerUid, event.candidate.toJSON()).then(ok => {
-        if (!ok) { micError = "Nie udalo sie wyslac danych polaczenia audio. Sprobuj odswiezyc pokoj."; emit(); }
+    const peer = {
+      uid:peerUid, pc, remoteSession, audio:null, candidates:[], seenIce:new Set(), pending:Promise.resolve(),
+      description:null, lastIncoming:"", audioBlocked:false, failed:false,
+    };
+    peers.set(peerUid,peer);
+    stream.getAudioTracks().forEach(track=>pc.addTrack(track,stream));
+    const valid = () => session===active && peers.get(peerUid)===peer;
+    function checkConnection() {
+      if (!valid()) return;
+      clearTimeout(peer.timer);
+      peer.failed = pc.connectionState === "failed" || pc.iceConnectionState === "failed";
+      if (!peer.failed && !iceConnected(pc)) {
+        peer.timer = setTimeout(()=>{ if(valid()) { peer.failed=true; emit(); } },15000);
+      }
+      emit();
+    }
+    pc.onconnectionstatechange = checkConnection;
+    pc.oniceconnectionstatechange = checkConnection;
+    checkConnection();
+    peer.publish = async () => {
+      if (!valid() || !peer.description) return;
+      const ok = await setVoiceSignal(active.roomId,active.uid,peerUid,"negotiation",{
+        fromSession:active.id, toSession:remoteSession, description:peer.description, candidates:[...peer.candidates],
       });
+      if (!ok && valid()) { micError=signalingError; emit(); }
+    };
+    pc.onicecandidate = ({candidate}) => {
+      if (candidate && valid()) { peer.candidates.push(candidate.toJSON()); void peer.publish(); }
     };
     pc.ontrack = event => {
-      const element = audioFor(peerUid);
-      element.srcObject = event.streams[0];
-      element.muted = false;
-      element.volume = 1;
-      element.play?.().catch(() => {});
-      emit();
+      if (!valid()) return;
+      if (!peer.audio) {
+        peer.audio=document.createElement("audio");
+        peer.audio.autoplay=true;
+        peer.audio.setAttribute("playsinline","");
+        peer.audio.hidden=true;
+        peer.audio.dataset.identityVoicePeer=peerUid;
+        document.body.append(peer.audio);
+      }
+      peer.audio.srcObject=event.streams[0] || new MediaStream([event.track]);
+      void playAudio(peer);
     };
-    pc.onconnectionstatechange = () => { if (["failed","closed","disconnected"].includes(pc.connectionState)) emit(); };
-    pc.oniceconnectionstatechange = () => emit();
-    return pc;
+    return peer;
   }
 
-  async function createOffer(peerUid) {
-    if (offeredPeers.has(peerUid)) return;
-    const pc = makePeer(peerUid);
-    if (!pc || pc.signalingState !== "stable") return;
-    const offer = await pc.createOffer({ offerToReceiveAudio:true });
-    await pc.setLocalDescription(offer);
-    const ok = await setVoiceSignal(roomId, uid, peerUid, "offer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
-    if (ok) offeredPeers.add(peerUid);
-    else { micError = "Nie udalo sie wyslac zaproszenia audio. Sprobuj odswiezyc pokoj."; emit(); }
+  async function setLocal(peer, description, valid) {
+    if(!valid()) return;
+    await peer.pc.setLocalDescription(description);
+    if(!valid()) return;
+    const {type,sdp}=peer.pc.localDescription;
+    peer.description={type,sdp};
+    await peer.publish();
   }
 
-  async function handleSignals(data = {}) {
-    if (!stream || !roomId || !uid) return;
-    for (const fromUid of Object.keys(data)) {
-      if (fromUid === uid || !players.includes(fromUid)) continue;
-      const incoming = data[fromUid]?.[uid] || {};
-      const pc = makePeer(fromUid);
-      if (!pc) continue;
-      if (incoming.offer && pc.signalingState === "stable") {
-        await pc.setRemoteDescription(new RTCSessionDescription(incoming.offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        const ok = await setVoiceSignal(roomId, uid, fromUid, "answer", { type:pc.localDescription.type, sdp:pc.localDescription.sdp });
-        if (!ok) { micError = "Nie udalo sie wyslac odpowiedzi audio. Sprobuj odswiezyc pokoj."; emit(); }
-      }
-      if (incoming.answer && pc.signalingState === "have-local-offer") await pc.setRemoteDescription(new RTCSessionDescription(incoming.answer));
-      for (const [candidateId, candidate] of Object.entries(incoming.candidates || {})) {
-        const key = `${fromUid}:${candidateId}`;
-        if (processedIce.has(key)) continue;
-        if (!pc.remoteDescription) continue;
-        try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); processedIce.add(key); } catch {}
-      }
+  function reconcile(active) {
+    if(session!==active || !stream) return;
+    for(const [id,peer] of peers) {
+      if(!players.includes(id) || snapshot[id]?.[id]?.session!==peer.remoteSession) dropPeer(id);
+    }
+    for(const peerUid of players) {
+      const remoteSession=snapshot[peerUid]?.[peerUid]?.session;
+      if(typeof remoteSession!=="string" || !remoteSession) continue;
+      const existing=peers.get(peerUid), peer=existing||makePeer(peerUid,remoteSession,active);
+      const message=snapshot[peerUid]?.[uid]?.negotiation;
+      const incoming=message?.fromSession===remoteSession && message.toSession===active.id ? message : null;
+      const signature=incoming?JSON.stringify(incoming):"";
+      if(existing && peer.lastIncoming===signature) continue;
+      peer.lastIncoming=signature;
+      const valid=()=>session===active && peers.get(peerUid)===peer;
+      peer.pending=peer.pending.then(async()=>{
+        if(!valid()) return;
+        const pc=peer.pc;
+        if(!existing && active.uid<peerUid) await setLocal(peer,await pc.createOffer(),valid);
+        if(!valid() || !incoming) return;
+        if(!pc.remoteDescription && incoming.description?.type===(active.uid<peerUid?"answer":"offer")) {
+          await pc.setRemoteDescription(incoming.description);
+          if(valid() && incoming.description.type==="offer") await setLocal(peer,await pc.createAnswer(),valid);
+        }
+        if(!valid() || !pc.remoteDescription) return;
+        for(const candidate of Object.values(incoming.candidates || {})) {
+          if(!valid()) return;
+          const key=JSON.stringify(candidate);
+          if(peer.seenIce.has(key)) continue;
+          await pc.addIceCandidate(candidate);
+          peer.seenIce.add(key);
+        }
+      }).catch(()=>{
+        if(valid()) { peer.failed=true; emit(); }
+      });
+    }
+    emit();
+  }
+
+  function endSession() {
+    const old=session;
+    session=null;
+    snapshot={};
+    for(const id of peers.keys()) dropPeer(id);
+    if(old) {
+      old.unsubscribe?.();
+      void old.ready?.then(()=>clearVoiceSession(old.roomId,old.uid,old.id));
     }
   }
 
-  async function connectPeers() {
-    if (!stream || !roomId || !uid) return;
-    if (signalsRoomId !== roomId || signalsUid !== uid) {
-      stopSignals();
-      offeredPeers.clear();
-      signalsRoomId = roomId;
-      signalsUid = uid;
-      stopSignals = subscribeVoiceSignals(roomId, uid, snapshot => handleSignals(snapshot).catch(()=>{}));
-    }
-    players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
-    await Promise.all(players.filter(peerUid => peerUid !== uid && uid < peerUid).map(createOffer));
+  function startSession() {
+    endSession();
+    const active={roomId,uid,id:crypto.randomUUID()};
+    session=active;
+    active.unsubscribe=subscribeVoiceSignals(roomId,uid,data=>{
+      if(session!==active) return;
+      snapshot=data;
+      reconcile(active);
+    },()=>{
+      if(session===active) { micError=signalingError; emit(); }
+    });
+    active.ready=setVoiceSignal(roomId,uid,uid,"session",active.id);
+    void active.ready.then(ok=>{
+      if(!ok && session===active) { micError=signalingError; emit(); }
+    });
   }
 
-  async function sync(nextRoom, currentUid) {
-    const voice = nextRoom?.gameMode === "kim-jestem" && ["browserVoice", "voice"].includes(nextRoom.settings?.gameFlow) && nextRoom.status === "playing" && nextRoom.game?.phase !== "results";
-    if (!voice || !currentUid) return stop();
-    const changedRoom = roomId !== nextRoom.roomId || uid !== currentUid;
-    roomId = nextRoom.roomId; uid = currentUid; players = [...(nextRoom.players || [])]; game = nextRoom.game;
-    if (!hasVoiceSignaling()) { micError = "Voice chat przez gre wymaga trybu online i zalogowanego gracza."; emit(); return; }
-    await ensureMic();
+  function sync(nextRoom, currentUid) {
+    const voice=nextRoom?.gameMode==="kim-jestem" && ["browserVoice","voice"].includes(nextRoom.settings?.gameFlow)
+      && nextRoom.status==="playing" && nextRoom.game && nextRoom.game.phase!=="results" && nextRoom.players?.includes(currentUid);
+    if(!voice || !currentUid) { stop(); return; }
+    const nextGameId=nextRoom.game.siteGameId || nextRoom.game.startedAt || "";
+    if(roomId!==nextRoom.roomId || uid!==currentUid || gameId!==nextGameId) {
+      stop();
+      roomId=nextRoom.roomId;
+      uid=currentUid;
+      gameId=nextGameId;
+    }
+    players=nextRoom.players.filter(player=>player!==uid && !isBotId(player));
+    game=nextRoom.game;
     applyMute();
-    if (!stream) return;
-    [...peers.entries()].filter(([peerUid, pc]) => !players.includes(peerUid) || ["failed", "closed"].includes(pc.connectionState)).forEach(([peerUid, pc]) => { pc.close(); peers.delete(peerUid); offeredPeers.delete(peerUid); remoteAudio.get(peerUid)?.remove(); remoteAudio.delete(peerUid); });
-    players.filter(peerUid => peerUid !== uid).forEach(peerUid => makePeer(peerUid));
-    await connectPeers();
+    if(session) reconcile(session);
   }
 
-  function toggleMute() { manualMuted = !manualMuted; applyMute(); }
-  async function enable() { await ensureMic(); applyMute(); await connectPeers(); for (const element of remoteAudio.values()) element.play?.().catch(()=>{}); }
+  let micRequest = null;
+  async function enable() {
+    if(!roomId || micRequest) return;
+    // Call play directly from the click so browsers that block autoplay can unlock it.
+    peers.forEach(peer=>{if(peer.audioBlocked) void playAudio(peer);});
+    if(!supported() || !hasVoiceSignaling(uid)) {
+      micError=supported()?"Czat głosowy wymaga połączenia z pokojem online.":"Ta przeglądarka nie pozwala użyć mikrofonu.";
+      emit(); return;
+    }
+    if(stream) {
+      if(micError || !session || [...peers.values()].some(peer=>peer.failed)) { micError=""; startSession(); emit(); }
+      return;
+    }
+    const request={};
+    micRequest=request;
+    requesting=true; micError=""; emit();
+    try {
+      const captured=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+      if(micRequest!==request) { captured.getTracks().forEach(track=>track.stop()); return; }
+      stream=captured;
+      captured.getAudioTracks().forEach(track=>track.addEventListener("ended",()=>{
+        if(stream!==captured) return;
+        endSession(); stream=null;
+        micError="Mikrofon został odłączony. Połącz go ponownie.";
+        emit();
+      },{once:true}));
+      applyMute();
+      startSession();
+    } catch(error) {
+      if(micRequest!==request) return;
+      micError=error?.name==="NotAllowedError"?"Zezwól na mikrofon w ustawieniach tej strony i spróbuj ponownie.":"Nie udało się uruchomić mikrofonu. Sprawdź urządzenie i spróbuj ponownie.";
+    } finally {
+      if(micRequest===request) { micRequest=null; requesting=false; emit(); }
+    }
+  }
 
-  async function stop() {
-    if (cleanupStarted && !roomId) return;
-    cleanupStarted = true;
-    const oldRoom = roomId, oldUid = uid;
-    stopSignals(); stopSignals = () => {}; signalsRoomId = ""; signalsUid = "";
-    peers.forEach(pc => pc.close()); peers.clear(); processedIce.clear(); offeredPeers.clear();
-    remoteAudio.forEach(element => element.remove()); remoteAudio.clear();
-    stream?.getTracks().forEach(track => track.stop()); stream = null;
-    roomId = ""; uid = ""; players = []; game = null; cleanupStarted = false;
-    if (oldRoom && oldUid) clearVoiceSignals(oldRoom, oldUid);
+  function toggleMute() { manualMuted=!manualMuted; applyMute(); }
+
+  function stop() {
+    endSession(); clearTimeout(repeatTimer);
+    micRequest=null; requesting=false;
+    stream?.getTracks().forEach(track=>track.stop()); stream=null;
+    roomId=""; uid=""; gameId=""; players=[]; game=null; micError=""; manualMuted=false;
     emit();
   }
 

@@ -458,8 +458,8 @@ function normalTurnHtml(me, active, accounts) {
 function voiceTurnHtml(me, active, accounts, gameFlow) {
   const external = gameFlow === "externalVoice";
   return me
-    ? `<div class="identity-voice-box"><p class="eyebrow">${external ? "GLOS POZA GRA" : "TRYB GLOSOWY"}</p><h3>${external ? "Rozmawiacie poza strona." : "Twoj mikrofon jest teraz aktywny w rozmowie."}</h3><p>${external ? "Zadaj pytanie na Discordzie lub innym komunikatorze. Kliknij po pytaniu, zeby tura poszla dalej, albo wpisz zgadywana postac." : "Zadaj pytanie na glos, a potem kliknij, ze grupa ma odpowiadac. Gdy juz wiesz, wpisz zgadywana postac."}</p><button class="primary" id="identity-voice-question">Zadalem pytanie</button><form id="identity-form" class="identity-guess-form"><input id="identity-input" placeholder="wpisz, kim jestes"><button data-identity-type="guess">Zgaduje</button></form></div>`
-    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Sluchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>${external ? "Odpowiedzcie poza strona. Gra przejdzie dalej, gdy aktywny gracz kliknie, ze zadal pytanie, albo skonczy sie czas." : "Po pytaniu gra przelaczy ekran na odpowiedzi grupy."}</p>${external ? "" : '<button id="identity-enable-mic">Polacz mikrofon</button>'}</div>`;
+    ? `<div class="identity-voice-box"><p class="eyebrow">${external ? "GLOS POZA GRA" : "TRYB GLOSOWY"}</p><h3>Zadaj pytanie na głos</h3><p>${external ? "Zadaj pytanie na Discordzie lub innym komunikatorze. Kliknij po pytaniu, zeby tura poszla dalej, albo wpisz zgadywana postac." : "Po pytaniu oddaj głos grupie. Gdy już wiesz, kim jesteś, wpisz odpowiedź."}</p><button class="primary" id="identity-voice-question">Zadałem pytanie</button><form id="identity-form" class="identity-guess-form"><input id="identity-input" placeholder="wpisz, kim jesteś"><button data-identity-type="guess">Zgaduję</button></form></div>`
+    : `<div class="waiting-state voice-listen"><span class="waiting-pulse">ON</span><h3>Słuchaj pytania od ${escapeHtml(accounts[active]?.nick || "gracza")}</h3><p>${external ? "Odpowiedzcie poza strona. Gra przejdzie dalej, gdy aktywny gracz kliknie, ze zadal pytanie, albo skonczy sie czas." : "Po pytaniu gra odda głos grupie."}</p></div>`;
 }
 
 function identityHintHtml(game, accounts, currentUser, settings = {}) {
@@ -472,11 +472,25 @@ function identityHintHtml(game, accounts, currentUser, settings = {}) {
   return settings.gamePurchases === false ? "" : `<button class="ghost identity-hint-button" data-identity-letter ${paidUsed ? "disabled" : ""}>🔤 Kup jedną literę za 500$</button>`;
 }
 
-function voiceControlsHtml(actions) {
-  const state = actions.identityVoiceState?.() || {};
-  const label = state.error ? "Blad mikrofonu" : state.requesting ? "Prosba o mikrofon..." : !state.connected ? "Mikrofon nieaktywny" : state.manualMuted ? "Wyciszony recznie" : state.allowedToSpeak ? "Mikrofon aktywny" : "Wyciszony przez ture";
-  const detail = state.error || (state.connected ? `${state.remoteCount || 0}/${state.peerCount || 0} polaczen audio. Audio nie jest zapisywane.` : "Kliknij, zeby pozwolic stronie na mikrofon.");
-  return `<section class="identity-voice-controls ${state.error ? "voice-error" : state.allowedToSpeak && !state.manualMuted ? "voice-speaking" : ""}"><div><p class="eyebrow">VOICE CHAT</p><h3>${escapeHtml(label)}</h3><p>${escapeHtml(detail)}</p></div><div class="choice-row"><button id="identity-enable-voice" ${state.requesting ? "disabled" : ""}>Polacz mikrofon</button><button class="ghost" id="identity-toggle-mic" ${!state.connected ? "disabled" : ""}>${state.manualMuted ? "Odcisz" : "Wycisz"}</button></div></section>`;
+function voiceControlsHtml() {
+  return '<section class="identity-voice-controls"><div><p class="eyebrow">CZAT GŁOSOWY</p><div aria-live="polite"><h3></h3><p data-identity-voice-detail></p></div></div><div class="choice-row"><button id="identity-enable-voice">Dołącz do rozmowy</button><button class="ghost" id="identity-toggle-mic" disabled>Wycisz</button></div></section>';
+}
+
+export function updateIdentityVoiceControls(root,state) {
+  const panel=root.querySelector(".identity-voice-controls");
+  if(!panel) return;
+  const failed=state.error||state.connectionFailed;
+  const speaking=state.connected&&state.allowedToSpeak&&!state.manualMuted;
+  const label=failed?"Problem z czatem głosowym":state.requesting?"Prośba o mikrofon…":!state.connected?"Mikrofon nieaktywny":state.manualMuted?"Mikrofon wyciszony":speaking?"Możesz mówić":"Tryb słuchania";
+  const detail=state.error||(state.connectionFailed?"Nie udało się połączyć głosu z częścią graczy.":state.audioBlocked?"Przeglądarka wstrzymała dźwięk.":state.connected?`Połączono z ${state.remoteCount}/${state.peerCount} graczy.`:"Każdy gracz dołącza do rozmowy na swoim urządzeniu.");
+  for(const [selector,text] of [["h3",label],["[data-identity-voice-detail]",detail],["#identity-enable-voice",failed?"Połącz ponownie":state.audioBlocked?"Włącz dźwięk":state.connected?"Dołączono":"Dołącz do rozmowy"],["#identity-toggle-mic",state.manualMuted?"Odcisz":"Wycisz"]]) {
+    const element=panel.querySelector(selector);
+    if(element.textContent!==text) element.textContent=text;
+  }
+  panel.classList.toggle("voice-error",Boolean(failed));
+  panel.classList.toggle("voice-speaking",speaking&&!failed);
+  panel.querySelector("#identity-enable-voice").disabled=Boolean(state.requesting||(state.connected&&!failed&&!state.audioBlocked));
+  panel.querySelector("#identity-toggle-mic").disabled=!state.connected;
 }
 
 function responsesHtml(game, currentUser, accounts, answers, settings) {
@@ -508,7 +522,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
     ? `<section class="panel center identity-results"><h1>Koniec gry</h1><div class="final-ranking">${Object.entries(g.scores).sort((a,b) => b[1] - a[1]).map(([uid,n], index, rows) => { const topScore = Math.max(0, ...rows.map(([,score]) => Number(score) || 0)); return `<article><b>#${index + 1}</b>${resultPlayerMiniHtml(accounts[uid], Number(n) === topScore && topScore > 0 ? "win" : "lose")}<strong>${n} pkt</strong></article>`; }).join("")}</div><h2>Kto kim byl</h2>${resultsHistory(g, accounts)}<button class="primary" id="identity-again">Wroc do lobby</button></section>`
     : g.phase === "extendVote"
       ? `<section class="panel identity-main center"><div class="game-top"><div><p class="eyebrow">DOGRYWKA</p><h1>Dodajemy jeszcze jedną rundę?</h1></div>${timer(g)}</div><p class="muted">Głosowanie kończy grę, jeżeli grupa nie chce dogrywki.</p><div class="choice-row"><button class="primary" data-identity-extend="true">Dodaj rundę</button><button data-identity-extend="false">Kończymy</button></div><div class="vote-details">${Object.entries(g.extendVotes || {}).map(([uid, vote]) => `<span>${escapeHtml(accounts[uid]?.nick || "Gracz")}: ${vote ? "jeszcze jedna" : "koniec"}</span>`).join("")}</div></section>`
-      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${identityHintHtml(g, accounts, currentUser, s)}${s.gameFlow === "browserVoice" ? voiceControlsHtml(actions) : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts, s.gameFlow)) : responsesHtml(g, currentUser, accounts, answers, s)}</section>`;
+      : `<section class="panel identity-main"><div class="game-top"><div><p class="eyebrow">${roundText} - ${s.gameFlow === "normal" ? "PISANY" : s.gameFlow === "browserVoice" ? "VOICE CHAT" : "GLOS POZA GRA"}</p><h1>${escapeHtml(accounts[active]?.nick || "Gracz")} zgaduje</h1></div>${timer(g)}</div><div class="identity-turn-token">${me ? "Twoja kolej. Patrz na karty znajomych i odkryj wlasna postac." : `${escapeHtml(accounts[active]?.nick || "Gracz")} probuje odkryc swoja karte.`}</div>${identityHintHtml(g, accounts, currentUser, s)}${s.gameFlow === "browserVoice" ? voiceControlsHtml() : ""}${g.phase === "turn" ? (s.gameFlow === "normal" ? normalTurnHtml(me, active, accounts) : voiceTurnHtml(me, active, accounts, s.gameFlow)) : responsesHtml(g, currentUser, accounts, answers, s)}</section>`;
 
   root.innerHTML = `<main class="page identity-page board-shell enter"><section class="identity-table"><p class="eyebrow">STOL GRACZY</p>${identityBoard(g, accounts, currentUser, active, s)}</section>${main}<section class="identity-side-grid">${notepadHtml(room.roomId, currentUser)}<section class="panel"><h3>Historia</h3><div class="clue-list">${g.history.slice(-10).reverse().map(h => `<div class="clue"><b>${escapeHtml(accounts[h.uid]?.nick || "Gracz")}</b><span>${escapeHtml(h.text || "")}</span><small>${escapeHtml(h.answer || "")}</small></div>`).join("") || '<p class="muted">Brak pytan.</p>'}</div></section></section><button class="ghost" id="leave-room">Wyjdz</button></main>`;
 
@@ -518,7 +532,7 @@ export function renderIdentityGame(root, { room, accounts, currentUser }, action
   $("#identity-again")?.addEventListener("click", actions.returnToRoom);
   $("#identity-voice-question")?.addEventListener("click", () => actions.identityVoiceQuestion());
   $("#identity-repeat")?.addEventListener("click", () => actions.identityRepeatRequest());
-  $("#identity-enable-mic")?.addEventListener("click", () => actions.identityEnableVoice?.());
+  updateIdentityVoiceControls(root,actions.identityVoiceState?.() || {});
   $("#identity-enable-voice")?.addEventListener("click", () => actions.identityEnableVoice?.());
   $("#identity-toggle-mic")?.addEventListener("click", () => actions.identityToggleMic?.());
   $("#identity-notepad")?.addEventListener("input", event => {

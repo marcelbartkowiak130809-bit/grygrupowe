@@ -418,42 +418,27 @@ export function subscribeOnlineCount(callback) {
   return () => { clearInterval(timer); window.removeEventListener("storage", storage); window.removeEventListener("udowodnij-presence-change", localChange); };
 }
 
-export function hasVoiceSignaling() { return Boolean(remoteDatabase && remoteAuth?.currentUser); }
+export function hasVoiceSignaling(uid) { return canUseRemote() && remoteAuth.currentUser.uid === uid; }
 
 export async function setVoiceSignal(roomId, fromUid, toUid, key, value) {
-  if (!canUseRemote() || !roomId || !fromUid || !toUid || !key) return false;
+  if (!hasVoiceSignaling(fromUid) || !roomId || !toUid || !key) return false;
   try {
     await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/${key}`), value);
     return true;
   } catch { return false; }
 }
 
-export async function pushVoiceIceCandidate(roomId, fromUid, toUid, candidate) {
-  if (!canUseRemote() || !roomId || !fromUid || !toUid || !candidate) return false;
-  try {
-    await firebaseDatabaseApi.push(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}/${fromUid}/${toUid}/candidates`), candidate);
-    return true;
-  } catch { return false; }
+export function subscribeVoiceSignals(roomId, uid, callback, onError) {
+  if (!hasVoiceSignaling(uid) || !roomId) return () => {};
+  return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`), snapshot => callback(snapshot.val() || {}), onError);
 }
 
-export function subscribeVoiceSignals(roomId, uid, callback) {
-  if (!canUseRemote() || !roomId || !uid) return () => {};
-  return firebaseDatabaseApi.onValue(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`), snapshot => callback(snapshot.val() || {}), () => callback({}));
-}
-
-export async function clearVoiceSignals(roomId, uid = "") {
-  if (!canUseRemote() || !roomId) return false;
+export async function clearVoiceSession(roomId, uid, session) {
+  if (!hasVoiceSignaling(uid) || !roomId) return;
   try {
-    if (!uid) { await firebaseDatabaseApi.remove(firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`)); return true; }
-    const roomRef = firebaseDatabaseApi.ref(remoteDatabase, `voiceSignaling/${roomId}`);
-    const snapshot = await firebaseDatabaseApi.get(roomRef), data = snapshot.val() || {};
-    const updates = {};
-    Object.keys(data[uid] || {}).forEach(to => { updates[`${uid}/${to}`] = null; });
-    Object.keys(data).forEach(from => { if (data[from]?.[uid]) updates[`${from}/${uid}`] = null; });
-    if (!Object.keys(updates).length) return true;
-    await firebaseDatabaseApi.update(roomRef, updates);
-    return true;
-  } catch { return false; }
+    const ref=firebaseDatabaseApi.ref(remoteDatabase,`voiceSignaling/${roomId}/${uid}/${uid}/session`);
+    await firebaseDatabaseApi.runTransaction(ref,current=>current===session?null:undefined);
+  } catch {}
 }
 export async function loadPresenceUsers() {
   if (canUseRemote()) {
