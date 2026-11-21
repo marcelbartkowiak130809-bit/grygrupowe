@@ -6,6 +6,76 @@ import {
   auctionBattlePrep, auctionBattleSurrender, auctionBattleTimeout, battleSignatureEffectiveness, battleSlots, battleTeam, prepareAuctionBattle,
 } from "../js/pokemonAuctionBattle.js";
 import { gamePassById, passesForMode, pokemonBattleScoutPass } from "../js/gamePasses.js";
+import { auctionAbility, auctionAbilityChoices, auctionAbilityName } from "../js/pokemonAuctionAbilities.js";
+import { battleSpeciesData } from "../js/pokemonAuctionBattleData.js";
+
+function abilityDuel(first, second, advancedAbilities = true) {
+  const players = ["a","b"];
+  const game = createPokemonGame("pokemon-auction",players,{battleAfterAuction:true,advancedAbilities});
+  game.teams = {a:[first],b:[second]};
+  prepareAuctionBattle(game,players,1000);
+  for (const uid of players) auctionBattlePrep(game,uid,{kind:"ready"},players,2000);
+  const unit = uid => battleTeam(game,uid)[0];
+  const attack = (uid,move = "basic") => {
+    game.battle.activeUid = uid;
+    assert.equal(auctionBattleAttack(game,uid,{slot:0,targetSlot:0,targetUid:uid === "a" ? "b" : "a",move},players,2050),undefined);
+    return game.battle.last;
+  };
+  return {game,unit,attack};
+}
+
+test("all auction forms have named abilities and prep only accepts legal choices",()=>{
+  for (const id of Object.keys(battleSpeciesData)) {
+    const options = auctionAbilityChoices(Number(id));
+    assert.ok(options.length && options.every(auctionAbilityName),id);
+  }
+  assert.deepEqual(auctionAbilityChoices(25),["static","lightning-rod"]);
+  assert.equal(auctionAbilityChoices(10035)[0],"drought");
+  assert.equal(auctionAbilityChoices(10078)[0],"desolate-land");
+  for (const advancedAbilities of [false,true]) {
+    const game = createPokemonGame("pokemon-auction",["a","b"],{battleAfterAuction:true,advancedAbilities});
+    game.teams = {a:[25],b:[7]};
+    prepareAuctionBattle(game,["a","b"],0);
+    const choose = ability => auctionBattlePrep(game,"a",{kind:"ability",slot:0,ability},["a","b"],1);
+    assert.ok(choose("levitate"));
+    assert.equal(Boolean(choose("lightning-rod")),!advancedAbilities);
+    assert.equal(auctionAbility(battleTeam(game,"a")[0]),advancedAbilities ? "lightning-rod" : "static");
+  }
+});
+
+test("preview is read-only and Levitate blocks a ground signature unless Mold Breaker bypasses it",()=>{
+  const {game,unit,attack} = abilityDuel(383,479);
+  const original = JSON.stringify(game);
+  assert.equal(auctionBattleDamage(unit("a"),unit("b"),"signature",game).factor,0);
+  assert.equal(JSON.stringify(game),original);
+  assert.deepEqual(attack("a","signature").abilityEvents,["Drought","Levitate"]);
+  assert.equal(unit("b").hp,unit("b").maxHp);
+  const breaker = abilityDuel(530,479);
+  breaker.unit("a").ability = "mold-breaker";
+  assert.ok(auctionBattleDamage(breaker.unit("a"),breaker.unit("b"),"signature",breaker.game).damage > 0);
+  const ordinary = abilityDuel(383,479,false);
+  assert.ok(auctionBattleDamage(ordinary.unit("a"),ordinary.unit("b"),"signature",ordinary.game).damage > 0);
+});
+
+test("Wonder Guard, Intimidate, absorption and form changes are resolved by the battle engine",()=>{
+  const shedinja = abilityDuel(130,292);
+  assert.equal(shedinja.unit("b").hp,1);
+  const hit = shedinja.attack("a","signature");
+  assert.ok(hit.abilityEvents.includes("Wonder Guard"));
+  assert.ok(hit.abilityEvents.includes("Intimidate"));
+  assert.equal(shedinja.unit("b").stages.attack,-1);
+  assert.equal(shedinja.unit("b").hp,1);
+
+  const water = abilityDuel(382,134);
+  water.unit("b").hp = 50;
+  const absorbed = water.attack("a","signature");
+  assert.ok(absorbed.abilityEvents.includes("Water Absorb"));
+  assert.equal(water.unit("b").hp,50 + Math.floor(water.unit("b").maxHp / 4));
+
+  const aegislash = abilityDuel(681,242);
+  assert.ok(aegislash.attack("a").abilityEvents.includes("Stance Change"));
+  assert.equal(aegislash.unit("a").id,10026);
+});
 
 const players=["a","b","c"];
 const makeGame=()=>({
@@ -121,7 +191,7 @@ test("host battle rules control both allowances and the shared upgrade price",()
   const game=createPokemonGame("pokemon-auction",players,{
     battleAfterAuction:true,freeEvolutions:"2",megaPrice:"8",showDamagePreview:true,
   });
-  assert.deepEqual(game.battleRules,{freeEvolutions:2,megaEnabled:true,megaPrice:8,showDamagePreview:true});
+  assert.deepEqual(game.battleRules,{freeEvolutions:2,megaEnabled:true,megaPrice:8,showDamagePreview:true,advancedAbilities:false});
   Object.assign(game,{teams:{a:[4,720,133],b:[4,720],c:[6]},budgets:{a:9,b:7,c:0}});
   prepareAuctionBattle(game,players,1000);
   const prep=(uid,kind,slot,target)=>auctionBattlePrep(game,uid,{kind,slot,target},players,2000);
@@ -142,7 +212,7 @@ test("host battle rules control both allowances and the shared upgrade price",()
 
 test("zero evolutions and disabled Mega are enforced and legacy usage still counts",()=>{
   const game=createPokemonGame("pokemon-auction",players,{freeEvolutions:0,megaEnabled:false,megaPrice:0});
-  assert.deepEqual(game.battleRules,{freeEvolutions:0,megaEnabled:false,megaPrice:0,showDamagePreview:false});
+  assert.deepEqual(game.battleRules,{freeEvolutions:0,megaEnabled:false,megaPrice:0,showDamagePreview:false,advancedAbilities:false});
   Object.assign(game,{teams:{a:[5,6,720],b:[3],c:[94]},budgets:{a:10,b:10,c:10}});
   prepareAuctionBattle(game,players,1000);
   const prep=(kind,slot,target)=>auctionBattlePrep(game,"a",{kind,slot,target},players,2000);

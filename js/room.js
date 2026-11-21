@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261121-20";
+import { getGameMode } from "./games.js?v=20261121-21";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-14";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -12,7 +12,7 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20261121-8"
 import { renderRankingLobbySettings } from "./ranking.js?v=20261121-8";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20261121-8";
 import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20261121-14";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20261121-21";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
 import { chartForecastMode } from "./chartForecast.js?v=20261121-20";
 import { renderChartForecastLobby } from "./chartForecastView.js?v=20261121-20";

@@ -1,14 +1,15 @@
 import { escapeHtml } from "./utils.js?v=20261121-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261121-3";
+import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261121-21";
+import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261121-21";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
 const formClass = kind => kind && kind !== "evolve" ? `is-${kind}` : "";
 const nickname = (accounts, uid) => escapeHtml(accounts[uid]?.nick || "Gracz");
 const sprite = pokemon => `<img class="battle-sprite" src="${pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
-const chips = pokemon => pokemon.types.map(type =>
+const chips = types => types.map(type =>
   `<img class="battle-type" src="/assets/pokemon/types/${type}.svg" alt="${type}" title="${type}">`
 ).join("");
 
@@ -17,11 +18,27 @@ function stats(pokemon) {
   return `ATK ${s.attack} · DEF ${s.defense} · Sp. ATK ${s.specialAttack} · Sp. DEF ${s.specialDefense} · SPD ${s.speed}`;
 }
 
-function unitArt(unit, pokemon) {
+function unitArt(unit, pokemon, battle) {
   return `<div class="battle-unit-art">${sprite(pokemon)}</div>
-    <b>${escapeHtml(name(pokemon))}</b><div class="battle-types">${chips(pokemon)}</div>
+    <b>${escapeHtml(name(pokemon))}</b><div class="battle-types">${chips(battle ? auctionBattleTypes(unit,pokemon,battle) : pokemon.types)}</div>
     <div class="battle-hp" aria-hidden="true"><i style="width:${Math.max(0, unit.hp/unit.maxHp*100)}%"></i></div>
     <small>${unit.hp} / ${unit.maxHp} HP</small>`;
+}
+
+function prepAbility(unit, slot, ready) {
+  const options = auctionAbilityChoices(unit.id);
+  const current = auctionAbility(unit);
+  if (!current) return "";
+  const fullDescription = auctionAbilityDescription(current);
+  const note = fullDescription || (auctionAbilitySupported(current) ? "" : "Ten efekt jest niedostępny w bitwie drużyn.");
+  const link = `https://dex.pokemonshowdown.com/abilities/${current.replace(/[^a-z0-9]/g,"")}`;
+  return `<div class="battle-ability-prep">
+    ${options.length > 1 ? `<select data-battle-ability="${slot}" aria-label="Zdolność ${escapeHtml(name(auctionBattlePokemon(unit.id)))}" ${ready ? "disabled" : ""}>
+      ${options.map(id => `<option value="${id}" ${id === current ? "selected" : ""}>${escapeHtml(auctionAbilityName(id))}${auctionAbilitySupported(id) ? "" : " · bez efektu"}</option>`).join("")}
+    </select>` : `<strong>${escapeHtml(auctionAbilityName(current))}</strong>`}
+    ${note ? `<small>${escapeHtml(note)}</small>` : ""}
+    <a href="${link}" target="_blank" rel="noopener noreferrer">Opis zdolności ↗</a>
+  </div>`;
 }
 
 function prepMarkup(game, accounts, uid, players, timer) {
@@ -58,6 +75,7 @@ function prepMarkup(game, accounts, uid, players, timer) {
       <button type="button" class="ghost" data-battle-reorder="-1" data-slot="${slot}" aria-label="Przesuń ${escapeHtml(name(pokemon))} wcześniej" ${position===0||ready.ready?"disabled":""}>←</button>
       <button type="button" class="ghost" data-battle-reorder="1" data-slot="${slot}" aria-label="Przesuń ${escapeHtml(name(pokemon))} później" ${position===team.length-1||ready.ready?"disabled":""}>→</button></div>
       ${unitArt(unit,pokemon)}<small>${stats(pokemon)}</small>
+      ${usesAuctionAbilities(game) ? prepAbility(unit,slot,ready.ready) : ""}
       <div class="battle-upgrades">${choices("evolve",pokemon.evolutions)}${choices("mega",pokemon.megas)}${choices("form",pokemon.forms)}</div></article>`;
   });
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-preparation">
@@ -75,6 +93,8 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
   const canAttack = activeUid===uid && game.phase==="auction-battle";
   const attacker = battleTeam(game,uid)[selection.slot], target = battleTeam(game,selection.targetUid)[selection.targetSlot];
   const pokemon = auctionBattlePokemon(attacker?.id);
+  const advanced = usesAuctionAbilities(game);
+  const field = advanced ? auctionBattleField(game.battle).join(" · ") : "";
   const ownsMatchups = hasGamePass(accounts[uid], pokemonBattleScoutPass);
   const showMatchups = canAttack && attacker?.hp > 0 && !attacker.signatureSpent && ownsMatchups;
   const teams = players.map(player => `<section class="battle-team ${player===activeUid?"is-active":""}">
@@ -83,28 +103,35 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
       const unit = battleTeam(game,player)[slot];
       const selected = player===uid ? slot===selection.slot : player===selection.targetUid && slot===selection.targetSlot;
       const species = auctionBattlePokemon(unit.id);
-      const factor = showMatchups && player!==uid && unit.hp>0 ? battleSignatureEffectiveness(attacker,unit) : 0;
+      const factor = showMatchups && player!==uid && unit.hp>0 ? battleSignatureEffectiveness(attacker,unit,game,player) : 0;
       const matchup = factor>1 ? "super" : factor===1 ? "effective" : "";
       const badge = player!==uid && ownsMatchups ? `<small class="battle-matchup-label"${matchup ? "" : ' aria-hidden="true"'}>${matchup==="super" ? `×${factor} Super` : matchup ? "×1 Skuteczny" : "&nbsp;"}</small>` : "";
-      return `<button type="button" class="battle-unit ${formClass(species.formKind)} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" ${matchup ? `data-battle-matchup="${matchup}"` : ""} aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species)}${badge}</button>`;
+      const condition = unit.perishTurn ? `Perish · ${Math.ceil((unit.perishTurn - turn) / game.battle.order.length)}`
+        : statusNames[unit.condition] || (unit.confusion ? statusNames.confusion : "");
+      const ability = advanced ? `<small class="battle-ability-chip">${escapeHtml([auctionAbilityName(auctionAbility(unit)),condition].filter(Boolean).join(" · "))}</small>` : "";
+      return `<button type="button" class="battle-unit ${formClass(species.formKind)} ${unit.hp===0?"is-out":""}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}" ${matchup ? `data-battle-matchup="${matchup}"` : ""} aria-pressed="${selected}" title="${stats(species)}" ${!canAttack||unit.hp===0?"disabled":""}>${unitArt(unit,species,advanced ? game.battle : null)}${ability}${badge}</button>`;
     }).join("")||'<span class="muted">Pusty skład</span>'}</div></section>`);
   const moveButton = (kind,label,spent=false) => {
     const available = canAttack && attacker?.hp > 0 && target?.hp > 0 && !spent;
     let note = spent ? "<small>Odnowisz zwykłym atakiem</small>" : "";
     if (!spent && game.battleRules?.showDamagePreview === true && canAttack) {
-      const hit = available ? auctionBattleDamage(attacker,target,kind) : null;
+      const hit = available ? auctionBattleDamage(attacker,target,kind,game,selection.targetUid) : null;
       const preview = !hit ? (attacker?.hp ? "Wybierz cel" : "Wybierz Pokémona")
-        : hit.copies ? "Kopiuje formę lub ruch" : hit.factor === 0 ? "Brak efektu" : `−${hit.damage} HP`;
+        : hit.copies ? "Kopiuje formę lub ruch" : hit.skipped ? "Utrata ruchu" : hit.factor === 0 || !hit.damage ? "Brak bezpośrednich obrażeń" : `${advanced ? "≈ " : ""}−${hit.damage} HP`;
       note = `<small data-damage-preview>${preview}</small>`;
     }
     return `<button type="button" class="${kind==="signature"?"primary":"ghost"}" data-battle-move="${kind}" ${available?"":"disabled"}>
      <span>${escapeHtml(label)}</span>${note}
     </button>`;
   };
-  const event = last ? `<p class="battle-event" role="status"><b>${escapeHtml(last.name)}</b> · ${last.copies?(last.name==="Transform"?"skopiowano formę":"skopiowano ruch"):last.damage?`−${last.damage} HP`:"brak efektu"}${last.knockedOut?" · nokaut":""}${last.factor>1?" · super skuteczny":last.factor>0&&last.factor<1?" · mało skuteczny":""}</p>` : '<p class="battle-event" role="status"></p>';
+  const result = last?.skipped ? "ruch przepada" : last?.missed ? "pudło"
+    : last?.copies ? (last.name === "Transform" ? "skopiowano formę" : "skopiowano ruch")
+    : last?.damage ? `−${last.damage} HP` : "brak bezpośrednich obrażeń";
+  const events = Array.isArray(last?.abilityEvents) ? last.abilityEvents.join(" · ") : "";
+  const event = last ? `<p class="battle-event" role="status"><b>${escapeHtml(last.name)}</b> · ${result}${last.knockedOut?" · nokaut celu":""}${last.attackerOut?" · nokaut atakującego":""}${last.critical?" · krytyk":""}${last.damage&&last.factor>1?" · super skuteczny":last.damage&&last.factor>0&&last.factor<1?" · mało skuteczny":""}${events ? `<small class="battle-ability-events">✦ ${escapeHtml(events)}</small>` : ""}</p>` : '<p class="battle-event" role="status"></p>';
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-fight">
     <header class="battle-heading"><div><p class="eyebrow">BITWA POKÉMON · TURA ${turn}</p><h1>${game.phase==="auction-hit"?"Atak w toku":canAttack?"Twój ruch":`Tura gracza ${nickname(accounts,activeUid)}`}</h1></div>${timer}</header>
-    ${event}<div class="battle-arena">${teams.join("")}</div>
+    ${field ? `<p class="battle-field">✦ ${escapeHtml(field)}</p>` : ""}${event}<div class="battle-arena">${teams.join("")}</div>
     <div class="battle-move-row"><p class="muted">${pokemon?`${escapeHtml(name(pokemon))} · ${stats(pokemon)}`:"Wybierz Pokémona ze swojego teamu, potem cel u rywala."}</p>
     <div>${moveButton("basic","Uderzenie")}${moveButton("signature",attacker?battleSignature(attacker)[0]:"Atak specjalny",attacker?.signatureSpent)}</div></div>
     ${battleHasUnits(game,uid) ? '<button class="ghost battle-surrender" type="button" data-battle-surrender>Poddaj się</button>' : ""}
@@ -112,7 +139,7 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
 }
 
 function animateHit(root, hit) {
-  if (!hit || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!hit || hit.skipped || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const cells = [...root.querySelectorAll("[data-battle-player]")];
   const picture = (uid,slot) => cells.find(cell=>cell.dataset.battlePlayer===uid&&Number(cell.dataset.slot)===slot)?.querySelector(".battle-sprite");
   const from=picture(hit.uid,hit.slot), to=picture(hit.targetUid,hit.targetSlot);
@@ -167,6 +194,9 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   });
   root.querySelectorAll("[data-battle-reorder]").forEach(button=>{
     button.onclick=()=>actions.pokemonBattlePrep({kind:"reorder",slot:Number(button.dataset.slot),direction:Number(button.dataset.battleReorder)},expected);
+  });
+  root.querySelectorAll("[data-battle-ability]").forEach(select=>{
+    select.onchange=()=>actions.pokemonBattlePrep({kind:"ability",slot:Number(select.dataset.battleAbility),ability:select.value},expected);
   });
   const ready=root.querySelector("[data-battle-ready]");
   if(ready)ready.onclick=()=>actions.pokemonBattlePrep({kind:"ready"},expected);

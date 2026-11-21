@@ -1,7 +1,9 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
+import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261121-21";
+import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261121-21";
 
-export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false };
+export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
 export function sanitizeAuctionBattleRules(settings = {}) {
   const integer = key => {
@@ -9,7 +11,8 @@ export function sanitizeAuctionBattleRules(settings = {}) {
     return (typeof value === "number" || typeof value === "string" && value.trim()) && Number.isFinite(Number(value))
       ? Math.min(auctionBattleLimits[key], Math.max(0, Math.trunc(Number(value)))) : auctionBattleDefaults[key];
   };
-  return {freeEvolutions:integer("freeEvolutions"), megaEnabled:settings.megaEnabled !== false, megaPrice:integer("megaPrice"), showDamagePreview:settings.showDamagePreview === true};
+  return {freeEvolutions:integer("freeEvolutions"), megaEnabled:settings.megaEnabled !== false, megaPrice:integer("megaPrice"),
+    showDamagePreview:settings.showDamagePreview === true, advancedAbilities:settings.advancedAbilities === true};
 }
 
 export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved ? 1 : 0);
@@ -44,6 +47,18 @@ const catalog = new Map(Object.entries(battleSpeciesData).map(([key, entry]) => 
     signature:fallbackSignatures[id] || battleMoveData[signature], evolutions, megas, forms:battleAlternateForms[id] || [],
   }];
 }));
+const zygarde = catalog.get(718);
+catalog.set(completeZygarde,{
+  ...zygarde,id:completeZygarde,name:"Zygarde Complete",bst:708,sprite:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10120.png",
+  stats:{...zygarde.stats,hp:216,specialAttack:91,specialDefense:95,speed:85},megas:[],
+});
+for (const [baseId,id,name,stats] of [
+  [681,bladeAegislash,"Aegislash Blade",{attack:140,defense:50,specialAttack:140,specialDefense:50}],
+  [875,noiceEiscue,"Eiscue Noice",{defense:70,specialDefense:50,speed:130}],
+]) {
+  const base = catalog.get(baseId);
+  catalog.set(id,{...base,id,name,stats:{...base.stats,...stats},sprite:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`});
+}
 
 export const auctionBattlePokemon = id => catalog.get(id);
 export const battleTeam = (game, uid) => game.battle?.teams?.[uid] || [];
@@ -51,14 +66,15 @@ export const battleSignature = unit => unit.copiedSignature || catalog.get(unit.
 export const battleSlots = (game, uid) => game.battle?.prep?.[uid]?.order || battleTeam(game, uid).map((_, slot) => slot);
 export const battleHasUnits = (game, uid) => battleTeam(game, uid).some(unit => unit.hp > 0);
 export const battleSurrendered = (game, uid) => game.battle?.surrendered?.includes(uid);
+export const usesAuctionAbilities = game => game.battleRules?.advancedAbilities === true;
 const living = (game, players) => players.filter(uid => battleHasUnits(game, uid));
-const createUnit = id => {
-  const maxHp = 44 + catalog.get(id).stats.hp;
+const createUnit = (id, advanced) => {
+  const maxHp = id === 292 && advanced ? 1 : 44 + catalog.get(id).stats.hp;
   return {id, hp:maxHp, maxHp, signatureSpent:false};
 };
 
 export function prepareAuctionBattle(game, players, now) {
-  const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(createUnit)]));
+  const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(id => createUnit(id,usesAuctionAbilities(game)))]));
   if (players.filter(uid => teams[uid].length).length < 2) return false;
   game.battle = {teams, prep:{}, turn:0};
   game.phase = "auction-prep";
@@ -82,18 +98,46 @@ function finishBattle(game, players, survivors) {
 
 function nextBattleTurn(game, players, now) {
   const battle = game.battle;
+  if (usesAuctionAbilities(game)) {
+    for (const uid of players) {
+      for (const unit of battleTeam(game,uid)) {
+        if (unit.perishTurn && unit.perishTurn <= battle.turn + 1) {
+          unit.hp = 0;
+          delete unit.perishTurn;
+        }
+      }
+    }
+  }
   const survivors = living(game, players);
   if (survivors.length < 2) return finishBattle(game, players, survivors);
+  if (usesAuctionAbilities(game) && (battle.noDamage >= 24 || battle.turn >= 180)) return finishBattle(game, players, []);
   if (!battle.order) {
-    const leadSpeed = uid => catalog.get(battleTeam(game, uid)[battleSlots(game, uid)[0]].id).stats.speed;
+    const leadSpeed = uid => {
+      const unit = battleTeam(game,uid)[battleSlots(game,uid)[0]];
+      const species = catalog.get(unit.id);
+      return usesAuctionAbilities(game) ? auctionBattleSpeed(unit,species,battle) : species.stats.speed;
+    };
     battle.order = survivors.sort((a, b) => leadSpeed(b) - leadSpeed(a));
   }
-  const previous = battle.order.indexOf(battle.activeUid);
-  for (let step = 1; step <= battle.order.length; step++) {
-    const uid = battle.order[(previous + step) % battle.order.length];
-    if (survivors.includes(uid)) {
-      battle.activeUid = uid;
-      break;
+  if (usesAuctionAbilities(game)) {
+    const remaining = survivors.filter(uid => !battle.roundActed?.includes(uid));
+    if (!remaining.length) battle.roundActed = [];
+    const speed = uid => {
+      const team = battleTeam(game,uid);
+      const previous = team[battle.latestSlots?.[uid]];
+      const unit = previous?.hp ? previous : battleSlots(game,uid).map(slot => team[slot]).find(item => item.hp);
+      return auctionBattleSpeed(unit,catalog.get(unit.id),battle);
+    };
+    battle.activeUid = (remaining.length ? remaining : survivors).sort((a,b) => speed(b) - speed(a) ||
+      battle.order.indexOf(a) - battle.order.indexOf(b))[0];
+  } else {
+    const previous = battle.order.indexOf(battle.activeUid);
+    for (let step = 1; step <= battle.order.length; step++) {
+      const uid = battle.order[(previous + step) % battle.order.length];
+      if (survivors.includes(uid)) {
+        battle.activeUid = uid;
+        break;
+      }
     }
   }
   battle.turn++;
@@ -122,6 +166,11 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   const unit = battleTeam(game, uid)[action.slot];
   const species = catalog.get(unit?.id);
   const {kind} = action;
+  if (kind === "ability") {
+    if (!usesAuctionAbilities(game) || !auctionAbilityChoices(unit?.id).includes(action.ability)) return "Ten Pokémon nie ma takiej zdolności.";
+    unit.ability = action.ability;
+    return;
+  }
   if (!["evolve","mega","form"].includes(kind)) return "Nieznana akcja.";
   const paid = kind !== "evolve";
   const options = {evolve:species?.evolutions, mega:species?.megas, form:species?.forms}[kind];
@@ -133,7 +182,7 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   if (!paid && used >= freeEvolutions) return "Brak dostępnych darmowych ewolucji.";
   if (paid && Number(game.budgets?.[uid] || 0) < megaPrice) return `Ulepszenie kosztuje ${megaPrice}$ z budżetu aukcji.`;
   if (paid && megaPrice > 0) game.budgets[uid] -= megaPrice;
-  battleTeam(game, uid)[action.slot] = createUnit(action.target);
+  battleTeam(game, uid)[action.slot] = createUnit(action.target,usesAuctionAbilities(game));
   player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, kind, sequence:(player.evolution?.sequence || 0)+1};
   if (paid) player.transformed = true;
   else player.evolutionsUsed = used + 1;
@@ -143,12 +192,32 @@ function moveTypeFactor(type, targetSpecies) {
   return targetSpecies.types.reduce((value, defense) => value * (battleTypeFactors[type]?.[defense] ?? 1), 1);
 }
 
-export function battleSignatureEffectiveness(attacker, target) {
+export function battleSignatureEffectiveness(attacker, target, game, targetUid) {
   const [,type, power] = battleSignature(attacker);
+  if (power && game && usesAuctionAbilities(game)) return auctionBattleDamage(attacker,target,"signature",game,targetUid).factor;
   return power ? moveTypeFactor(type, catalog.get(target.id)) : 0;
 }
 
-export function auctionBattleDamage(attacker, target, move) {
+const moveProperties = new Map(Object.entries(battleMoveData).map(([id, [name]]) => [name,battleMoveProperties[id]]));
+
+function advancedMove(unit, kind) {
+  const [name,type,power,category] = kind === "signature" ? battleSignature(unit) : battleMoveData[0];
+  const [key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit] =
+    moveProperties.get(name) || [name.toLowerCase(),100,["contact"],"",0,0,1,1,0,0,0];
+  return {name,type:type || "normal",power,basePower:power,kind:category,key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,slot:kind};
+}
+
+function advancedAttack(attacker,target,move,battle,preview,targetUid) {
+  const clone = unit => ({...unit,stages:{...unit.stages}});
+  return resolveAuctionAbilityAttack({
+    attacker:preview ? clone(attacker) : attacker,target:preview ? clone(target) : target,
+    battle:preview ? {...battle} : battle,getMove:unit => advancedMove(unit,move),catalog:auctionBattlePokemon,
+    factors:battleTypeFactors,preview,targetUid,
+  });
+}
+
+export function auctionBattleDamage(attacker, target, move, game, targetUid) {
+  if (game && usesAuctionAbilities(game)) return advancedAttack(attacker,target,move,game.battle,true,targetUid);
   const from = catalog.get(attacker.id), to = catalog.get(target.id);
   const [, type, power, kind] = move === "signature" ? battleSignature(attacker) : battleMoveData[0];
   if (!power) return {damage:0, factor:1, copies:true};
@@ -169,17 +238,29 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
   if (!attacker?.hp || !target?.hp || uid === action.targetUid || !players.includes(action.targetUid)) return "Wybierz aktywnego Pokémona i cel z drużyny rywala.";
   const move = action.move;
   if (!["basic","signature"].includes(move) || (move === "signature" && attacker.signatureSpent)) return "Użyj zwykłego ataku, żeby odnowić atak specjalny.";
-  const hit = auctionBattleDamage(attacker, target, move);
-  const name = (move === "signature" ? battleSignature(attacker) : battleMoveData[0])[0];
-  attacker.signatureSpent = move === "signature";
+  const advanced = usesAuctionAbilities(game);
+  const oldHp = target.hp, oldAttackerHp = attacker.hp;
+  const hit = advanced ? advancedAttack(attacker,target,move,battle,false,action.targetUid) : auctionBattleDamage(attacker,target,move);
+  const name = hit.name || (move === "signature" ? battleSignature(attacker) : battleMoveData[0])[0];
+  if (!hit.skipped || hit.disabled && move === "basic") attacker.signatureSpent = move === "signature";
   if (hit.copies && name === "Transform") {
     attacker.id = target.id;
     delete attacker.copiedSignature;
+    if (advanced) {
+      delete attacker.ability;
+      delete attacker.copiedAbility;
+    }
   } else if (hit.copies) {
     const signature = battleSignature(target);
     attacker.copiedSignature = signature[2] ? signature : ["Uderzenie", "normal", 60, "physical"];
   }
-  target.hp -= hit.damage;
+  if (!advanced) target.hp -= hit.damage;
+  if (advanced) {
+    battle.roundActed = [...(battle.roundActed || []),uid];
+    (battle.latestSlots ||= {})[uid] = action.slot;
+    battle.noDamage = target.hp >= oldHp && attacker.hp >= oldAttackerHp ? (battle.noDamage || 0) + 1 : 0;
+    hit.attackerOut = attacker.hp === 0;
+  }
   battle.last = {turn:battle.turn, uid, slot:action.slot, targetUid:action.targetUid, targetSlot:action.targetSlot, name, ...hit, knockedOut:target.hp === 0};
   game.phase = "auction-hit";
   game.phaseEndsAt = now + hitMs;
@@ -204,14 +285,20 @@ export function auctionBattleBotAction(game, uid, players, now, automated = fals
       const slot = team.findIndex(unit => catalog.get(unit.id).evolutions.length);
       if (slot < 0 || auctionBattlePrep(game, uid, {kind:"evolve", slot, target:catalog.get(team[slot].id).evolutions[0]}, players, now)) break;
     }
-    if (!megaEnabled) return auctionBattlePrep(game, uid, {kind:"ready"}, players, now);
-    const upgrades = team.flatMap((unit, slot) => {
+    const upgrades = megaEnabled ? team.flatMap((unit, slot) => {
       const pokemon = catalog.get(unit.id);
       return [...pokemon.megas, ...pokemon.forms].map(target => ({
         kind:catalog.get(target).formKind, slot, target, gain:catalog.get(target).bst - pokemon.bst,
       }));
-    }).sort((a,b) => b.gain - a.gain);
+    }).sort((a,b) => b.gain - a.gain) : [];
     if (upgrades.length) auctionBattlePrep(game, uid, upgrades[0], players, now);
+    if (usesAuctionAbilities(game)) {
+      team.forEach((unit,slot) => {
+        if (auctionAbilitySupported(auctionAbility(unit))) return;
+        const ability = auctionAbilityChoices(unit.id).find(auctionAbilitySupported);
+        if (ability) auctionBattlePrep(game,uid,{kind:"ability",slot,ability},players,now);
+      });
+    }
     return auctionBattlePrep(game, uid, {kind:"ready"}, players, now);
   }
   let best;
@@ -223,8 +310,8 @@ export function auctionBattleBotAction(game, uid, players, now, automated = fals
       for (const [targetSlot, target] of battleTeam(game, targetUid).entries()) {
         if (!target.hp) continue;
         for (const move of attacker.signatureSpent ? ["basic"] : ["basic","signature"]) {
-          const {damage} = auctionBattleDamage(attacker, target, move);
-          const weight = damage + (damage === target.hp ? 22 : 0);
+          const {damage,skipped,copies} = auctionBattleDamage(attacker,target,move,game,targetUid);
+          const weight = damage + (damage === target.hp ? 22 : 0) + (usesAuctionAbilities(game) && copies ? 5 : 0) - (skipped ? 4 : 0);
           if (!best || weight > best.weight) best = {slot, targetUid, targetSlot, move, weight};
         }
       }

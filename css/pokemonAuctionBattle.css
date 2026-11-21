@@ -46,6 +46,15 @@
 .battle-upgrades { display:grid;width:100%;gap:4px;margin-top:4px; }
 .battle-upgrades button { min-height:33px;padding:5px;font-size:11px; }
 .battle-event { min-height:1.4em;margin:8px 0;color:#a8e7dc;font-size:13px; }
+.pokemon-auction-settings .auction-advanced-setting { justify-content:flex-start;gap:10px; }
+.auction-advanced-setting span,.battle-ability-prep { display:grid;gap:3px;min-width:0; }
+.auction-advanced-setting small { color:#c2d1e2;font-size:.8em; }
+.battle-ability-prep { justify-items:center;width:100%;overflow-wrap:anywhere;font-size:11px; }
+.battle-ability-prep select { width:100%;min-width:0;min-height:32px;padding:4px;font-size:11px; }
+.battle-ability-prep a,.battle-ability-chip,.battle-ability-events,.battle-field { color:#f9d78b; }
+.battle-unit .battle-ability-chip { color:#f9d78b;overflow-wrap:anywhere; }
+.battle-field { margin:6px 0;font-size:12px; }
+.battle-ability-events { display:block;margin-top:4px;font-size:11px; }
 .battle-move-row { margin-top:12px;flex-wrap:wrap; }
 .battle-move-row p { margin:0;font-size:12px; }
 .battle-move-row>div { display:flex;flex-wrap:wrap;gap:7px; }
