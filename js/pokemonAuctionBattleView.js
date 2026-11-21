@@ -1,10 +1,11 @@
 import { escapeHtml } from "./utils.js?v=20261121-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261122-1";
-import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261122-1";
+import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261122-2";
+import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261122-2";
 import { activeBattleSlot, activeBattleUnit, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261122-1";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261122-1";
+import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled } from "./pokemonAuctionBattleEffects.js?v=20261122-2";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
@@ -21,10 +22,11 @@ function stats(pokemon) {
 }
 
 function unitArt(unit, pokemon, battle) {
+  const hp = Math.max(0,unit.hp/unit.maxHp);
   return `<div class="battle-unit-art">${sprite(pokemon)}</div>
     <b>${escapeHtml(name(pokemon))}</b><div class="battle-types">${chips(battle ? auctionBattleTypes(unit,pokemon,battle) : pokemon.types)}</div>
-    <div class="battle-hp" aria-hidden="true"><i style="width:${Math.max(0, unit.hp/unit.maxHp*100)}%"></i></div>
-    <small>${unit.hp} / ${unit.maxHp} HP</small>`;
+    <div class="battle-hp" data-health="${hp<=.25?"low":hp<=.5?"medium":"high"}" aria-hidden="true"><i style="width:${hp*100}%"></i></div>
+    <small class="battle-hp-count">${unit.hp} / ${unit.maxHp} HP</small>`;
 }
 
 function prepAbility(unit, slot, ready) {
@@ -128,23 +130,29 @@ function duelMarkup(game,accounts,uid,players,timer,view) {
   const scout = hasGamePass(accounts[uid], pokemonBattleScoutPass);
   const heading = forced || pivot ? "Wybierz następcę" : choose ? "Wybierz ruch" :
     game.phase === "auction-hit" ? "Wynik tury" : battle.commits?.[uid] && game.phase === "auction-command" ? "Ruch zatwierdzony" : "Czekamy na graczy";
-  const team = player => `<section class="battle-team duel-team">
-    <h2>${player===uid?"Twoja drużyna":nickname(accounts,player)}${battle.commits?.[player] && game.phase==="auction-command" ? ' <small>✓ Gotowy</small>' : ""}</h2>
-    <div class="battle-party">${battleSlots(game,player).map(slot=>{
-      const member = battleTeam(game,player)[slot];
-      const active = activeBattleSlot(game,player) === slot;
-      const species = auctionBattlePokemon(member.id);
-      const authored = player===uid && member.hp && !active && (choose || forced || pivot);
-      const verb = active ? "Na polu" : !member.hp ? "Nokaut" : "Rezerwa";
-      const held = player === uid && member.item ? auctionHeldItems[member.item]?.name : "";
-      const condition = statusNames[member.condition] || (member.confusion ? statusNames.confusion : "");
-      return `<button type="button" class="battle-unit ${active?"duel-active":""} ${member.hp?"":"is-out"}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}"
-        ${authored?`data-duel-switch="${slot}"`:"disabled"} aria-pressed="${player===uid && order?.kind==="switch" && order.slot===slot}">
-        <small class="duel-slot">${verb}</small>${unitArt(member,species,active?battle:null)}
-        <small class="battle-ability-chip">${escapeHtml([auctionAbilityName(auctionAbility(member)),condition,held].filter(Boolean).join(" · "))}</small>
-      </button>`;
-    }).join("")}</div>
-  </section>`;
+  const playerName = player => player===uid ? "Ty" : nickname(accounts,player);
+  const onField = players.filter(player=>activeBattleSlot(game,player) !== undefined);
+  const card = (player,slot,active=false) => {
+    const member = battleTeam(game,player)[slot];
+    const species = auctionBattlePokemon(member.id);
+    const authored = player===uid && member.hp && !active && (choose || forced || pivot);
+    const held = player===uid && member.item ? auctionHeldItems[member.item]?.name : "";
+    const condition = statusNames[member.condition] || (member.confusion ? statusNames.confusion : "");
+    const ready = battle.commits?.[player] && game.phase==="auction-command";
+    const label = active ? `${playerName(player)}${ready?" · ✓":""}` : !member.hp ? "Nokaut" : "";
+    const tag = active ? "article" : "button";
+    return `<${tag} class="battle-unit ${active?"duel-active":""} ${member.hp?"":"is-out"}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}"
+      ${active ? `style="--accent:${battleAccent(species.types[0])}"` : `type="button" ${authored?`data-duel-switch="${slot}"`:"disabled"} aria-pressed="${player===uid && order?.kind==="switch" && order.slot===slot}"`}>
+      ${label ? `<small class="duel-slot">${label}</small>` : ""}${unitArt(member,species,active?battle:null)}
+      <small class="battle-ability-chip">${escapeHtml([auctionAbilityName(auctionAbility(member)),condition,held].filter(Boolean).join(" · "))}</small>
+    </${tag}>`;
+  };
+  const bench = onField.map(player=>{
+    const slots = battleSlots(game,player).filter(slot=>slot !== activeBattleSlot(game,player));
+    if (!slots.length) return "";
+    return `<section class="duel-bench"><h2>${player===uid?"Twoja rezerwa":`Rezerwa · ${playerName(player)}`}</h2>
+      <div class="battle-party">${slots.map(slot=>card(player,slot)).join("")}</div></section>`;
+  }).join("");
   const events = (battle.events || []).map(entry=>{
     const label = nickname(accounts,entry.uid);
     const detail = entry.damage ? `−${entry.damage} HP` : entry.missed ? "pudło" :
@@ -156,7 +164,10 @@ function duelMarkup(game,accounts,uid,players,timer,view) {
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-fight">
     <header class="battle-heading"><div><p class="eyebrow">⭐ BITWA POKÉMON · TURA ${battle.turn}</p><h1>${heading}</h1></div>${timer}</header>
     ${field ? `<p class="battle-field">✦ ${escapeHtml(field)}</p>` : ""}
-    <div class="battle-arena">${players.map(team).join("")}</div>
+    <div class="duel-stage" data-weather="${field ? escapeHtml(battle.weather?.end>=battle.turn ? battle.weather.kind : "") : ""}">
+      ${onField.map(player=>card(player,activeBattleSlot(game,player),true)).join("")}
+    </div>
+    ${bench ? `<div class="duel-benches">${bench}</div>` : ""}
     ${choose ? `<section class="duel-controls">
       ${rivals.length>1 ? `<label>Cel <select data-duel-target>${rivals.map(player=>`<option value="${escapeHtml(player)}" ${player===targetUid?"selected":""}>${nickname(accounts,player)}</option>`).join("")}</select></label>` : ""}
       <div class="duel-moves">${shownMoves.map(move=>{
@@ -164,8 +175,8 @@ function duelMarkup(game,accounts,uid,players,timer,view) {
         const available = !labels || auctionDuelMoveAvailable(unit,move);
         const hit = target?.hp && available && details.power && (game.battleRules.showDamagePreview || scout)
           ? auctionBattleDamage(unit,target,move,game,targetUid) : null;
-        return `<button type="button" class="ghost" data-duel-move="${move}" aria-pressed="${order?.move===move}" ${available?"":"disabled"}>
-          <strong>${escapeHtml(details.name)}</strong><small>${labels ? `${auctionDuelPP(unit,move)}/${details.pp} PP` : "Brak PP w innych ruchach"}${details.description ? ` · ${details.description}` : ""}</small>
+        return `<button type="button" class="ghost" data-duel-move="${move}" style="--accent:${battleAccent(details.type)}" aria-pressed="${order?.move===move}" ${available?"":"disabled"}>
+          <strong>${details.type ? `<img src="/assets/pokemon/types/${details.type}.svg" alt="${details.type}" class="duel-move-type">` : ""}${escapeHtml(details.name)}</strong><small>${labels ? `${auctionDuelPP(unit,move)}/${details.pp} PP` : "Brak PP w innych ruchach"}${details.description ? ` · ${details.description}` : ""}</small>
           ${hit ? `<small>${game.battleRules.showDamagePreview ? `≈ ${hit.damage} HP` : ""}${scout && hit.factor>1 ? " · super skuteczny" : ""}${scout && hit.factor===0 ? " · odporność" : ""}</small>` : ""}
         </button>`;
       }).join("")}</div>
@@ -227,23 +238,9 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
   </section>`;
 }
 
-function animateHit(root, hit) {
-  if (!hit || hit.skipped || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const cells = [...root.querySelectorAll("[data-battle-player]")];
-  const picture = (uid,slot) => cells.find(cell=>cell.dataset.battlePlayer===uid&&Number(cell.dataset.slot)===slot)?.querySelector(".battle-sprite");
-  const from=picture(hit.uid,hit.slot), to=picture(hit.targetUid,hit.targetSlot);
-  if (!from || !to) return;
-  const a=from.getBoundingClientRect(), b=to.getBoundingClientRect();
-  const x=b.x+b.width/2-a.x-a.width/2, y=b.y+b.height/2-a.y-a.height/2;
-  from.animate([{transform:"none"},{transform:`translate(${x*.92}px, ${y*.92}px)`,offset:.48},{transform:"none"}],{duration:630,easing:"ease-in-out"});
-  to.animate([{transform:"none"},{transform:"translateY(-15px)"},{transform:"none"}],{duration:270,delay:290,easing:"ease-out"});
-}
-
 function animateEvolution(root, event) {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const card = event.uid ? [...root.querySelectorAll("[data-battle-player]")]
-    .find(node=>node.dataset.battlePlayer===event.uid && Number(node.dataset.slot)===event.slot) :
-    root.querySelector(`[data-battle-prep-slot="${event.slot}"]`);
+  if (!motionEnabled()) return;
+  const card = event.uid ? battleCard(root,event.uid,event.slot) : root.querySelector(`[data-battle-prep-slot="${event.slot}"]`);
   const art = card?.querySelector(".battle-unit-art");
   const evolved = art?.querySelector(".battle-sprite");
   if (!evolved?.animate) return;
@@ -258,10 +255,34 @@ function animateEvolution(root, event) {
   const effect = formClass(event.kind || (event.mega ? "mega" : ""));
   flash.className=`battle-evolution-flash ${effect}`;
   art.append(former,flash);
-  const duration=effect?1450:1050;
+  const duration=event.uid?650:effect?1450:1050;
   former.animate([{opacity:1},{opacity:1,filter:"brightness(0) invert(1)",offset:.28},{opacity:0,scale:1.2,offset:.58},{opacity:0}],{duration,fill:"forwards"});
   evolved.animate([{opacity:0},{opacity:0,offset:.42},{opacity:1,scale:1.19,offset:.7},{opacity:1,scale:1}],{duration});
   flash.animate([{opacity:0,scale:.4},{opacity:1,scale:1,offset:.48},{opacity:0,scale:2.1}],{duration}).onfinish=()=>{former.remove();flash.remove();};
+}
+
+function playDuelEffects(root,game,view) {
+  const battle = game.battle;
+  const before = view.activeSlots;
+  view.activeSlots = {...battle.activeSlots};
+  for (const [uid,slot] of Object.entries(view.activeSlots)) {
+    if (before?.[uid] !== slot) animateBattleEntry(battleCard(root,uid,slot));
+  }
+  if (!["auction-hit","auction-pivot"].includes(game.phase)) return;
+  if (view.effectTurn !== battle.turn) {
+    view.effectTurn = battle.turn;
+    view.shownEvents = 0;
+  }
+  const events = battle.events || [];
+  const fresh = events.slice(view.shownEvents);
+  view.shownEvents = events.length;
+  if (!motionEnabled()) return;
+  const actions = fresh.filter(entry=>entry.toId || entry.targetUid);
+  actions.forEach((entry,index)=>window.setTimeout(()=>{
+    if (views.get(root) !== view || view.commandTurn !== battle.turn || !root.querySelector(".duel-stage")) return;
+    if (entry.toId) animateEvolution(root,{...entry,kind:"mega"});
+    else animateBattleAction(root,entry);
+  },index*Math.min(350,700/Math.max(1,actions.length-1))));
 }
 
 export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
@@ -339,17 +360,7 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
       view.revealing=true;
       void actions.pokemonBattleReveal(expected).finally(()=>{view.revealing=false;});
     }
-    if (game.phase==="auction-hit" && view.hit!==game.battle.turn) {
-      const turn = game.battle.turn;
-      view.hit=turn;
-      const events = game.battle.events || [];
-      const megas = events.filter(entry=>entry.toId);
-      megas.forEach(entry=>animateEvolution(root,{...entry,kind:"mega"}));
-      const damaging = events.filter(entry=>entry.damage);
-      damaging.forEach((hit,index)=>window.setTimeout(()=>{
-        if (views.get(root) === view && view.commandTurn === turn) animateHit(root,hit);
-      },index*300+(megas.length ? 330 : 0)));
-    }
+    playDuelEffects(root,game,view);
   } else root.querySelectorAll("[data-battle-player]").forEach(button=>{
     button.onclick=()=>{
       const slot=Number(button.dataset.slot), player=button.dataset.battlePlayer;
@@ -362,7 +373,7 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   });
   if(!game.battle.duel&&game.phase==="auction-hit"&&game.battle.last&&view.hit!==game.battle.last.turn){
     view.hit=game.battle.last.turn;
-    animateHit(root,game.battle.last);
+    animateBattleAction(root,game.battle.last);
   }
   if(game.phase==="auction-prep"&&evolution?.sequence!==view.evolution){
     view.evolution=evolution?.sequence;

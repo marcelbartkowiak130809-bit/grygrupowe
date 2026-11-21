@@ -598,6 +598,7 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
   [a,b] = effectiveAbilities(attacker,target);
   let from = catalog(attacker.id), to = catalog(target.id);
   const move = getMove(attacker);
+  let visualType = move.type;
   const field = readField(battle,a,b);
   if (a === "mega-sol" || b === "mega-sol") { field.sun = true; field.rain = false; log("mega-sol"); }
   const bypass = disablesDefense.includes(a) || piercingMoves.includes(move.key);
@@ -612,7 +613,7 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
   };
   const finish = (damage,factor,extra = {}) => {
     if (!preview && !battle.duel) afterAction(attacker,target,a,b,battle,catalog,chance,log);
-    return {damage,factor,name:move.name,abilityEvents:[...events],...extra};
+    return {damage,factor,name:move.name,moveType:visualType,moveCategory:move.kind,moveEffect:move.effect || "",abilityEvents:[...events],...extra};
   };
   if (a === "neutralizing-gas" || b === "neutralizing-gas") log("neutralizing-gas");
   if (move.effect !== "protect") delete attacker.protectChain;
@@ -641,6 +642,7 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
     log(b);
   }
   const attack = adjustedMove(move,attacker,a,log);
+  visualType = attack.type;
   const fromTypes = auctionBattleTypes(attacker,from,battle,a,field);
   const toTypes = auctionBattleTypes(target,to,battle,defenseAbility,field);
   let factor = typeFactor(attack,toTypes,a,field,factors);

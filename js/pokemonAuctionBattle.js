@@ -1,7 +1,7 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
 import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261122-1";
-import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261122-1";
+import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261122-2";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261122-1";
 import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261122-1";
 
@@ -282,7 +282,8 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
   const advanced = usesAuctionAbilities(game);
   const oldHp = target.hp, oldAttackerHp = attacker.hp;
   const hit = advanced ? advancedAttack(attacker,target,move,battle,false,action.targetUid) : auctionBattleDamage(attacker,target,move);
-  const name = hit.name || (move === "signature" ? battleSignature(attacker) : battleMoveData[0])[0];
+  const [moveName,moveType,,moveCategory] = move === "signature" ? battleSignature(attacker) : battleMoveData[0];
+  const name = hit.name || moveName;
   if (!hit.skipped || hit.disabled && move === "basic") attacker.signatureSpent = move === "signature";
   if (hit.copies && name === "Transform") {
     attacker.id = target.id;
@@ -302,7 +303,8 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
     battle.noDamage = target.hp >= oldHp && attacker.hp >= oldAttackerHp ? (battle.noDamage || 0) + 1 : 0;
     hit.attackerOut = attacker.hp === 0;
   }
-  battle.last = {turn:battle.turn, uid, slot:action.slot, targetUid:action.targetUid, targetSlot:action.targetSlot, name, ...hit, knockedOut:target.hp === 0};
+  battle.last = {turn:battle.turn,uid,slot:action.slot,targetUid:action.targetUid,targetSlot:action.targetSlot,
+    name,moveType:moveType || "normal",moveCategory,...hit,knockedOut:target.hp === 0};
   game.phase = "auction-hit";
   game.phaseEndsAt = now + hitMs;
 }
