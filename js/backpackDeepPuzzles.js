@@ -172,15 +172,23 @@ export const deepLevels=[
    step('exit',22,'BARIERA','diamond',{take:use('diamond'),doneIcon:'light_weighted_pressure_plate'}),
   ],{switches:[2,3,4],route:carry(16,29,[16,17,18,19,11,27,28,29],{11:['panel'],29:['exit']})}),
  deep('Droga do portalu powrotnego','Odzyskaj dwie perły, uruchom ramę i doprowadź wagonik do portalu.',
-  'Zasil skrytkę. Na panelu włącz C, ustaw B tak samo jak C, a A przeciwnie. Dojedź na bocznicę po drugą perłę. Z każdej perły i płomiennego proszku zrób oko. Uzupełnij dwa gniazda, otwórz portal i wjedź do środka.',
+  'Zasil skrytkę. Włącz B i C, zostaw A wyłączone, a potem kliknij skrytkę po prawej od zasilania. To odblokuje bocznicę. Dojedź po drugą perłę. Z każdej perły i płomiennego proszku zrób oko. Uzupełnij dwa gniazda, kliknij OTWÓRZ i wjedź do portalu.',
   'end_stone',{lever:3,blaze_powder:2,redstone:2},[
    step('power',12,'ZASIL','redstone',{take:use('redstone',2)}),
-   step('stash',13,'SKRYTKA','chest_minecart',{after:['power'],pattern:[false,true,true],give:use('ender_pearl')}),
+   step('stash',13,'SKRYTKA','chest_minecart',{
+    after:['power'],pattern:[false,true,true],give:use('ender_pearl'),
+    readyLabel:'OTWÓRZ',readyMessage:'Sygnał poprawny. Kliknij skrytkę po prawej od pola ZASIL, żeby odblokować bocznicę.',
+    doneMessage:'Bocznica odblokowana. Dojedź wagonikiem do drugiej skrzyni.',
+   }),
    step('cargo',10,'SKRZYNIA','chest_minecart',{at:11,give:use('ender_pearl')}),
    step('eye-a',21,'OKO','end_portal_frame_top',{take:use('ender_eye'),doneIcon:'ender_eye'}),
    step('eye-b',29,'OKO','end_portal_frame_top',{take:use('ender_eye'),doneIcon:'ender_eye'}),
    step('portal',22,'OTWÓRZ','end_portal_frame_top',{after:['eye-a','eye-b'],doneIcon:'end_portal',fx:'beam'}),
-  ],{outputs:['ender_eye'],switches:[2,3,4],route:carry(16,30,[16,17,18,19,11,27,28,29,30],{11:['stash'],30:['portal']})}),
+  ],{outputs:['ender_eye'],switches:[2,3,4],
+   route:{...carry(16,30,[16,17,18,19,11,27,28,29,30],{11:['stash'],30:['portal']}),
+    gateHints:{11:'Bocznica jest zamknięta. Zasil skrytkę, ustaw dźwignie i otwórz skrytkę po prawej od pola ZASIL.',
+     30:'Portal jest zamknięty. Włóż dwoje oczu do gniazd i kliknij OTWÓRZ.'}},
+  }),
 ];
 
 const done=(state,id)=>Boolean(state.puzzle.stations?.[id]);
@@ -209,12 +217,13 @@ export function deepTile(level,index,state){
   return {mark:true,icon:'lever',template:power===undefined,label:`${'ABC'[switchIndex]} · ${power===undefined?'MONTAŻ':power?'ON':'OFF'}`};
  }
  const finished=station&&done(state,station.id);
+ const stationReady=station&&ready(station,state);
  return {
   mark:Boolean(station||path),
   icon:cart?'minecart':station?(finished&&station.doneIcon||station.icon):index===level.route?.finish?'light_weighted_pressure_plate':path?'rail':'',
   template:!cart&&!finished&&Boolean(station?.take?.[station.icon]),
-  label:station?`${station.label}${finished?' ✓':''}`:signal?`${signal.map((on,i)=>on?'ABC'[i]:'–').join(' ')}`:blocked?'BLOKADA':stop?'BOCZNICA':cart?'WAGONIK':index===level.route?.finish?'META':'',
-  fx:cart?'cargo':finished?(station.fx==='lit'?'deep-lit':station.fx||'deep-done'):station&&ready(station,state)?'deep-ready':blocked?'deep-closed':stop?'deep-stop':path?'deep-path':'',
+  label:station?stationReady&&station.readyLabel||`${station.label}${finished?' ✓':''}`:signal?`${signal.map((on,i)=>on?'ABC'[i]:'–').join(' ')}`:blocked?'BLOKADA':stop?'BOCZNICA':cart?'WAGONIK':index===level.route?.finish?'META':'',
+  fx:cart?'cargo':finished?(station.fx==='lit'?'deep-lit':station.fx||'deep-done'):stationReady?'deep-ready':blocked?'deep-closed':stop?'deep-stop':path?'deep-path':'',
  };
 }
 
@@ -245,16 +254,18 @@ export function deepPlace(state,level,index,item){
    for(const [id,count]of cost){state.stock[id]-=count;state.used+=count;}
    for(const [id,count]of Object.entries(station.give||{}))state.stock[id]=(state.stock[id]||0)+count;
    (state.puzzle.stations||={})[station.id]=true;
-   message=`${station.label} — gotowe.`;
+   message=station.doneMessage||`${station.label} — gotowe.`;
   }
  }
  if(!message&&moving(level,state,index)){
   state.puzzle.cart=index;
   message='Wagonik przesunięty.';
  }
+ const readyHint=level.steps.find(entry=>entry.readyMessage&&ready(entry,state))?.readyMessage;
  if(!message){
   const signal=level.route?.signals?.[index];
   if(signal&&!matchesSignal(signal,state))state.message='Zablokowany tor. Ustaw dźwignie zgodnie z literami na polu.';
+  else if(level.route?.gateHints?.[index]&&!isOpen(level,state,index))state.message=readyHint||level.route.gateHints[index];
   else if(station?.pattern)state.message='Pulpit nie odpowiada. Sprawdź zasilanie i ustawienie wszystkich dźwigni.';
   else if(station)state.message='Sprawdź potrzebny przedmiot lub wcześniejszy etap we wskazówce.';
   else state.message=level.route?'Wagonik jedzie na sąsiednie, odblokowane pole toru.':'Kliknij oznaczone stanowisko.';
@@ -263,6 +274,6 @@ export function deepPlace(state,level,index,item){
  const progress=deepProgress(level,state);
  state.moves++;
  state.solved=progress.current===progress.total;
- state.message=state.solved?'Wyzwanie ukończone!':message;
+ state.message=state.solved?'Wyzwanie ukończone!':readyHint||message;
  return true;
 }

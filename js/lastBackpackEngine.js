@@ -1,4 +1,4 @@
-import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261121-1';
+import {puzzleItems,extraBackpackLevels,extraTerrain,extraRecipe,extraProgress,extraPlace} from './backpackPuzzles.js?v=20261121-2';
 import {logicSolved} from './backpackAdvancedPuzzles.js?v=20261118-28';
 import {craftBatchCount} from './backpackQuality.js?v=20261117-10';
 export const backpackItems={oak_log:'Drewno',oak_planks:'Deski',stick:'Patyk',coal:'Węgiel',torch:'Pochodnia',cobblestone:'Bruk',redstone:'Redstone',lever:'Dźwignia',feather:'Pióro',string:'Nić',snowball:'Śnieżka',rotten_flesh:'Zgniłe mięso',...puzzleItems};

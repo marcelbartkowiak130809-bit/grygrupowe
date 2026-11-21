@@ -1,9 +1,9 @@
 import {shelfPower,railRoute,railPowered} from './backpackQuality.js?v=20261117-10';
 import {advancedItems,advancedLevels,advancedTerrain,advancedTile,advancedRecipe,advancedProgress,advancedPlace} from './backpackAdvancedPuzzles.js?v=20261118-28';
 import {expeditionItems,expeditionLevels,expeditionTerrain,expeditionTile,expeditionRecipe,expeditionProgress,expeditionPlace} from './backpackExpeditionPuzzles.js?v=20261121-1';
-import {deepLevels,deepTile,deepProgress,deepPlace} from './backpackDeepPuzzles.js?v=20261121-1';
-import {finalBackpackLevels} from './backpackFinalPuzzles.js?v=20261121-1';
-import {masterBackpackLevels} from './backpackMasterPuzzles.js?v=20261121-1';
+import {deepLevels,deepTile,deepProgress,deepPlace} from './backpackDeepPuzzles.js?v=20261121-2';
+import {finalBackpackLevels} from './backpackFinalPuzzles.js?v=20261121-2';
+import {masterBackpackLevels} from './backpackMasterPuzzles.js?v=20261121-2';
 // Handcrafted additions with independent resource budgets and goal checks.
 export const puzzleItems={wooden_hoe:'Drewniana motyka',wheat_seeds:'Nasiona pszenicy',water_bucket:'Wiadro wody',bucket:'Wiadro',rail:'Tory',powered_rail:'Zasilane tory',redstone_torch:'Pochodnia redstone',minecart:'Wagonik',sand:'Piasek',gravel:'Żwir',iron_ore:'Ruda żelaza',iron_ingot:'Sztabka żelaza',bookshelf:'Biblioteczka',book:'Książka',lapis_lazuli:'Lazuryt',obsidian:'Obsydian',flint:'Krzemień',flint_and_steel:'Krzesiwo',wooden_pickaxe:'Drewniany kilof',stone_pickaxe:'Kamienny kilof',iron_pickaxe:'Żelazny kilof',diamond:'Diament',...advancedItems,...expeditionItems};
 const decoys={feather:2,string:3,rotten_flesh:2};

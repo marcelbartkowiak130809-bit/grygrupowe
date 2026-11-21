@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {backpackAction as action,backpackLevels,backpackBatch,createBackpackState,restoreBackpack,saveBackpack} from '../js/lastBackpackEngine.js';
 import {shelfPower,railRoute} from '../js/backpackQuality.js';
 import {extraTile} from '../js/backpackPuzzles.js';
+import {isDeepRouteOpen} from '../js/backpackDeepPuzzles.js';
 import {solveDeepLevel} from './backpackDeepSolutions.mjs';
 const baseline=JSON.parse(readFileSync(new URL('./fixtures/backpack-v5.5.6.json',import.meta.url),'utf8'));
 const stage=i=>restoreBackpack({version:1,log:baseline.log.slice(0,baseline.starts[i])});
@@ -71,6 +72,28 @@ test('completed 50-level saves open level 51 and retain all previous attempts',(
  assert.equal(upgraded.finishedAt,0);
  assert.deepEqual(upgraded.stock,backpackLevels[50].stock);
  assert.equal(restoreBackpack(saveBackpack(upgraded)).level,50);
+});
+
+test('level 50 shows how to unlock the siding and retains the signal on reload',()=>{
+ const s=restoreBackpack({version:1,log:baseline.log});
+ for(let i=30;i<49;i++){solveDeepLevel(s);assert.ok(action(s,{type:'next'}));}
+ const level=backpackLevels[49];
+ put(s,12,'redstone');
+ for(const index of level.switches)put(s,index,'lever');
+ put(s,3);
+ assert.equal(extraTile(level,13,s).label,'SKRYTKA');
+ put(s,4);
+ assert.equal(extraTile(level,13,s).label,'OTWÓRZ');
+ assert.match(s.message,/Sygnał poprawny/);
+ assert.equal(isDeepRouteOpen(level,s,11),false);
+ const restored=restoreBackpack(saveBackpack(s));
+ assert.deepEqual(restored.puzzle.switches,{0:false,1:true,2:true});
+ put(restored,13);
+ assert.match(restored.message,/Bocznica odblokowana/);
+ assert.equal(isDeepRouteOpen(level,restored,11),true);
+ for(const index of [17,18,19,11])put(restored,index);
+ put(restored,10);
+ assert.equal(restored.stock.ender_pearl,2);
 });
 test('late challenges add real steps and recoverable inventory decoys',()=>{
  const totals=[0,0];

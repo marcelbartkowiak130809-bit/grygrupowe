@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261121-1";
+import { renderGame } from "./game.js?v=20261121-2";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261120-10";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261120-10";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20260903-9";
@@ -32,7 +32,7 @@ import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylis
 
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261120-10";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261120-10";
-import { renderLastBackpack } from './lastBackpack.js?v=20261121-1';
+import { renderLastBackpack } from './lastBackpack.js?v=20261121-2';
 import { renderAlexJourney } from './alexJourney.js?v=20261119-26';
 import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20260922-1";
 import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261118-16";
