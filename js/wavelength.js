@@ -1,5 +1,5 @@
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
-import { hasGamePass } from "./gamePasses.js?v=20261121-8";
+import { hasGamePass } from "./gamePasses.js?v=20261121-9";
 
 export const wavelengthDefaults = { rounds:8, roundTime:60 };
 const pairs = [

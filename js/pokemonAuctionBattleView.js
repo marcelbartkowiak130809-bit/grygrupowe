@@ -1,6 +1,6 @@
 import { escapeHtml } from "./utils.js?v=20261121-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-8";
+import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
 import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed } from "./pokemonAuctionBattle.js?v=20261121-3";
 
 const views = new WeakMap();
