@@ -2692,7 +2692,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     return mutateRoomGame((game,current)=>{
       if(game.phase!==expected.phase || game.phaseEndsAt!==expected.phaseEndsAt) return "Ta runda już się zmieniła.";
       return applyChartForecastAction(game,state.currentUser,action,payload,current.players,serverNow());
-    },{sound:action==="submit"?"submit":"turn",after:settleAdditionalModeResult,quietRejected:action!=="submit"});
+    },{sound:action==="submit"?"submit":"turn",quietRejected:action!=="submit"});
   },
   submitInitialBid(value) {
     const amount=Math.max(1,Math.min(50,parseInt(value||"1",10)));
