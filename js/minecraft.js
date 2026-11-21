@@ -205,6 +205,36 @@ const redstoneQuestions = [
   { id: "redstone-16", difficulty: "expert", icon: item("powered_rail"), prompt: "Co robi zasilona szyna napędowa?", options: ["Przyspiesza albo zatrzymuje wagonik", "Buduje tor", "Teleportuje wagonik do Netheru"], answer: 0, explanation: "Powered rail zmienia prędkość wagonika, gdy otrzymuje sygnał." },
   { id: "redstone-17", difficulty: "expert", icon: item("calibrated_sculk_sensor"), prompt: "Co wyróżnia skalibrowany sculk sensor?", options: ["Może filtrować częstotliwość wibracji", "Nie reaguje na nic", "Wysyła sygnał tylko w dzień"], answer: 0, explanation: "Kalibrowany sensor pozwala wybrać zakres częstotliwości, na który reaguje." },
   { id: "redstone-18", difficulty: "expert", icon: item("redstone_lamp"), prompt: "Jak wyłączyć lampę redstone połączoną z aktywnym sygnałem?", options: ["Odciąć albo wyłączyć sygnał", "Dodać więcej redstone", "Postawić pod nią wodę"], answer: 0, explanation: "Lampa świeci, gdy otrzymuje moc — trzeba przerwać obwód albo sygnał." },
+  { id: "redstone-19", difficulty: "easy", icon: item("redstone"), prompt: "Pył odbiera sygnał o sile 10. Jaką siłę ma następny pył w tym samym przewodzie?", options: ["9", "10", "11"], answer: 0, explanation: "Każdy kolejny odcinek pyłu osłabia sygnał o jeden." },
+  { id: "redstone-20", difficulty: "easy", icon: block("iron_door_bottom"), prompt: "Jak otworzyć żelazne drzwi po stronie korytarza, gdzie stoi gracz?", options: ["Zasilić je przyciskiem przy drzwiach", "Kliknąć drzwi prawym przyciskiem", "Położyć niezasilony pył obok drzwi"], answer: 0, explanation: "Żelazne drzwi otwierają się pod wpływem sygnału redstone." },
+  { id: "redstone-21", difficulty: "easy", icon: item("lever"), prompt: "Drzwi mają być otwarte aż do kolejnego kliknięcia. Co da taki efekt bez dodatkowego układu?", options: ["Dźwignia", "Kamienny przycisk", "Obserwator"], answer: 0, explanation: "Dźwignia utrzymuje sygnał do ponownego przełączenia." },
+  { id: "redstone-22", difficulty: "easy", icon: item("observer"), prompt: "Gdzie posadzić trzcinę, jeśli obserwator ma wykrywać, że urosła na jego wysokość?", options: ["Przed twarzą obserwatora", "Przed czerwoną kropką", "Nad obserwatorem zwróconym w bok"], answer: 0, explanation: "Obserwator wykrywa zmiany bloku przed swoją twarzą." },
+  { id: "redstone-23", difficulty: "easy", icon: item("repeater"), prompt: "Zasilony pył dotyka tylko boku repeatera. Czy przekaźnik poda sygnał dalej?", options: ["Nie, zwykłe wejście ma z tyłu", "Tak, wyśle sygnał z pełną mocą", "Tak, ale zmniejszy sygnał o jeden"], answer: 0, explanation: "Pył musi zasilić tylne wejście repeatera, żeby sygnał przeszedł na przód." },
+  { id: "redstone-24", difficulty: "easy", icon: item("redstone_lamp"), prompt: "Lampa gaśnie po puszczeniu płyty naciskowej. Jaki element sam zapamięta stan światła po impulsie?", options: ["Miedziana żarówka", "Druga lampa redstone", "Zwykła płyta naciskowa"], answer: 0, explanation: "Miedziana żarówka przełącza światło przy każdym nowym impulsie i zapamiętuje stan." },
+  { id: "redstone-25", difficulty: "easy", icon: item("dispenser"), prompt: "Chcesz wylać wodę z wiadra po naciśnięciu przycisku. Do którego bloku je włożysz?", options: ["Do dozownika", "Do wyrzutnika", "Do leja"], answer: 0, explanation: "Dozownik użyje wiadra, a wyrzutnik wyrzuciłby całe wiadro jako przedmiot." },
+  { id: "redstone-26", difficulty: "medium", icon: item("repeater"), prompt: "Sygnał o sile 3 wchodzi od tyłu do odblokowanego repeatera. Jaki sygnał wychodzi z przodu?", options: ["15", "3", "2"], answer: 0, explanation: "Repeater odtwarza pełną siłę sygnału na swoim wyjściu." },
+  { id: "redstone-27", difficulty: "medium", icon: item("comparator"), prompt: "Komparator w trybie odejmowania dostaje 9 z tyłu i 4 z boku. Jaki ma sygnał na wyjściu?", options: ["5", "9", "4"], answer: 0, explanation: "Od wartości tylnego wejścia odejmuje siłę sygnału z boku." },
+  { id: "redstone-28", difficulty: "medium", icon: item("comparator"), prompt: "Komparator jest w trybie porównywania. Z tyłu ma 5, a z boku 7. Co wychodzi?", options: ["0", "2", "5"], answer: 0, explanation: "Mocniejszy sygnał boczny blokuje sygnał z tyłu." },
+  { id: "redstone-29", difficulty: "medium", icon: item("redstone_lamp"), prompt: "Dwa przekaźniki z różnych stron są skierowane w tę samą lampę. Jeden podaje sygnał 15, drugi 0. Czy lampa świeci?", options: ["Tak, wystarczy jedno aktywne wejście", "Nie, oba wejścia muszą być aktywne", "Nie, wejście 0 blokuje sygnał z drugiej strony"], answer: 0, explanation: "Każdy z przekaźników może samodzielnie zasilić lampę." },
+  { id: "redstone-30", difficulty: "medium", icon: item("hopper"), prompt: "Lej pobiera rzeczy z górnej skrzyni, ale nie przekazuje ich do drugiej skrzyni stojącej obok. Co poprawić?", options: ["Skierować wylot leja w drugą skrzynię", "Podłączyć stałe zasilanie do leja", "Podłączyć komparator do górnej skrzyni"], answer: 0, explanation: "Lej pobiera z góry, ale wysyła przedmioty tylko w stronę swojego wylotu." },
+  { id: "redstone-31", difficulty: "medium", icon: block("copper_bulb"), prompt: "Zgaszona miedziana żarówka dostaje kolejno dwa osobne impulsy. W jakim stanie zostanie?", options: ["Zgaszona", "Zapalona", "Zacznie migać"], answer: 0, explanation: "Pierwszy impuls zapala światło, drugi je gasi." },
+  { id: "redstone-32", difficulty: "medium", icon: block("crafter_north"), prompt: "Crafter ma surowce na trzy takie same receptury. Dostaje jeden impuls. Ile razy wykona recepturę?", options: ["Raz", "Trzy razy", "Ani razu, dopóki sygnał nie zgaśnie"], answer: 0, explanation: "Crafter wykonuje recepturę raz na każdy nowy impuls." },
+  { id: "redstone-33", difficulty: "medium", icon: item("comparator"), prompt: "Chcesz zapalić lampkę dopiero, gdy skrzynia się zapełni. Który blok pomoże odczytać jej zawartość?", options: ["Komparator", "Repeater", "Obserwator"], answer: 0, explanation: "Komparator generuje sygnał zależny od napełnienia skrzyni. Pełna skrzynia daje 15." },
+  { id: "redstone-34", difficulty: "medium", icon: block("slime_block"), prompt: "Tłok przesuwa blok śluzu. Jaki blok może dotykać go z boku i zostać na miejscu?", options: ["Blok miodu", "Bruk", "Dębowe deski"], answer: 0, explanation: "Bloki śluzu i miodu nie przyklejają się do siebie. Bruk i deski przesuną się ze śluzem." },
+  { id: "redstone-35", difficulty: "medium", icon: item("piston"), prompt: "Tłok ma bezpośrednio przed sobą prosty rząd 13 bloków bruku. Co zrobi po zasileniu?", options: ["Nie wysunie się", "Przesunie tylko pierwszych 12 bloków", "Przesunie cały rząd, jeśli dostaje sygnał 15"], answer: 0, explanation: "Gdy tłok musiałby przesunąć więcej niż 12 bloków, nie wysunie się." },
+  { id: "redstone-36", difficulty: "medium", icon: item("target"), prompt: "Dwie strzały trafiają ten sam blok celu. Jedna w środek, druga blisko brzegu. Które trafienie daje mocniejszy impuls?", options: ["Trafienie w środek", "Trafienie przy brzegu", "Oba dają tę samą moc"], answer: 0, explanation: "Im bliżej środka trafi pocisk, tym mocniejszy sygnał daje blok celu." },
+  { id: "redstone-37", difficulty: "medium", icon: item("daylight_detector"), prompt: "Czujnik światła ma włączać światła po zmroku zamiast w dzień. Jak zmienisz jego tryb?", options: ["Klikniesz czujnik przyciskiem użycia", "Obrócisz czujnik w stronę zachodu", "Postawisz na nim lampę redstone"], answer: 0, explanation: "Użycie czujnika przełącza go między trybem zwykłym a odwróconym." },
+  { id: "redstone-38", difficulty: "medium", icon: item("powered_rail"), prompt: "Wagonik jedzie po prostym, płaskim torze. Jak użyjesz szyny napędowej jako hamulca?", options: ["Zostawisz ją bez zasilania", "Zasilisz ją mocą 15", "Odwrócisz kierunek zasilonej szyny"], answer: 0, explanation: "Niezasilona szyna napędowa hamuje wagonik, a zasilona może go przyspieszyć." },
+  { id: "redstone-39", difficulty: "medium", icon: block("tripwire_hook"), prompt: "Dwie naprzeciwległe zaczepki łączy nić. Która część układu daje sygnał, gdy gracz przejdzie przez nić?", options: ["Obie zaczepki", "Tylko zaczepka po lewej stronie gracza", "Tylko sama nić"], answer: 0, explanation: "Przecięcie linii przez gracza uruchamia wyjścia obu zaczepów." },
+  { id: "redstone-40", difficulty: "hard", icon: item("comparator"), prompt: "Komparator w trybie odejmowania ma 12 z tyłu i 4 oraz 6 po bokach. Co wychodzi?", options: ["6", "2", "8"], answer: 0, explanation: "Komparator używa mocniejszego sygnału bocznego, więc oblicza 12 − 6." },
+  { id: "redstone-41", difficulty: "hard", icon: item("repeater"), prompt: "Jeden repeater opóźnia sygnał o 2 takty redstone, a następny o 3. Jakie jest łączne opóźnienie?", options: ["5 taktów redstone", "3 takty redstone", "6 taktów redstone"], answer: 0, explanation: "Opóźnienia przekaźników ustawionych szeregowo sumują się." },
+  { id: "redstone-42", difficulty: "hard", icon: item("repeater"), prompt: "Włączony repeater blokujesz drugim aktywnym repeaterem skierowanym w jego bok. Co jest na wyjściu pierwszego, gdy wyłączysz jego tylne wejście?", options: ["Nadal sygnał 15, aż zniknie blokada", "Od razu 0", "Tylko pojedynczy impuls"], answer: 0, explanation: "Zablokowany repeater zachowuje swój stan sprzed blokady." },
+  { id: "redstone-43", difficulty: "hard", icon: block("crafter_north"), prompt: "W Crafterze dwa pola są zajęte, a trzy inne wyłączone. Jaki sygnał odczyta komparator?", options: ["5", "2", "3"], answer: 0, explanation: "Każde zajęte albo wyłączone pole dodaje jeden do siły sygnału." },
+  { id: "redstone-44", difficulty: "hard", icon: item("redstone_torch"), prompt: "Dwie pochodnie kolejno odwracają sygnał. Pierwszy blok jest zasilony. Czy druga pochodnia świeci?", options: ["Tak", "Nie", "Tylko podczas zmiany sygnału"], answer: 0, explanation: "Pierwsza pochodnia gaśnie, więc nie zasila bloku drugiej. Druga pochodnia świeci." },
+  { id: "redstone-45", difficulty: "hard", icon: item("comparator"), prompt: "Komparator mierzy ciasto. Odczytujesz sygnał 8. Ile kawałków zjedzono z pełnego ciasta?", options: ["3", "4", "6"], answer: 0, explanation: "Pełne ciasto daje 14, a każdy zjedzony kawałek odejmuje 2." },
+  { id: "redstone-46", difficulty: "expert", icon: block("copper_bulb"), prompt: "Zapaloną miedzianą żarówkę odłączasz od zasilania. Ile pokazuje komparator odczytujący jej stan?", options: ["15", "0", "Tyle, ile wynosi poziom oświetlenia żarówki"], answer: 0, explanation: "Komparator sprawdza, czy żarówka świeci. Zapalona daje 15 niezależnie od zasilania i utlenienia." },
+  { id: "redstone-47", difficulty: "expert", icon: item("comparator"), prompt: "Tył i jeden bok komparatora dostają po 8. Co zmieni się na jego wyjściu po przełączeniu z porównywania na odejmowanie?", options: ["Z 8 na 0", "Z 0 na 8", "Z 8 na 8"], answer: 0, explanation: "Równy sygnał boczny przepuszcza wejście w trybie porównania. W trybie odejmowania 8 − 8 daje zero." },
+  { id: "redstone-48", difficulty: "expert", icon: item("repeater"), prompt: "Za komparatorem jest repeater. Komparator odejmuje boczne 4 od tylnego 5. Jaki sygnał wyjdzie z ostatniego elementu?", options: ["15", "1", "0"], answer: 0, explanation: "Komparator daje moc 1, a repeater odtwarza z tego pełny sygnał 15." },
 ];
 
 const questionPools = {
@@ -240,14 +270,20 @@ function questionFor(modeId, settings, usedIds = []) {
   const filtered = pool.filter(question => (difficultyRank[question.difficulty] || 2) <= limit);
   const eligible = filtered.length ? filtered : pool;
   const unused = eligible.filter(question => !usedIds.includes(question.id));
-  if (unused.length) return { ...pick(unused) };
-  if (modeId === "minecraft-mob") {
+  let selected = unused.length ? pick(unused) : pick(eligible);
+  if (!unused.length && ["minecraft-mob", "minecraft-redstone"].includes(modeId)) {
     // A rematch may start with a full history. Recycle the least recent eligible mob.
     const eligibleById = new Map(eligible.map(question => [question.id, question]));
     const oldestId = usedIds.find(id => eligibleById.has(id));
-    return { ...eligibleById.get(oldestId) };
+    selected = eligibleById.get(oldestId) || selected;
   }
-  return { ...pick(eligible) };
+  if (modeId !== "minecraft-redstone") return { ...selected };
+  const order = selected.options.map((_, index) => index);
+  for (let index = order.length - 1; index > 0; index--) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [order[index], order[swap]] = [order[swap], order[index]];
+  }
+  return { ...selected, options: order.map(index => selected.options[index]), answer: order.indexOf(selected.answer) };
 }
 
 function scoresFor(players, scores = {}) {
@@ -273,7 +309,9 @@ function reconcilePlayers(game, players) {
   }
   if (activePlayers.length && game.currentUid && !activePlayers.includes(game.currentUid)) game.currentUid = activePlayers[(Number(game.turnIndex) || 0) % activePlayers.length];
   if (game.roundResult?.scoreSnapshot) game.roundResult.scoreSnapshot = scoresFor(activePlayers, game.roundResult.scoreSnapshot);
-  if (game.roundResult?.points) game.roundResult.points = Object.fromEntries(Object.entries(game.roundResult.points).filter(([uid]) => activePlayers.includes(uid)));
+  if (game.roundResult?.points && typeof game.roundResult.points === "object") {
+    game.roundResult.points = Object.fromEntries(Object.entries(game.roundResult.points).filter(([uid]) => activePlayers.includes(uid)));
+  }
   if (game.phase === "result" || game.finished) {
     const result = winnerData(game);
     game.result = { ...(game.result || {}), ...result };
@@ -294,7 +332,7 @@ function beginQuestion(game, settings, players) {
   const question = questionFor(game.mode, settings, game.usedQuestionIds);
   game.question = question;
   const usedIds = list(game.usedQuestionIds);
-  game.usedQuestionIds = game.mode === "minecraft-mob"
+  game.usedQuestionIds = ["minecraft-mob", "minecraft-redstone"].includes(game.mode)
     ? [...usedIds.filter(id => id !== question.id), question.id].slice(-40)
     : unique([...usedIds, question.id]);
   game.answers = {};
@@ -317,11 +355,14 @@ function revealTruth(game, players) {
 }
 
 function revealTurn(game, uid, raw, correct) {
-  game.lastAnswer = { uid, raw: String(raw || "Nie udzielono odpowiedzi."), correct: Boolean(correct) };
+  const timedOut = raw === null;
+  const answer = timedOut ? "Nie udzielono odpowiedzi na czas." : String(raw);
+  const expected = game.mode === "minecraft-redstone" ? list(game.question.options)[game.question.answer] : game.question.answer;
+  game.lastAnswer = { uid, raw: answer, correct: Boolean(correct) };
   if (correct) game.scores[uid] = (Number(game.scores[uid]) || 0) + 1;
-  game.roundResult = { kind: "turn", uid, answer: String(raw || "Nie udzielono odpowiedzi."), correct: Boolean(correct), points: correct ? 1 : 0, scoreSnapshot: scoresFor(game.players, game.scores), expected: game.question.answer, explanation: game.question.explanation };
+  game.roundResult = { kind: "turn", uid, answer, timedOut, correct: Boolean(correct), points: { [uid]: correct ? 1 : 0 }, scoreSnapshot: scoresFor(game.players, game.scores), expected, explanation: game.question.explanation };
   game.phase = "reveal";
-  setPhaseTimer(game, 2.3);
+  setPhaseTimer(game, game.mode === "minecraft-redstone" ? 4.5 : 2.3);
 }
 
 export function createMinecraftGame(modeId, players, settings = {}) {
@@ -373,13 +414,17 @@ export const MinecraftEngine = {
     }
     if (game.currentUid !== uid) return "Teraz odpowiada inny gracz.";
     const question = game.question || {};
-    let value = payload?.text ?? payload?.answer ?? payload;
-    if (game.mode === "minecraft-redstone") value = Number(payload?.option ?? payload);
-    if (typeof value === "string") value = value.trim().slice(0, 160);
-    if (game.mode === "minecraft-redstone" && !Number.isInteger(value)) return "Wybierz jedną odpowiedź.";
-    if (game.mode !== "minecraft-redstone" && !String(value || "").trim()) return "Wpisz odpowiedź.";
-    const correct = game.mode === "minecraft-redstone" ? Number(value) === Number(question.answer) : matchingText(value, question.accepted);
-    revealTurn(game, uid, value, correct);
+    if (game.mode === "minecraft-redstone") {
+      const option = payload?.option ?? payload;
+      const index = typeof option === "number" || (typeof option === "string" && /^\d+$/.test(option)) ? Number(option) : -1;
+      const options = list(question.options);
+      if (!Number.isInteger(index) || index < 0 || index >= options.length) return "Wybierz jedną odpowiedź.";
+      revealTurn(game, uid, options[index], index === Number(question.answer));
+      return;
+    }
+    const value = String(payload?.text ?? payload?.answer ?? payload ?? "").trim().slice(0, 160);
+    if (!value) return "Wpisz odpowiedź.";
+    revealTurn(game, uid, value, matchingText(value, question.accepted));
   },
 
   timeout(game, players, settings = {}) {
@@ -391,7 +436,7 @@ export const MinecraftEngine = {
       revealTruth(game, listPlayers);
       return;
     }
-    revealTurn(game, game.currentUid, "Nie udzielono odpowiedzi na czas.", false);
+    revealTurn(game, game.currentUid, null, false);
   },
 
   nextRound(game, settings = {}, players = []) {
@@ -452,9 +497,15 @@ function scoreStrip(game, accounts) {
 }
 
 function roundRanking(game, accounts) {
+  const result = game.roundResult || {};
   const ranking = safePlayers(game.players).map(uid => ({ uid, score: Number(game.roundResult?.scoreSnapshot?.[uid] ?? game.scores?.[uid] ?? 0) || 0 }))
-    .sort((a, b) => b.score - a.score || safePlayers(game.players).indexOf(a.uid) - safePlayers(game.players).indexOf(b.uid));
-    return `<div class="minecraft-round-ranking"><p class="eyebrow">RANKING PO RUNDZIE</p>${ranking.map((entry, index) => `<div class="minecraft-round-ranking-row"><span>#${index + 1}</span>${resultPlayerMiniHtml(accounts[entry.uid] || { nick: "Gracz" }, Number(game.roundResult?.points?.[entry.uid] || 0) > 0 ? "win" : "lose")}<strong>${entry.score} pkt</strong>${Number(game.roundResult?.points?.[entry.uid] || 0) > 0 ? `<em class="minecraft-earned">+${Number(game.roundResult.points[entry.uid])}</em>` : ""}</div>`).join("")}</div>`;
+    .sort((a, b) => b.score - a.score);
+  return `<div class="minecraft-round-ranking"><p class="eyebrow">RANKING PO RUNDZIE</p>${ranking.map((entry, index) => {
+    const answered = result.kind === "truth" || result.uid === entry.uid;
+    const earned = Number(result.points?.[entry.uid] ?? (result.uid === entry.uid && result.correct ? 1 : 0));
+    const outcome = earned > 0 ? "win" : answered ? "lose" : "static";
+    return `<div class="minecraft-round-ranking-row"><span>#${index + 1}</span>${resultPlayerMiniHtml(accounts[entry.uid] || { nick: "Gracz" }, outcome)}<div class="minecraft-ranking-score"><strong>${entry.score} pkt</strong>${earned > 0 ? `<em class="minecraft-earned">+${earned}</em>` : ""}</div></div>`;
+  }).join("")}</div>`;
 }
 
 function timerMarkup(game) {
@@ -519,8 +570,18 @@ function revealCard(game, accounts) {
     return `<section class="minecraft-reveal-card is-truth"><p class="eyebrow">UJAWNIENIE FAKTU</p><strong class="minecraft-big-reveal">${result.correctAnswer ? "✅ PRAWDA" : "❌ FAŁSZ"}</strong><p class="minecraft-explanation">${escapeHtml(result.explanation || "Sprawdzone w grze.")}</p><div class="minecraft-round-answers">${safePlayers(game.players).map(uid => `<span>${resultPlayerMiniHtml(accounts[uid] || { nick: "Gracz" }, result.answers?.[uid]?.correct ? "win" : "lose")}<small>${result.answers?.[uid]?.correct ? "+1 pkt" : "nie trafił"}</small></span>`).join("")}</div>${roundRanking(game, accounts)}</section>`;
   }
   const answerOwner = accounts[result.uid] || { nick: "Gracz" };
-  const expected = result.expected || game.question?.answer || "—";
-  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">ODPOWIEDŹ ${result.correct ? "TRAFIONA" : "NIE TRAFIŁA"}</p>${game.mode === "minecraft-mob" ? imageHtml(mobPortrait(game.question), "Głowa moba", "minecraft-reveal-icon minecraft-mob-portrait") : ""}<div class="minecraft-reveal-owner">${resultPlayerMiniHtml(answerOwner, result.correct ? "win" : "lose")}</div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : "❌"} ${escapeHtml(result.answer || "Brak odpowiedzi")}</strong><p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
+  let expected = result.expected ?? game.question?.answer ?? "—";
+  let answer = result.answer;
+  const timedOut = result.timedOut ?? answer === "Nie udzielono odpowiedzi na czas.";
+  if (game.mode === "minecraft-redstone" && typeof expected === "number") {
+    // Rounds started before this release saved indexes and treated index 0 as blank.
+    const options = list(game.question?.options);
+    expected = options[expected] ?? "—";
+    if (answer === "Nie udzielono odpowiedzi.") answer = options[0];
+    else if (/^\d+$/.test(answer)) answer = options[Number(answer)] ?? answer;
+  }
+  const label = result.correct ? "TRAFIONA ODPOWIEDŹ" : timedOut ? "CZAS MINĄŁ" : "BŁĘDNA ODPOWIEDŹ";
+  return `<section class="minecraft-reveal-card ${result.correct ? "is-correct" : "is-wrong"}"><p class="eyebrow">${label}</p>${game.mode === "minecraft-mob" ? imageHtml(mobPortrait(game.question), "Głowa moba", "minecraft-reveal-icon minecraft-mob-portrait") : ""}<div class="minecraft-reveal-owner">${resultPlayerMiniHtml(answerOwner, result.correct ? "win" : "lose")}</div><strong class="minecraft-answer-reveal">${result.correct ? "✅" : timedOut ? "⏱" : "❌"} ${escapeHtml(answer || (result.correct ? expected : "Brak odpowiedzi"))}</strong>${result.correct ? "" : `<p class="minecraft-expected">Poprawna odpowiedź: <b>${escapeHtml(expected)}</b></p>`}${result.explanation ? `<p class="minecraft-explanation">${escapeHtml(result.explanation)}</p>` : ""}${roundRanking(game, accounts)}</section>`;
 }
 
 function finalResults(game, accounts, room, currentUser) {
@@ -543,7 +604,12 @@ export function renderMinecraftGame(root, { room, accounts, currentUser }, actio
   const isReveal = game.phase === "reveal";
   const difficulty = difficultyLabel[room.settings?.difficulty || game.difficulty] || difficultyLabel.medium;
   root.innerHTML = `<main class="page minecraft-game-page enter"><section class="panel minecraft-shell"><header class="minecraft-game-head"><div><p class="eyebrow"><img src="${minecraftModeIcons[game.mode] || item("grass_block")}" alt="" class="minecraft-inline-icon"> ${escapeHtml(meta.name)} · RUNDA ${game.round}/${game.totalRounds}</p><h1>${escapeHtml(meta.kind)}</h1><div class="minecraft-head-meta"><span class="minecraft-difficulty-chip">${escapeHtml(difficulty)}</span><span class="minecraft-head-caption">${game.mode === "minecraft-truth" ? "Odpowiada cała ekipa" : "Jedna odpowiedź · jedna szansa"}</span></div></div>${timerMarkup(game)}</header>${scoreStrip(game, accounts)}${isReveal ? revealCard(game, accounts) : questionCard(game, currentUser, accounts)}${minecraftCommerceHtml(game, room, accounts, currentUser)}${isReveal ? `<div class="minecraft-next-wrap"><button class="primary" id="minecraft-next" ${room.hostUid === currentUser ? "" : "disabled"}>${Number(game.round) >= Number(game.totalRounds) ? "Pokaż wyniki" : "Następne pytanie"}</button><small>${room.hostUid === currentUser ? "Host może przejść dalej wcześniej." : "Czekamy, aż host przejdzie dalej."}</small></div>` : ""}</section></main>`;
-  root.querySelectorAll("[data-minecraft-answer-option]").forEach(button => button.addEventListener("click", () => { root.querySelectorAll("[data-minecraft-answer-option]").forEach(control => { control.disabled = true; }); actions.minecraftAnswer({ option: Number(button.dataset.minecraftAnswerOption) }, expected); }));
+  const choices = [...root.querySelectorAll("[data-minecraft-answer-option]")];
+  choices.forEach(button => button.addEventListener("click", async () => {
+    choices.forEach(control => { control.disabled = true; });
+    const accepted = await actions.minecraftAnswer({ option: Number(button.dataset.minecraftAnswerOption) }, expected);
+    if (!accepted && button.isConnected) choices.forEach(control => { control.disabled = false; });
+  }));
   root.querySelector("[data-minecraft-answer-form]")?.addEventListener("submit", event => { event.preventDefault(); const input = event.currentTarget.elements.answer; const submit = event.currentTarget.querySelector("button[type=submit]"); if (!input.value.trim() || submit?.disabled) return; input.disabled = true; if (submit) submit.disabled = true; actions.minecraftAnswer({ text: input.value }, expected); });
   root.querySelectorAll("[data-minecraft-boost]").forEach(button => button.addEventListener("click", () => { if (button.disabled || button.dataset.minecraftPending) return; button.dataset.minecraftPending = "1"; button.disabled = true; button.classList.add("is-pending"); actions.minecraftUseTimeBoost(button.dataset.minecraftBoost); }));
   root.querySelector("#minecraft-next")?.addEventListener("click", () => actions.minecraftNext());

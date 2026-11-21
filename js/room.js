@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261121-11";
+import { getGameMode } from "./games.js?v=20261121-12";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-9";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -28,7 +28,7 @@ import { renderConnectLobbySettings } from "./connect.js?v=20261121-8";
 import { renderLiarLobbySettings } from "./liar.js?v=20261121-9";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20261121-9";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20261121-9";
-import { adSenseBlock } from "./publicPages.js?v=20261121-11";
+import { adSenseBlock } from "./publicPages.js?v=20261121-12";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botTooltip, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20261121-9";
@@ -37,7 +37,7 @@ import { renderLyricsLobbySettings } from "./lyrics.js?v=20261121-8";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20261121-9";
 import { renderSongSpotLobbySettings } from "./deferredMusicModes.js?v=20261121-8";
 import { renderBoardLobbySettings } from "./boardGames.js?v=20261121-11";
-import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20261121-9";
+import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20261121-12";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
 const modeEmojis = { wavelength:"🌈", quiz:"🎲", mathematics:"🧮", marker:"🖍️", sequence:"🔐", family:"📊", "word-chain":"🔗", charades:"🎭", hangman:"🪢", klamca:"🎭", "falszywa-wiadomosc":"📱", "tajna-zasada":"🧠", "pojedynek-hitow":"🎵", "bitwa-hitow":"🎶", "popularnosc-hitow":"📈", "dokoncz-tekst":"✍️" };
