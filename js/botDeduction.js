@@ -1,4 +1,4 @@
-import { normalizeAnswer } from "./utils.js?v=20261121-7";
+import { normalizeAnswer } from "./utils.js?v=20261121-8";
 
 export const randomBotChoice = items => items[Math.floor(Math.random() * items.length)];
 

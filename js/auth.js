@@ -1,4 +1,4 @@
-import { $, avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-7";
+import { $, avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-8";
 
 const historyDate = value => {
   const date = new Date(Number.isFinite(Number(value)) ? Number(value) : value);

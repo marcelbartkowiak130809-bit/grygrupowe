@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
+import { $, boardPlayerStripHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 

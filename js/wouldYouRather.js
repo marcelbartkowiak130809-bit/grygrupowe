@@ -1,6 +1,6 @@
 import { wouldYouRatherCategories, wouldYouRatherQuestions } from "../content/co-wolisz/questions.js?v=20260602-11";
-import { $, escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-7";
-import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, getWouldYouRatherVotes, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261121-7";
+import { $, escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
+import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, getWouldYouRatherVotes, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261121-8";
 
 const state={category:"Losowe",current:null,votes:{a:0,b:0,source:"demo"},choice:null,loading:false};
 let unsubscribe=()=>{};

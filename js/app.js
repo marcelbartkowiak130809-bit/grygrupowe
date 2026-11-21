@@ -1,82 +1,82 @@
-import { accountModal, authModal } from "./auth.js?v=20261121-7";
+import { accountModal, authModal } from "./auth.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261117-10";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20261121-7";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import {newSoloRun, soloGameEvent} from './soloSiteStats.js?v=20261119-10';
 import { Effects } from "./effects.js";
-import { minecraftHintPurchase } from './minecraftHints.js?v=20261121-7';
-import { renderLastBackpack } from './lastBackpack.js?v=20261121-7';
-import { renderAlexJourney } from './alexJourney.js?v=20261121-7';
+import { minecraftHintPurchase } from './minecraftHints.js?v=20261121-8';
+import { renderLastBackpack } from './lastBackpack.js?v=20261121-8';
+import { renderAlexJourney } from './alexJourney.js?v=20261121-8';
 import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
-import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-7";
+import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-7";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-7";
+import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-8";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-8";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261121-7";
-import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-7";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-7";
-import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261121-7";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261121-7";
-import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20261121-7";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261121-7";
-import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20261121-7";
-import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20261121-7";
-import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20261121-7";
-import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20261121-7";
-import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20261121-7";
-import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-7";
-import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-7";
-import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-7";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-7";
+import { gamesList, getGameMode } from "./games.js?v=20261121-8";
+import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-8";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-8";
+import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261121-8";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261121-8";
+import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20261121-8";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261121-8";
+import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20261121-8";
+import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20261121-8";
+import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20261121-8";
+import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20261121-8";
+import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20261121-8";
+import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-8";
+import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-8";
+import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-8";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-8";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
-import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-7";
-import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261121-7";
-import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-7";
-import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-7";
+import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-8";
+import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261121-8";
+import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-8";
+import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-8";
 import { markerActionMatches } from './markerDrawing.js?v=20261117-10';
-import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20261121-7";
-import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20261121-7";
-import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20261121-7";
-import { createCharadesGame, CharadesEngine, stopCharadesTimer } from "./charades.js?v=20261121-7";
-import { createHangmanGame, HangmanEngine, stopHangmanTimer } from "./hangman.js?v=20261121-7";
-import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20261121-7";
-import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20261121-7";
-import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20261121-7";
-import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20261121-7";
-import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20261121-7";
-import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20261121-7";
-import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261121-7";
-import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261121-7";
-import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20261121-7";
-import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing, renderPlaylistTournament, stopPlaylistTournament, loadMusicMode, musicModeReady } from "./deferredMusicModes.js?v=20261121-7";
+import { createSequenceGame, SequenceEngine, markSequenceReady, timeoutSequenceCreation, stopSequenceTimer } from "./sequence.js?v=20261121-8";
+import { createFamilyGame, FamilyEngine, stopFamilyTimer } from "./family.js?v=20261121-8";
+import { createWordChainGame, WordChainEngine, stopWordChainTimer } from "./wordChain.js?v=20261121-8";
+import { createCharadesGame, CharadesEngine, stopCharadesTimer } from "./charades.js?v=20261121-8";
+import { createHangmanGame, HangmanEngine, stopHangmanTimer } from "./hangman.js?v=20261121-8";
+import { createNumberMysteryGame, NumberMysteryEngine, stopNumberMysteryTimer } from "./numberMystery.js?v=20261121-8";
+import { createUniqueAnswerGame, UniqueAnswerEngine, stopUniqueAnswerTimer, sanitizeUniqueAnswerSettings } from "./uniqueAnswer.js?v=20261121-8";
+import { createConnectGame, ConnectEngine, stopConnectTimer } from "./connect.js?v=20261121-8";
+import { createLiarGame, LiarEngine, sanitizeLiarSettings, stopLiarTimer } from "./liar.js?v=20261121-8";
+import { createFalseMessageGame, FalseMessageEngine, sanitizeFalseMessageSettings, stopFalseMessageTimer } from "./falseMessage.js?v=20261121-8";
+import { createSecretRuleGame, SecretRuleEngine, sanitizeSecretRuleSettings, secretRuleCategories, stopSecretRuleTimer } from "./secretRule.js?v=20261121-8";
+import { createMusicDuelGame, createMusicArenaGame, MusicDuelEngine, MusicArenaEngine, searchMusicTracks, stopMusicTimer } from "./music.js?v=20261121-8";
+import { createLyricsGame, LyricsEngine, LyricsSoloEngine, renderLyricsSolo, sanitizeLyricsSettings, stopLyricsSoloTimer, stopLyricsTimer } from "./lyrics.js?v=20261121-8";
+import { PopularityEngine, PopularitySoloEngine, createPopularityGame, popularityArtists, popularityTracks, renderPopularitySolo, sanitizePopularitySettings, stopPopularityTimer } from "./popularity.js?v=20261121-8";
+import { SongSpotEngine, SongSpotSoloEngine, createSongSpotGame, renderSongSpotGame, renderSongSpotSolo, sanitizeSongSpotSettings, stopSongSpotGameTimer, stopSongSpotTimer, stopSongSpotSharing, renderPlaylistTournament, stopPlaylistTournament, loadMusicMode, musicModeReady } from "./deferredMusicModes.js?v=20261121-8";
 
 import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
 let renderedTopBar = "";
-import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261121-7";
-import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-7";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-7";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-7";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-7";
+import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261121-8";
+import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-8";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-8";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-8";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-8";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261121-7";
-import { renderShop, stopShopTimer } from "./shop.js?v=20261121-7";
-import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-7";
-import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261121-7";
+import { playerMini, renderRoom } from "./room.js?v=20261121-8";
+import { renderShop, stopShopTimer } from "./shop.js?v=20261121-8";
+import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
+import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261121-8";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261121-7";
-import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-7";
-import { loadPresenceUsers } from "./firebase.js?v=20261121-7";
-import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
-import { scheduleBot } from "./botController.js?v=20261121-7";
-import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-7";
-import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-7";
-import { potionPackById } from "./potionPacks.js?v=20261121-7";
-import { honorModal } from "./honor.js?v=20261121-7";
-import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261121-7";
-import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261121-7";
-import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20261121-7";
+import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
+import { loadPresenceUsers } from "./firebase.js?v=20261121-8";
+import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
+import { scheduleBot } from "./botController.js?v=20261121-8";
+import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-8";
+import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
+import { potionPackById } from "./potionPacks.js?v=20261121-8";
+import { honorModal } from "./honor.js?v=20261121-8";
+import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261121-8";
+import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261121-8";
+import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20261121-8";
 
 const root = $("#app");
 let deferredPwaInstallPrompt = null;
@@ -948,6 +948,7 @@ const additionalModeRewardConfig = Object.freeze({
   "board-statki": { participation:55, point:12, scoreCap:8, winner:75, xp:70 },
   "board-reversi": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   "board-warcaby": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
+  "board-szachy": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   "board-cztery": { participation:50, point:12, scoreCap:8, winner:70, xp:60 },
   "board-memory": { participation:45, point:10, scoreCap:8, winner:65, xp:55 },
   "board-domino": { participation:45, point:9, scoreCap:10, winner:65, xp:55 },
@@ -2327,7 +2328,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       game.quickReactions[state.currentUser] = { id:reaction.id, text:reaction.text, expiresAt:now + 2200 };
       if (useChat && Array.isArray(game.chat)) game.chat.push({ uid:state.currentUser, text:reaction.text, reaction:true, createdAt:now });
     }, { sound:"notification" });
-    if (room.gameMode !== "pokemon-auction") {
+    if (room.gameMode !== "pokemon-auction" && room.gameMode !== "board-szachy") {
       window.setTimeout(() => { if (Router.current === "game" && activeRoom()?.roomId === room.roomId) render({ preserveDrafts:true }); }, 2300);
     }
     return result;
@@ -2922,7 +2923,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     message(isPass?"Mistrz tempa dodał ci 15 sekund.":"Kupiono dodatkowe 15 sekund.","info");
     return true;
   },
-  boardRestart(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode?.startsWith("board-")!==true)return message("Tylko host może rozpocząć ponowny mecz.","info");return mutateRoomGame((game,current)=>{if(game.phase!=="result")return "Mecz jeszcze trwa.";BoardEngine.restart(game,current.players,current.settings);current.status="playing";},{sound:"gameStart"});},
+  boardRestart(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode?.startsWith("board-")!==true)return message("Tylko host może rozpocząć ponowny mecz.","info");return mutateRoomGame((game,current)=>{if(game.phase!=="result")return "Mecz jeszcze trwa.";if(current.gameMode==="board-szachy"&&current.players.length<2)return "Do rewanżu potrzeba dwóch graczy.";BoardEngine.restart(game,current.players,current.settings);if(current.gameMode==="board-szachy")Object.assign(game,{siteGameId:uid("GAME"),startedAt:serverNow()});current.status="playing";},{sound:"gameStart"});},
   musicSearchTracks(query, region="global"){return searchMusicTracks(query, region);},
   musicDuelSelect(track, expected={}){return mutateRoomGame((game,room)=>{reconcileMusicPlayers(game,room);if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór utworu już minął.";return MusicDuelEngine.select(game,state.currentUser,track,room.settings);},{sound:"submit"});},
   musicDuelVote(target, expected={}){return mutateRoomGame((game,room)=>{reconcileMusicPlayers(game,room);if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return MusicDuelEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
@@ -3392,6 +3393,8 @@ function renderNow(options = {}) {
   const preserveRoom = softRender && screen === "room" && oldView?.querySelector(".compact-room");
   const typeRace = screen === "game" && markerRoom?.gameMode === "pokemon-type-draw" ? markerRoom.game : null;
   const preserveTypeRace = previousScope === scope && ["type-draw","type-race"].includes(typeRace?.phase) && oldView?.querySelector("[data-type-race-view]");
+  const chess = screen === "game" && markerRoom?.gameMode === "board-szachy";
+  const preserveChess = softRender && chess && oldView?.querySelector("[data-chess-game]");
   const drafts = previousScope === scope && !preserveRoom && !typeRace ? captureInputDrafts(root) : {fields:[]};
   root.dataset.routeScope = scope;
   const preservedScrollY = softRender ? window.scrollY : null;
@@ -3403,12 +3406,12 @@ function renderNow(options = {}) {
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
-  if (!auction) clearSideReactions(root);
+  if (!auction && !chess) clearSideReactions(root);
   const activeAuctionLots = ["auction","auction-reveal"].includes(auction?.phase);
   const preserveAuctionResult = softRender && auction?.phase === "result" && oldView?.querySelector("[data-auction-final]");
   const preserveAuctionBattle = softRender && auctionBattlePhases.includes(auction?.phase) && oldView?.querySelector("[data-auction-battle]");
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3432,7 +3435,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
-  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
@@ -3465,7 +3468,7 @@ function renderNow(options = {}) {
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
       if (preserveTypeRace) view.querySelectorAll(".quick-reactions-bar,.quick-reaction-bubble-layer").forEach(node => node.remove());
-      if (auction) renderSideReactions(root, room, state.accounts, actions);
+      if (auction || chess) renderSideReactions(root, room, state.accounts, actions);
       else if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser).catch(()=>{});

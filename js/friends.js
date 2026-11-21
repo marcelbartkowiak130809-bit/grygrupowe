@@ -1,4 +1,4 @@
-import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-7";
+import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-8";
 
 const incomingRequests = account => account?.friendRequests?.incoming || {};
 const outgoingRequests = account => account?.friendRequests?.outgoing || {};

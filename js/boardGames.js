@@ -1,11 +1,15 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-7";
-import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-7";
-import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-7";
+import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-8";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-8";
+import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-8";
+import { serverNow } from "./firebase.js?v=20261121-8";
+import { chessMode, chessInfo, chessDefaults, chessSettings, chessMinutes, chessIncrements, createChessGame, chessGameAction } from "./chessGame.js?v=20261121-8";
+import { renderChessGame } from "./chessView.js?v=20261121-8";
 
 export const boardModeDefinitions = [
+  chessInfo,
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },
   { id:"board-slowotwor", name:"Słowotwór", icon:"🔤", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Układaj słowa z własnych liter i zbieraj punkty za najciekawsze zagrania.", rules:["Wykorzystuj tylko litery ze swojego stojaka.","Dłuższe słowa i pełny stojak dają więcej punktów.","Jeśli nie masz pomysłu, możesz spasować i dobrać nowe litery."], art:"board-words" },
   { id:"board-statki", name:"Statki", icon:"🚢", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Ukryj flotę, namierzaj pola przeciwnika i zatop wszystkie jego statki.", rules:["Wybierz dokładnie siedem pól dla swojej floty.","Strzelaj na zmianę — trafione i chybione pola zostają oznaczone.","Zatopienie wszystkich siedmiu pól rywala kończy mecz."], art:"board-ships" },
@@ -17,6 +21,7 @@ export const boardModeDefinitions = [
 ];
 
 export const boardModeDefaults = {
+  [chessMode]:chessDefaults,
   [GUESS_PEOPLE_MODE]:guessPeopleDefaults,
   "board-chinczyk": { turnTime:45 },
   "board-slowotwor": { turnTime:45, rounds:6 },
@@ -38,6 +43,7 @@ const scoreObject = players => Object.fromEntries(players.map(uid => [uid, 0]));
 const boardInfo = id => boardModeDefinitions.find(item => item.id === id) || boardModeDefinitions[0];
 
 export function sanitizeBoardSettings(raw = {}, modeId = "") {
+  if (modeId === chessMode) return { ...objectOrEmpty(raw), ...chessSettings(objectOrEmpty(raw)) };
   if (modeId === GUESS_PEOPLE_MODE) return sanitizeGuessPeopleSettings(raw);
   const settings = { ...(boardModeDefaults[modeId] || boardModeDefaults["board-chinczyk"]), ...objectOrEmpty(raw) };
   settings.turnTime = clamp(settings.turnTime, 15, 180, boardModeDefaults[modeId]?.turnTime || 45);
@@ -127,6 +133,7 @@ function createDomino(players, settings) {
 
 export function createBoardGame(modeId, players, rawSettings = {}) {
   const settings=sanitizeBoardSettings(rawSettings,modeId);
+  if (modeId === chessMode) return createChessGame(playersFor(players,2),settings,serverNow());
   if (modeId === GUESS_PEOPLE_MODE) return createGuessPeopleGame(players,settings);
   let game;
   if(modeId === "board-chinczyk") game=createLudo(players,settings);
@@ -623,6 +630,7 @@ export const BoardEngine = {
       return;
     }
     game.players=nextPlayers.length?nextPlayers:previousPlayers;game.scores=objectOrEmpty(game.scores);game.players.forEach(player=>{if(!Number.isFinite(Number(game.scores[player])))game.scores[player]=0;});
+    if(game.boardMode===chessMode)return chessGameAction(game,uid,action,payload,serverNow(),finishGame);
     if(game.phase==="playing"&&game.currentUid&&!game.players.includes(game.currentUid))startTurn(game,Number(game.turnIndex)||0,settings);
     if(action === "board-extend-time") {
       const placementTurn=game.boardMode==="board-statki"&&game.phase==="placement"&&!game.placementSubmitted?.[uid];
@@ -642,13 +650,23 @@ export const BoardEngine = {
     if(game.boardMode==="board-memory")return memoryAction(game,uid,action,payload,settings);
     return dominoAction(game,uid,action,payload,settings);
   },
-  restart(game, players, settings) { const fresh=createBoardGame(game.boardMode,players,settings);Object.keys(game).forEach(key=>delete game[key]);Object.assign(game,fresh);return; },
+  restart(game, players, settings) {
+    const order=game.boardMode===chessMode && game.chessSeats?.length===2 && game.chessSeats.every(uid=>players.includes(uid))
+      ? [...game.chessSeats].reverse() : players;
+    const fresh=createBoardGame(game.boardMode,order,settings);
+    Object.keys(game).forEach(key=>delete game[key]);
+    Object.assign(game,fresh);
+  },
 };
 
 export function renderBoardLobbySettings(room, isHost) {
   const mode=room.gameMode,s=sanitizeBoardSettings(room.settings,mode), timeOptions=[15,30,45,60,90,120];
-  if (mode === GUESS_PEOPLE_MODE) {
+  if (mode === GUESS_PEOPLE_MODE || mode === chessMode) {
     const select = (key, label, options) => `<label class="setting-row"><span>${label}</span><select data-board-setting="${key}" ${isHost ? "" : "disabled"}>${options.map(([value, text]) => `<option value="${value}" ${s[key] === value ? "selected" : ""}>${text}</option>`).join("")}</select></label>`;
+    if (mode === chessMode) return `<div class="board-lobby-settings">
+      ${select("chessMinutes","Minuty na gracza",chessMinutes.map(minutes=>[minutes,`${minutes} min`]))}
+      ${select("chessIncrement","Dodatek po ruchu",chessIncrements.map(seconds=>[seconds,`+${seconds} s`]))}
+    </div>`;
     return `<div class="board-lobby-settings">
       ${select("boardSize","Rozmiar planszy",[[24,"Klasyczna · 24 osoby"],[40,"Duża · 40 osób"]])}
       ${select("targetOrder","Kogo zgadujesz?",[["clockwise","Po kolei · następna osoba w lobby"],["random","Losowo · jeden rywal dla każdego"]])}
@@ -813,6 +831,11 @@ function renderBoardResult(game,accounts){
 export function renderBoardGame(root,{room,accounts,currentUser},actions){
   stopBoardGameTimer();
   const game=room.game, info=boardInfo(game.boardMode||room.gameMode), expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt};
+  if (room.gameMode === chessMode) {
+    const tick=renderChessGame(root,{room,accounts,currentUser},actions);
+    if (game.phase==="playing") boardTimerId=window.setInterval(tick,200);
+    return;
+  }
   if (room.gameMode === GUESS_PEOPLE_MODE) {
     renderGuessPeopleGame(root,{room,accounts,currentUser},actions);
     if (!game.finished) {

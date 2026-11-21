@@ -1,5 +1,5 @@
-import { gamesList } from "./games.js?v=20261121-7";
-import { escapeHtml } from "./utils.js?v=20261121-7";
+import { gamesList } from "./games.js?v=20261121-8";
+import { escapeHtml } from "./utils.js?v=20261121-8";
 
 const ADSENSE_CLIENT = "ca-pub-4038439845706886";
 const adPages = new Set(["public:o-grze", "public:jak-grac", "public:tryby-gry"]);

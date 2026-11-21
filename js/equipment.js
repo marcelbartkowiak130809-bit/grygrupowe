@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20261121-7";
+import { escapeHtml } from "./utils.js?v=20261121-8";
 
 export const potionEquipment = [
   { id:"coins-i", name:"Coins I", subtitle:"+10% monet · 5 min", effect:"coins", multiplier:1.10, durationMs:5*60*1000, rarity:"common", image:"./assets/equipment/coins-i.png" },

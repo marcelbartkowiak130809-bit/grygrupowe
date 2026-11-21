@@ -1,5 +1,5 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
-import { hasGamePass } from "./gamePasses.js?v=20261121-7";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
+import { hasGamePass } from "./gamePasses.js?v=20261121-8";
 
 export const secretRuleDefaults = {
   category: "random",

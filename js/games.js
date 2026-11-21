@@ -1,41 +1,42 @@
-import { renderGame } from "./game.js?v=20261121-7";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-7";
-import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-7";
-import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-7";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20261121-7";
-import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20261121-7";
-import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20261121-7";
-import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20261121-7";
-import { bombDefaults, renderBombGame } from "./bomb.js?v=20261121-7";
-import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20261121-7";
-import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-7";
-import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-7";
-import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-7";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-7";
-import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-7";
-import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-7";
-import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-7";
-import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-7";
-import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20261121-7";
-import { familyDefaults, renderFamilyGame } from "./family.js?v=20261121-7";
-import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20261121-7";
-import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20261121-7";
-import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20261121-7";
-import { connectDefaults, renderConnectGame } from "./connect.js?v=20261121-7";
-import { liarDefaults, renderLiarGame } from "./liar.js?v=20261121-7";
-import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20261121-7";
-import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20261121-7";
-import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261121-7";
-import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261121-7";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261121-7";
-import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261121-7";
+import { renderGame } from "./game.js?v=20261121-8";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-8";
+import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-8";
+import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20261121-8";
+import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20261121-8";
+import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20261121-8";
+import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20261121-8";
+import { bombDefaults, renderBombGame } from "./bomb.js?v=20261121-8";
+import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20261121-8";
+import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";
+import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-8";
+import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-8";
+import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-8";
+import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-8";
+import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
+import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-8";
+import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20261121-8";
+import { familyDefaults, renderFamilyGame } from "./family.js?v=20261121-8";
+import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20261121-8";
+import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20261121-8";
+import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20261121-8";
+import { connectDefaults, renderConnectGame } from "./connect.js?v=20261121-8";
+import { liarDefaults, renderLiarGame } from "./liar.js?v=20261121-8";
+import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?v=20261121-8";
+import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20261121-8";
+import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261121-8";
+import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261121-8";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261121-8";
+import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261121-8";
 
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261121-7";
-import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261121-7";
-import { renderLastBackpack } from './lastBackpack.js?v=20261121-7';
-import { renderAlexJourney } from './alexJourney.js?v=20261121-7';
-import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20261121-7";
-import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261121-7";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261121-8";
+import { chessInfo, chessMode } from "./chessGame.js?v=20261121-8";
+import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261121-8";
+import { renderLastBackpack } from './lastBackpack.js?v=20261121-8';
+import { renderAlexJourney } from './alexJourney.js?v=20261121-8';
+import { charadesDefaults, renderCharadesGame } from "./charades.js?v=20261121-8";
+import { hangmanDefaults, renderHangmanGame } from "./hangman.js?v=20261121-8";
 
 export const gamesRegistry = {
   udowodnij: {
@@ -385,6 +386,11 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
   },
   "board-reversi": {
     id:"board-reversi", name:"Reversi", description:"Otaczaj pionki przeciwnika i przejmuj planszę kawałek po kawałku.", help:["Kładź pionki tak, aby zamknąć linię pionków przeciwnika.","Zamknięte pionki zmieniają kolor.","Na koniec wygrywa osoba z większą liczbą pól."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"⚫", art:"board-reversi", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-reversi"],
+  },
+  [chessMode]: {
+    ...chessInfo, help:chessInfo.rules, symbol:"♞", audience:"board", badges:["new"],
+    allowReports:true, supportsLobby:true, supportsSolo:false, supportsBots:false,
+    render:renderBoardGame, defaultSettings:boardModeDefaults[chessMode],
   },
   "board-warcaby": {
     id:"board-warcaby", name:"Warcaby", description:"Planuj bicia, rób damki i zablokuj wszystkie pionki przeciwnika.", help:["Pionki poruszają się po ciemnych polach po skosie.","Bicie jest obowiązkowe, a dojście do końca robi damkę.","Wygrywa gracz, który zbije albo zablokuje rywala."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"♟️", art:"board-checkers", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-warcaby"],

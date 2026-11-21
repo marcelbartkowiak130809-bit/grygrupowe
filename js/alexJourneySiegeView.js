@@ -1,6 +1,6 @@
-import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261121-7';
+import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261121-8';
 import {alexHintOptions} from './alexJourneyHints.js?v=20261119-25';
-import { escapeHtml } from './utils.js?v=20261121-7';
+import { escapeHtml } from './utils.js?v=20261121-8';
 import { backpackAnimate, backpackReducedMotion, patchBackpackView } from './backpackMotion.js?v=20261117-10';
 import { bindChapterMenu, chapterMenu } from './alexJourneyChapters.js?v=20261119-16';
 import { gameFullscreenButton, gameRotationHint, bindGamePresentation } from './gamePresentation.js?v=20261119-26';

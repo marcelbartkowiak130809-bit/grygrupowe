@@ -1,11 +1,11 @@
-import { musicRegionOptions, musicRegionPicker } from "./music.js?v=20261121-7";
-import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261121-7';
+import { musicRegionOptions, musicRegionPicker } from "./music.js?v=20261121-8";
+import { tournamentMusicCatalog as musicPreviewCatalog, tournamentCatalogForRegion as musicCatalogForRegion } from './tournamentMusic.js?v=20261121-8';
 import { musicArtworkUrl } from './musicArtwork.js?v=20261117-10';
 import { Audio } from "./audio.js?v=20261117-10";
 import { bindSongSpotSharing } from './songSpotShare.js?v=20261013-1';
 let disposeSongSpotSharing = () => {};
 export function stopSongSpotSharing() { disposeSongSpotSharing(); disposeSongSpotSharing = () => {}; }
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { songSpotEras, songSpotGenres, normalizeSongSpotFilters, songSpotRanked, filterSongSpotTracks, songSpotArtistOptions, songSpotTrackMetadata, artistIdentity } from './songSpotFilters.js?v=20261117-10';
 import { songSpotLevels, songSpotTier, songSpotRoundTier, songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-10';
 

@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20261121-7";
+import { escapeHtml } from "./utils.js?v=20261121-8";
 
 export const HOST_ANNOUNCEMENTS = [
   { id:"startingSoon", text:"📢 Gra startuje za chwilę" },

@@ -1,5 +1,5 @@
-import { escapeHtml } from "./utils.js?v=20261121-7";
-import { GAMEPASS_DEFINITIONS } from "./gamePasses.js?v=20261121-7";
+import { escapeHtml } from "./utils.js?v=20261121-8";
+import { GAMEPASS_DEFINITIONS } from "./gamePasses.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 
 export const REWARD_ORDER = [

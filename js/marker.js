@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from './utils.js?v=20261121-7';
+import { escapeHtml, resultPlayerMiniHtml } from './utils.js?v=20261121-8';
 import { markerCrossValid, markerCellAt } from './markerDrawing.js?v=20261117-10';
 export const markerDefaults={boardSize:8,numberMax:50,markerSkin:'defaultMarker'};
 const sizes=[8,10,12],ranges=[20,30,40,50,60,70,80,90,100];

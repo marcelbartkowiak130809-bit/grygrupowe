@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
 export const familyDefaults={rounds:5,answerTime:30,turnMode:"afterAnswer",topSize:10,scoring:"one"};
 const baseQuestionBank=[

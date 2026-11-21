@@ -1,6 +1,6 @@
-import { drawPotionPackItems, potionPackById } from "./potionPacks.js?v=20261121-7";
+import { drawPotionPackItems, potionPackById } from "./potionPacks.js?v=20261121-8";
 import { alexSpeedrunUpdate, alexTimeBoards } from "./alexSpeedrunState.js?v=20261118-20";
-import { consumePotion, equipmentById } from "./equipment.js?v=20261121-7";
+import { consumePotion, equipmentById } from "./equipment.js?v=20261121-8";
 
 const ACCOUNTS_KEY = "udowodnij_prototype_accounts_v1";
 const SESSION_KEY = "udowodnij_session_v1";
