@@ -3,7 +3,7 @@ import { Effects } from "./effects.js";
 import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261118-15";
 import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261118-15";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261120-10";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-4";
 
 export const boardModeDefinitions = [
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },

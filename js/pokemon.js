@@ -1,10 +1,10 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { hasGamePass } from "./gamePasses.js?v=20261120-10";
+import { hasGamePass } from "./gamePasses.js?v=20261121-4";
 import { serverNow } from "./firebase.js?v=20261119-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261121-3";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261121-4";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };

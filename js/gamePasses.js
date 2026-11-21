@@ -4,21 +4,21 @@ const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
 export const pokemonBattleScoutPass = "pokemon-battle-scout";
 
 export const GAMEPASS_DEFINITIONS = [
-  { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:10000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
-  { id:"double-lucky-spin", icon:"🎡", name:"Podwójny spin", price:5000, scope:"ogólny", description:"Daje dwa darmowe spiny w każdym 24-godzinnym oknie Lucky Spin." },
-  { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:10000, scope:"Impostor", maxLevel:5, upgradePrices:[4000,5000,6000,7000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
-  { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:9000, scope:"Kim jestem?", description:"Raz na rundę pokazuje jedną literę własnego hasła za darmo." },
-  { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:8500, scope:"Tajemnicza liczba", description:"Daje dwie szerokie, nieprecyzyjne podpowiedzi o twoim numerze w jednej grze." },
-  { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:9500, scope:"Wavelength", description:"Raz na rundę pokazuje szeroki, nieprecyzyjny zakres celu — nigdy dokładnego miejsca." },
-  { id:"pokemon-scout", icon:"🧬", name:"Skaner Pokédex", price:12000, scope:"Pokémon", description:"Raz na rundę pokazuje małą, bezpieczną wskazówkę do zadania Pokémon." },
-  { id:pokemonBattleScoutPass, icon:"🎯", name:"Analiza typów", price:15000, scope:"Licytacja teamu", description:"W bitwie podświetla cele, przeciw którym atak specjalny wybranego Pokémona ma zwykłą lub super skuteczność." },
-  { id:"survivor-charm", icon:"🍀", name:"Amulet przetrwania", price:11000, scope:"Zatruty cukierek", description:"Raz w grze absorbuje trafienie tylko przy realnym ryzyku utraty wszystkich żyć; nie działa przy 1 życiu." },
-  { id:"creative-license", icon:"💡", name:"Licencja kreatywności", price:7500, scope:"Tryby kreatywne", description:"Raz w grze pozwala poprawić własną odpowiedź; w Tajnej zasadzie odblokowuje wcześniejsze zgadywanie." },
-  { id:"wavelength-second-chance", icon:"↺", name:"Drugi pomiar", price:7000, scope:"Wavelength", description:"Raz na grę po pierwszym nietrafionym pomiarze pokazuje tylko kierunek celu i daje drugi pomiar." },
-  { id:"proof-last-chance", icon:"⏳", name:"Ostatnia szansa", price:6500, scope:"Udowodnij", description:"Raz na grę po skończeniu czasu odpowiedzi dodaje 8 sekund na ostatnią próbę." },
-  { id:"clock-second-chance-pass", icon:"⏱️", name:"Drugi pomiar", price:7000, scope:"Zegar", description:"Raz na grę pozwala wykonać drugi pomiar i zachowuje bliższy wynik." },
-  { id:"board-pace-control", icon:"⏳", name:"Mistrz tempa", price:6500, scope:"Planszówki", description:"Raz w meczu dodaje ci 15 sekund do własnego ruchu. Użycie jest widoczne dla wszystkich." },
-  { id:"minecraft-redstone-clock", icon:"⏱️", name:"Zegar redstone", price:8500, scope:"Minecraft", description:"Raz w meczu dodaje ci 8 sekund do aktualnego pytania w trybach z kolejką." },
+  { id:"premium-rotation", icon:"✦", name:"Premium rotacja", price:12000, scope:"ogólny", description:"Odblokowuje trzy dodatkowe, premium przedmioty w sklepie co 15 minut." },
+  { id:"double-lucky-spin", icon:"🎡", name:"Podwójny spin", price:6000, scope:"ogólny", description:"Daje dwa darmowe spiny w każdym 24-godzinnym oknie Lucky Spin." },
+  { id:"impostor-compensation", icon:"🛡️", name:"Rekompensata", price:12000, scope:"Impostor", maxLevel:5, upgradePrices:[4000,5000,6000,7000], description:"Gdy dwóch graczy kupi tę samą rolę, przegrany losowania odzyskuje część ceny zakupu." },
+  { id:"identity-insight", icon:"🔍", name:"Wzrok detektywa", price:10000, scope:"Kim jestem?", description:"Raz na rundę pokazuje jedną literę własnego hasła za darmo." },
+  { id:"number-oracle", icon:"🔢", name:"Wyrocznia liczb", price:10000, scope:"Tajemnicza liczba", description:"Daje dwie szerokie, nieprecyzyjne podpowiedzi o twoim numerze w jednej grze." },
+  { id:"wavelength-pro", icon:"🌈", name:"Wavelength Pro", price:11000, scope:"Wavelength", description:"Raz na rundę pokazuje szeroki, nieprecyzyjny zakres celu — nigdy dokładnego miejsca." },
+  { id:"pokemon-scout", icon:"🧬", name:"Skaner Pokédex", price:14000, scope:"Pokémon", description:"Raz na rundę pokazuje małą, bezpieczną wskazówkę do zadania Pokémon." },
+  { id:pokemonBattleScoutPass, icon:"🎯", name:"Analiza typów", price:14000, scope:"Licytacja teamu", description:"W bitwie podświetla cele, przeciw którym atak specjalny wybranego Pokémona ma zwykłą lub super skuteczność." },
+  { id:"survivor-charm", icon:"🍀", name:"Amulet przetrwania", price:13000, scope:"Zatruty cukierek", description:"Raz w grze absorbuje trafienie tylko przy realnym ryzyku utraty wszystkich żyć; nie działa przy 1 życiu." },
+  { id:"creative-license", icon:"💡", name:"Licencja kreatywności", price:9000, scope:"Tryby kreatywne", description:"Raz w grze pozwala poprawić własną odpowiedź; w Tajnej zasadzie odblokowuje wcześniejsze zgadywanie." },
+  { id:"wavelength-second-chance", icon:"↺", name:"Drugi pomiar", price:8000, scope:"Wavelength", description:"Raz na grę po pierwszym nietrafionym pomiarze pokazuje tylko kierunek celu i daje drugi pomiar." },
+  { id:"proof-last-chance", icon:"⏳", name:"Ostatnia szansa", price:7000, scope:"Udowodnij", description:"Raz na grę po skończeniu czasu odpowiedzi dodaje 8 sekund na ostatnią próbę." },
+  { id:"clock-second-chance-pass", icon:"⏱️", name:"Drugi pomiar", price:8000, scope:"Zegar", description:"Raz na grę pozwala wykonać drugi pomiar i zachowuje bliższy wynik." },
+  { id:"board-pace-control", icon:"⏳", name:"Mistrz tempa", price:7000, scope:"Planszówki", description:"Raz w meczu dodaje ci 15 sekund do własnego ruchu. Użycie jest widoczne dla wszystkich." },
+  { id:"minecraft-redstone-clock", icon:"⏱️", name:"Zegar redstone", price:10000, scope:"Minecraft", description:"Raz w meczu dodaje ci 8 sekund do aktualnego pytania w trybach z kolejką." },
 ];
 
 export const IN_GAME_PURCHASES = [

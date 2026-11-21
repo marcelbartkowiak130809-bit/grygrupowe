@@ -186,7 +186,7 @@ test("type analysis matches signature effectiveness and belongs to the auction p
     assert.equal(auctionBattleDamage(fire,target,"signature").factor,factor);
   }
   assert.equal(battleSignatureEffectiveness({id:132},{id:25}),0);
-  assert.equal(gamePassById(pokemonBattleScoutPass).price,15000);
+  assert.equal(gamePassById(pokemonBattleScoutPass).price,14000);
   assert.ok(passesForMode("pokemon-auction").some(item=>item.id===pokemonBattleScoutPass));
   assert.ok(!passesForMode("pokemon-dex").some(item=>item.id===pokemonBattleScoutPass));
 });

@@ -3,7 +3,7 @@ import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlaye
 import { levelBadgeHtml } from "./progression.js?v=20261117-16";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { hasGamePass } from "./gamePasses.js?v=20261120-10";
+import { hasGamePass } from "./gamePasses.js?v=20261121-4";
 import { identityInfoButton, bindIdentityInfo } from "./identityInfo.js?v=20261117-15";
 
 let timerId, lastCountdown;
