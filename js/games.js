@@ -1,8 +1,8 @@
-import { renderGame } from "./game.js?v=20261121-13";
-import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-9";
+import { renderGame } from "./game.js?v=20261121-14";
+import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-14";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
-import { renderWouldYouRather } from "./wouldYouRather.js?v=20261121-11";
+import { renderWouldYouRather } from "./wouldYouRather.js?v=20261121-14";
 import { mostLikelyDefaults, renderMostLikelyGame } from "./mostLikely.js?v=20261121-8";
 import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.js?v=20261121-8";
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20261121-9";
@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-8";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-13";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-14";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-8";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
@@ -30,7 +30,7 @@ import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261121-9";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261121-8";
 
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261121-11";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261121-14";
 import { chessInfo, chessMode } from "./chessGame.js?v=20261121-8";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261121-12";
 import { renderLastBackpack } from './lastBackpack.js?v=20261121-8';

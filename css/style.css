@@ -2288,3 +2288,25 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   .checkers-players { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .checkers-history ol { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+.impostor-pair-feedback {
+  margin: 0 auto 12px;
+  max-width: 440px;
+}
+.impostor-pair-feedback summary {
+  width: fit-content;
+  margin: auto;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: #a5f3fc;
+  font-weight: 700;
+}
+.light-theme .impostor-pair-feedback summary { color: #155e75; }
+.impostor-pair-words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 4px 0 9px;
+}
+.impostor-pair-feedback .choice-row { justify-content: center; flex-wrap: wrap; }
+.impostor-pair-feedback .choice-row[hidden], .impostor-pair-feedback [role="status"]:empty { display: none; }

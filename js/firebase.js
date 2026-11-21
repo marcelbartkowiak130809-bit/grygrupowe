@@ -1007,6 +1007,26 @@ export async function loadModerationReports() {
   return local;
 }
 
+export async function readImpostorPairVote(pairId) {
+  const uid = remoteAuth?.currentUser?.uid;
+  if (!canUseRemote() || !pairId) throw new Error("Brak połączenia z Firebase.");
+  const ref = firebaseDatabaseApi.ref(remoteDatabase, `impostorPairFeedback/${pairId}/${uid}`);
+  return (await firebaseDatabaseApi.get(ref)).val()?.reason ?? null;
+}
+
+export async function saveImpostorPairVote(pairId, roomId, reason) {
+  const uid = remoteAuth?.currentUser?.uid;
+  if (!canUseRemote() || !pairId || !roomId) throw new Error("Brak połączenia z Firebase.");
+  const ref = firebaseDatabaseApi.ref(remoteDatabase, `impostorPairFeedback/${pairId}/${uid}`);
+  await firebaseDatabaseApi.set(ref, { roomId, reason });
+}
+
+export async function loadImpostorPairFeedback() {
+  if (!canUseRemote()) throw new Error("Brak połączenia z Firebase.");
+  const ref = firebaseDatabaseApi.ref(remoteDatabase, "impostorPairFeedback");
+  return (await firebaseDatabaseApi.get(ref)).val() || {};
+}
+
 export async function saveModerationBan(ban) {
   const item = { ...ban, id:ban.id || moderationId("ban"), createdAt:ban.createdAt || Date.now() };
   const local = moderationLocal(); local.bans = { ...(local.bans || {}), [item.id]:item }; saveModerationLocal(local);

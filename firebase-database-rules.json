@@ -117,6 +117,19 @@
       ".read": true,
       ".write": false
     },
+    "impostorPairFeedback": {
+      ".read": "auth != null && auth.token.email == 'panda@udowodnij.local'",
+      "$pairId": {
+        "$uid": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid && !data.exists() && newData.child('roomId').isString() && root.child('rooms').child(newData.child('roomId').val()).child('players').child($uid).exists() && root.child('rooms').child(newData.child('roomId').val()).child('gameMode').val() == 'impostor' && root.child('rooms').child(newData.child('roomId').val()).child('gameState').child('phase').val() == 'results' && root.child('rooms').child(newData.child('roomId').val()).child('gameState').child('pairFeedbackId').val() == $pairId",
+          ".validate": "newData.hasChildren(['roomId','reason'])",
+          "roomId": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)" },
+          "reason": { ".validate": "newData.val() == 'close' || newData.val() == 'far' || newData.val() == 'unknown'" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
     "wouldYouRatherVotes": {
       ".read": true,
       "$questionId": {

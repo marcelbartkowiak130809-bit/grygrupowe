@@ -1,7 +1,7 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261121-13";
+import { getGameMode } from "./games.js?v=20261121-14";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-9";
+import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-14";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
 import { renderOtherQuestionLobbySettings } from "./otherQuestion.js?v=20261121-8";
 import { renderMostLikelyLobbySettings } from "./mostLikely.js?v=20261121-8";
@@ -12,7 +12,7 @@ import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20261121-8"
 import { renderRankingLobbySettings } from "./ranking.js?v=20261121-8";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20261121-8";
 import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20261121-13";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20261121-14";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
 import { renderQuizLobbySettings } from "./quiz.js?v=20261121-8";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20261121-8";
@@ -28,7 +28,7 @@ import { renderConnectLobbySettings } from "./connect.js?v=20261121-8";
 import { renderLiarLobbySettings } from "./liar.js?v=20261121-9";
 import { renderFalseMessageLobbySettings } from "./falseMessage.js?v=20261121-9";
 import { renderSecretRuleLobbySettings } from "./secretRule.js?v=20261121-9";
-import { adSenseBlock } from "./publicPages.js?v=20261121-13";
+import { adSenseBlock } from "./publicPages.js?v=20261121-14";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { BOT_DIFFICULTIES, botTooltip, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
 import { commerceSummaryHtml } from "./gamePasses.js?v=20261121-9";
@@ -36,7 +36,7 @@ import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./m
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20261121-8";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20261121-9";
 import { renderSongSpotLobbySettings } from "./deferredMusicModes.js?v=20261121-8";
-import { renderBoardLobbySettings } from "./boardGames.js?v=20261121-11";
+import { renderBoardLobbySettings } from "./boardGames.js?v=20261121-14";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20261121-12";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };

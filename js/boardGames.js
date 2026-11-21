@@ -4,9 +4,9 @@ import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-8";
 import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-8";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-9";
-import { serverNow } from "./firebase.js?v=20261121-11";
+import { serverNow } from "./firebase.js?v=20261121-14";
 import { chessMode, chessInfo, chessDefaults, chessSettings, chessMinutes, chessIncrements, createChessGame, chessGameAction } from "./chessGame.js?v=20261121-8";
-import { renderChessGame } from "./chessView.js?v=20261121-11";
+import { renderChessGame } from "./chessView.js?v=20261121-14";
 
 export const boardModeDefinitions = [
   chessInfo,

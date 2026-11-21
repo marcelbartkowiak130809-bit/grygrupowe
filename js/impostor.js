@@ -4,6 +4,8 @@ import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { botTooltip } from "./bots.js?v=20261121-8";
 import { inGamePurchaseById } from "./gamePasses.js?v=20261121-9";
+import { readImpostorPairVote, saveImpostorPairVote } from "./firebase.js?v=20261121-14";
+import { impostorPairId, pairFeedbackReasons } from "./impostorPairFeedback.js?v=20261121-14";
 
 let timerId;
 let lastCountdown;
@@ -102,14 +104,21 @@ function finishVote(game) {
     game.result={ expelled, revealedRole:revealed.role, revealedWord:revealed.word, citizensWin:true, counts, finalGuess:null };
     return;
   }
-  game.phase="results"; game.phaseEndsAt=null; game.result={ expelled, revealedRole:revealed.role, revealedWord:revealed.word, citizensWin:revealed.role!=="citizen", counts };
+  enterResults(game);
+  game.result={ expelled, revealedRole:revealed.role, revealedWord:revealed.word, citizensWin:revealed.role!=="citizen", counts };
+}
+function enterResults(game) {
+  game.phase="results";
+  game.phaseEndsAt=null;
+  if (game.category && game.mainWord && game.impostorWord) {
+    game.pairFeedbackId=impostorPairId(game.category, game.mainWord, game.impostorWord);
+  }
 }
 function finishFinalGuess(game, guess = "", surrendered = false) {
   normalizeImpostorGame(game);
   const result = game.result || {};
   const correct = !surrendered && normalizeAnswer(guess) === normalizeAnswer(game.mainWord || "");
-  game.phase="results";
-  game.phaseEndsAt=null;
+  enterResults(game);
   game.result={ ...result, citizensWin:!correct, finalGuess:{ text:String(guess||"").trim(), correct, surrendered, mainWord:game.mainWord || "" } };
 }
 
@@ -227,6 +236,53 @@ function rolePurchasePanel(game,currentUser,settings,account={}){
   return `<section class="panel role-purchase-panel"><p class="eyebrow">DODATKOWA OPCJA</p><h3>Wybierz rolę · ${purchase.price}$</h3><p class="tiny">Jednorazowy zakup jest prywatny. Przy dwóch chętnych na tę samą rolę gra losuje zwycięzcę.</p><div class="choice-row"><button class="ghost" data-impostor-role="citizen" ${enough?"":"disabled"}>🙂 Obywatel</button><button class="ghost" data-impostor-role="impostor" ${enough?"":"disabled"}>🎭 Impostor</button>${settings.whiteEnabled&&Number(settings.whiteCount)>0?`<button class="ghost" data-impostor-role="white" ${enough?"":"disabled"}>⚪ Pan Biały</button>`:""}</div>${enough?"":"<small class=\"tiny\">Za mało monet na ten zakup.</small>"}</section>`;
 }
 export function stopImpostorTimer(){clearInterval(timerId);timerId=null;lastCountdown=null;timerRunId += 1;}
+
+function appendPairFeedback(root,room,currentUser) {
+  const {game,roomId}=room;
+  if(game.phase!=="results" || !game.pairFeedbackId || !game.roles[currentUser]) return;
+  root.querySelector("#impostor-again")?.insertAdjacentHTML("beforebegin",`
+    <details class="impostor-pair-feedback">
+      <summary>Oceń parę</summary>
+      <p class="impostor-pair-words"><span>Obywatel <b>${escapeHtml(game.mainWord)}</b></span><span>Impostor <b>${escapeHtml(game.impostorWord)}</b></span></p>
+      <div class="choice-row">${Object.entries(pairFeedbackReasons).map(([reason,label])=>`<button type="button" class="ghost" data-pair-reason="${reason}">${label}</button>`).join("")}</div>
+      <p class="tiny" role="status"></p>
+    </details>`);
+  const panel=root.querySelector(".impostor-pair-feedback");
+  if(!panel) return;
+  const options=panel.querySelector(".choice-row");
+  const buttons=[...options.querySelectorAll("button")];
+  const status=panel.querySelector('[role="status"]');
+  let checked=false;
+  const recorded=reason=>{
+    options.hidden=true;
+    status.textContent=`Głos zapisany · ${pairFeedbackReasons[reason]}`;
+  };
+  panel.addEventListener("toggle",async()=>{
+    if(!panel.open || checked) return;
+    checked=true;
+    buttons.forEach(button=>{button.disabled=true;});
+    try {
+      const reason=await readImpostorPairVote(game.pairFeedbackId);
+      if(Object.hasOwn(pairFeedbackReasons,reason)) { recorded(reason); return; }
+    } catch { checked=false; }
+    buttons.forEach(button=>{button.disabled=false;});
+  });
+  buttons.forEach(button=>button.addEventListener("click",async()=>{
+    const reason=button.dataset.pairReason;
+    buttons.forEach(button=>{button.disabled=true;});
+    status.textContent="Zapisywanie głosu…";
+    try {
+      await saveImpostorPairVote(game.pairFeedbackId,roomId,reason);
+      recorded(reason);
+    } catch {
+      const existing=await readImpostorPairVote(game.pairFeedbackId).catch(()=>null);
+      if(Object.hasOwn(pairFeedbackReasons,existing)) { recorded(existing); return; }
+      status.textContent="Nie udało się zapisać głosu. Spróbuj ponownie.";
+      buttons.forEach(button=>{button.disabled=false;});
+    }
+  }));
+}
+
 export function renderImpostorGame(root,{room,accounts,currentUser},actions){
   stopImpostorTimer(); const game=normalizeImpostorGame(room.game, Array.isArray(room.players) ? room.players : Object.keys(room.players || {}));
   const role=game.roles[currentUser] || { role:"citizen", word:game.mainWord || "" }, current=game.turnOrder[game.turnIndex] || game.turnOrder[0], voted=currentUser in (game.votes||{}), decided=currentUser in (game.continueVotes||{});
@@ -242,7 +298,10 @@ export function renderImpostorGame(root,{room,accounts,currentUser},actions){
   :game.phase==="voting"?`<section class="panel center"><p class="eyebrow">GŁOSOWANIE</p><h1>Kto jest podejrzany?</h1>${timer(game)}${voted?'<p>Twój głos został zapisany.</p>':`<div class="vote-grid">${room.players.map(uid=>`<button data-vote-player="${uid}">${playerMini(accounts[uid])}</button>`).join("")}</div>`}</section>`
   :`<section class="panel center result-card"><p class="eyebrow">WYNIK</p><h1>${citizensWin?"Obywatele wygrywają!":"Specjalne role wygrywają!"}</h1><p>Wyrzucony gracz:</p><div class="result-focus-player">${resultPlayerMiniHtml(accounts[expelled],resultWinners.includes(expelled)?"win":"lose")}</div><div class="revealed-role">${roleLabel(revealedRole)}${revealedWord?` · ${escapeHtml(revealedWord)}`:" · bez słowa"}</div><div class="vote-results">${Object.entries(resultCounts).map(([uid,count])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")}: <b>${count}</b></span>`).join("")}</div><div class="result-player-grid impostor-result-players">${game.turnOrder.map(uid=>`<article>${resultPlayerMiniHtml(accounts[uid],resultWinners.includes(uid)?"win":"lose")}<strong>${resultWinners.includes(uid)?"Wygrana":"Przegrana"}</strong></article>`).join("")}</div>${revealedRole!=="impostor"?`<h3>Ujawnione role</h3>${roleRevealSummary(game,accounts)}`:""}<p class="money-pop">Zwycięzcy dostają +150$</p><button class="primary" id="impostor-again">Zagraj ponownie</button></section>`;
   root.innerHTML=`<main class="page impostor-page impostor-board role-board-${role.role} board-shell"><section class="panel secret-strip"><span>Twoja rola: <b>${roleLabel(role.role)}</b></span><span>${role.word?`Słowo: <b>${escapeHtml(role.word)}</b>`:"Bez tajnego słowa"}</span></section>${playerRail(game,accounts)}<div class="impostor-layout"><div>${phasePanel}</div>${room.settings.chatEnabled?chat(game,accounts):""}</div><button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
-  if(game.phase==="results")Effects.play(citizensWin?"citizensWin":"impostorWin",`${room.roomId}:impostor:${expelled}`);
+  if(game.phase==="results") {
+    appendPairFeedback(root,room,currentUser);
+    Effects.play(citizensWin?"citizensWin":"impostorWin",`${room.roomId}:impostor:${expelled}`);
+  }
   $("#leave-room").addEventListener("click",actions.leaveRoom);$("#clue-form")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorSubmitClue($("#clue-input").value);});$("#vote-now")?.addEventListener("click",()=>actions.impostorDecision(false));$("#keep-playing")?.addEventListener("click",()=>actions.impostorDecision(true));root.querySelectorAll("[data-vote-player]").forEach(b=>b.addEventListener("click",()=>actions.impostorVote(b.dataset.votePlayer)));root.querySelectorAll("[data-reaction]").forEach(b=>b.addEventListener("click",()=>actions.impostorReact(b.dataset.reaction)));$("#chat-form")?.addEventListener("submit",async e=>{e.preventDefault();const input=$("#chat-input"),text=input.value;if(await actions.impostorChat(text)!==false)input.value="";});$("#impostor-final-guess")?.addEventListener("submit",e=>{e.preventDefault();actions.impostorFinalGuess($("#impostor-final-input").value);});$("#impostor-final-surrender")?.addEventListener("click",actions.impostorFinalSurrender);$("#impostor-again")?.addEventListener("click",actions.impostorPlayAgain);if(["clues","clueReview","continueDecision","voting","finalGuess"].includes(game.phase))startTimer(actions,game);
 }
 export function renderImpostorGameStable(root,{room,accounts,currentUser},actions){
