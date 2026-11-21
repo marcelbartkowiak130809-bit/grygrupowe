@@ -1,5 +1,5 @@
 import { libraryCategories, libraryModesFor } from './gameCategories.js?v=20261118-30';
-import { modeUnlockInfo } from './upcomingModes.js?v=20261118-14';
+import { modeUnlockInfo } from './upcomingModes.js?v=20261121-6';
 
 export function homeMusicFeatureHtml() {
   return `<section class="home-music-feature" aria-labelledby="home-music-heading">

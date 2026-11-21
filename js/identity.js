@@ -1,10 +1,10 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260822-2";
-import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml, safeCosmeticClass } from "./utils.js?v=20260903-7";
-import { levelBadgeHtml } from "./progression.js?v=20261117-16";
+import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml, safeCosmeticClass } from "./utils.js?v=20261121-6";
+import { levelBadgeHtml } from "./progression.js?v=20261121-6";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { hasGamePass } from "./gamePasses.js?v=20261121-4";
-import { identityInfoButton, bindIdentityInfo } from "./identityInfo.js?v=20261117-15";
+import { hasGamePass } from "./gamePasses.js?v=20261121-6";
+import { identityInfoButton, bindIdentityInfo } from "./identityInfo.js?v=20261121-6";
 
 let timerId, lastCountdown;
 export const identityCategoryCounts = Object.fromEntries(identityCategoryNames.map(category => [category, identityCategories[category]?.length || 0]));

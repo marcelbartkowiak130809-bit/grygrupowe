@@ -1,6 +1,6 @@
 import { identityReferences } from "../content/kim-jestem/references.js?v=20261117-15";
 import { identityDescriptions } from "../content/kim-jestem/referenceDescriptions.js?v=20261117-15";
-import { escapeHtml } from "./utils.js?v=20260903-7";
+import { escapeHtml } from "./utils.js?v=20261121-6";
 
 const canonical = word => word.trim().normalize("NFC").toLocaleLowerCase("pl");
 const index = new Map();

@@ -1,4 +1,4 @@
-import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
+import { $, boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
 import { Effects } from "./effects.js";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || min));

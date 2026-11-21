@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js?v=20260903-7';
+import { escapeHtml } from './utils.js?v=20261121-6';
 import { ALEX_COOLDOWN, alexClock, alexTimeBoards, chapterClockKey } from './alexSpeedrunState.js?v=20261118-20';
 
 const controllers = new WeakMap();

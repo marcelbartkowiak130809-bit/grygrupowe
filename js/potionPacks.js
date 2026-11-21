@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml } from "./utils.js?v=20261121-6";
 
 export const POTION_PACKS = [
   { id:"potion-pack", icon:"🧪", name:"Zestaw potek", price:5000, contents:[{ tier:1, count:10 }, { tier:2, count:5 }, { tier:3, count:3 }], description:"18 losowych potek: 10 z tieru 1, 5 z tieru 2 i 3 z tieru 3." },

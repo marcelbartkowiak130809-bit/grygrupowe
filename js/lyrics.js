@@ -1,5 +1,5 @@
-import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261117-10";
+import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { isMusicTrackInRegion, musicCategories, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261121-6";
 import { Audio } from "./audio.js?v=20261117-10";
 
 import { lyricsPreviewSync } from '../content/lyricsPreviewSync.js?v=20261117-10';

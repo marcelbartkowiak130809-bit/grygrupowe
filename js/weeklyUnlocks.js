@@ -37,7 +37,7 @@ const releases = releaseOrder.map((modeId, index) => {
   const offset = Number(warsawHour.format(eveningUtc)) - 20;
   const unlockAt = eveningUtc - offset * HOUR;
   return Object.freeze({ modeId, unlockAt, celebrationEndsAt: unlockAt + HOUR });
-});
+}).filter(release => release.modeId !== "board-warcaby");
 const releaseByMode = new Map(releases.map(release => [release.modeId, release]));
 
 export function weeklyModeRelease(modeId) {

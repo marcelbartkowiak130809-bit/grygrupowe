@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
 
 export const uniqueAnswerDefaults = { lives: 3, answerTime: 30, hostQuestionMode: false };
 

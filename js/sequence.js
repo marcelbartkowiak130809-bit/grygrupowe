@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
 
 export const sequenceDefaults={sequenceLength:5,hardMode:false,sequenceSkin:"defaultSequence"};
 const baseColors=["yellow","red","orange","green","blue","purple"],hardColors=["black","white","gold","silver"];

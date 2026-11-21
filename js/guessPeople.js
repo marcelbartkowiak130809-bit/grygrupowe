@@ -1,7 +1,7 @@
-import { escapeHtml } from "./utils.js?v=20260903-7";
+import { escapeHtml } from "./utils.js?v=20261121-6";
 import { guessPeople } from "./guessPeopleCatalog.js?v=20261117-11";
 import { isBotId } from "./bots.js?v=20261118-15";
-import { UNKNOWN_BOT_ANSWER } from "./guessPeopleBot.js?v=20261118-15";
+import { UNKNOWN_BOT_ANSWER } from "./guessPeopleBot.js?v=20261121-6";
 import { guessPeopleBios } from "./guessPeopleBios.js?v=20261117-14";
 
 export const GUESS_PEOPLE_MODE = "board-zgadnij-kto";

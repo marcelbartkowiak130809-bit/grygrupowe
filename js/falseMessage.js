@@ -1,5 +1,5 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { hasGamePass } from "./gamePasses.js?v=20261121-4";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { hasGamePass } from "./gamePasses.js?v=20261121-6";
 
 export const falseMessageDefaults = { rounds: 0, answerTime: 30, voteTime: 25, categories: ["all"] };
 

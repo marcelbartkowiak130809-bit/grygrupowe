@@ -1,4 +1,4 @@
-import {musicPreviewCatalog} from './music.js?v=20261117-10';
+import {musicPreviewCatalog} from './music.js?v=20261121-6';
 import {tournamentExtraTracks} from './tournamentExtraMusic.js?v=20261117-10';
 import {cupTrackKey} from './tournamentMusicKey.js?v=20261117-10';
 import {expandedSongMetadata} from './expandedSongMetadata.js?v=20261117-10';

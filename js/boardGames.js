@@ -1,16 +1,16 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261118-15";
-import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261118-15";
-import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20260903-7";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-4";
+import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-6";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-6";
+import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-6";
 
 export const boardModeDefinitions = [
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },
   { id:"board-slowotwor", name:"Słowotwór", icon:"🔤", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Układaj słowa z własnych liter i zbieraj punkty za najciekawsze zagrania.", rules:["Wykorzystuj tylko litery ze swojego stojaka.","Dłuższe słowa i pełny stojak dają więcej punktów.","Jeśli nie masz pomysłu, możesz spasować i dobrać nowe litery."], art:"board-words" },
   { id:"board-statki", name:"Statki", icon:"🚢", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Ukryj flotę, namierzaj pola przeciwnika i zatop wszystkie jego statki.", rules:["Wybierz dokładnie siedem pól dla swojej floty.","Strzelaj na zmianę — trafione i chybione pola zostają oznaczone.","Zatopienie wszystkich siedmiu pól rywala kończy mecz."], art:"board-ships" },
   { id:"board-reversi", name:"Reversi", icon:"⚫", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Otaczaj pionki przeciwnika i przejmuj planszę kawałek po kawałku.", rules:["Połóż pionek tak, aby zamknąć linię rywala między swoimi pionkami.","Wszystkie zamknięte pionki zmieniają kolor.","Jeśli nie masz ruchu, pasujesz; wygrywa większa liczba pól."], art:"board-reversi" },
-  { id:"board-warcaby", name:"Warcaby", icon:"♟️", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Planuj bicia, rób damki i zablokuj wszystkie pionki przeciwnika.", rules:["Pionki poruszają się po skosie na ciemne pola.","Bicie jest obowiązkowe, gdy jest możliwe.","Pionek na końcu planszy staje się damką."], art:"board-checkers" },
+  { id:"board-warcaby", name:"Warcaby", icon:"♟️", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Planuj bicia, rób damki i zablokuj wszystkie pionki przeciwnika.", rules:["Wybierz pionek i podświetlone pole. Zwykłe pionki ruszają się i biją po skosie do przodu.","Bicie jest obowiązkowe. Jeśli po biciu można zbić jeszcze raz, kontynuuj tym samym pionkiem.","Na końcu planszy pionek zostaje damką. Damka może ruszać się i bić także do tyłu."], art:"board-checkers" },
   { id:"board-cztery", name:"Cztery w rzędzie", icon:"🔴", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Wrzuć cztery pionki w jednej linii — poziomo, pionowo albo po skosie.", rules:["Wybierz kolumnę, a pionek spadnie na najniższe wolne pole.","Blokuj linie przeciwnika i buduj własną.","Cztery pionki w jednej linii wygrywają; pełna plansza oznacza remis."], art:"board-connect" },
   { id:"board-memory", name:"Memory", icon:"🧠", players:"2–8 osób", minPlayers:2, maxPlayers:8, description:"Odkrywaj pary, zapamiętuj położenie kart i zbuduj największy wynik.", rules:["Odkryj dwie karty w swojej turze.","Trafiona para daje punkt i dodatkową kolejkę.","Po odkryciu wszystkich par wygrywa najwyższy wynik."], art:"board-memory" },
   { id:"board-domino", name:"Domino", icon:"🁫", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Dokładaj kostki do łańcucha, dobieraj sprytnie i pozbądź się ręki jako pierwszy.", rules:["Dopasuj liczbę do lewego albo prawego końca łańcucha.","Gdy nie masz ruchu, dobierz kostkę z talii.","Wygrywa osoba, która skończy rękę albo ma najmniej oczek w blokadzie."], art:"board-domino" },
@@ -105,7 +105,7 @@ function createCheckers(players, settings) {
     const rows = playerIndex === 0 ? [0,1,2] : [5,6,7];
     rows.forEach(row => { for (let col=0; col<8; col += 1) if ((row + col) % 2 === 1) pieces.push({ id:`${playerIndex}-${row}-${col}`, uid, pos:row*8+col, king:false }); });
   });
-  return { boardMode:"board-warcaby", phase:"playing", players:safePlayers, currentUid:safePlayers[0] || "", turnIndex:0, pieces, scores:scoreObject(safePlayers), phaseEndsAt:phaseEnd(settings.turnTime), finished:false };
+  return { boardMode:"board-warcaby", phase:"playing", players:safePlayers, currentUid:safePlayers[0] || "", turnIndex:0, pieces, checkersHistory:[], scores:scoreObject(safePlayers), phaseEndsAt:phaseEnd(settings.turnTime), finished:false };
 }
 
 function createConnectFour(players, settings) {
@@ -222,10 +222,21 @@ function reversiAction(game, uid, action, payload, settings) {
 }
 
 function checkersMoves(game, uid) {
-  const occupied=Object.fromEntries(game.pieces.map(piece=>[piece.pos,piece])), own=game.pieces.filter(piece=>piece.uid===uid), all=[];
+  const forced = game.currentUid === uid ? game.checkersChain : null;
+  const occupied=Object.fromEntries(game.pieces.map(piece=>[piece.pos,piece]));
+  const own=game.pieces.filter(piece=>piece.uid===uid && (!forced || piece.id===forced)), all=[];
   own.forEach(piece=>{
     const [row,col]=cellRC(piece.pos), dirs=piece.king?[[-1,-1],[-1,1],[1,-1],[1,1]]:(uid===game.players[0]?[[1,-1],[1,1]]:[[-1,-1],[-1,1]]);
-    dirs.forEach(([dr,dc])=>{const r=row+dr,c=col+dc,jump=occupied[rcCell(r,c)],simple=rcCell(r,c);if(r>=0&&r<8&&c>=0&&c<8&&!jump)all.push({id:piece.id,to:simple,capture:null});else if(jump&&jump.uid!==uid){const rr=row+2*dr,cc=col+2*dc,landing=rcCell(rr,cc);if(rr>=0&&rr<8&&cc>=0&&cc<8&&!occupied[landing])all.push({id:piece.id,to:landing,capture:jump.id});}});
+    for(const [dr,dc] of dirs){
+      const r=row+dr,c=col+dc;
+      if(r<0||r>=8||c<0||c>=8)continue;
+      const simple=rcCell(r,c),jump=occupied[simple];
+      if(!jump && !forced) all.push({id:piece.id,to:simple,capture:null});
+      else if(jump&&jump.uid!==uid){
+        const rr=r+dr,cc=c+dc,landing=rcCell(rr,cc);
+        if(rr>=0&&rr<8&&cc>=0&&cc<8&&!occupied[landing])all.push({id:piece.id,to:landing,capture:jump.id});
+      }
+    }
   });
   const captures=all.filter(move=>move.capture);return captures.length?captures:all;
 }
@@ -234,9 +245,21 @@ function checkersAction(game, uid, action, payload, settings) {
   if(action!=="checkers-move")return "Wybierz ruch pionkiem.";
   const [id,toRaw]=String(payload||"").split("|"), to=Number(toRaw), moves=checkersMoves(game,uid), move=moves.find(item=>item.id===id&&item.to===to);
   if(!move)return "Ten ruch jest niedozwolony.";
-  const piece=game.pieces.find(item=>item.id===id);piece.pos=to;piece.king=piece.king||((uid===game.players[0]&&Math.floor(to/8)===7)||(uid===game.players[1]&&Math.floor(to/8)===0));if(move.capture)game.pieces=game.pieces.filter(item=>item.id!==move.capture);
-  const opponents=game.pieces.filter(item=>item.uid!==uid);if(!opponents.length||!checkersMoves({...game,currentUid:opponents[0]?.uid},opponents[0]?.uid).length)return finishGame(game,[uid]);
-  const more=move.capture&&checkersMoves(game,uid).some(item=>item.id===id&&item.capture);if(more){game.phaseEndsAt=phaseEnd(settings.turnTime);return;}startTurn(game,(Number(game.turnIndex)||0)+1,settings);
+  const piece=game.pieces.find(item=>item.id===id);
+  const from=piece.pos, promoted=!piece.king&&Math.floor(to/8)===(uid===game.players[0]?7:0);
+  piece.pos=to;
+  if(promoted)piece.king=true;
+  if(move.capture)game.pieces=game.pieces.filter(item=>item.id!==move.capture);
+  game.checkersHistory=[...arrayOrEmpty(game.checkersHistory),{uid,from,to,capture:Boolean(move.capture),promoted}].slice(-6);
+  game.checkersChain=move.capture?id:"";
+  if(game.checkersChain&&checkersMoves(game,uid).length){
+    game.phaseEndsAt=phaseEnd(settings.turnTime);
+    return;
+  }
+  game.checkersChain="";
+  const opponent=game.players.find(player=>player!==uid);
+  if(!opponent||!checkersMoves(game,opponent).length)return finishGame(game,[uid]);
+  startTurn(game,(Number(game.turnIndex)||0)+1,settings);
 }
 
 function connectAction(game, uid, action, payload, settings) {
@@ -572,6 +595,12 @@ function timeoutBoard(game, uid, settings) {
   if(game.boardMode==="board-chinczyk") { if(game.currentUid===uid){if(game.roll==null)game.roll=1+Math.floor(Math.random()*6);const moves=ludoLegalMoves(game,uid);if(moves.length)return ludoAction(game,uid,"ludo-move",moves[0],settings);nextLudoTurn(game,settings);} return; }
   if(game.boardMode==="board-slowotwor")return wordAction(game,uid,"word-pass","",settings);
   if(game.boardMode==="board-reversi") { const moves=reversiMoves(game,uid),cells=Object.keys(moves); return cells.length ? reversiAction(game,uid,"reversi-move",cells[0],settings) : reversiAction(game,uid,"reversi-pass","",settings); }
+  if(game.boardMode==="board-warcaby") {
+    if(game.currentUid!==uid || Date.now()<Number(game.phaseEndsAt))return;
+    const move=checkersMoves(game,uid)[0];
+    return move ? checkersAction(game,uid,"checkers-move",`${move.id}|${move.to}`,settings)
+      : finishGame(game,game.players.filter(player=>player!==uid));
+  }
   if(game.boardMode==="board-memory") { if(game.flipped?.length >= 2)return memoryAction(game,uid,"memory-resolve","",settings); game.flipped=[];game.flipLockUntil=0;return startTurn(game,(Number(game.turnIndex)||0)+1,settings); }
   if(game.boardMode==="board-domino") {const canPlay=dominoHasMove(game,uid);if(!canPlay&&game.boneyard.length)return dominoAction(game,uid,"domino-draw","",settings);if(canPlay){const tile=(game.hands[uid]||[]).find(item=>dominoFits(item,game.chain,"left")||dominoFits(item,game.chain,"right")),side=dominoFits(tile,game.chain,"left")?"left":"right";return dominoAction(game,uid,"domino-play",`${tile?.id||""}|${side}`,settings);}return startTurn(game,(Number(game.turnIndex)||0)+1,settings);}
   startTurn(game,(Number(game.turnIndex)||0)+1,settings);
@@ -703,9 +732,60 @@ function renderReversi(game,accounts,currentUser){
   return `<section class="board-stage board-reversi-stage"><div class="board-stage-title"><div><p class="eyebrow">REVERSI</p><h1>Przejmij więcej pól</h1><p class="muted">Kliknij podświetlone pole, aby odwrócić pionki przeciwnika.</p></div>${boardTimer(game)}</div><div class="reversi-layout"><div class="reversi-board">${game.cells.map((uid,cell)=>`<button class="reversi-cell ${uid===game.players[0]?"cell-a":uid===game.players[1]?"cell-b":""} ${isMine&&moves[cell]?"is-legal":""}" data-board-action="reversi-move" data-board-payload="${cell}" ${!isMine||!moves[cell]?"disabled":""}>${uid?"●":""}</button>`).join("")}</div><div class="board-side-card">${boardScores(game,accounts)}${isMine&&!Object.keys(moves).length?boardButton("reversi-pass","","⏭ Pasuj",false):""}<p>${isMine?"TWÓJ RUCH":"RUCH: "+safeName(accounts,game.currentUid)}</p></div></div></section>`;
 }
 
-function renderCheckers(game,accounts,currentUser){
-  const moves=checkersMoves(game,game.currentUid),isMine=game.currentUid===currentUser,byCell=Object.fromEntries(moves.map(move=>[move.to,move]));
-  return `<section class="board-stage board-checkers-stage"><div class="board-stage-title"><div><p class="eyebrow">WARCABY</p><h1>Zablokuj przeciwnika</h1><p class="muted">Bicie jest obowiązkowe. Pionek na końcu planszy zostaje damką.</p></div>${boardTimer(game)}</div><div class="checkers-layout"><div class="checkers-board">${Array.from({length:64},(_,cell)=>{const piece=game.pieces.find(item=>item.pos===cell),move=byCell[cell];return `<div class="checkers-cell ${cellRC(cell).reduce((a,b)=>a+b,0)%2?"dark":"light"} ${move&&isMine?"is-target":""}">${move&&isMine?boardButton("checkers-move",`${move.id}|${move.to}`,"↗",false,"type=\"button\""):piece?`<span class="checkers-piece ${piece.uid===game.players[0]?"piece-a":"piece-b"} ${piece.king?"is-king":""}">${piece.king?"♛":"●"}</span>`:""}</div>`;}).join("")}</div><div class="board-side-card">${boardScores(game,accounts)}<p>${isMine?"TWÓJ RUCH":"RUCH: "+safeName(accounts,game.currentUid)}</p></div></div></section>`;
+const checkersCoordinate=cell=>`${"abcdefgh"[cell%8]}${8-Math.floor(cell/8)}`;
+let checkersSelection={};
+
+function checkersCells(game,currentUser,moves,selected){
+  const occupied=new Map(game.pieces.map(piece=>[piece.pos,piece]));
+  const sources=new Set(moves.map(move=>move.id));
+  const targets=new Set(moves.filter(move=>move.id===selected).map(move=>move.to));
+  const last=arrayOrEmpty(game.checkersHistory).at(-1);
+  const reversed=game.players[0]===currentUser;
+  return Array.from({length:64},(_,offset)=>{
+    const cell=reversed?63-offset:offset, piece=occupied.get(cell);
+    const source=piece&&sources.has(piece.id), target=targets.has(cell);
+    const kind=(Math.floor(cell/8)+cell%8)%2?"dark":"light";
+    const classes=`checkers-cell ${kind}${source?" is-source":""}${target?" is-target":""}${piece&&piece.id===selected?" is-selected":""}${last&&(last.from===cell||last.to===cell)?" is-last":""}`;
+    const token=piece?`<span class="checkers-piece ${piece.uid===game.players[0]?"piece-a":"piece-b"} ${piece.king?"is-king":""}" aria-hidden="true">${piece.king?"♛":""}</span>`:"";
+    const label=`${checkersCoordinate(cell)}${piece?`, ${piece.uid===currentUser?"twój pionek":"pionek przeciwnika"}${piece.king?", damka":""}`:target?", ruch":""}`;
+    if(source)return `<button type="button" class="${classes}" data-checkers-piece="${escapeHtml(piece.id)}" aria-pressed="${piece.id===selected}" aria-label="${label}">${token}</button>`;
+    if(target)return `<button type="button" class="${classes}" data-checkers-to="${cell}" aria-label="${label}"><span aria-hidden="true"></span></button>`;
+    return `<div class="${classes}" role="img" aria-label="${label}">${token}</div>`;
+  }).join("");
+}
+
+function renderCheckers(game,accounts,currentUser,selected){
+  const isMine=game.currentUid===currentUser;
+  const moves=isMine?checkersMoves(game,currentUser):[];
+  const turn=isMine?(game.checkersChain?"Kontynuuj bicie":moves.some(move=>move.capture)?"Bicie obowiązkowe":"Twój ruch"):`Ruch gracza ${safeName(accounts,game.currentUid)}`;
+  const history=arrayOrEmpty(game.checkersHistory).slice().reverse();
+  const players=game.players.map((uid,index)=>`<div class="checkers-player ${uid===game.currentUid?"is-current":""}"><i class="checkers-color ${index?"piece-b":"piece-a"}" aria-hidden="true"></i><span>${safeName(accounts,uid)}</span><b aria-label="Pozostałe pionki">${game.pieces.filter(piece=>piece.uid===uid).length}</b></div>`).join("");
+  return `<section class="board-stage board-checkers-stage"><div class="board-stage-title"><div><h1>Warcaby</h1><p class="checkers-turn" role="status">${turn}</p></div>${boardTimer(game)}</div>
+    <div class="checkers-layout"><div class="checkers-board" aria-label="Plansza warcabów">${checkersCells(game,currentUser,moves,selected)}</div>
+    <aside class="checkers-sidebar"><div class="checkers-players">${players}</div><div class="checkers-history"><h2>Ostatnie ruchy</h2>
+    ${history.length?`<ol>${history.map(entry=>`<li><i class="checkers-color ${entry.uid===game.players[0]?"piece-a":"piece-b"}" aria-hidden="true"></i><span>${checkersCoordinate(entry.from)} ${entry.capture?"×":"→"} ${checkersCoordinate(entry.to)}</span><span aria-label="${entry.promoted?"Damka":""}">${entry.promoted?"♛":""}</span></li>`).join("")}</ol>`:'<p>—</p>'}</div></aside></div></section>`;
+}
+
+function bindCheckers(root,game,currentUser,actions,expected){
+  const board=root.querySelector(".checkers-board");
+  if(!board || game.currentUid!==currentUser)return;
+  const moves=checkersMoves(game,currentUser);
+  let pending=false;
+  board.onclick=async event=>{
+    const source=event.target.closest("[data-checkers-piece]");
+    const target=event.target.closest("[data-checkers-to]");
+    if(pending || (!source && !target))return;
+    if(source){
+      checkersSelection.piece=source.dataset.checkersPiece;
+      board.innerHTML=checkersCells(game,currentUser,moves,checkersSelection.piece);
+      board.querySelector("[data-checkers-to]")?.focus({preventScroll:true});
+      return;
+    }
+    pending=true;
+    target.disabled=true;
+    try { await actions.boardAction("checkers-move",`${checkersSelection.piece}|${target.dataset.checkersTo}`,expected); }
+    finally { pending=false;target.disabled=false; }
+  };
 }
 
 function renderConnect(game,accounts,currentUser){
@@ -759,8 +839,14 @@ export function renderBoardGame(root,{room,accounts,currentUser},actions){
     return;
   }
   const boardAudio=playBoardAudioTransitions(game,room,currentUser);
-  let body=game.phase==="result"?renderBoardResult(game,accounts):game.boardMode==="board-chinczyk"?renderLudo(game,accounts,currentUser):game.boardMode==="board-statki"?renderShips(game,accounts,currentUser,room):game.boardMode==="board-slowotwor"?renderWords(game,accounts,currentUser):game.boardMode==="board-reversi"?renderReversi(game,accounts,currentUser):game.boardMode==="board-warcaby"?renderCheckers(game,accounts,currentUser):game.boardMode==="board-cztery"?renderConnect(game,accounts,currentUser):game.boardMode==="board-memory"?renderMemory(game,accounts,currentUser):renderDomino(game,accounts,currentUser);
-  root.innerHTML=`<main class="page board-game-page board-shell enter">${boardPlayerStripHtml(room.players,accounts,{scores:game.scores})}<section class="board-game-heading"><span class="board-game-heading-icon">${info.icon}</span><div><p class="eyebrow">PLANSZÓWKI · ${escapeHtml(info.name.toUpperCase())}</p><h2>${escapeHtml(info.description)}</h2></div></section>${boardRules(info)}${body}${boardCommerceHtml(game,room,accounts,currentUser)}${game.phase==="result"?`<div class="board-result-actions"><button class="primary" id="board-restart" ${room.hostUid===currentUser?"":"disabled"}>🔄 Zagraj ponownie</button><button class="ghost" id="board-lobby">Wróć do lobby</button></div>`:""}<button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
+  const checkers=game.boardMode==="board-warcaby";
+  if(checkers){
+    const key=JSON.stringify([room.roomId,currentUser,game.siteGameId||game.startedAt,game.currentUid,game.phaseEndsAt]);
+    if(checkersSelection.key!==key)checkersSelection={key,piece:game.checkersChain||""};
+  }
+  let body=game.phase==="result"?renderBoardResult(game,accounts):game.boardMode==="board-chinczyk"?renderLudo(game,accounts,currentUser):game.boardMode==="board-statki"?renderShips(game,accounts,currentUser,room):game.boardMode==="board-slowotwor"?renderWords(game,accounts,currentUser):game.boardMode==="board-reversi"?renderReversi(game,accounts,currentUser):game.boardMode==="board-warcaby"?renderCheckers(game,{...room.playerProfiles,...accounts},currentUser,checkersSelection.piece):game.boardMode==="board-cztery"?renderConnect(game,accounts,currentUser):game.boardMode==="board-memory"?renderMemory(game,accounts,currentUser):renderDomino(game,accounts,currentUser);
+  root.innerHTML=`<main class="page board-game-page board-shell enter">${checkers?"":`${boardPlayerStripHtml(room.players,accounts,{scores:game.scores})}<section class="board-game-heading"><span class="board-game-heading-icon">${info.icon}</span><div><p class="eyebrow">PLANSZÓWKI · ${escapeHtml(info.name.toUpperCase())}</p><h2>${escapeHtml(info.description)}</h2></div></section>${boardRules(info)}`}${body}${checkers?boardRules(info):""}${boardCommerceHtml(game,room,accounts,currentUser)}${game.phase==="result"?`<div class="board-result-actions"><button class="primary" id="board-restart" ${room.hostUid===currentUser?"":"disabled"}>🔄 Zagraj ponownie</button><button class="ghost" id="board-lobby">Wróć do lobby</button></div>`:""}<button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button></main>`;
+  if(checkers)bindCheckers(root,game,currentUser,actions,expected);
   root.querySelector("#leave-room")?.addEventListener("click",actions.leaveRoom);root.querySelector("#board-lobby")?.addEventListener("click",actions.returnToRoom);root.querySelector("#board-restart")?.addEventListener("click",actions.boardRestart);
   root.querySelectorAll("[data-board-boost]").forEach(button=>button.addEventListener("click",()=>{
     if(button.disabled||button.dataset.boardPending)return;

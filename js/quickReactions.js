@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260822-1";
+import { escapeHtml } from "./utils.js?v=20261121-6";
 
 export const QUICK_REACTIONS = [
   { id:"thumbsUp", label:"👍", text:"👍" },

@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20260922-1";
+import { escapeHtml } from "./utils.js?v=20261121-6";
 
 export const hangmanDefaults = { rounds: 5, turnTime: 20, category: "all" };
 const wordBanks = {
