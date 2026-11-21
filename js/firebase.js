@@ -1,5 +1,6 @@
 import { drawPotionPackItems, potionPackById } from "./potionPacks.js?v=20260831-1";
 import { alexSpeedrunUpdate, alexTimeBoards } from "./alexSpeedrunState.js?v=20261118-20";
+import { consumePotion, equipmentById } from "./equipment.js?v=20261121-5";
 
 const ACCOUNTS_KEY = "udowodnij_prototype_accounts_v1";
 const SESSION_KEY = "udowodnij_session_v1";
@@ -503,13 +504,25 @@ export async function loadRemoteProfileState(uid) {
     return { ok:true, missing:!snapshot.exists(), profile:snapshot.val() || null };
   } catch { return { ok:false, missing:false, profile:null }; }
 }
-export async function syncPlayerProfile(uid, profile) {
+export async function syncPlayerProfile(uid, profile, { restorePotions = false, spinReward } = {}) {
   if (!canUseRemote() || !uid || !profile || profile.nickOnly) return false;
   try {
     const publicData = publicProfile(profile);
     delete publicData.honorCounts;
+    const privateData = savedProfile(profile);
+    if (!restorePotions) {
+      delete privateData.potionInventory;
+      delete privateData.coinBooster;
+      delete privateData.xpBooster;
+      if (spinReward?.type === "potion" && Object.hasOwn(equipmentById,spinReward.itemId)) {
+        privateData[`potionInventory/${spinReward.itemId}`] = firebaseDatabaseApi.increment(1);
+      }
+      if (spinReward?.type === "coinBooster" || spinReward?.type === "xpBooster") {
+        privateData[spinReward.type] = profile[spinReward.type];
+      }
+    }
     await Promise.all([
-      firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), savedProfile(profile)),
+      firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`), privateData),
       firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `publicProfiles/${uid}`), publicData),
     ]);
     return true;
@@ -794,36 +807,24 @@ export async function claimLuckySpinDatabase(uid, proposal) {
     return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się zarezerwować spinu." };
   }
 }
-const DATABASE_POTION_EFFECTS = {
-  "coins-i": { effect:"coins", multiplier:1.10, durationMs:5 * 60 * 1000 },
-  "coins-ii": { effect:"coins", multiplier:1.25, durationMs:10 * 60 * 1000 },
-  "coins-iii": { effect:"coins", multiplier:1.50, durationMs:20 * 60 * 1000 },
-  "xp-i": { effect:"xp", multiplier:1.10, durationMs:5 * 60 * 1000 },
-  "xp-ii": { effect:"xp", multiplier:1.25, durationMs:10 * 60 * 1000 },
-  "xp-iii": { effect:"xp", multiplier:1.50, durationMs:20 * 60 * 1000 },
-};
 export async function usePotionDatabase(uid, itemId) {
-  const potion = DATABASE_POTION_EFFECTS[String(itemId || "")];
-  if (!canUseRemote() || !uid || remoteAuth?.currentUser?.uid !== uid || !potion) return null;
+  if (!canUseRemote() || !uid || remoteAuth?.currentUser?.uid !== uid || !Object.hasOwn(equipmentById,itemId)) return null;
   try {
     const profileRef = firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`);
+    let consumed = false;
+    const now = serverNow();
     const result = await firebaseDatabaseApi.runTransaction(profileRef, current => {
-      const profile = current && typeof current === "object" ? { ...current } : {};
-      const inventory = profile.potionInventory && typeof profile.potionInventory === "object" ? { ...profile.potionInventory } : {};
-      const quantity = Number(inventory[itemId]) || 0;
-      if (quantity < 1) return;
-      inventory[itemId] = quantity - 1;
-      profile.potionInventory = inventory;
-      const key = potion.effect === "xp" ? "xpBooster" : "coinBooster";
-      const currentBoost = profile[key] && typeof profile[key] === "object" ? profile[key] : {};
-      profile[key] = { multiplier:Math.max(Number(currentBoost.multiplier) || 1, potion.multiplier), expiresAt:Math.max(Number(currentBoost.expiresAt) || 0, serverNow() + potion.durationMs) };
-      profile.updatedAt = serverNow();
-      return profile;
+      const next = consumePotion(current,itemId,now);
+      consumed = Boolean(next);
+      // RTDB may start from an empty cache. Returning the input lets the
+      // server confirm it or retry with the real profile before rejecting.
+      return next ?? current;
     }, { applyLocally:false });
-    if (!result.committed) return { ok:false, code:"failed-precondition", error:"Nie masz tej potki w ekwipunku." };
-    return { ok:true, databaseFallback:true, message:`Użyto potki ${itemId}. Boost jest aktywny.`, profile:result.snapshot.val() || {} };
+    const profile = result.snapshot.val();
+    if (!result.committed || !consumed) return { ok:false, code:"failed-precondition", error:"Nie masz tej potki w ekwipunku.", profile:profile || {} };
+    return { ok:true, message:`Użyto potki ${equipmentById[itemId].name}. Boost jest aktywny.`, profile };
   } catch (error) {
-    return { ok:false, code:error?.code || "database/error", error:error?.message || "Nie udało się użyć potki." };
+    return { ok:false, code:error?.code || "database/error", error:"Nie udało się połączyć z ekwipunkiem. Spróbuj ponownie." };
   }
 }
 export async function claimLuckySpin() {
@@ -844,15 +845,6 @@ export async function claimLuckySpin() {
         : error?.message || "Nie udało się uruchomić Lucky Spin.",
       nextSpinAt:Number(details.nextSpinAt) || 0,
     };
-  }
-}
-export async function usePotion(itemId) {
-  if (!remoteFunctions || !firebaseFunctionsApi?.httpsCallable) return { ok:false, error:"Używanie potek wymaga połączenia z serwerem." };
-  try {
-    const result = await firebaseFunctionsApi.httpsCallable(remoteFunctions, "usePotion")({ itemId });
-    return { ok:true, ...(result.data || {}) };
-  } catch (error) {
-    return { ok:false, code:error?.code || "unknown", error:error?.message || "Nie udało się użyć potki." };
   }
 }
 export async function buyPotionPackDatabase(uid, packId) {

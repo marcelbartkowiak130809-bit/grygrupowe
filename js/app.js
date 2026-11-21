@@ -11,16 +11,16 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261118-15";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotion as usePotionRemote, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261119-15";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-4";
+import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-5";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-5";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261121-4";
+import { gamesList, getGameMode } from "./games.js?v=20261121-5";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-4";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-4";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer } from "./identity.js?v=20261121-4";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261119-15";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261121-5";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20260903-9";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261119-15";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261121-5";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20260903-9";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20260903-9";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20261121-4";
@@ -29,7 +29,7 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20260903-9";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20260903-9";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20260903-9";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-4";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-5";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-3";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-4";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20260903-9";
@@ -57,21 +57,21 @@ let stopMobileHeader = () => {};
 let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261121-4";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-4";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-4";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-4";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-4";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-5";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-5";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-5";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261121-4";
+import { playerMini, renderRoom } from "./room.js?v=20261121-5";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-4";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20260903-7";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261119-2";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261118-14";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20260831-1";
-import { loadPresenceUsers } from "./firebase.js?v=20261119-15";
+import { loadPresenceUsers } from "./firebase.js?v=20261121-5";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261118-27";
-import { scheduleBot } from "./botController.js?v=20261121-4";
+import { scheduleBot } from "./botController.js?v=20261121-5";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-4";
-import { equipmentById, equipmentModal } from "./equipment.js?v=20260804-3";
+import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-5";
 import { potionPackById } from "./potionPacks.js?v=20260831-1";
 import { honorModal } from "./honor.js?v=20260804-2";
 import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261120-13";
@@ -129,12 +129,22 @@ window.addEventListener("appinstalled", () => {
   if (root.isConnected) render({ preserveDrafts:true });
 });
 const THEME_STORAGE_KEY = "grygrupowe-theme";
-const POTION_INVENTORY_RESET_KEY = "grygrupowe-potion-inventory-reset-v2";
 function applyTheme(theme = localStorage.getItem(THEME_STORAGE_KEY) || "dark") {
   document.documentElement.classList.toggle("light-theme", theme === "light");
   document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
 }
 function lightThemeEnabled() { return document.documentElement.classList.contains("light-theme"); }
+function installPotionState(uid, source) {
+  const account = {
+    ...state.accounts[uid],
+    potionInventory:normalizePotionInventory(source.potionInventory),
+    coinBooster:source.coinBooster || null,
+    xpBooster:source.xpBooster || null,
+  };
+  state.accounts[uid] = account;
+  saveAccounts(state.accounts);
+  return account;
+}
 function normalizePotionInventory(inventory) {
   const source = inventory && typeof inventory === "object" ? inventory : {};
   return Object.fromEntries(Object.entries(source)
@@ -145,10 +155,6 @@ applyTheme();
 const accounts = loadAccounts();
 Object.values(accounts).forEach(account => { if(account.password&&!account.passwordHash)account.passwordHash=hashRoomPassword(`account:${account.password}`);delete account.password;account.ownedCosmetics={defaultNick:true,defaultFrame:true,noAura:true,defaultCandy:true,defaultBomb:true,defaultClock:true,defaultMarker:true,defaultSequence:true,...(account.ownedCosmetics||{})};account.gamePasses={...(account.gamePasses||{})};account.selectedNickEffect ||= "defaultNick";account.selectedAvatarFrame ||= "defaultFrame";account.selectedAura ||= "noAura";account.selectedCandySkin ||= "defaultCandy";account.selectedBombSkin ||= "defaultBomb";account.selectedClockSkin ||= "defaultClock";account.selectedMarkerSkin ||= "defaultMarker";account.selectedSequenceSkin ||= "defaultSequence";account.selectedBoardLudoSkin ||= "defaultLudoBoard";account.selectedBoardMemorySkin ||= "defaultMemoryBoard";account.selectedIdleAnimation ||= "";account.selectedWinAnimation ||= "";account.selectedLoseAnimation ||= "";account.potionInventory=normalizePotionInventory(account.potionInventory);account.privacy={historyPublic:true,statsPublic:true, friendsPublic:true,...(account.privacy||{})};account.gameHistory=Array.isArray(account.gameHistory)?account.gameHistory:[];account.birthDate ||= "";account.adultStatus = adultStatusFor(account);account.inbox = Array.isArray(account.inbox) ? account.inbox : [];account.friends = Array.isArray(account.friends) ? account.friends : [];account.friendRequests = { incoming:{}, outgoing:{}, ...(account.friendRequests||{}), incoming:{...(account.friendRequests?.incoming||{})}, outgoing:{...(account.friendRequests?.outgoing||{})} }; });
 Object.values(accounts).forEach(account => { account.honorCounts={nicePlayer:0,goodOpponent:0,greatHost:0,notVerySmart:0,poorSport:0,...(account.honorCounts||{})}; });
-if (localStorage.getItem(POTION_INVENTORY_RESET_KEY) !== "1") {
-  Object.values(accounts).forEach(account => { account.potionInventory = {}; });
-  localStorage.setItem(POTION_INVENTORY_RESET_KEY, "1");
-}
 saveAccounts(accounts);
 const session=loadSession();
 const validModeIds = new Set(gamesList.map(mode => mode.id));
@@ -578,7 +584,7 @@ async function recoverMissingRemoteProfile(remoteState = null) {
   if (!user || user.nickOnly || !hasOnlineBackend()) return false;
   const result = remoteState || await loadRemoteProfileState(state.currentUser);
   if (!result.ok || !result.missing || result.profile) return false;
-  return syncPlayerProfile(state.currentUser, user);
+  return syncPlayerProfile(state.currentUser, user, {restorePotions:true});
 }
 function ensureRoomSession() {
   if(!hasOnlineBackend()){message("Brak połączenia z serwerem online. Odśwież stronę.");return false;}
@@ -2263,22 +2269,33 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     // Keep the server profile in sync before the freshly won potion can be
     // consumed from the equipment modal.
     const syncedProfile = { ...local.profile, updatedAt:Date.now() };
-    await syncPlayerProfile(state.currentUser, syncedProfile);
+    await syncPlayerProfile(state.currentUser, syncedProfile, {spinReward:local.reward});
+    if (hasOnlineBackend() && !syncedProfile.nickOnly && local.reward.type === "potion") {
+      const remoteProfile = await loadRemoteProfile(state.currentUser);
+      if (remoteProfile) syncedProfile.potionInventory = normalizePotionInventory(remoteProfile.potionInventory);
+    }
     updateProfile(syncedProfile);
     return { ...local, profile:syncedProfile };
   },
   openEquipment() {
     if (!profile()) return actions.openAuth({ title:"Zaloguj się, aby otworzyć ekwipunek", description:"Ekwipunek zapisuje zdobyte potki i aktywne boosty na Twoim profilu." });
-    const renderEquipment = account => equipmentModal(account, actions.closeModal, itemId => actions.usePotion(itemId));
+    const uid = state.currentUser;
+    let used = false;
+    const renderEquipment = account => {
+      const node = equipmentModal(account, actions.closeModal, async itemId => {
+        used = true;
+        const result = await actions.usePotion(itemId);
+        if (result?.profile && uid === state.currentUser && node.isConnected) node.replaceWith(renderEquipment(profile()));
+      });
+      return node;
+    };
     const modal = renderEquipment(profile());
     document.body.append(modal); Audio.play("wardrobeOpen");
     if (hasOnlineBackend() && !profile()?.nickOnly) {
-      loadRemoteProfile(state.currentUser).then(remote => {
-        if (!remote || !modal.isConnected) return;
-        const freshProfile = { ...state.accounts[state.currentUser], ...remote, potionInventory:normalizePotionInventory(remote.potionInventory) };
-        state.accounts[state.currentUser] = freshProfile;
-        saveAccounts(state.accounts);
-        modal.replaceWith(renderEquipment(freshProfile));
+      loadRemoteProfile(uid).then(remote => {
+        if (!remote || used || uid !== state.currentUser || !modal.isConnected) return;
+        const fresh = installPotionState(uid,remote);
+        modal.replaceWith(renderEquipment(fresh));
       }).catch(() => {});
     }
   },
@@ -2326,48 +2343,22 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     return true;
   },
   async usePotion(itemId) {
-    if (!state.currentUser) return { ok:false, error:"Zaloguj się, aby użyć potki." };
-    let result = await usePotionRemote(itemId);
-    const online = hasOnlineBackend();
-    const localQuantity = Number(profile()?.potionInventory?.[itemId]) || 0;
-    const isMissingPotion = value => ["failed-precondition", "functions/failed-precondition"].includes(String(value?.code || ""));
-    const refreshRemotePotionInventory = async () => {
-      const remote = await loadRemoteProfile(state.currentUser);
-      if (!remote) return profile();
-      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], potionInventory:normalizePotionInventory(remote.potionInventory) };
-      saveAccounts(state.accounts);
-      return profile();
-    };
-    // Firebase is the source of truth. If an old local cache shows a potion
-    // that the server no longer has, refresh only the inventory instead of
-    // writing stale local data back over the current profile.
-    if (!result?.ok && online && localQuantity > 0 && isMissingPotion(result)) {
-      await refreshRemotePotionInventory();
-      result = await usePotionRemote(itemId);
+    const uid = state.currentUser, account = profile();
+    if (!account || !Object.hasOwn(equipmentById,itemId)) return {ok:false,error:"Nieprawidłowa potka."};
+    let result;
+    if (hasOnlineBackend() && !account.nickOnly) {
+      result = await usePotionDatabase(uid,itemId);
+    } else {
+      const next = consumePotion(account,itemId,Date.now());
+      result = next ? {ok:true,profile:next,message:`Użyto potki ${equipmentById[itemId].name}. Boost jest aktywny.`}
+        : {ok:false,error:"Nie masz tej potki w ekwipunku."};
     }
-    const backendUnavailable = !result?.code || ["functions/internal", "functions/not-found", "functions/unavailable", "internal", "not-found", "unavailable"].includes(String(result.code));
-    if (!result?.ok && (backendUnavailable || isMissingPotion(result)) && online) {
-      result = await usePotionDatabase(state.currentUser, itemId);
-      // Do not re-upload a stale local inventory after a failed server check.
-      if (!result?.ok && isMissingPotion(result) && Number(profile()?.potionInventory?.[itemId]) > 0) {
-        await refreshRemotePotionInventory();
-        result = await usePotionDatabase(state.currentUser, itemId);
-      }
-    }
-    if (!result?.ok && !online) {
-      const item = equipmentById[itemId], user = profile(), quantity = Number(user?.potionInventory?.[itemId]) || 0;
-      if (!item) result = { ok:false, error:"Nieprawidłowa potka." };
-      else if (quantity < 1) result = { ok:false, error:"Nie masz tej potki w ekwipunku." };
-      else {
-        const now = Date.now(), key = item.effect === "xp" ? "xpBooster" : "coinBooster", current = user[key] || {};
-        result = { ok:true, message:`Użyto potki ${item.name}. Boost jest aktywny.`, profile:{ ...user, potionInventory:{ ...(user.potionInventory || {}), [itemId]:quantity - 1 }, [key]:{ multiplier:Math.max(Number(current.multiplier) || 1, item.multiplier), expiresAt:Math.max(Number(current.expiresAt) || 0, now + item.durationMs) } } };
-      }
-    }
-    if (result?.ok && result.profile) {
-      state.accounts[state.currentUser] = { ...state.accounts[state.currentUser], ...result.profile, potionInventory:normalizePotionInventory(result.profile.potionInventory), updatedAt:Date.now() };
-      saveAccounts(state.accounts); render({ preserveDrafts:true });
-      message(result.message || "Potka została użyta.", "info");
-    } else if (!result?.ok) message(result?.error || "Nie udało się użyć potki. Spróbuj ponownie.");
+    if (uid !== state.currentUser) return result;
+    if (result?.profile) installPotionState(uid,result.profile);
+    if (result?.ok) {
+      render({preserveDrafts:true});
+      message(result.message,"info");
+    } else message(result?.error || "Nie udało się użyć potki. Spróbuj ponownie.");
     return result;
   },
   setProfilePrivacy(key, value) {

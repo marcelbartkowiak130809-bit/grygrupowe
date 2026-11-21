@@ -12,6 +12,24 @@ export const potionEquipment = [
 export const equipmentItems = potionEquipment;
 export const equipmentById = Object.fromEntries(equipmentItems.map(item => [item.id, item]));
 export const defaultEquipmentInventory = {};
+
+export function consumePotion(profile, itemId, now) {
+  const item = Object.hasOwn(equipmentById, itemId) ? equipmentById[itemId] : null;
+  const quantity = Number(profile?.potionInventory?.[itemId]) || 0;
+  if (!item || quantity < 1) return null;
+  const key = item.effect === "xp" ? "xpBooster" : "coinBooster";
+  const current = profile[key];
+  const active = Number(current?.expiresAt) > now;
+  return {
+    ...profile,
+    potionInventory:{...profile.potionInventory,[itemId]:quantity - 1},
+    [key]:{
+      multiplier:Math.max(active ? Number(current.multiplier) || 1 : 1,item.multiplier),
+      expiresAt:Math.max(active ? Number(current.expiresAt) : 0,now + item.durationMs),
+    },
+    updatedAt:now,
+  };
+}
 const durationLabel = durationMs => {
   const minutes = Math.round(Number(durationMs || 0) / 60000);
   return minutes >= 60 ? `${Math.round(minutes / 60)} godz.` : `${minutes} min`;
@@ -52,11 +70,11 @@ export function equipmentModal(profile = {}, closeAction, onUse) {
   const close = () => closeAction?.(modal);
   modal.querySelector("[data-close]").addEventListener("click", close);
   modal.addEventListener("click", event => { if (event.target === modal) close(); });
-  modal.querySelectorAll("[data-potion-id]").forEach(button => button.addEventListener("click", async () => {
-    button.disabled = true;
-    const result = await onUse?.(button.dataset.potionId);
-    if (!result?.ok) button.disabled = false;
-    else close();
+  const buttons = modal.querySelectorAll("[data-potion-id]:not(:disabled)");
+  buttons.forEach(button => button.addEventListener("click", async () => {
+    buttons.forEach(control => { control.disabled = true; });
+    try { await onUse?.(button.dataset.potionId); }
+    finally { buttons.forEach(control => { control.disabled = false; }); }
   }));
   return modal;
 }
