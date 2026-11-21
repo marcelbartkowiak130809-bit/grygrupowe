@@ -1,4 +1,4 @@
-import { chartForecastData } from "./chartForecastData.js?v=20261121-18";
+import { chartForecastData } from "./chartForecastData.js?v=20261121-19";
 
 export const chartForecastMode = "dorysuj-wykres";
 export const chartForecastDefaults = { rounds:5, chartTime:45 };
