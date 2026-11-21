@@ -16,10 +16,13 @@ export function drawForecastSegment(draft, from, to) {
 export function forecastPointer(canvas, chart, event, anchor) {
   const bounds=canvas.getBoundingClientRect();
   const {left,top,right,bottom,width,height}=margin(bounds.width,bounds.height);
-  const x=Math.max(0,Math.min(1,(event.clientX-bounds.left-left)/(width-left-right)));
-  const y=Math.max(0,Math.min(1,(event.clientY-bounds.top-top)/(height-top-bottom)));
+  const localX=event.clientX-bounds.left, localY=event.clientY-bounds.top;
+  const x=Math.max(0,Math.min(1,(localX-left)/(width-left-right)));
+  const y=Math.max(0,Math.min(1,(localY-top)/(height-top-bottom)));
   const index=Math.min(chart.values.length-chart.cut-1,Math.max(0,Math.round(x*(chart.values.length-1))-chart.cut));
-  return {index,value:index===0?anchor:chart.scale[1]-y*(chart.scale[1]-chart.scale[0])};
+  const cutX=left+(width-left-right)*chart.cut/(chart.values.length-1);
+  const canStart=localX>=cutX-10 && localX<=width-right+10 && localY>=top-8 && localY<=height-bottom+8;
+  return {index,canStart,value:index===0?anchor:chart.scale[1]-y*(chart.scale[1]-chart.scale[0])};
 }
 
 export function paintForecastChart(canvas, chart, {draft=[], series=[], revealed=false, highlight="", progress=1, cursor=null}={}) {

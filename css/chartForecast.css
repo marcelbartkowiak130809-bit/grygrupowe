@@ -11,6 +11,7 @@
   color: var(--chart-text);
   max-width: 1010px;
   margin-inline: auto;
+  scroll-margin-top: 90px;
 }
 .chart-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 13px; }
 .chart-heading p { margin: 0 0 5px; }
@@ -46,7 +47,8 @@
   gap: 8px 12px;
 }
 .chart-drawing-footer { justify-content: space-between; margin-top: 11px; }
-.chart-drawing-footer > span { color: var(--chart-label); font-size: 13px; }
+.chart-drawing-footer > div { display: grid; gap: 4px; color: var(--chart-label); font-size: 12px; }
+.chart-drawing-footer [data-chart-status] { color: var(--chart-text); }
 .chart-actions .primary { min-width: 112px; }
 .chart-legend { margin-top: 12px; }
 .chart-legend button { display: inline-flex; align-items: center; gap: 6px; min-height: 35px; padding: 5px 8px; }
@@ -71,6 +73,7 @@
 .chart-score-list .mini-player { min-width: 0; }
 .chart-score-list .nick { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .chart-score-list .mini-player > :is(.avatar,.level-badge) { flex-shrink: 0; }
+.chart-no-forecasts { margin: 0; color: var(--chart-label); font-size: 13px; }
 .chart-review { margin-top: 10px; }
 .chart-review-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .chart-review-tabs button { min-height: 36px; padding: 6px 9px; font-size: 12px; }
@@ -96,7 +99,9 @@
   .chart-heading { align-items: start; gap: 8px; }
   .chart-heading h1 { font-size: clamp(21px,6vw,27px); }
   .chart-steps span { width: 7px; }
-  .chart-canvas { height: clamp(270px,48svh,400px); }
+  .chart-canvas { height: clamp(220px,43svh,400px); }
   .chart-drawing-footer { margin-top: 7px; }
-  .chart-drawing-footer > span { max-width: 19ch; }
+  .chart-drawing-footer > div { flex: 1 1 14ch; }
+  .chart-actions { gap: 6px; }
+  .chart-actions .primary { min-width: 84px; }
 }

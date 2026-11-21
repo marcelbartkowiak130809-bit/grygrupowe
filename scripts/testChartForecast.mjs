@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { applyChartForecastAction, chartForecastSettings, createChartForecastGame, currentForecastChart, scoreChartForecast } from "../js/chartForecast.js";
-import { drawForecastSegment } from "../js/chartForecastCanvas.js";
+import { drawForecastSegment, forecastPointer } from "../js/chartForecastCanvas.js";
 import { chartForecastData } from "../js/chartForecastData.js";
 
 const players=["a","b"];
@@ -57,4 +57,43 @@ test("submission, expiry, snapshots, three-round average and winner",()=>{
   assert.deepEqual(game.scores,{a:66.7,b:33.3});
   assert.equal(game.finished,true);
   assert.deepEqual(game.winners,["a"]);
+});
+
+test("a player who never submitted a forecast cannot share a win on zero points",()=>{
+  const game=make();
+  const chart=currentForecastChart(game);
+  const wrong=chart.values.slice(chart.cut+1).map(value=>
+    value>(chart.scale[0]+chart.scale[1])/2?chart.scale[0]:chart.scale[1]);
+  assert.equal(scoreChartForecast(chart,wrong).accuracy,0);
+  assert.match(applyChartForecastAction(game,"a","submit",new Array(wrong.length),players,start+1),/końca/);
+  applyChartForecastAction(game,"a","submit",wrong,players,start+1);
+  for(let round=0;round<3;round++){
+    applyChartForecastAction(game,"a","timeout",null,players,game.phaseEndsAt);
+    applyChartForecastAction(game,"a","next",null,players,game.phaseEndsAt);
+  }
+  assert.deepEqual(game.scores,{a:0,b:0});
+  assert.deepEqual(game.chartRanking,["a"]);
+  assert.deepEqual(game.winners,["a"]);
+});
+
+test("leaving the room unblocks a round once the remaining players are ready",()=>{
+  const group=["a","b","c"];
+  const game=createChartForecastGame(group,{rounds:3,chartTime:30},start);
+  const chart=currentForecastChart(game);
+  for(const uid of players) applyChartForecastAction(game,uid,"submit",chart.values.slice(chart.cut+1),group,start+1);
+  applyChartForecastAction(game,"a","timeout",null,group,start+2);
+  assert.equal(game.phase,"chart-draw");
+  applyChartForecastAction(game,"a","timeout",null,players,start+3);
+  assert.equal(game.phase,"chart-reveal");
+});
+
+test("the axes and historical data do not accept a new stroke",()=>{
+  const chart={values:[2,4,6,8],cut:1,scale:[0,10]};
+  const canvas={getBoundingClientRect:()=>({left:0,top:0,width:320,height:300})};
+  const point=(clientX,clientY)=>forecastPointer(canvas,chart,{clientX,clientY},4);
+  assert.equal(point(50,150).canStart,false);
+  assert.equal(point(290,288).canStart,false);
+  assert.equal(point(132,140).canStart,true);
+  assert.equal(point(132,140).value,4);
+  assert.deepEqual(point(450,-50),{index:2,canStart:false,value:10});
 });

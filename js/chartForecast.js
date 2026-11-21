@@ -33,10 +33,18 @@ export function createChartForecastGame(players, settings, now) {
 
 const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
 const rounded = (value,places) => Math.round(value*10**places)/10**places;
+const validForecast = (forecast, count, [min,max]) =>
+  Array.isArray(forecast) && forecast.length===count &&
+  Array.from(forecast).every(value=>Number.isFinite(value) && value>=min && value<=max);
+
+export function chartForecastRanking(game, players = game.players) {
+  return players.filter(uid=>game.chartRounds?.some(round=>Array.isArray(round.rows?.[uid]?.forecast)))
+    .sort((a,b)=>(game.scores[b]||0)-(game.scores[a]||0));
+}
 
 export function scoreChartForecast(chart, forecast) {
   const actual=chart.values.slice(chart.cut+1);
-  if (!Array.isArray(forecast) || forecast.length!==actual.length || !forecast.every(Number.isFinite)) {
+  if (!validForecast(forecast,actual.length,chart.scale)) {
     return { accuracy:0, miss:null };
   }
   const miss=actual.reduce((sum,value,index)=>sum+Math.abs(value-forecast[index]),0)/actual.length;
@@ -47,8 +55,8 @@ export function scoreChartForecast(chart, forecast) {
 function revealForecasts(game, now) {
   const chart=currentForecastChart(game);
   const rows=Object.fromEntries(game.players.map(uid=>{
-    const forecast=game.forecasts?.[uid];
-    return [uid,{...scoreChartForecast(chart,forecast), ...(forecast?{forecast}:{})}];
+    const forecast=game.forecasts?.[uid], score=scoreChartForecast(chart,forecast);
+    return [uid,{...score, ...(score.miss!==null?{forecast}:{})}];
   }));
   const previous=Array.isArray(game.chartRounds)?game.chartRounds:[];
   game.chartRounds=[...previous,{chartId:chart.id,rows}];
@@ -66,9 +74,9 @@ export function applyChartForecastAction(game, uid, action, payload, roomPlayers
     if(game.phase!=="chart-draw" || now>=game.phaseEndsAt) return "Czas na prognozę już minął.";
     game.forecasts ||= {};
     if(Object.hasOwn(game.forecasts,uid)) return "Twoja prognoza jest już zapisana.";
-    const chart=currentForecastChart(game), [min,max]=chart.scale;
+    const chart=currentForecastChart(game);
     const count=chart.values.length-chart.cut-1;
-    if (!Array.isArray(payload) || payload.length!==count || !payload.every(value=>Number.isFinite(value)&&value>=min&&value<=max)) {
+    if (!validForecast(payload,count,chart.scale)) {
       return "Dorysuj wykres do końca osi.";
     }
     game.forecasts[uid]=payload.map(value=>rounded(value,4));
@@ -83,9 +91,9 @@ export function applyChartForecastAction(game, uid, action, payload, roomPlayers
   }
   if (action!=="next" || game.phase!=="chart-reveal") return "Ta runda już się zmieniła.";
   if(game.round>=game.chartIds.length) {
-    const best=Math.max(0,...active.map(id=>game.scores[id]||0));
-    const submitted=game.chartRounds.some(round=>active.some(id=>Array.isArray(round.rows?.[id]?.forecast)));
-    game.winners=submitted?active.filter(id=>game.scores[id]===best):[];
+    game.chartRanking=chartForecastRanking(game,active);
+    const best=game.scores[game.chartRanking[0]];
+    game.winners=game.chartRanking.filter(id=>game.scores[id]===best);
     game.finished=true;
     game.phase="result";
     game.phaseEndsAt=0;

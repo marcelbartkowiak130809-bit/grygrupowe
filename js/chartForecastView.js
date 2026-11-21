@@ -1,5 +1,5 @@
-import { chartForecastSettings, chartRoundOptions, chartTimeOptions, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-15";
-import { chartNumber, drawForecastSegment, forecastPointer, paintForecastChart } from "./chartForecastCanvas.js?v=20261121-15";
+import { chartForecastRanking, chartForecastSettings, chartRoundOptions, chartTimeOptions, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-17";
+import { chartNumber, drawForecastSegment, forecastPointer, paintForecastChart } from "./chartForecastCanvas.js?v=20261121-17";
 import { chartForecastData } from "./chartForecastData.js?v=20261121-15";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
@@ -10,10 +10,40 @@ const colors = ["#49c5d9","#f6aa53","#cc88e8","#a2d357","#f27c95","#a6aaff","#ea
 const percentage = new Intl.NumberFormat("pl-PL",{minimumFractionDigits:1,maximumFractionDigits:1});
 const accuracy = value => `${percentage.format(value || 0)}%`;
 const drafts = new WeakMap();
+const draftStorageKey = "grygrupowe_chart_forecast_draft";
 let clock, chartBinding;
 
 export function stopChartForecastTimer() { clearInterval(clock); }
-export function stopChartForecastView() { chartBinding?.observer.disconnect(); chartBinding=null; }
+export function stopChartForecastView() {
+  if(!chartBinding) return;
+  chartBinding.observer.disconnect();
+  cancelAnimationFrame(chartBinding.frame);
+  chartBinding=null;
+}
+
+function readDraft(key,chart) {
+  try {
+    const saved=JSON.parse(sessionStorage.getItem(draftStorageKey));
+    if(saved?.key!==key) return null;
+    const [min,max]=chart.scale;
+    const limit=chart.values.length-chart.cut;
+    const valid=values=>Array.isArray(values)&&values.length>0&&values.length<=limit&&
+      values[0]===chart.values[chart.cut]&&values.every(value=>Number.isFinite(value)&&value>=min&&value<=max);
+    if(valid(saved.draft)) return {draft:saved.draft,undos:Array.isArray(saved.undos)?saved.undos.filter(valid).slice(-40):[]};
+  } catch {}
+  return null;
+}
+
+function saveDraft(state) {
+  try { sessionStorage.setItem(draftStorageKey,JSON.stringify({key:state.draftKey,draft:state.draft,undos:state.undos})); }
+  catch {}
+}
+
+function clearDraft(key) {
+  try {
+    if(JSON.parse(sessionStorage.getItem(draftStorageKey))?.key===key) sessionStorage.removeItem(draftStorageKey);
+  } catch {}
+}
 
 export function renderChartForecastLobby(room,isHost) {
   const settings=chartForecastSettings(room.settings);
@@ -22,7 +52,8 @@ export function renderChartForecastLobby(room,isHost) {
 }
 
 function scoresHtml(game,accounts,currentUser) {
-  const ordering=game.players.slice().sort((a,b)=>(game.scores[b]||0)-(game.scores[a]||0));
+  const ordering=game.chartRanking||chartForecastRanking(game);
+  if(!ordering.length) return '<p class="chart-no-forecasts">Brak zatwierdzonych prognoz.</p>';
   return `<ol class="chart-score-list">${ordering.map(uid=>{
     const place=ordering.findIndex(key=>game.scores[key]===game.scores[uid])+1;
     return `<li class="${uid===currentUser?"is-you":""}"><span>${place}.</span>${resultPlayerMiniHtml(accounts[uid],game.winners?.includes(uid)?"win":"static")}<strong>${accuracy(game.scores[uid])}</strong></li>`;
@@ -53,46 +84,55 @@ function resultPanel(game,chart,state,currentUser,accounts,row,source) {
   <section class="chart-review"><h2>Twoje wykresy</h2><div class="chart-review-tabs">${tabs}</div>${chartStage(chart,{caption:true})}${statLine(row,chart.unit)}${source}</section>`;
 }
 
-function bindDrawing(canvas,panel,chart,state,ready,expected,actions,repaint) {
+function bindDrawing(canvas,panel,chart,state,expected,actions,repaint) {
   const start=chart.values[chart.cut], count=chart.values.length-chart.cut-1;
   const status=panel.querySelector("[data-chart-status]");
   const submit=panel.querySelector("[data-chart-submit]"), undo=panel.querySelector("[data-chart-undo]");
+  const expired=()=>serverNow()>=expected.phaseEndsAt;
   const controls=()=>{
-    submit.disabled=state.pending || state.pointer!==null || state.draft.length<=count;
-    undo.disabled=state.pending || state.pointer!==null || !state.undos.length;
-    const message=state.draft.length>count?ready:"Przeciągnij od punktu i dorysuj linię.";
+    const closed=expired();
+    submit.disabled=closed || state.pending || state.pointer!==null || state.draft.length<=count;
+    undo.disabled=closed || state.pending || state.pointer!==null || !state.undos.length;
+    const message=state.pending?"Zapisywanie prognozy…":closed?"Czas minął. Czekamy na wyniki.":state.draft.length>count?"Możesz zatwierdzić lub poprawić linię."
+      :state.draft.length>1?"Dorysuj linię do końca osi.":"Przeciągnij od punktu startowego.";
     if(status.textContent!==message) status.textContent=message;
   };
-  const recordUndo=()=>{
-    state.undos.push(state.draft.slice());
+  const recordUndo=(before=state.draft.slice())=>{
+    state.undos.push(before);
     if(state.undos.length>40) state.undos.shift();
   };
   canvas.onpointerdown=event=>{
-    if(state.pending || state.pointer!==null || (event.pointerType==="mouse" && event.button!==0)) return;
+    if(expired() || state.pending || state.pointer!==null || (event.pointerType==="mouse" && event.button!==0)) return;
     const point=forecastPointer(canvas,chart,event,start);
-    if(point.index>state.draft.length) return;
+    if(!point.canStart || point.index>state.draft.length) return;
     event.preventDefault(); canvas.setPointerCapture(event.pointerId);
-    recordUndo(); state.pointer=event.pointerId;
+    state.strokeStart=state.draft.slice(); state.pointer=event.pointerId;
     const previous=state.draft.length-1;
     const from=point.index>previous?{index:previous,value:state.draft[previous]}:point;
     drawForecastSegment(state.draft,from,point);
     state.cursor=point; controls(); repaint();
   };
   canvas.onpointermove=event=>{
-    if(state.pointer!==event.pointerId) return;
+    if(expired() || state.pointer!==event.pointerId) return;
     const point=forecastPointer(canvas,chart,event,start);
     drawForecastSegment(state.draft,state.cursor,point);
     state.cursor=point; controls(); repaint();
   };
-  const end=event=>{
+  const end=(event,cancelled)=>{
     if(state.pointer!==event.pointerId) return;
+    const before=state.strokeStart;
+    if(cancelled) state.draft=before;
+    else if(state.draft.length!==before.length||state.draft.some((value,index)=>value!==before[index])) {
+      recordUndo(before); saveDraft(state);
+    }
+    state.strokeStart=null;
     state.pointer=null; state.cursor=null; controls(); repaint();
   };
-  canvas.onpointerup=event=>{canvas.onpointermove(event);end(event);};
-  canvas.onpointercancel=end;
-  canvas.onlostpointercapture=end;
+  canvas.onpointerup=event=>{canvas.onpointermove(event);end(event,false);};
+  canvas.onpointercancel=event=>end(event,true);
+  canvas.onlostpointercapture=event=>end(event,true);
   canvas.onkeydown=event=>{
-    if(state.pending || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key)) return;
+    if(expired() || state.pending || state.pointer!==null || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key)) return;
     event.preventDefault();
     const cursor=state.cursor?.index||0;
     const vertical=event.key==="ArrowUp" || event.key==="ArrowDown";
@@ -101,21 +141,27 @@ function bindDrawing(canvas,panel,chart,state,ready,expected,actions,repaint) {
     const base=state.draft[index]??state.draft[index-1]??start;
     const value=vertical?Math.max(min,Math.min(max,base+(event.key==="ArrowUp"?1:-1)*(max-min)/40)):base;
     if(vertical || index===state.draft.length) {
-      recordUndo(); drawForecastSegment(state.draft,{index,value},{index,value});
+      recordUndo(); drawForecastSegment(state.draft,{index,value},{index,value}); saveDraft(state);
     }
     state.cursor={index,value}; controls(); repaint();
   };
-  undo.onclick=()=>{state.draft=state.undos.pop()||[start];state.cursor=null;controls();repaint();};
+  undo.onclick=()=>{state.draft=state.undos.pop()||[start];saveDraft(state);state.cursor=null;controls();repaint();};
   submit.onclick=async()=>{
+    const key=state.draftKey;
     state.pending=true;controls();
-    try { await actions.chartForecastAction("submit",state.draft.slice(1),expected); }
-    finally { state.pending=false;controls(); }
+    try { if(await actions.chartForecastAction("submit",state.draft.slice(1),expected)) clearDraft(key); }
+    finally { if(state.draftKey===key) {state.pending=false;controls();} }
   };
   controls();
+  return controls;
 }
 
-function bindClock(panel,game,host,actions,expected) {
-  let retryAt=0;
+function bindClock(panel,game,players,host,actions,expected,state,updateControls) {
+  const key=`${game.round}:${game.phase}:${game.phaseEndsAt}`;
+  if(state.clockRequest?.key!==key) state.clockRequest={key,retryAt:0,pending:false};
+  const request=state.clockRequest;
+  const revealing=game.phase==="chart-reveal";
+  const allReady=!revealing && host && players.length && players.every(uid=>Object.hasOwn(game.forecasts||{},uid));
   const tick=()=>{
     const now=serverNow();
     const left=Math.max(0,Math.ceil((game.phaseEndsAt-now)/1000));
@@ -123,13 +169,36 @@ function bindClock(panel,game,host,actions,expected) {
     const label=`${left} s`;
     if(time.textContent!==label) time.textContent=label;
     time.classList.toggle("is-low",left<=5);
-    const revealing=game.phase==="chart-reveal";
-    if(left===0 && now>=retryAt && (!revealing||host)) {
-      retryAt=now+2000;
-      void actions.chartForecastAction(revealing?"next":"timeout",null,expected);
+    if(left===0) updateControls?.();
+    if((allReady || (left===0 && (!revealing||host))) && !request.pending && now>=request.retryAt) {
+      request.pending=true;
+      request.retryAt=now+2000;
+      Promise.resolve(actions.chartForecastAction(revealing?"next":"timeout",null,expected)).finally(()=>{request.pending=false;});
     }
   };
   clock=setInterval(tick,250);tick();
+}
+
+function bindCanvas(canvas,paint,animate) {
+  if(chartBinding?.canvas!==canvas) {
+    stopChartForecastView();
+    const binding={canvas,frame:0,start:animate?performance.now():null,paint};
+    binding.repaint=()=>{
+      if(binding.frame) return;
+      binding.frame=requestAnimationFrame(now=>{
+        binding.frame=0;
+        if(!canvas.isConnected) return;
+        const progress=binding.start===null?1:Math.max(0,Math.min(1,(now-binding.start)/550));
+        binding.paint(progress);
+        if(progress<1) binding.repaint();
+      });
+    };
+    binding.observer=new ResizeObserver(binding.repaint);
+    binding.observer.observe(canvas);
+    chartBinding=binding;
+  } else chartBinding.paint=paint;
+  chartBinding.repaint();
+  return chartBinding.repaint;
 }
 
 export function renderChartForecastGame(root,{room,accounts,currentUser},actions) {
@@ -145,58 +214,52 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   const chart=roundResult?catalog.get(roundResult.chartId):currentForecastChart(game);
   if(!chart) return;
   const start=chart.values[chart.cut];
-  if(state.round!==game.round) {
-    Object.assign(state,{round:game.round,draft:[start],undos:[],pending:false,cursor:null,pointer:null,highlight:currentUser});
+  const draftKey=`${matchKey}:${game.round}:${game.chartIds[game.round-1]}`;
+  const openedNewRound=state.draftKey && state.draftKey!==draftKey && game.phase==="chart-draw";
+  if(state.draftKey!==draftKey) {
+    const saved=editable?readDraft(draftKey,chart):null;
+    Object.assign(state,{draftKey,draft:saved?.draft||[start],undos:saved?.undos||[],pending:false,cursor:null,pointer:null,strokeStart:null,highlight:currentUser});
   }
+  if(!editable) clearDraft(draftKey);
   const row=roundResult?.rows?.[currentUser];
   const profile=uid=>escapeHtml(accounts[uid]?.nick || "Gracz");
   const series=Object.entries(roundResult?.rows||{}).filter(([uid,item])=>Array.isArray(item.forecast)&&(!summary||uid===currentUser))
     .map(([uid,item])=>({uid,values:item.forecast,color:colors[game.players.indexOf(uid)%colors.length]}));
   const winning=game.winners?.includes(currentUser);
-  const place=1+game.players.filter(uid=>(game.scores[uid]||0)>(game.scores[currentUser]||0)).length;
+  const ranking=summary?(game.chartRanking||chartForecastRanking(game)):[];
+  const place=ranking.includes(currentUser)?1+ranking.filter(uid=>game.scores[uid]>game.scores[currentUser]).length:0;
   const finalTitle=winning?(game.winners.length>1?"Remis":"Wygrywasz!")
-    :game.winners?.length?`Zajmujesz ${place}. miejsce`:"Koniec partii";
+    :place?`Zajmujesz ${place}. miejsce`:"Koniec partii";
   const steps=`<div class="chart-steps" aria-label="Wykres ${game.round} z ${game.chartIds.length}">${game.chartIds.map((_,index)=>`<span class="${index<game.round?"is-past":""} ${index===game.round-1?"is-current":""}"></span>`).join("")}</div>`;
   const ready=`Gotowi · ${players.filter(uid=>Object.hasOwn(game.forecasts||{},uid)).length}/${players.length}`;
   const rankedLines=series.slice().sort((a,b)=>roundResult.rows[b.uid].accuracy-roundResult.rows[a.uid].accuracy);
   const legend=`<div class="chart-legend"><span class="chart-actual-label">Rzeczywiste dane</span>${rankedLines.map(item=>`<button type="button" class="ghost" data-chart-highlight="${escapeHtml(item.uid)}" aria-pressed="${state.highlight===item.uid}" style="--series-color:${item.color}">${profile(item.uid)} · ${accuracy(roundResult.rows[item.uid].accuracy)}</button>`).join("")}</div>`;
   const source=`<a class="chart-source" href="${escapeHtml(chart.source)}" rel="noopener noreferrer" target="_blank">Dane · ${escapeHtml(chart.publisher)} ↗</a>`;
   const tools=`<div class="chart-actions"><button type="button" class="ghost" data-chart-undo>Cofnij</button><button type="button" class="primary" data-chart-submit>Gotowe</button></div>`;
-  const drawingFooter=`<div class="chart-drawing-footer"><span data-chart-status aria-live="polite">${ready}</span>${editable?tools:""}</div>`;
+  const drawingFooter=`<div class="chart-drawing-footer"><div><span>${ready}</span>${editable?'<span data-chart-status aria-live="polite"></span>':""}</div>${editable?tools:""}</div>`;
   const revealFooter=`${legend}${statLine(row,chart.unit)}<div class="chart-actions">${source}${host?`<button type="button" class="primary" data-chart-next>${game.round===game.chartIds.length?"Pokaż wyniki":"Następny wykres"}</button>`:""}</div>`;
   const phasePanel=summary?resultPanel(game,chart,state,currentUser,accounts,row,source)
     :`${chartStage(chart,{editable})}${revealing?revealFooter:drawingFooter}`;
-  patchRoomView(root,`${matchKey}:${game.round}:${game.phase}:${summary?state.review:""}`,`<main class="page chart-forecast-page" data-chart-forecast>
+  patchRoomView(root,`${matchKey}:${game.round}:${game.phase}`,`<main class="page chart-forecast-page" data-chart-forecast>
     <header class="chart-heading"><div><p class="eyebrow">${summary?"Podsumowanie":"Dorysuj wykres"}</p><h1>${summary?finalTitle:escapeHtml(chart.title)}</h1></div>
       ${summary?"":`<div class="chart-progress">${steps}<span>${game.round}/${game.chartIds.length}</span><time data-chart-clock></time></div>`}
     </header>
     ${phasePanel}
-    <footer class="chart-footer">${summary?'<button type="button" class="ghost" data-chart-lobby>Wróć do pokoju</button>':""}<button type="button" class="ghost" data-chart-leave>Wyjdź</button></footer>
+    <footer class="chart-footer">${summary&&host?'<button type="button" class="ghost" data-chart-lobby>Wróć do pokoju</button>':""}<button type="button" class="ghost" data-chart-leave>Wyjdź</button></footer>
   </main>`);
 
   const canvas=root.querySelector(".chart-canvas"), panel=root.querySelector("[data-chart-forecast]");
+  if(openedNewRound) requestAnimationFrame(()=>{
+    if(!panel.isConnected) return;
+    const top=document.querySelector(".topbar")?.getBoundingClientRect().bottom||0;
+    if(panel.getBoundingClientRect().top<top) panel.scrollIntoView({block:"start",behavior:"instant"});
+  });
   const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt};
-  const isNew=chartBinding?.canvas!==canvas;
-  const revealStart=isNew&&revealing&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches?performance.now():0;
-  let frame=0;
-  const repaint=()=>{
-    if(frame) return;
-    frame=requestAnimationFrame(now=>{
-      frame=0;
-      if(!canvas.isConnected) return;
-      const progress=revealStart?Math.min(1,(now-revealStart)/550):1;
-      paintForecastChart(canvas,chart,{draft:submitted?[start,...submitted]:state.draft,series,revealed:summary||revealing,highlight:state.highlight,progress,cursor:state.cursor});
-      if(progress<1) repaint();
-    });
-  };
-  if(isNew) {
-    stopChartForecastView();
-    const observer=new ResizeObserver(()=>chartBinding?.repaint());
-    observer.observe(canvas);
-    chartBinding={canvas,observer,repaint};
-  } else chartBinding.repaint=repaint;
-  repaint();
-  if(editable) bindDrawing(canvas,panel,chart,state,ready,expected,actions,repaint);
+  const repaint=bindCanvas(canvas,progress=>paintForecastChart(canvas,chart,{
+    draft:submitted?[start,...submitted]:state.draft,series,revealed:summary||revealing,highlight:state.highlight,progress,cursor:state.cursor,
+  }),revealing&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  let updateControls;
+  if(editable) updateControls=bindDrawing(canvas,panel,chart,state,expected,actions,repaint);
   else {
     canvas.onpointerdown=null; canvas.onkeydown=null;
     canvas.onpointermove=null; canvas.onpointerup=null; canvas.onlostpointercapture=null; canvas.onpointercancel=null;
@@ -215,5 +278,5 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   });
   const next=panel.querySelector("[data-chart-next]");
   if(next) next.onclick=()=>actions.chartForecastAction("next",null,expected);
-  if(!summary) bindClock(panel,game,host,actions,expected);
+  if(!summary) bindClock(panel,game,players,host,actions,expected,state,updateControls);
 }
