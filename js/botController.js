@@ -13,8 +13,9 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261121-21";
-import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261121-21";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261122-1";
+import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261122-1";
+import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261122-1";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20261121-8";
 import { MathematicsEngine } from "./mathematics.js?v=20261121-8";
@@ -130,6 +131,7 @@ export function botActor(room) {
   if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
   if (room.gameMode === "pokemon-auction") {
     if (game.phase === "auction-prep") return bots.find(uid => battleTeam(game, uid).length && !game.battle.prep?.[uid]?.ready) || "";
+    if (game.battle?.duel) return bots.find(uid=>auctionDuelNeedsBot(game,uid)) || "";
     if (game.phase === "auction-battle") return bots.includes(game.battle.activeUid) ? game.battle.activeUid : "";
     return bots.find(uid => pokemonAuctionCanBid(game, uid)) || "";
   }
@@ -622,7 +624,7 @@ export function botMutation(room) {
         };
         break;
       case "pokemon-auction":
-        if (bot && ["auction-prep","auction-battle"].includes(game.phase)) return g => auctionBattleBotAction(g, bot, players, serverNow());
+        if (bot && (game.battle?.duel || ["auction-prep","auction-battle"].includes(game.phase))) return g => auctionBattleBotAction(g, bot, players, serverNow());
         if (pokemonAuctionCanBid(game, bot)) return g => {
           const budget = Number(g.budgets[bot]);
           const current = Number(g.currentBid || 0);

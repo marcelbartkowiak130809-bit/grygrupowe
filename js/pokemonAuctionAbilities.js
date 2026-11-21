@@ -1,10 +1,11 @@
-import { battleAbilityFlags, battleAbilityNames, battleSpeciesAbilities } from "./pokemonAuctionAbilityData.js?v=20261121-21";
+import { battleAbilityFlags, battleAbilityNames, battleSpeciesAbilities } from "./pokemonAuctionAbilityData.js?v=20261122-1";
+import { checkHeldBerry, consumeItem, heldItem } from "./pokemonAuctionTactics.js?v=20261122-1";
 
 export const auctionAbilityChoices = id => battleSpeciesAbilities[id] || [];
 export const auctionAbility = unit => unit?.copiedAbility || unit?.ability || auctionAbilityChoices(unit?.id)[0];
 export const auctionAbilityName = id => battleAbilityNames[id] || "";
 export const fieldNames = {sun:"Słońce", rain:"Deszcz", sand:"Burza piaskowa", snow:"Śnieg", harshSun:"Ostre słońce", heavyRain:"Ulewa", winds:"Silne wiatry", electric:"Elektryczne pole", grassy:"Trawiaste pole", psychic:"Psychiczne pole", misty:"Mgła"};
-export const statusNames = {burn:"Poparzenie", poison:"Zatrucie", paralysis:"Paraliż", sleep:"Sen", freeze:"Zamrożenie", confusion:"Dezorientacja"};
+export const statusNames = {burn:"Poparzenie", poison:"Zatrucie", toxic:"Narastające zatrucie", paralysis:"Paraliż", sleep:"Sen", freeze:"Zamrożenie", confusion:"Dezorientacja"};
 
 const weather = {drought:"sun", drizzle:"rain", "sand-stream":"sand", "snow-warning":"snow", "desolate-land":"harshSun", "primordial-sea":"heavyRain", "delta-stream":"winds", "orichalcum-pulse":"sun"};
 const terrain = {"electric-surge":"electric", "grassy-surge":"grassy", "psychic-surge":"psychic", "misty-surge":"misty", "hadron-engine":"electric"};
@@ -39,6 +40,8 @@ const notes = {
   "bad-dreams":"Odbiera śpiącemu przeciwnikowi ⅛ maksymalnego HP.",
   "battle-bond":"Po pierwszym nokaucie podnosi Atak, Atak Specjalny i Szybkość.",
   "cursed-body":"Trafienie ma 30% szans na czasową blokadę ruchu atakującego.",
+  "regenerator":"Odnawia ⅓ maksymalnego HP przy zejściu z pola.",
+  "natural-cure":"Usuwa status przy zejściu z pola.",
   "power-construct":"Przy połowie HP lub mniej Zygarde przyjmuje Formę Kompletną.",
   truant:"Co druga własna akcja przepada.",
   imposter:"Przy pierwszym starciu kopiuje formę i zdolność przeciwnika.",
@@ -47,6 +50,7 @@ const supported = new Set([
   ...Object.keys(weather), ...Object.keys(terrain), ...Object.keys(lowHpBoosts), ...Object.keys(typeBoosts), ...Object.keys(flagBoosts),
   ...Object.keys(conversions), ...Object.keys(contactStatus), ...Object.keys(koBoost), ...Object.keys(notes),
   ...Object.values(absorbs).flatMap(Object.keys),
+  ...("cheek-pouch good-as-gold klutz magic-bounce piercing-drill prankster pressure ripen unburden unnerve unseen-fist").split(" "),
   ...("analytic aura-guard fire-mane gale-wings guard-dog illuminate mega-sol mimicry moody perish-body spicy-spray stakeout supersweet-syrup triage victory-star").split(" "),
   ...("adaptability aftermath air-lock anger-point anger-shell armor-tail aura-break battle-armor beads-of-ruin beast-boost berserk big-pecks bulletproof chlorophyll clear-body cloud-nine color-change comatose competitive compound-eyes contrary corrosion cotton-down damp dark-aura dazzling defeatist defiant download dry-skin early-bird electromorphosis fairy-aura filter flare-boost flower-gift fluffy forecast full-metal-body fur-coat gooey grass-pelt guts heatproof hustle hydration hyper-cutter ice-body ice-scales immunity inner-focus innards-out insomnia intrepid-sword iron-barbs justified keen-eye leaf-guard libero limber lingering-aroma liquid-ooze liquid-voice long-reach magic-guard magma-armor marvel-scale merciless minds-eye mirror-armor multiscale mummy neuroforce no-guard normalize oblivious overcoat own-tempo parental-bond pastel-veil poison-heal poison-puppeteer poison-touch power-construct prism-armor protean protosynthesis purifying-salt quark-drive queenly-majesty quick-feet rain-dish rattled reckless rock-head rough-skin sand-force sand-rush sand-spit sand-veil scrappy seed-sower serene-grace shadow-shield shed-skin sheer-force shell-armor shield-dust simple skill-link slush-rush slow-start sniper snow-cloak solar-power solid-rock soundproof speed-boost stamina stance-change steam-engine super-luck supreme-overlord surge-surfer sweet-veil swift-swim sword-of-ruin synchronize tablets-of-ruin tangling-hair tangled-feet technician tera-shell teravolt thermal-exchange thick-fat tinted-lens toxic-boost toxic-chain trace turboblaze unaware vessel-of-ruin vital-spirit wandering-spirit water-compaction water-veil weak-armor white-smoke wind-power wind-rider dauntless-shield").split(" "),
 ]);
@@ -93,6 +97,7 @@ function boost(unit, stat, by, id, log, source) {
 function cure(unit) {
   delete unit.condition;
   delete unit.conditionTurns;
+  delete unit.toxicTurns;
 }
 
 function status(unit, condition, types, id, source, field, log) {
@@ -101,7 +106,7 @@ function status(unit, condition, types, id, source, field, log) {
       field.terrain === "misty" && grounded(types,id)) return false;
   if (condition === "burn" && (types.includes("fire") || ["water-veil","water-bubble","thermal-exchange"].includes(id))) return false;
   if (condition === "freeze" && (types.includes("ice") || id === "magma-armor" || field.sun)) return false;
-  if (condition === "poison" && (["immunity","pastel-veil"].includes(id) || source !== "corrosion" && types.some(t => t === "steel" || t === "poison"))) return false;
+  if (["poison","toxic"].includes(condition) && (["immunity","pastel-veil"].includes(id) || source !== "corrosion" && types.some(t => t === "steel" || t === "poison"))) return false;
   if (condition === "paralysis" && (types.includes("electric") || id === "limber")) return false;
   if (condition === "sleep" && (["insomnia","vital-spirit","sweet-veil"].includes(id) || field.terrain === "electric" && grounded(types,id))) return false;
   if (condition === "confusion") {
@@ -119,7 +124,7 @@ function setField(battle, field, kind, duration, id, log) {
   const current = battle[field];
   if (current?.end >= battle.turn && (current.kind === kind ||
        field === "weather" && severeWeather.includes(current.kind) && !severeWeather.includes(kind))) return;
-  battle[field] = {kind,end:battle.turn + duration - 1};
+  battle[field] = {kind,end:Math.max(1,battle.turn) + duration - 1};
   log(id);
 }
 
@@ -134,6 +139,7 @@ export function auctionBattleSpeed(unit,species,battle) {
   const id = auctionAbility(unit);
   const field = readField(battle,id);
   let speed = statValue(unit,species,"speed");
+  if (id === "unburden" && unit.unburdened && !unit.item) speed *= 2;
   if (unit.condition === "paralysis" && id !== "quick-feet") speed *= .5;
   if (id === "slow-start" && (unit.actions || 0) < 5) speed *= .5;
   if (id === "quick-feet" && unit.condition) speed *= 1.5;
@@ -160,6 +166,7 @@ function onEntry(unit, rival, rivalSpecies, id, rivalId, battle, log, rounds) {
     id = rivalId;
   }
   if (id === "imposter" && rivalId !== "imposter") {
+    if (battle.duel) unit.transformBase = unit.id;
     unit.id = rival.id;
     unit.copiedAbility = rivalId || "imposter";
     log(id);
@@ -169,7 +176,8 @@ function onEntry(unit, rival, rivalSpecies, id, rivalId, battle, log, rounds) {
     boost(rival,"attack",-1,rivalId,log,{unit,id});
     log(id);
   }
-  if (id === "supersweet-syrup") {
+  if (id === "supersweet-syrup" && !unit.syrupUsed) {
+    unit.syrupUsed = true;
     boost(rival,"evasion",-1,rivalId,log,{unit,id});
     log(id);
   }
@@ -178,11 +186,15 @@ function onEntry(unit, rival, rivalSpecies, id, rivalId, battle, log, rounds) {
     boost(unit,stat,1,id,log);
     log(id);
   }
-  if (id === "intrepid-sword" || id === "dauntless-shield") {
+  if (["intrepid-sword","dauntless-shield"].includes(id) && !unit.entryBoostUsed) {
+    unit.entryBoostUsed = true;
     boost(unit,id === "intrepid-sword" ? "attack" : "defense",1,id,log);
     log(id);
   }
-  if (weather[id]) setField(battle,"weather",weather[id],rounds * (severeWeather.includes(weather[id]) ? 1 : 5),id,log);
+  if (weather[id]) {
+    const severe = severeWeather.includes(weather[id]);
+    setField(battle,"weather",weather[id],battle.duel && severe ? 9999 : rounds * (severe ? 1 : 5),id,log);
+  }
   if (terrain[id]) setField(battle,"terrain",terrain[id],rounds * 5,id,log);
 }
 
@@ -199,7 +211,11 @@ export function auctionBattleField(battle) {
 function residual(unit, id, types, field, log, active) {
   if (!unit.hp) return;
   if (id === "hydration" && field.rain && unit.condition) { cure(unit); log(id); }
-  if (id === "poison-heal" && unit.condition === "poison") { heal(unit,fraction(unit,8)); log(id); }
+  if (id === "poison-heal" && ["poison","toxic"].includes(unit.condition)) { heal(unit,fraction(unit,8)); log(id); }
+  else if (unit.condition === "toxic") {
+    unit.toxicTurns = Math.min(15,(unit.toxicTurns || 0) + 1);
+    if (id !== "magic-guard") hurt(unit,Math.max(1,Math.floor(unit.maxHp * unit.toxicTurns / 16)));
+  }
   else if (id !== "magic-guard" && unit.condition === "poison") hurt(unit,fraction(unit,8));
   else if (id !== "magic-guard" && unit.condition === "burn") hurt(unit,fraction(unit,16));
   if (field.terrain === "grassy" && grounded(types,id) && unit.hp) heal(unit,fraction(unit,16));
@@ -210,6 +226,7 @@ function residual(unit, id, types, field, log, active) {
   if (id === "rain-dish" && field.rain || id === "ice-body" && field.weather === "snow") { heal(unit,fraction(unit,16)); log(id); }
   if (id === "dry-skin" && field.sun || id === "solar-power" && field.sun) { hurt(unit,fraction(unit,8)); log(id); }
   if (active && id === "speed-boost") { boost(unit,"speed",1,id,log); log(id); }
+  if (unit.hp && heldItem(unit,id) === "leftovers" && unit.hp < unit.maxHp) { heal(unit,fraction(unit,16)); log("Leftovers",true); }
 }
 
 function canMove(unit, id, move, field, chance, log) {
@@ -242,7 +259,8 @@ function adjustedMove(move, attacker, id, log) {
     if (id !== "liquid-voice") result.power *= 1.2;
     log(id);
   }
-  if (["protean","libero"].includes(id) && !attacker.battleType) {
+  if (["protean","libero"].includes(id) && !attacker.proteanUsed && result.type) {
+    attacker.proteanUsed = true;
     attacker.battleType = result.type;
     log(id);
   }
@@ -319,12 +337,12 @@ function powerFactor(attacker,target,move,a,b,field,fromTypes,toTypes,factor,tea
   return value;
 }
 
-function damageStats(attacker,target,from,to,toTypes,move,a,b,field,log) {
+function damageStats(attacker,target,from,to,toTypes,move,a,b,field,log,duel,critical) {
   const special = move.kind === "special";
   const atk = special ? "specialAttack" : "attack";
   const def = special ? "specialDefense" : "defense";
-  let offense = statValue(attacker,from,atk,b === "unaware");
-  let defense = statValue(target,to,def,a === "unaware");
+  let offense = (from.stats[atk] + (duel ? 20 : 0)) * stageFactor(b === "unaware" || critical && stage(attacker,atk) < 0 ? 0 : stage(attacker,atk));
+  let defense = (to.stats[def] + (duel ? 20 : 0)) * stageFactor(a === "unaware" || critical && stage(target,def) > 0 ? 0 : stage(target,def));
   const power = (id, amount) => { offense *= amount; log(id); };
   const block = (id, amount) => { defense *= amount; log(id); };
   if (!special && ["pure-power","huge-power"].includes(a)) power(a,2);
@@ -434,9 +452,10 @@ export const completeZygarde = 10120;
 export const bladeAegislash = 10026;
 export const noiceEiscue = 10185;
 
-function afterAction(attacker,target,a,b,battle,catalog,chance,log) {
+function afterAction(attacker,target,a,b,battle,catalog,chance,log,only) {
   const field = readField(battle,a,b);
   for (const [unit,id,rival,rivalId] of [[attacker,a,target,b],[target,b,attacker,a]]) {
+    if (only && unit !== only) continue;
     if (!unit.hp) continue;
     if (id === "shed-skin" && unit.condition && chance(33)) { cure(unit); log(id); }
     if (id === "bad-dreams" && rival.hp && (rival.condition === "sleep" || rivalId === "comatose") && rivalId !== "magic-guard") {
@@ -444,6 +463,7 @@ function afterAction(attacker,target,a,b,battle,catalog,chance,log) {
       log(id);
     }
     residual(unit,id,auctionBattleTypes(unit,catalog(unit.id),battle,id,field),field,log,unit === attacker);
+    checkHeldBerry(unit,id,rivalId,log);
     if (id === "moody" && unit === attacker && unit.hp) {
       const increase = stats.filter(stat => stage(unit,stat) < 6);
       const chosen = increase.find((_,i) => chance(100/(increase.length-i)));
@@ -454,13 +474,107 @@ function afterAction(attacker,target,a,b,battle,catalog,chance,log) {
       if (chosen || lowered) log(id);
     }
     if (id === "power-construct" && unit.hp && unit.hp * 2 <= unit.maxHp && unit.id !== completeZygarde) {
-      const max = 44 + catalog(completeZygarde).stats.hp;
+      const max = (battle.duel ? 75 : 44) + catalog(completeZygarde).stats.hp;
       unit.hp += max - unit.maxHp;
       unit.maxHp = max;
       unit.id = completeZygarde;
       log(id);
     }
   }
+}
+
+const combatLog = entries => (id,literal = false) => {
+  const name = literal ? id : auctionAbilityName(id);
+  if (name) entries.add(name);
+};
+
+export function auctionDuelLeave(unit, opponent, battle) {
+  const [id] = effectiveAbilities(unit,opponent);
+  if (id === "regenerator" && unit.hp) heal(unit,fraction(unit,3));
+  if (id === "natural-cure") cure(unit);
+  if (unit.id === bladeAegislash) unit.id = 681;
+  if (unit.transformBase) unit.id = unit.transformBase;
+  for (const key of ["transformBase","entered","stages","actions","battleType","copiedAbility","copiedSignature","confusion",
+    "toxicTurns","perishTurn","disabledMove","disabledUntil","unburdened","proteanUsed","fireReady","charged","protect","protectChain","activeTurns"]) delete unit[key];
+  for (const name of severeWeather) {
+    if (battle.weather?.kind === name && weather[id] === name) delete battle.weather;
+  }
+  return ["natural-cure","regenerator"].includes(id) ? auctionAbilityName(id) : "";
+}
+
+export function auctionDuelEnter(unit, rival, battle, catalog) {
+  const entries = new Set();
+  const [a,b] = effectiveAbilities(unit,rival);
+  onEntry(unit,rival,catalog(rival.id),a,b,battle,combatLog(entries),1);
+  return [...entries];
+}
+
+export function auctionDuelResidual(unit, rival, battle, catalog) {
+  const entries = new Set();
+  const [a,b] = effectiveAbilities(unit,rival);
+  afterAction(unit,rival,a,b,battle,catalog,percent => duelRoll(battle.turn,unit.id,rival.id,31) * 100 < percent,combatLog(entries),unit);
+  if (unit.perishTurn && unit.perishTurn <= battle.turn) { unit.hp = 0; entries.add("Perish Body"); }
+  delete unit.protect;
+  unit.activeTurns = (unit.activeTurns || 0) + 1;
+  return [...entries];
+}
+
+export const duelRoll = (turn, a, b, salt = 0) =>
+  ((Math.imul(Math.imul(turn,1597334677) ^ Math.imul(a,919627) ^ Math.imul(b,383167) ^ salt,1664525) + 1013904223) >>> 0) / 4294967296;
+
+export function auctionDuelPriority(unit, move) {
+  const a = auctionAbility(unit);
+  return move.priority + Number(a === "prankster" && move.kind === "status") +
+    Number(a === "gale-wings" && move.type === "flying" && unit.hp === unit.maxHp) +
+    Number(a === "triage" && (move.effect === "heal" || move.drain > 0)) * 3;
+}
+
+function tacticalEffect({attacker,target,move,a,b,battle,field,catalog,log,chance,factors}) {
+  if (move.effect === "protect") {
+    if (a === "stance-change" && attacker.id === bladeAegislash) { attacker.id = 681; log(a); }
+    attacker.protectChain = (attacker.protectChain || 0) + 1;
+    if (!chance(100 / (3 ** (attacker.protectChain - 1)))) {
+      delete attacker.protectChain;
+      return {failed:true};
+    }
+    attacker.protect = true;
+    return {};
+  }
+  if (move.effect === "boost") {
+    for (const [stat,value] of Object.entries(move.stats)) boost(attacker,stat,value,a,log);
+    return {};
+  }
+  if (move.effect === "heal") {
+    if (attacker.hp === attacker.maxHp) return {failed:true};
+    heal(attacker,fraction(attacker,2));
+    return {};
+  }
+  if (move.effect === "weather") {
+    const before = battle.weather;
+    setField(battle,"weather",move.weather,5,fieldNames[move.weather],name=>log(name,true));
+    return {failed:before === battle.weather};
+  }
+  const types = auctionBattleTypes(target,catalog(target.id),battle,b,field);
+  if (a === "prankster" && types.includes("dark") || b === "good-as-gold" || target.protect ||
+      b === "soundproof" && move.flags.includes("sound") ||
+      auctionDuelPriority(attacker,move) > 0 && (field.terrain === "psychic" && grounded(types,b) ||
+      ["dazzling","queenly-majesty","armor-tail"].includes(b)) ||
+      move.ailment === "paralysis" && (!typeFactor(move,types,a,field,factors) || applyImmunity(target,move,b,log))) {
+    if (b === "good-as-gold" || b === "soundproof") log(b);
+    return {failed:true};
+  }
+  const fromTypes = auctionBattleTypes(attacker,catalog(attacker.id),battle,a,field);
+  const reflected = b === "magic-bounce";
+  if (reflected) log(b);
+  if (!chance(move.ailment === "toxic" && fromTypes.includes("poison") ? 100 : move.accuracy)) return {missed:true};
+  const [unit,id,unitTypes,source,sourceId] = reflected ? [attacker,a,fromTypes,target,b] : [target,b,types,attacker,a];
+  if (move.effect === "lower") {
+    for (const [stat,value] of Object.entries(move.stats)) boost(unit,stat,value,id,log,{unit:source,id:sourceId});
+    return {};
+  }
+  const applied = status(unit,move.ailment,unitTypes,id,sourceId,field,log);
+  if (applied) checkHeldBerry(unit,id,sourceId,log);
+  return {failed:!applied};
 }
 
 function hitCount(move, id, chance) {
@@ -473,12 +587,9 @@ function hitCount(move, id, chance) {
 
 export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,catalog,factors,preview,targetUid}) {
   const events = new Set();
-  const log = (id, literal = false) => {
-    const name = literal ? id : auctionAbilityName(id);
-    if (name) events.add(name);
-  };
-  const rounds = battle.order?.length || 2;
-  const targetEntering = !target.entered;
+  const log = combatLog(events);
+  const rounds = battle.duel ? 1 : battle.order?.length || 2;
+  const targetEntering = battle.duel ? !target.activeTurns : !target.entered;
   let [a,b] = effectiveAbilities(attacker,target);
   // A Pokémon enters the first time it is chosen to attack or defend.
   onEntry(target,attacker,catalog(attacker.id),b,a,battle,log,rounds);
@@ -500,14 +611,22 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
     return seed / 4294967296 * 100 < percent;
   };
   const finish = (damage,factor,extra = {}) => {
-    if (!preview) afterAction(attacker,target,a,b,battle,catalog,chance,log);
+    if (!preview && !battle.duel) afterAction(attacker,target,a,b,battle,catalog,chance,log);
     return {damage,factor,name:move.name,abilityEvents:[...events],...extra};
   };
   if (a === "neutralizing-gas" || b === "neutralizing-gas") log("neutralizing-gas");
-  if (!canMove(attacker,a,move,field,chance,log)) return finish(0,1,{skipped:true});
+  if (move.effect !== "protect") delete attacker.protectChain;
+  if (!canMove(attacker,a,move,field,chance,log)) { delete attacker.protectChain; return finish(0,1,{skipped:true}); }
   if (attacker.disabledMove === move.slot && attacker.disabledUntil >= attacker.actions) {
     log("cursed-body");
     return finish(0,1,{skipped:true,disabled:true});
+  }
+  if (move.kind === "status") {
+    return finish(0,1,{tactical:true,...tacticalEffect({attacker,target,move,a,b:defenseAbility,battle,field,catalog,log,chance,factors})});
+  }
+  if (target.protect && !(["unseen-fist","piercing-drill"].includes(a) && move.flags.includes("contact"))) {
+    log("Protect",true);
+    return finish(0,0,{blocked:true});
   }
   if (!move.power) return finish(0,1,{copies:true});
   if (a === "stance-change" && attacker.id === 681) {
@@ -548,20 +667,23 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
   const accuracy = attack.accuracy * aimFactor * (a === "compound-eyes" ? 1.3 : a === "victory-star" ? 1.1 : 1) *
     (a === "hustle" && attack.kind === "physical" ? .8 : 1) * (defenseAbility === "tangled-feet" && target.confusion ? .5 : evasion ? .8 : 1);
   if (!preview && ![a,defenseAbility].includes("no-guard") && !chance(accuracy)) return finish(0,factor,{missed:true});
-  let [offense,defense] = damageStats(attacker,target,from,to,toTypes,attack,a,defenseAbility,field,log);
+  const critStage = attack.crit + Number(a === "super-luck");
+  const critChance = a === "merciless" && ["poison","toxic"].includes(target.condition) ? 100 : [100/24,12.5,50,100][Math.min(3,critStage)];
+  const critical = !["battle-armor","shell-armor"].includes(defenseAbility) && chance(critChance);
+  let [offense,defense] = damageStats(attacker,target,from,to,toTypes,attack,a,defenseAbility,field,log,battle.duel,battle.duel && critical);
   if (a === "stakeout" && targetEntering) { offense *= 2; log(a); }
-  const stab = fromTypes.includes(attack.type) ? a === "adaptability" ? 1.6 : 1.2 : 1;
+  const stab = fromTypes.includes(attack.type) ? a === "adaptability" ? (battle.duel ? 2 : 1.6) : (battle.duel ? 1.5 : 1.2) : 1;
   if (a === "adaptability" && stab > 1) log(a);
   const burn = attack.kind === "physical" && attacker.condition === "burn" && a !== "guts" && attack.key !== "facade" ? .5 : 1;
-  const critStage = attack.crit + Number(a === "super-luck");
-  const critChance = a === "merciless" && target.condition === "poison" ? 100 : [100/24,12.5,50,100][Math.min(3,critStage)];
-  const critical = !["battle-armor","shell-armor"].includes(defenseAbility) && chance(critChance);
   if (critical && ["merciless","sniper","super-luck"].includes(a)) log(a);
   const crit = critical ? (a === "sniper" ? 2.25 : 1.5) : 1;
   let multiplier = powerFactor(attacker,target,attack,a,defenseAbility,field,fromTypes,toTypes,factor,battle.teams?.[battle.activeUid] || [],log);
   if (a === "analytic" && battle.roundActed?.includes(targetUid)) { multiplier *= 1.3; log(a); }
   if (charge) delete attacker.charged;
-  const damageBase = (13 + Math.min(165,attack.power) * (offense + 24) / (defense + 54) * .45) * stab * burn * crit * factor * multiplier;
+  const base = battle.duel ? Math.floor(Math.floor(22 * attack.power * offense / defense) / 50) + 2 :
+    13 + Math.min(165,attack.power) * (offense + 24) / (defense + 54) * .45;
+  const randomFactor = battle.duel ? (preview ? .925 : (85 + Math.floor(duelRoll(battle.turn,attacker.id,target.id,891) * 16)) / 100) : 1;
+  const damageBase = base * randomFactor * stab * burn * crit * factor * multiplier;
   const hits = preview && !["parental-bond","skill-link"].includes(a) ? attack.minHits : hitCount(attack,a,chance);
   if (hits > 1 && ["parental-bond","skill-link"].includes(a)) log(a);
   const hitContext = {attacker,target,move:attack,a,b:defenseAbility,fromTypes,toTypes,field,log,chance,battle,rounds,catalog,critical};
@@ -570,7 +692,7 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
     const before = target.hp;
     let power = damageBase * (n && a === "parental-bond" && attack.maxHits === 1 ? .25 : 1);
     if (["multiscale","shadow-shield"].includes(defenseAbility) && before === target.maxHp) { power *= .5; log(b); }
-    let hit = Math.max(1,Math.round(power));
+    let hit = Math.max(1,battle.duel ? Math.floor(power) : Math.round(power));
     if (defenseAbility === "disguise" && !target.busted) {
       target.busted = true;
       hurt(target,fraction(target,8));
@@ -586,10 +708,17 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
       continue;
     }
     if (defenseAbility === "sturdy" && before === target.maxHp && hit >= before) { hit = before - 1; log(b); }
+    if (heldItem(target,b) === "focus-sash" && before === target.maxHp && hit >= before) {
+      hit = before - 1;
+      consumeItem(target,b,log);
+    }
     const dealt = Math.min(hit,before);
     damage += dealt;
     hurt(target,dealt);
     if (dealt) onHit(hitContext,dealt,before);
+    checkHeldBerry(target,b,a,log);
+    checkHeldBerry(attacker,a,target.hp ? b : "",log);
   }
-  return finish(damage,factor,critical ? {critical:true} : {});
+  if (move.key === "struggle" && damage) hurt(attacker,fraction(attacker,4));
+  return finish(damage,factor,{...(critical ? {critical:true} : {}),...(move.effect === "pivot" ? {pivot:true} : {})});
 }

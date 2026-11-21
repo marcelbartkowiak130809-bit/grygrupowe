@@ -14,6 +14,7 @@ function abilityDuel(first, second, advancedAbilities = true) {
   const game = createPokemonGame("pokemon-auction",players,{battleAfterAuction:true,advancedAbilities});
   game.teams = {a:[first],b:[second]};
   prepareAuctionBattle(game,players,1000);
+  delete game.battle.duel; // An advanced battle saved before tactical duels were introduced.
   for (const uid of players) auctionBattlePrep(game,uid,{kind:"ready"},players,2000);
   const unit = uid => battleTeam(game,uid)[0];
   const attack = (uid,move = "basic") => {

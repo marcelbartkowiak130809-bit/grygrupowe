@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261121-21";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261122-1";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import {newSoloRun, soloGameEvent} from './soloSiteStats.js?v=20261119-10';
 import { Effects } from "./effects.js";
@@ -14,7 +14,7 @@ import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-14";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-20";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261121-21";
+import { gamesList, getGameMode } from "./games.js?v=20261122-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-14";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261121-14";
@@ -31,8 +31,10 @@ import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSetting
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-8";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-8";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-8";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261121-21";
-import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261121-21";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261122-1";
+import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261122-1";
+import { auctionDuelAction } from "./pokemonAuctionDuel.js?v=20261122-1";
+import { auctionCommandContext, clearAuctionCommand, readAuctionCommand, saveAuctionCommand } from "./pokemonAuctionCommitments.js?v=20261122-1";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-9";
 import { applyChartForecastAction, chartForecastMode, createChartForecastGame } from "./chartForecast.js?v=20261121-20";
 import { stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261121-20";
@@ -66,7 +68,7 @@ import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-20";
 import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-20";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-20";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261121-21";
+import { playerMini, renderRoom } from "./room.js?v=20261122-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261121-8";
@@ -74,7 +76,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261121-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261121-14";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261121-21";
+import { scheduleBot } from "./botController.js?v=20261122-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -2860,6 +2862,39 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       if (game.mode !== "pokemon-auction" || game.phase !== expected.phase || game.battle?.turn !== expected.turn) return "Ta tura już minęła.";
       return auctionBattleAttack(game, state.currentUser, action, room.players, serverNow());
     }, {sound:"choice"});
+  },
+  async pokemonBattleCommand(order, expected) {
+    const room = activeRoom(), uid = state.currentUser;
+    if (room?.game?.phase !== "auction-command" || room.game.battle.turn !== expected.turn || room.game.battle.commits?.[uid]) return false;
+    const context = auctionCommandContext(room,uid);
+    try {
+      const digest = await saveAuctionCommand(context,order);
+      if (activeRoom()?.roomId !== room.roomId || state.currentUser !== uid) return false;
+      return await actions.pokemonBattleDuel({kind:"commit",digest},expected);
+    } catch {
+      message("Nie udało się zapisać ruchu. Spróbuj ponownie.","error");
+      return false;
+    }
+  },
+  async pokemonBattleReveal(expected) {
+    const room = activeRoom(), uid = state.currentUser;
+    if (room?.game?.phase !== "auction-reveal-moves" || room.game.battle.turn !== expected.turn) return false;
+    const digest = room.game.battle.commits?.[uid];
+    if (!digest || digest === "bot" || room.game.battle.reveals?.[uid]) return false;
+    const context = auctionCommandContext(room,uid);
+    try {
+      const record = await readAuctionCommand(context,digest);
+      if (!record || activeRoom()?.roomId !== room.roomId || state.currentUser !== uid) return false;
+      const ok = await actions.pokemonBattleDuel({kind:"reveal",...record},expected);
+      if (ok) clearAuctionCommand(context);
+      return ok;
+    } catch { return false; }
+  },
+  pokemonBattleDuel(action, expected) {
+    return mutateRoomGame((game,room)=>{
+      if (game.mode !== "pokemon-auction" || game.phase !== expected.phase || game.battle?.turn !== expected.turn) return "Ta tura już minęła.";
+      return auctionDuelAction(game,state.currentUser,action,room.players,serverNow());
+    },{quietRejected:action.kind === "reveal",sound:action.kind === "commit" ? "choice" : undefined});
   },
   pokemonBattleSurrender() {
     return mutateRoomGame((game, room) => auctionBattleSurrender(game, state.currentUser, room.players, serverNow()), {sound:"roundEnd"});

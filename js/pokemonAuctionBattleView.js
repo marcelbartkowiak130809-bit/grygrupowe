@@ -1,8 +1,10 @@
 import { escapeHtml } from "./utils.js?v=20261121-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261121-21";
-import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261121-21";
+import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261122-1";
+import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261122-1";
+import { activeBattleSlot, activeBattleUnit, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261122-1";
+import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261122-1";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
@@ -41,6 +43,26 @@ function prepAbility(unit, slot, ready) {
   </div>`;
 }
 
+function prepTactics(unit,pokemon,slot,ready) {
+  const picked = auctionDuelTactics(unit);
+  const legal = learnableTactics(pokemon).filter(id=>tacticalMoves[id].name !== battleSignature(unit)[0]);
+  return `<div class="battle-ability-prep duel-loadout">
+    ${legal.length ? picked.map((id,index)=>`<label>Ruch taktyczny ${index+1}
+      <select data-duel-tactic="${index}" data-slot="${slot}" ${ready?"disabled":""}>
+        <option value="0" ${!id?"selected":""}>Puste pole</option>
+        ${legal.map(move=>`<option value="${move}" ${id===move?"selected":""} ${picked[1-index]===move?"disabled":""}>${escapeHtml(tacticalMoves[move].name)}</option>`).join("")}
+      </select>${id ? `<small>${escapeHtml(tacticalMoves[id].description)}</small>` : ""}
+    </label>`).join("") : ""}
+    ${unit.megaTarget ? '<strong>✦ Mega gotowa do aktywacji</strong>' : ""}
+    ${megaUsesHeldSlot(unit) ? "" : `<label>Trzymany przedmiot
+      <select data-duel-item="${slot}" ${ready?"disabled":""}>
+        <option value="">Brak</option>
+        ${Object.entries(auctionHeldItems).map(([key,item])=>`<option value="${key}" ${unit.item===key?"selected":""}>${item.name}</option>`).join("")}
+      </select>${unit.item ? `<small>${auctionHeldItems[unit.item].description}</small>` : ""}
+    </label>`}
+  </div>`;
+}
+
 function prepMarkup(game, accounts, uid, players, timer) {
   const team = battleTeam(game, uid);
   const ready = game.battle.prep?.[uid] || {};
@@ -65,9 +87,9 @@ function prepMarkup(game, accounts, uid, players, timer) {
     const choices = (kind, ids) => {
       const paid = kind !== "evolve";
       if (paid ? !megaEnabled : !freeEvolutions) return "";
-      const disabled = ready.ready || (paid ? upgradeUsed || budget < megaPrice : !evolutionsLeft);
+      const disabled = ready.ready || (paid ? upgradeUsed || budget < megaPrice : !evolutionsLeft || unit.megaTarget);
       return ids.map(id => `<button type="button" class="ghost" data-battle-upgrade="${kind}" data-slot="${slot}" data-evolution="${id}" ${disabled ? "disabled" : ""}>
-        ${kind === "form" ? "Zmień formę na " : paid ? "" : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${upgradePrice}` : ""}
+        ${kind === "form" ? "Zmień formę na " : paid ? (game.battle.duel ? "Przygotuj " : "") : "Ewoluuj w "}${escapeHtml(name(auctionBattlePokemon(id)))}${paid ? ` · ${upgradePrice}` : ""}
       </button>`).join("");
     };
     return `<article class="battle-unit ${formClass(pokemon.formKind)}" data-battle-prep-slot="${slot}">
@@ -76,15 +98,82 @@ function prepMarkup(game, accounts, uid, players, timer) {
       <button type="button" class="ghost" data-battle-reorder="1" data-slot="${slot}" aria-label="Przesuń ${escapeHtml(name(pokemon))} później" ${position===team.length-1||ready.ready?"disabled":""}>→</button></div>
       ${unitArt(unit,pokemon)}<small>${stats(pokemon)}</small>
       ${usesAuctionAbilities(game) ? prepAbility(unit,slot,ready.ready) : ""}
+      ${game.battle.duel ? prepTactics(unit,pokemon,slot,ready.ready) : ""}
       <div class="battle-upgrades">${choices("evolve",pokemon.evolutions)}${choices("mega",pokemon.megas)}${choices("form",pokemon.forms)}</div></article>`;
   });
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-preparation">
     <header class="battle-heading"><div><p class="eyebrow">LICYTACJA TEAMU · PRZYGOTOWANIE</p><h1>Przygotuj drużynę</h1></div>${timer}</header>
     ${team.length ? `<div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${evolutionStatus} · ${upgradeStatus}</span></div>` : ""}
-    <p class="muted">Ustaw kolejność strzałkami. Szybkość prowadzącego decyduje, kto rozpoczyna bitwę.</p>
+    <p class="muted">${game.battle.duel ? "Pierwszy Pokémon zaczyna. Ustaw ruchy i przedmioty przed bitwą." : "Ustaw kolejność strzałkami. Szybkość prowadzącego decyduje, kto rozpoczyna bitwę."}</p>
     <div class="battle-prep-team">${cards.join("") || "<p>Nie masz Pokémonów w składzie. Możesz obserwować bitwę.</p>"}</div>
     <footer class="battle-footer"><button class="primary" type="button" data-battle-ready ${!team.length||ready.ready?"disabled":""}>${ready.ready?"Drużyna gotowa":"Gotowe do bitwy"}</button>
     <span class="muted">${players.filter(id=>battleTeam(game,id).length).map(id=>`${nickname(accounts,id)} ${game.battle.prep?.[id]?.ready?"✓":"…" }`).join(" · ")}</span></footer>
+  </section>`;
+}
+
+function duelMarkup(game,accounts,uid,players,timer,view) {
+  const battle = game.battle;
+  const unit = activeBattleUnit(game,uid);
+  const field = auctionBattleField(battle).join(" · ");
+  const rivals = players.filter(player=>player!==uid && activeBattleUnit(game,player)?.hp);
+  const targetUid = rivals.includes(view.target) ? view.target : rivals[0];
+  const target = activeBattleUnit(game,targetUid);
+  const choose = game.phase === "auction-command" && unit?.hp && !battle.commits?.[uid];
+  const forced = game.phase === "auction-switch" && !unit?.hp && battleHasUnits(game,uid) && battle.replacements?.[uid] === undefined;
+  const pivot = game.phase === "auction-pivot" && battle.pivotUid === uid;
+  const moves = unit?.hp ? auctionDuelMoves(unit) : [];
+  const shownMoves = moves.some(move=>auctionDuelMoveAvailable(unit,move)) ? moves : moves.length ? ["struggle"] : [];
+  const order = view.order;
+  const confirm = choose && order && !view.busy;
+  const scout = hasGamePass(accounts[uid], pokemonBattleScoutPass);
+  const heading = forced || pivot ? "Wybierz następcę" : choose ? "Wybierz ruch" :
+    game.phase === "auction-hit" ? "Wynik tury" : battle.commits?.[uid] && game.phase === "auction-command" ? "Ruch zatwierdzony" : "Czekamy na graczy";
+  const team = player => `<section class="battle-team duel-team">
+    <h2>${player===uid?"Twoja drużyna":nickname(accounts,player)}${battle.commits?.[player] && game.phase==="auction-command" ? ' <small>✓ Gotowy</small>' : ""}</h2>
+    <div class="battle-party">${battleSlots(game,player).map(slot=>{
+      const member = battleTeam(game,player)[slot];
+      const active = activeBattleSlot(game,player) === slot;
+      const species = auctionBattlePokemon(member.id);
+      const authored = player===uid && member.hp && !active && (choose || forced || pivot);
+      const verb = active ? "Na polu" : !member.hp ? "Nokaut" : "Rezerwa";
+      const held = player === uid && member.item ? auctionHeldItems[member.item]?.name : "";
+      const condition = statusNames[member.condition] || (member.confusion ? statusNames.confusion : "");
+      return `<button type="button" class="battle-unit ${active?"duel-active":""} ${member.hp?"":"is-out"}" data-battle-player="${escapeHtml(player)}" data-slot="${slot}"
+        ${authored?`data-duel-switch="${slot}"`:"disabled"} aria-pressed="${player===uid && order?.kind==="switch" && order.slot===slot}">
+        <small class="duel-slot">${verb}</small>${unitArt(member,species,active?battle:null)}
+        <small class="battle-ability-chip">${escapeHtml([auctionAbilityName(auctionAbility(member)),condition,held].filter(Boolean).join(" · "))}</small>
+      </button>`;
+    }).join("")}</div>
+  </section>`;
+  const events = (battle.events || []).map(entry=>{
+    const label = nickname(accounts,entry.uid);
+    const detail = entry.damage ? `−${entry.damage} HP` : entry.missed ? "pudło" :
+      entry.skipped ? "utrata ruchu" : entry.blocked || entry.failed ? "bez efektu" : "";
+    return `<li><b>${label} · ${escapeHtml(entry.name)}</b>${detail ? ` · ${detail}` : ""}${entry.knockedOut ? " · nokaut" : ""}
+      ${entry.abilityEvents?.length ? `<small>${escapeHtml(entry.abilityEvents.join(" · "))}</small>` : ""}</li>`;
+  });
+  const labels = moves.length && !shownMoves.includes("struggle");
+  return `<section class="panel pokemon-panel auction-battle-panel" id="auction-fight">
+    <header class="battle-heading"><div><p class="eyebrow">⭐ BITWA POKÉMON · TURA ${battle.turn}</p><h1>${heading}</h1></div>${timer}</header>
+    ${field ? `<p class="battle-field">✦ ${escapeHtml(field)}</p>` : ""}
+    <div class="battle-arena">${players.map(team).join("")}</div>
+    ${choose ? `<section class="duel-controls">
+      ${rivals.length>1 ? `<label>Cel <select data-duel-target>${rivals.map(player=>`<option value="${escapeHtml(player)}" ${player===targetUid?"selected":""}>${nickname(accounts,player)}</option>`).join("")}</select></label>` : ""}
+      <div class="duel-moves">${shownMoves.map(move=>{
+        const details = advancedMove(unit,move);
+        const available = !labels || auctionDuelMoveAvailable(unit,move);
+        const hit = target?.hp && available && details.power && (game.battleRules.showDamagePreview || scout)
+          ? auctionBattleDamage(unit,target,move,game,targetUid) : null;
+        return `<button type="button" class="ghost" data-duel-move="${move}" aria-pressed="${order?.move===move}" ${available?"":"disabled"}>
+          <strong>${escapeHtml(details.name)}</strong><small>${labels ? `${auctionDuelPP(unit,move)}/${details.pp} PP` : "Brak PP w innych ruchach"}${details.description ? ` · ${details.description}` : ""}</small>
+          ${hit ? `<small>${game.battleRules.showDamagePreview ? `≈ ${hit.damage} HP` : ""}${scout && hit.factor>1 ? " · super skuteczny" : ""}${scout && hit.factor===0 ? " · odporność" : ""}</small>` : ""}
+        </button>`;
+      }).join("")}</div>
+      ${unit.megaTarget && !unit.transformBase ? `<label class="check"><input type="checkbox" data-duel-mega ${view.mega?"checked":""} ${order?.kind==="switch"?"disabled":""}> ✦ Megaewolucja razem z ruchem</label>` : ""}
+      <button type="button" class="primary" data-duel-confirm ${confirm?"":"disabled"}>${order?.kind==="switch" ? "Zatwierdź zmianę" : "Zatwierdź ruch"}</button>
+    </section>` : ""}
+    ${events.length ? `<ol class="duel-events" aria-label="Przebieg ostatniej tury">${events.join("")}</ol>` : ""}
+    ${battleHasUnits(game,uid)?'<button class="ghost battle-surrender" type="button" data-battle-surrender>Poddaj się</button>':""}
   </section>`;
 }
 
@@ -152,7 +241,10 @@ function animateHit(root, hit) {
 
 function animateEvolution(root, event) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const art = root.querySelector(`[data-battle-prep-slot="${event.slot}"] .battle-unit-art`);
+  const card = event.uid ? [...root.querySelectorAll("[data-battle-player]")]
+    .find(node=>node.dataset.battlePlayer===event.uid && Number(node.dataset.slot)===event.slot) :
+    root.querySelector(`[data-battle-prep-slot="${event.slot}"]`);
+  const art = card?.querySelector(".battle-unit-art");
   const evolved = art?.querySelector(".battle-sprite");
   if (!evolved?.animate) return;
   const pokemon = auctionBattlePokemon(event.fromId);
@@ -185,10 +277,19 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
     view.turn=game.battle.turn;
     view.selection={slot:battleSlots(game,uid).find(slot=>battleTeam(game,uid)[slot]?.hp>0)};
   }
+  if (game.battle.duel && view.commandTurn !== game.battle.turn) {
+    view.commandTurn = game.battle.turn;
+    view.order = null;
+    view.mega = false;
+    view.busy = false;
+    view.revealing = false;
+  }
   const profiles={...room.playerProfiles,...accounts};
-  const body=game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) : battleMarkup(game,profiles,uid,room.players,timer,view.selection);
+  const body=game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) :
+    game.battle.duel ? duelMarkup(game,profiles,uid,room.players,timer,view) : battleMarkup(game,profiles,uid,room.players,timer,view.selection);
   patchRoomView(root,key,`<main class="page pokemon-game-page" data-auction-battle>${body}</main>`);
   const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt,turn:game.battle.turn};
+  const paint = () => renderAuctionBattle(root,room,accounts,uid,actions,timer);
   root.querySelectorAll("[data-battle-upgrade]").forEach(button=>{
     button.onclick=()=>actions.pokemonBattlePrep({kind:button.dataset.battleUpgrade,slot:Number(button.dataset.slot),target:Number(button.dataset.evolution)},expected);
   });
@@ -198,13 +299,58 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   root.querySelectorAll("[data-battle-ability]").forEach(select=>{
     select.onchange=()=>actions.pokemonBattlePrep({kind:"ability",slot:Number(select.dataset.battleAbility),ability:select.value},expected);
   });
+  root.querySelectorAll("[data-duel-tactic]").forEach(select=>{
+    select.onchange=()=>actions.pokemonBattlePrep({kind:"tactic",slot:Number(select.dataset.slot),index:Number(select.dataset.duelTactic),move:Number(select.value)},expected);
+  });
+  root.querySelectorAll("[data-duel-item]").forEach(select=>{
+    select.onchange=()=>actions.pokemonBattlePrep({kind:"item",slot:Number(select.dataset.duelItem),item:select.value},expected);
+  });
   const ready=root.querySelector("[data-battle-ready]");
   if(ready)ready.onclick=()=>actions.pokemonBattlePrep({kind:"ready"},expected);
   const surrender=root.querySelector("[data-battle-surrender]");
   if(surrender)surrender.onclick=()=>{
     if(window.confirm("Poddajesz bitwę i wypadasz z walki. Potwierdzasz?")) actions.pokemonBattleSurrender();
   };
-  root.querySelectorAll("[data-battle-player]").forEach(button=>{
+  if (game.battle.duel) {
+    const target = root.querySelector("[data-duel-target]");
+    if (target) target.onchange = () => { view.target = target.value; paint(); };
+    const mega = root.querySelector("[data-duel-mega]");
+    if (mega) mega.onchange = () => { view.mega = mega.checked; };
+    root.querySelectorAll("[data-duel-move]").forEach(button=>{
+      button.onclick=()=>{ view.order={kind:"move",move:button.dataset.duelMove}; paint(); };
+    });
+    root.querySelectorAll("[data-duel-switch]").forEach(button=>{
+      button.onclick=()=>{
+        const order = {kind:"switch",slot:Number(button.dataset.duelSwitch)};
+        if (game.phase === "auction-command") { view.order=order; paint(); }
+        else actions.pokemonBattleDuel(order,expected);
+      };
+    });
+    const confirm = root.querySelector("[data-duel-confirm]");
+    if (confirm) confirm.onclick=async()=>{
+      if (view.busy || !view.order) return;
+      view.busy=true;
+      confirm.disabled=true;
+      const order=view.order.kind === "move" ? {...view.order,target:target?.value || "",mega:view.mega} : view.order;
+      try { await actions.pokemonBattleCommand(order,expected); }
+      finally { view.busy=false; if (confirm.isConnected) confirm.disabled=false; }
+    };
+    if (game.phase==="auction-reveal-moves" && game.battle.commits?.[uid] && !game.battle.reveals?.[uid] && !view.revealing) {
+      view.revealing=true;
+      void actions.pokemonBattleReveal(expected).finally(()=>{view.revealing=false;});
+    }
+    if (game.phase==="auction-hit" && view.hit!==game.battle.turn) {
+      const turn = game.battle.turn;
+      view.hit=turn;
+      const events = game.battle.events || [];
+      const megas = events.filter(entry=>entry.toId);
+      megas.forEach(entry=>animateEvolution(root,{...entry,kind:"mega"}));
+      const damaging = events.filter(entry=>entry.damage);
+      damaging.forEach((hit,index)=>window.setTimeout(()=>{
+        if (views.get(root) === view && view.commandTurn === turn) animateHit(root,hit);
+      },index*300+(megas.length ? 330 : 0)));
+    }
+  } else root.querySelectorAll("[data-battle-player]").forEach(button=>{
     button.onclick=()=>{
       const slot=Number(button.dataset.slot), player=button.dataset.battlePlayer;
       Object.assign(view.selection,player===uid?{slot}:{targetUid:player,targetSlot:slot});
@@ -214,7 +360,7 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   root.querySelectorAll("[data-battle-move]").forEach(button=>{
     button.onclick=()=>actions.pokemonBattleAttack({...view.selection,move:button.dataset.battleMove},expected);
   });
-  if(game.phase==="auction-hit"&&game.battle.last&&view.hit!==game.battle.last.turn){
+  if(!game.battle.duel&&game.phase==="auction-hit"&&game.battle.last&&view.hit!==game.battle.last.turn){
     view.hit=game.battle.last.turn;
     animateHit(root,game.battle.last);
   }

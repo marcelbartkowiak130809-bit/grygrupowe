@@ -55,6 +55,21 @@
 .battle-unit .battle-ability-chip { color:#f9d78b;overflow-wrap:anywhere; }
 .battle-field { margin:6px 0;font-size:12px; }
 .battle-ability-events { display:block;margin-top:4px;font-size:11px; }
+.duel-loadout { text-align:left; }
+.duel-loadout label { display:grid;gap:3px;width:100%;min-width:0;color:#e2eef9; }
+.duel-loadout strong { color:#ffd67e; }
+.duel-team .duel-active { border-color:#75deca;background:#233f54; }
+.duel-active .duel-slot { color:#97f1d6;font-weight:800; }
+.duel-controls { display:grid;gap:10px;margin:12px 0; }
+.duel-controls label { font-size:.82rem; }
+.duel-controls > button { justify-self:start; }
+.duel-moves { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px; }
+.duel-moves button { display:grid;align-content:center;gap:3px;min-width:0;text-align:left;overflow-wrap:anywhere; }
+.duel-moves button[aria-pressed="true"] { outline:2px solid #84eddd;background:#254558; }
+.duel-moves small { color:#c7dbef;font-size:.72rem; }
+.duel-events { max-height:155px;overflow:auto;margin:12px 0;padding:9px 9px 9px 30px;border:1px solid #7387a649;border-radius:10px;font-size:.8rem;color:#c8deeb; }
+.duel-events li + li { margin-top:5px; }
+.duel-events small { display:block;color:#f9d78b; }
 .battle-move-row { margin-top:12px;flex-wrap:wrap; }
 .battle-move-row p { margin:0;font-size:12px; }
 .battle-move-row>div { display:flex;flex-wrap:wrap;gap:7px; }
@@ -68,5 +83,7 @@
   .battle-move-row { position:sticky;bottom:0;z-index:3;padding:8px;background:#131b2a;border:1px solid #53648466;border-radius:10px; }
   .battle-move-row>div { width:100%; }
   .battle-move-row button { flex:1; }
+  .duel-moves button { padding:7px; }
+  .duel-controls > button { width:100%; }
 }
 @media(prefers-reduced-motion:reduce) { .battle-hp i { transition:none; } }

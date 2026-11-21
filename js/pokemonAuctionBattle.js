@@ -1,7 +1,9 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
-import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261121-21";
-import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261121-21";
+import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261122-1";
+import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261122-1";
+import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261122-1";
+import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261122-1";
 
 export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
@@ -17,7 +19,7 @@ export function sanitizeAuctionBattleRules(settings = {}) {
 
 export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved ? 1 : 0);
 export const battleUpgradeUsed = prep => Boolean(prep.transformed || prep.mega);
-export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit"];
+export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit", "auction-command", "auction-reveal-moves", "auction-switch", "auction-pivot"];
 const prepMs = 60000;
 const turnMs = 20000;
 const hitMs = 770;
@@ -39,7 +41,7 @@ const catalog = new Map(Object.entries(battleSpeciesData).map(([key, entry]) => 
   const form = battleAlternateForms[baseId]?.includes(id);
   const spritePath = id===10301 ? "other/official-artwork/10301.png" : `${id}.png`;
   return [id, {
-    ...base, id, name:formName || base.name, types:formTypes || base.types, bst:hp+attack+defense+specialAttack+specialDefense+speed,
+    ...base, id, baseId:baseId || id, name:formName || base.name, types:formTypes || base.types, bst:hp+attack+defense+specialAttack+specialDefense+speed,
     sprite:formName ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spritePath}` : base.sprite,
     spriteFallback:formName ? base.sprite : base.spriteFallback,
     formKind:form ? "form" : formName ? "mega" : "",
@@ -62,27 +64,30 @@ for (const [baseId,id,name,stats] of [
 
 export const auctionBattlePokemon = id => catalog.get(id);
 export const battleTeam = (game, uid) => game.battle?.teams?.[uid] || [];
-export const battleSignature = unit => unit.copiedSignature || catalog.get(unit.id).signature;
+export const battleSignature = unit => unit.copiedSignature || unit.lockedSignature || catalog.get(unit.id).signature;
 export const battleSlots = (game, uid) => game.battle?.prep?.[uid]?.order || battleTeam(game, uid).map((_, slot) => slot);
 export const battleHasUnits = (game, uid) => battleTeam(game, uid).some(unit => unit.hp > 0);
 export const battleSurrendered = (game, uid) => game.battle?.surrendered?.includes(uid);
 export const usesAuctionAbilities = game => game.battleRules?.advancedAbilities === true;
-const living = (game, players) => players.filter(uid => battleHasUnits(game, uid));
-const createUnit = (id, advanced) => {
-  const maxHp = id === 292 && advanced ? 1 : 44 + catalog.get(id).stats.hp;
-  return {id, hp:maxHp, maxHp, signatureSpent:false};
+export const battleSurvivors = (game, players) => players.filter(uid => battleHasUnits(game, uid));
+const living = battleSurvivors;
+const createUnit = (id,advanced,duel = advanced) => {
+  const maxHp = id === 292 && advanced ? 1 : (duel ? 75 : 44) + catalog.get(id).stats.hp;
+  const unit = {id,hp:maxHp,maxHp,signatureSpent:false};
+  if (duel) unit.tactics = auctionDuelTactics(unit);
+  return unit;
 };
 
 export function prepareAuctionBattle(game, players, now) {
   const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(id => createUnit(id,usesAuctionAbilities(game)))]));
   if (players.filter(uid => teams[uid].length).length < 2) return false;
-  game.battle = {teams, prep:{}, turn:0};
+  game.battle = {teams, prep:{}, turn:0, ...(usesAuctionAbilities(game) ? {duel:true} : {})};
   game.phase = "auction-prep";
   game.phaseEndsAt = now + prepMs;
   return true;
 }
 
-function finishBattle(game, players, survivors) {
+export function finishBattle(game, players, survivors) {
   const winner = survivors[0];
   game.winners = winner ? [winner] : [];
   game.scores = Object.fromEntries(players.map(uid => [uid, uid === winner ? 3 : 0]));
@@ -98,6 +103,7 @@ function finishBattle(game, players, survivors) {
 
 function nextBattleTurn(game, players, now) {
   const battle = game.battle;
+  if (battle.duel) return advanceAuctionDuel(game,players,now);
   if (usesAuctionAbilities(game)) {
     for (const uid of players) {
       for (const unit of battleTeam(game,uid)) {
@@ -171,6 +177,21 @@ export function auctionBattlePrep(game, uid, action, players, now) {
     unit.ability = action.ability;
     return;
   }
+  if (game.battle.duel && kind === "item") {
+    if (!unit || megaUsesHeldSlot(unit) || action.item && !Object.hasOwn(auctionHeldItems,action.item)) return "Ten przedmiot jest niedostępny.";
+    if (action.item) unit.item = action.item;
+    else delete unit.item;
+    return;
+  }
+  if (game.battle.duel && kind === "tactic") {
+    if (!unit || ![0,1].includes(action.index) || action.move !== 0 &&
+        (!learnableTactics(species).includes(action.move) || tacticalMoves[action.move].name === battleSignature(unit)[0])) return "Ten Pokémon nie uczy się tego ruchu.";
+    const moves = [...auctionDuelTactics(unit)];
+    if (action.move && moves[1-action.index] === action.move) return "Wybierz inny ruch w tym polu.";
+    moves[action.index] = action.move;
+    unit.tactics = moves;
+    return;
+  }
   if (!["evolve","mega","form"].includes(kind)) return "Nieznana akcja.";
   const paid = kind !== "evolve";
   const options = {evolve:species?.evolutions, mega:species?.megas, form:species?.forms}[kind];
@@ -180,13 +201,22 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   if (paid && !megaEnabled) return "Host wyłączył Megaewolucje i zmiany formy.";
   if (paid && battleUpgradeUsed(player)) return "Płatne ulepszenie zostało już wykorzystane.";
   if (!paid && used >= freeEvolutions) return "Brak dostępnych darmowych ewolucji.";
+  if (game.battle.duel && !paid && unit.megaTarget) return "Najpierw dokończ wybór formy tej ewolucji.";
   if (paid && Number(game.budgets?.[uid] || 0) < megaPrice) return `Ulepszenie kosztuje ${megaPrice}$ z budżetu aukcji.`;
   if (paid && megaPrice > 0) game.budgets[uid] -= megaPrice;
-  battleTeam(game, uid)[action.slot] = createUnit(action.target,usesAuctionAbilities(game));
+  if (game.battle.duel && kind === "mega") {
+    unit.megaTarget = action.target;
+    if (megaUsesHeldSlot(unit)) delete unit.item;
+    player.transformed = true;
+    return;
+  }
+  battleTeam(game, uid)[action.slot] = createUnit(action.target,usesAuctionAbilities(game),Boolean(game.battle.duel));
   player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, kind, sequence:(player.evolution?.sequence || 0)+1};
   if (paid) player.transformed = true;
   else player.evolutionsUsed = used + 1;
 }
+
+export const megaUsesHeldSlot = unit => Boolean(unit.megaTarget && unit.id !== 384);
 
 function moveTypeFactor(type, targetSpecies) {
   return targetSpecies.types.reduce((value, defense) => value * (battleTypeFactors[type]?.[defense] ?? 1), 1);
@@ -200,14 +230,25 @@ export function battleSignatureEffectiveness(attacker, target, game, targetUid) 
 
 const moveProperties = new Map(Object.entries(battleMoveData).map(([id, [name]]) => [name,battleMoveProperties[id]]));
 
-function advancedMove(unit, kind) {
-  const [name,type,power,category] = kind === "signature" ? battleSignature(unit) : battleMoveData[0];
-  const [key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit] =
-    moveProperties.get(name) || [name.toLowerCase(),100,["contact"],"",0,0,1,1,0,0,0];
-  return {name,type:type || "normal",power,basePower:power,kind:category,key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,slot:kind};
+export function auctionDuelTactics(unit) {
+  if (unit.tactics) return unit.tactics;
+  const learned = learnableTactics(catalog.get(unit.transformBase || unit.id));
+  const signature = battleSignature(unit)[0];
+  const options = learned.filter(id => tacticalMoves[id].name !== signature);
+  return [options[0] || 0,options[1] || 0];
 }
 
-function advancedAttack(attacker,target,move,battle,preview,targetUid) {
+export function advancedMove(unit, kind) {
+  if (kind === "struggle") return {name:"Struggle",type:"",power:50,basePower:50,kind:"physical",key:"struggle",
+    accuracy:100,flags:["contact"],minHits:1,maxHits:1,priority:0,crit:0,slot:kind,pp:1};
+  if (tacticalMoves[kind]) return tacticalMoves[kind];
+  const [name,type,power,category] = kind === "signature" ? battleSignature(unit) : battleMoveData[0];
+  const [key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,pp] =
+    moveProperties.get(name) || [name.toLowerCase(),100,["contact"],"",0,0,1,1,0,0,0,kind === "basic" ? 35 : 10];
+  return {name,type:type || "normal",power,basePower:power,kind:category,key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,slot:kind,pp};
+}
+
+export function advancedAttack(attacker,target,move,battle,preview,targetUid) {
   const clone = unit => ({...unit,stages:{...unit.stages}});
   return resolveAuctionAbilityAttack({
     attacker:preview ? clone(attacker) : attacker,target:preview ? clone(target) : target,
@@ -267,6 +308,7 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
 }
 
 export function auctionBattleSurrender(game, uid, players, now) {
+  if (game.battle?.duel) return auctionDuelSurrender(game,uid,players,now);
   if (!["auction-battle","auction-hit"].includes(game.phase) || !players.includes(uid) || !battleHasUnits(game, uid)) {
     return "Nie możesz się teraz poddać.";
   }
@@ -294,13 +336,19 @@ export function auctionBattleBotAction(game, uid, players, now, automated = fals
     if (upgrades.length) auctionBattlePrep(game, uid, upgrades[0], players, now);
     if (usesAuctionAbilities(game)) {
       team.forEach((unit,slot) => {
-        if (auctionAbilitySupported(auctionAbility(unit))) return;
-        const ability = auctionAbilityChoices(unit.id).find(auctionAbilitySupported);
-        if (ability) auctionBattlePrep(game,uid,{kind:"ability",slot,ability},players,now);
+        if (!auctionAbilitySupported(auctionAbility(unit))) {
+          const ability = auctionAbilityChoices(unit.id).find(auctionAbilitySupported);
+          if (ability) auctionBattlePrep(game,uid,{kind:"ability",slot,ability},players,now);
+        }
+        if (game.battle.duel && !unit.item && !megaUsesHeldSlot(unit)) {
+          const item = auctionAbility(unit) === "unburden" || catalog.get(unit.id).stats.hp >= 70 ? "sitrus-berry" : "focus-sash";
+          auctionBattlePrep(game,uid,{kind:"item",slot,item},players,now);
+        }
       });
     }
     return auctionBattlePrep(game, uid, {kind:"ready"}, players, now);
   }
+  if (game.battle?.duel) return auctionDuelBot(game,uid,players,now);
   let best;
   for (const slot of battleSlots(game, uid)) {
     const attacker = battleTeam(game, uid)[slot];
@@ -322,6 +370,7 @@ export function auctionBattleBotAction(game, uid, players, now, automated = fals
 
 export function auctionBattleTimeout(game, players, now) {
   if (now < game.phaseEndsAt) return;
+  if (game.battle?.duel && game.phase !== "auction-prep") return advanceAuctionDuel(game,players,now);
   if (game.phase !== "auction-battle") return nextBattleTurn(game, players, now);
   const survivors = living(game, players);
   if (survivors.length < 2 || !survivors.includes(game.battle.activeUid)) return nextBattleTurn(game, players, now);
