@@ -1,4 +1,4 @@
-import { escapeHtml, icon } from "./utils.js?v=20261121-6";
+import { escapeHtml, icon } from "./utils.js?v=20261121-7";
 
 export const HONOR_TYPES = [
   { id:"nicePlayer", label:"Miły gracz", emoji:"👍" },

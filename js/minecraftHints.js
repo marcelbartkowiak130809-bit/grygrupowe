@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js?v=20261121-6';
+import { escapeHtml } from './utils.js?v=20261121-7';
 
 const prices = { hint: 100, nudge: 75, solution: 150 };
 

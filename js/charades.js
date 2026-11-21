@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
 
 export const charadesDefaults = { rounds: 2, answerTime: 75, category: "all" };
 const promptBank = {

@@ -1,5 +1,5 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
-import { hasGamePass } from "./gamePasses.js?v=20261121-6";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
+import { hasGamePass } from "./gamePasses.js?v=20261121-7";
 
 export const liarDefaults = { rounds: 5, answerTime: 30, discussionTime: 20, voteTime: 25 };
 

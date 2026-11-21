@@ -27,7 +27,7 @@ test("queue contains each eligible game once, with a consistent local time acros
   });
   const seen = new Set();
   let state = weeklyUnlockSnapshot(firstUnlock - 1);
-  assert.equal(state.remaining, 18);
+  assert.equal(state.remaining, 19);
   while (state.next) {
     const { modeId, unlockAt } = state.next;
     assert.ok(!seen.has(modeId));
@@ -37,11 +37,11 @@ test("queue contains each eligible game once, with a consistent local time acros
     seen.add(modeId);
     state = weeklyUnlockSnapshot(unlockAt + hour);
   }
-  assert.equal(seen.size, 18);
+  assert.equal(seen.size, 19);
   assert.equal(state.remaining, 0);
   assert.equal(state.nextChangeAt, undefined);
   for (const id of ["pojedynek-hitow", "minecraft-mob", "minecraft-journey", "minecraft-backpack",
-    "board-zgadnij-kto", "board-warcaby", "pokemon-auction", "songspot", "popularnosc-hitow", "popularnosc-solo", "playlista-cup"]) {
+    "board-zgadnij-kto", "pokemon-auction", "songspot", "popularnosc-hitow", "popularnosc-solo", "playlista-cup"]) {
     assert.equal(weeklyModeRelease(id), undefined);
     assert.equal(isModeLocked(id, firstUnlock - 1), false);
   }

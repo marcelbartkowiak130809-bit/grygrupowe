@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
 import { musicArtworkUrl } from './musicArtwork.js?v=20261117-10';
 import { Audio } from "./audio.js?v=20261117-10";
 import { polishTrackData } from "./polishMusic.js?v=20260903-1";

@@ -1,9 +1,9 @@
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
-import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-6";
-import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-6";
-import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
-import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-6";
+import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-7";
+import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-7";
+import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
+import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-7";
 
 export const boardModeDefinitions = [
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },

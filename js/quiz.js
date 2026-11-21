@@ -1,4 +1,4 @@
-import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-6";
+import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-7";
 
 export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"medium", showOthersAnswers:true };
 const makeQuestion = (q, answer, other) => ({ q, options:[answer, ...other].slice(0,4), answer:0 });

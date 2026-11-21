@@ -1,6 +1,6 @@
 import { guessPeople } from "./guessPeopleCatalog.js?v=20261117-11";
 import { guessPeopleVisibleTraits } from "./guessPeopleVisibleTraits.js?v=20261118-15";
-import { normalizeAnswer } from "./utils.js?v=20261121-6";
+import { normalizeAnswer } from "./utils.js?v=20261121-7";
 
 export const UNKNOWN_BOT_ANSWER = "Nie umiem ocenić";
 

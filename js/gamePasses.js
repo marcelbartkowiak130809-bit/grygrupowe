@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20261121-6";
+import { escapeHtml } from "./utils.js?v=20261121-7";
 
 const money = value => `${Number(value || 0).toLocaleString("pl-PL")}$`;
 export const pokemonBattleScoutPass = "pokemon-battle-scout";

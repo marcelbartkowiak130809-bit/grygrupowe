@@ -1,4 +1,4 @@
-import {escapeHtml} from './utils.js?v=20261121-6';
+import {escapeHtml} from './utils.js?v=20261121-7';
 import {patchBackpackView} from './backpackMotion.js?v=20261117-10';
 import {createRescue,rescueAction,rescueItems,rescueScenes,rescueSceneReady,restoreRescue,saveRescue} from './alexJourneyRescue.js?v=20261119-25';
 import {journeyHearts,renderAlexComic} from './alexJourneyComic.js?v=20261119-26';
@@ -6,7 +6,7 @@ import {bindChapterMenu,chapterMenu} from './alexJourneyChapters.js?v=20261119-1
 
 import {gameFullscreenButton,gameRotationHint,bindGamePresentation} from './gamePresentation.js?v=20261119-26';
 
-import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261121-6';
+import {minecraftHintPanel,bindMinecraftHints} from './minecraftHints.js?v=20261121-7';
 import {alexHintOptions} from './alexJourneyHints.js?v=20261119-25';
 const sessions=new Map();
 const asset=id=>new URL(`../assets/minecraft/backpack/${id}.png`,import.meta.url).href;

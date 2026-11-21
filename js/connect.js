@@ -1,4 +1,4 @@
-import { escapeHtml } from "./utils.js?v=20261121-6";
+import { escapeHtml } from "./utils.js?v=20261121-7";
 
 export const connectDefaults = { answerTime:30 };
 const wordPattern = /^\p{L}[\p{L}\p{M}]{0,31}$/u;
