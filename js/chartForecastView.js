@@ -1,6 +1,6 @@
-import { chartForecastRanking, chartForecastSettings, chartRoundOptions, chartTimeOptions, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-17";
+import { chartForecastRanking, chartForecastSettings, chartRoundOptions, chartTimeOptions, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-18";
 import { chartNumber, drawForecastSegment, forecastPointer, paintForecastChart } from "./chartForecastCanvas.js?v=20261121-17";
-import { chartForecastData } from "./chartForecastData.js?v=20261121-15";
+import { chartForecastData } from "./chartForecastData.js?v=20261121-18";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { serverNow } from "./firebase.js?v=20261121-14";
