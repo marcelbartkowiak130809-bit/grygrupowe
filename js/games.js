@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261121-12";
+import { renderGame } from "./game.js?v=20261121-13";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261121-9";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
@@ -11,7 +11,7 @@ import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-8";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
-import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-11";
+import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261121-13";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-9";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-8";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";

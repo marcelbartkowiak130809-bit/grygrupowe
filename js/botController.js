@@ -13,7 +13,7 @@ import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261121-11";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261121-13";
 import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261121-3";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20261121-8";
@@ -616,7 +616,7 @@ export function botMutation(room) {
         break;
       case "pokemon-type-draw":
         if (game.phase === "type-race" && bot) return g => {
-          const item = correct() && randomBotChoice(typeRaceCandidates(g.drawnTypes, settings));
+          const item = correct() && randomBotChoice(typeRaceCandidates(g.drawnTypes, settings, g));
           if (item) return PokemonEngine.answer(g, bot, item.name, players, settings);
           g.raceBotMisses = [...(g.raceBotMisses || []),bot];
         };
