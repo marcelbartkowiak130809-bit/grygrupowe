@@ -144,6 +144,95 @@
   translate:-50% -50%;border-radius:999px;background:#0d152ceb;padding:3px 9px;
   box-shadow:0 2px 7px #06081891;font-weight:900;font-size:13px;white-space:nowrap;
 }
+
+/* Light theme for the auction, preparation, battle and results. */
+.light-theme .auction-header .pokemon-timer,
+.light-theme .auction-battle-panel .pokemon-timer { color:#0f766e; }
+.light-theme .auction-spotlight {
+  border-color:#97cec6;
+  background:radial-gradient(ellipse at 50% 30%,#bdece3,#f2faf9 76%);
+  color:#132f37;
+}
+.light-theme .auction-spotlight .pokemon-card :is(b,strong) { color:#16353b; }
+.light-theme .auction-spotlight .pokemon-card img { filter:drop-shadow(0 12px 12px #25514a42); }
+.light-theme .auction-note,.light-theme .auction-spotlight .pokemon-card small { color:#45586d; }
+.light-theme .auction-wallet,.light-theme .auction-outcome.is-mine {
+  border-color:#d4b675;background:linear-gradient(120deg,#ffefc5,#fff9ea);
+  color:#50350c;
+}
+.light-theme .auction-wallet strong,
+.light-theme .auction-outcome.is-mine :is(small,span),
+.light-theme .auction-ranking-row.is-winner strong { color:#754b08; }
+.light-theme .auction-price,.light-theme .auction-outcome {
+  border-color:#b0c1d7;background:#edf3fb;color:#22334e;
+}
+.light-theme .auction-price strong,.light-theme .auction-outcome span { color:#0f645c; }
+.light-theme .auction-price.is-leading { background:#e6f8ef;border-color:#78b899; }
+.light-theme .auction-price.auction-outbid { background:#fff0e9;border-color:#d6a791;color:#612f23; }
+.light-theme .auction-price.auction-outbid strong { color:#8b3d21; }
+.light-theme .auction-outcome small { color:#5e398e; }
+.light-theme .auction-roster,.light-theme .auction-opponent { background:#f7f9fe; }
+.light-theme .auction-slot { background:#e7eff9;color:#21334f; }
+.light-theme .auction-slot small { color:#0f635a; }
+.light-theme .auction-slot.is-empty { background:#f9fbff;border-color:#9baac0;color:#556780; }
+.light-theme .route-game .auction-final { background-image:radial-gradient(ellipse at 50% 0,#ece2fa,transparent 66%) !important; }
+.light-theme .auction-ranking-row { background:#f1f5fb;border-color:#b6c4d7;color:#20334e; }
+.light-theme .auction-ranking-row.is-winner { background:#fff8e6;border-color:#c5a15c; }
+
+.light-theme .route-game .auction-battle-panel {
+  background-image:radial-gradient(ellipse at 50% 0,#e3f1fc 0,transparent 58%) !important;
+}
+.light-theme .auction-advanced-setting small { color:#465971; }
+.light-theme .battle-prep-info,.light-theme .battle-event,
+.light-theme .battle-order span { color:#235c53; }
+.light-theme .battle-team,.light-theme .duel-bench {
+  border-color:#bdcbdc;background:#f5f8fd;
+}
+.light-theme .battle-team.is-active { border-color:#448e82; }
+.light-theme .auction-battle-panel .battle-unit { border-color:#b2c2d7;background:#edf3fa;color:#20344f; }
+.light-theme .auction-battle-panel .battle-unit[aria-pressed="true"] {
+  outline-color:#147e72;border-color:#438e81;background:#dff3ee;
+}
+.light-theme .auction-battle-panel .battle-unit.is-mega { border-color:#9979c8; }
+.light-theme .auction-battle-panel .battle-unit.is-form { border-color:#b69a59; }
+.light-theme .auction-battle-panel .battle-unit.is-out { background:#f4f5f8;opacity:1; }
+.light-theme .battle-unit.is-out .battle-sprite { filter:grayscale(1);opacity:.48; }
+.light-theme .battle-unit small,.light-theme .duel-bench h2,
+.light-theme .duel-moves small,.light-theme .duel-loadout label { color:#405570; }
+.light-theme .battle-unit .battle-ability-chip,.light-theme .battle-ability-events,
+.light-theme .battle-field,.light-theme .duel-events small,.light-theme .duel-loadout strong { color:#785008; }
+.light-theme .battle-ability-prep a { color:#593391; }
+.light-theme .battle-hp { background:#c6d4e4; }
+.light-theme .battle-types img,.light-theme .duel-move-type { filter:brightness(0);opacity:.76; }
+.light-theme .battle-unit[data-battle-matchup="effective"] { --matchup-color:#1a7350; }
+.light-theme .battle-unit[data-battle-matchup="super"] { --matchup-color:#8b4a0b; }
+.light-theme .auction-battle-panel .battle-unit[data-battle-matchup] { border-color:var(--matchup-color); }
+.light-theme .auction-battle-panel .battle-surrender,.light-theme .battle-team h2 small { color:#993342; }
+.light-theme .duel-stage {
+  --stage-light:#73b1dd;--stage-wash:#dbeafa;
+  border-color:#9cb6d2;
+  background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--stage-light) 38%,transparent),transparent 74%),
+    linear-gradient(10deg,#f0f6fc 4%,var(--stage-wash) 52%,#f5f8fd);
+}
+.light-theme .duel-stage::before {
+  background:repeating-linear-gradient(119deg,transparent 0 21px,#334c6815 22px 23px,transparent 24px 39px);
+}
+.light-theme .duel-stage:is([data-weather="sun"],[data-weather="harshSun"]) { --stage-light:#f2bb60;--stage-wash:#fff0d6; }
+.light-theme .duel-stage:is([data-weather="rain"],[data-weather="heavyRain"]) { --stage-light:#72a5dc;--stage-wash:#dce8fa; }
+.light-theme .duel-stage[data-weather="sand"] { --stage-light:#dfb977;--stage-wash:#f6e9d7; }
+.light-theme .duel-stage[data-weather="snow"] { --stage-light:#8dd7f0;--stage-wash:#e7f4fb; }
+.light-theme .auction-battle-panel .duel-stage .duel-active {
+  border-color:color-mix(in srgb,var(--accent) 28%,#8497b2);
+  background:radial-gradient(ellipse at 50% 47%,color-mix(in srgb,var(--accent) 26%,transparent),transparent 70%),#fffffff0;
+  box-shadow:0 4px 12px #23436b15;
+}
+.light-theme .duel-active .duel-slot { color:#20364f;background:color-mix(in srgb,var(--accent) 30%,#f1f6fb); }
+.light-theme .duel-active .battle-sprite { filter:drop-shadow(0 4px 6px #263c5c42); }
+.light-theme .duel-active.is-out .battle-sprite { filter:grayscale(1); }
+.light-theme .duel-bench .battle-unit:not(:disabled):hover { background:#dff1ed;border-color:#438e81; }
+.light-theme .auction-battle-panel .duel-moves button[aria-pressed="true"] { background:#daf2ec;outline-color:#147e72; }
+.light-theme .duel-events { border-color:#b5c6da;background:#f5f8fd;color:#233953; }
+
 @media(max-width:620px) {
   .battle-team { padding:7px; }
   .battle-party { grid-template-columns:repeat(auto-fill,minmax(min(100%,70px),1fr)); }
@@ -158,5 +247,6 @@
   .duel-stage .duel-active { padding:5px; }
   .duel-benches { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .duel-controls { margin:3px 0; }
+  .light-theme .battle-move-row { background:#f5f8fd;border-color:#bdcbdc; }
 }
 @media(prefers-reduced-motion:reduce) { .battle-hp i { transition:none; } }
