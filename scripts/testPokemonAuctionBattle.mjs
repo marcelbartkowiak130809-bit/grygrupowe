@@ -117,12 +117,12 @@ test("evolutions are validated, only available once, and Mega spends auction cas
   assert.ok(prep("b","mega",0,auctionBattlePokemon(3).megas[0]));
   assert.equal(game.budgets.b,4);
   for(const uid of players) assert.equal(prep(uid,"ready"),undefined);
-  assert.equal(game.phase,"auction-battle");
+  assert.equal(game.phase,"auction-wheel");
 });
 
-test("lineup order locks when ready and the lead's speed determines who starts",()=>{
-  const game={teams:{a:[94,143],b:[1]},budgets:{}};
-  const duel=["a","b"];
+test("lineup locks and the wheel can choose a slower guest before the first turn",()=>{
+  const game={teams:{a:[94,143],b:[1],c:[]},budgets:{}};
+  const duel=["a","b","c"];
   prepareAuctionBattle(game,duel,1000);
   const move={kind:"reorder",slot:1,direction:-1};
   assert.equal(auctionBattlePrep(game,"a",move,duel,2000),undefined);
@@ -130,8 +130,30 @@ test("lineup order locks when ready and the lead's speed determines who starts",
   assert.deepEqual(battleTeam(game,"a").map(unit=>unit.id),[94,143]);
   auctionBattlePrep(game,"a",{kind:"ready"},duel,2000);
   assert.match(auctionBattlePrep(game,"a",move,duel,2000),/gotowy/);
+  game.battle.openingRoll=.75;
   auctionBattlePrep(game,"b",{kind:"ready"},duel,2000);
+  assert.equal(game.phase,"auction-wheel");
+  assert.equal(game.battle.turn,0);
+  assert.equal(game.battle.openingWheel.starterUid,"b");
+  assert.deepEqual(game.battle.openingWheel.players,["a","b"]);
+  auctionBattleTimeout(game,duel,game.phaseEndsAt-1);
+  assert.equal(game.phase,"auction-wheel");
+  const turnStarts = game.phaseEndsAt;
+  auctionBattleTimeout(game,duel,turnStarts);
   assert.equal(game.battle.activeUid,"b");
+  assert.equal(game.battle.turn,1);
+  assert.equal(game.phaseEndsAt,turnStarts+20_000);
+});
+
+test("the opening wheel skips a selected player who leaves before the fight",()=>{
+  const game=makeGame();
+  prepareAuctionBattle(game,players,1000);
+  game.battle.openingRoll=.99;
+  auctionBattleTimeout(game,players,game.phaseEndsAt);
+  assert.equal(game.battle.openingWheel.starterUid,"c");
+  auctionBattleTimeout(game,["a","b"],game.phaseEndsAt);
+  assert.equal(game.phase,"auction-battle");
+  assert.equal(game.battle.activeUid,"a");
 });
 
 test("alternate forms use the Mega slot, keep free evolution and change battle data",()=>{
@@ -231,17 +253,20 @@ test("surrender works off-turn, advances an active player and awards the last su
   const roster=["a","b","c","d"];
   prepareAuctionBattle(game,roster,1000);
   assert.ok(auctionBattleSurrender(game,"a",roster,2000));
+  game.battle.openingRoll=0;
   auctionBattleTimeout(game,roster,61000);
+  auctionBattleTimeout(game,roster,game.phaseEndsAt);
+  const firstTurnEnds = game.phaseEndsAt;
+  const firstTurnStarts = firstTurnEnds-20_000;
   assert.equal(game.battle.activeUid,"a");
-  assert.equal(game.phaseEndsAt,81000);
-  assert.equal(auctionBattleSurrender(game,"b",roster,61500),undefined);
-  assert.equal(game.phaseEndsAt,81000);
+  assert.equal(auctionBattleSurrender(game,"b",roster,firstTurnStarts+500),undefined);
+  assert.equal(game.phaseEndsAt,firstTurnEnds);
   assert.equal(game.battle.activeUid,"a");
-  assert.ok(auctionBattleSurrender(game,"b",roster,61600));
-  assert.equal(auctionBattleSurrender(game,"a",roster,62000),undefined);
+  assert.ok(auctionBattleSurrender(game,"b",roster,firstTurnStarts+600));
+  assert.equal(auctionBattleSurrender(game,"a",roster,firstTurnStarts+1000),undefined);
   assert.equal(game.battle.activeUid,"c");
-  assert.equal(game.phaseEndsAt,82000);
-  assert.equal(auctionBattleSurrender(game,"d",roster,62500),undefined);
+  assert.equal(game.phaseEndsAt,firstTurnEnds+1000);
+  assert.equal(auctionBattleSurrender(game,"d",roster,firstTurnStarts+1500),undefined);
   assert.equal(game.phase,"result");
   assert.deepEqual(game.winners,["c"]);
   assert.deepEqual(game.battle.surrendered,["b","a","d"]);
@@ -265,20 +290,23 @@ test("type analysis matches signature effectiveness and belongs to the auction p
 test("turns, types, timeout and post-hit knockout work without reviving defeated players",()=>{
   const game=makeGame();
   prepareAuctionBattle(game,players,1000);
+  game.battle.openingRoll=.99;
+  auctionBattleTimeout(game,players,game.phaseEndsAt);
   auctionBattleTimeout(game,players,game.phaseEndsAt);
   assert.equal(game.battle.activeUid,"c");
+  const now = game.phaseEndsAt-19_000;
   const attack={slot:0,targetUid:"b",targetSlot:0,move:"signature"};
-  assert.ok(auctionBattleAttack(game,"a",attack,players,62000));
+  assert.ok(auctionBattleAttack(game,"a",attack,players,now));
   const target=battleTeam(game,"b")[0];
   target.hp=1;
-  assert.equal(auctionBattleAttack(game,"c",{...attack,move:"basic"},players,62000),undefined);
+  assert.equal(auctionBattleAttack(game,"c",{...attack,move:"basic"},players,now),undefined);
   assert.equal(game.phase,"auction-hit");
   assert.equal(target.hp,0);
   assert.ok(game.battle.last.knockedOut);
   auctionBattleTimeout(game,players,game.phaseEndsAt);
   assert.equal(game.battle.activeUid,"a");
   assert.equal(game.battle.turn,2);
-  auctionBattleBotAction(game,"a",players,63000);
+  auctionBattleBotAction(game,"a",players,game.phaseEndsAt-19_000);
   assert.equal(game.phase,"auction-hit");
   auctionBattleTimeout(game,["a","b"],game.phaseEndsAt);
   assert.equal(game.phase,"result");

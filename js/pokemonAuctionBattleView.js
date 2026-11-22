@@ -1,10 +1,10 @@
-import { escapeHtml, icon } from "./utils.js?v=20261121-8";
+import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-8";
 import { serverNow } from "./firebase.js?v=20261123-5";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-3";
+import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-6";
 import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleSpeed, auctionBattleTypes, auctionDuelPriority, statusNames } from "./pokemonAuctionAbilities.js?v=20261123-1";
-import { activeBattleSlot, activeBattleUnit, auctionDuelImpactAt, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-3";
+import { activeBattleSlot, activeBattleUnit, auctionDuelImpactAt, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-6";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
 import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-2";
 
@@ -23,6 +23,55 @@ const moveTypeIcon = type => type ? `<img src="/assets/pokemon/types/${escapeHtm
 // Item sprites: https://github.com/PokeAPI/sprites/tree/master/sprites/items
 const heldSprite = id => auctionHeldItems[id] ? `<img class="duel-item-sprite" src="/assets/pokemon/items/${id}.png" alt="" width="22" height="22">` : "";
 const isDuelPlayback = game => ["auction-hit","auction-pivot"].includes(game.phase);
+const wheelColors = ["#2760a6","#903d8d","#067d76","#a45232","#5340a4","#326b42","#a63c55","#336782"];
+
+function openingWheelMarkup(game,accounts,uid,players,now) {
+  const wheel = game.battle.openingWheel;
+  const settled = now >= wheel.spinEndsAt;
+  const next = game.battle.order.find(player=>players.includes(player) && battleHasUnits(game,player));
+  const step = 360/wheel.players.length;
+  const slices = wheel.players.map((_,index)=>`${wheelColors[index%wheelColors.length]} ${index*step}deg ${(index+1)*step}deg`);
+  const radius = wheel.players.length>=6 ? 33 : 28;
+  return `<section class="panel pokemon-panel auction-battle-panel auction-opening">
+    <p class="eyebrow">LICYTACJA TEAMU</p>
+    <h1 role="status">${settled ? (next===uid ? "Ty zaczynasz!" : `${nickname(accounts,next)} zaczyna!`) : "Kto zacznie bitwę?"}</h1>
+    <div class="auction-wheel-wrap" data-settled="${settled}">
+      <i class="auction-wheel-pointer" aria-hidden="true"></i>
+      <div class="auction-wheel" data-auction-wheel role="group" aria-label="Koło losujące pierwszego gracza"
+        style="--wheel-fill:conic-gradient(from ${-step/2}deg,${slices.join(",")})">
+        ${wheel.players.map((player,index)=>{
+          const angle = index*step*Math.PI/180;
+          const profile = accounts[player] || {nick:"Gracz"};
+          return `<div class="auction-wheel-seat" style="--x:${50+radius*Math.sin(angle)}%;--y:${50-radius*Math.cos(angle)}%">
+            <div class="auction-wheel-profile" data-wheel-winner="${settled && player===wheel.starterUid}" title="${nickname(accounts,player)}">
+              ${avatarHtml(profile,"auction-wheel-avatar",{disableIdle:true})}<span>${nickname(accounts,player)}</span>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <span class="auction-wheel-hub" aria-hidden="true">${icon("zap",22)}</span>
+    </div>
+  </section>`;
+}
+
+function spinOpeningWheel(root,wheel,view,now) {
+  const disc = root.querySelector("[data-auction-wheel]");
+  if (!disc || view.wheelDisc===disc) return;
+  view.wheelDisc=disc;
+  const rotation = 1440 - wheel.players.indexOf(wheel.starterUid)*360/wheel.players.length;
+  const duration = wheel.spinEndsAt-wheel.startedAt;
+  const elapsed = Math.max(0,Math.min(duration,now-wheel.startedAt));
+  const spin = (node,angle)=>{
+    if (!node.animate || !motionEnabled() || elapsed>=duration) {
+      node.style.rotate=`${angle}deg`;
+      return;
+    }
+    const running = node.animate([{rotate:"0deg"},{rotate:`${angle}deg`}],{duration,easing:"cubic-bezier(.12,.64,.14,1)",fill:"both"});
+    running.currentTime=elapsed;
+  };
+  spin(disc,rotation);
+  disc.querySelectorAll(".auction-wheel-profile").forEach(profile=>spin(profile,-rotation));
+}
 const shownDuelEvents = (game,now) => (game.battle.events || []).filter(entry=>!isDuelPlayback(game) || !entry.playAt || entry.playAt<=now);
 
 function duelDisplayHp(game,player,slot,member,now) {
@@ -128,7 +177,7 @@ function prepMarkup(game, accounts, uid, players, timer) {
   return `<section class="panel pokemon-panel auction-battle-panel" id="auction-preparation">
     <header class="battle-heading"><div><p class="eyebrow">LICYTACJA TEAMU · PRZYGOTOWANIE</p><h1>Przygotuj drużynę</h1></div>${timer}</header>
     ${team.length ? `<div class="battle-prep-info"><strong>Budżet aukcji ${budget}$</strong><span>${evolutionStatus} · ${upgradeStatus}</span></div>` : ""}
-    <p class="muted">${game.battle.duel ? "Pierwszy Pokémon zaczyna. Masz po 1 szt. każdego przedmiotu na drużynę." : "Ustaw kolejność strzałkami. Szybkość prowadzącego decyduje, kto rozpoczyna bitwę."}</p>
+    <p class="muted">${game.battle.duel ? "Pierwszy Pokémon zaczyna. Masz po 1 szt. każdego przedmiotu na drużynę." : "Ustaw kolejność strzałkami. Koło wylosuje, kto zacznie bitwę."}</p>
     <div class="battle-prep-team">${cards.join("") || "<p>Nie masz Pokémonów w składzie. Możesz obserwować bitwę.</p>"}</div>
     <footer class="battle-footer"><button class="primary" type="button" data-battle-ready ${!team.length||ready.ready?"disabled":""}>${ready.ready?"Drużyna gotowa":"Gotowe do bitwy"}</button>
     <span class="muted">${players.filter(id=>battleTeam(game,id).length).map(id=>`${nickname(accounts,id)} ${game.battle.prep?.[id]?.ready?"✓":"…" }`).join(" · ")}</span></footer>
@@ -423,7 +472,9 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   } else if (game.phase==="auction-battle") {
     for (const unit of battleTeam(game,game.battle.activeUid)) if (unit.hp) preloadBattleCry(unit);
   }
-  const body=game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) :
+  const wheel = game.phase==="auction-wheel" ? game.battle.openingWheel : null;
+  const body=wheel ? openingWheelMarkup(game,profiles,uid,room.players,now) :
+    game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) :
     game.battle.duel ? duelMarkup(game,profiles,uid,room.players,timer,view,now) : battleMarkup(game,profiles,uid,room.players,timer,view.selection);
   patchRoomView(root,key,`<main class="page pokemon-game-page" data-auction-battle>${body}</main>`);
   for (const image of root.querySelectorAll(".battle-sprite[data-battle-species]")) {
@@ -433,6 +484,13 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt,turn:game.battle.turn};
   const paint = () => renderAuctionBattle(root,room,accounts,uid,actions,timer);
   clearTimeout(view.playbackTimer);
+  if (wheel) {
+    spinOpeningWheel(root,wheel,view,now);
+    if (now<wheel.spinEndsAt) view.playbackTimer=window.setTimeout(()=>{
+      if (root.isConnected && root.contains(view.wheelDisc)) paint();
+    },Math.max(16,wheel.spinEndsAt-now));
+    return;
+  }
   if (game.battle.duel && isDuelPlayback(game)) {
     const boundaries = (game.battle.events || []).flatMap(entry=>entry.playAt
       ? [entry.playAt,auctionDuelImpactAt(entry),...(entry.targetUid ? [entry.playAt+750] : [])] : []);

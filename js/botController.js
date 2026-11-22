@@ -15,9 +15,9 @@ import { applyCountryGuessAction, countryGuessMode, currentCountry } from "./cou
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261123-5";
-import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261123-3";
-import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261123-3";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261123-6";
+import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261123-6";
+import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261123-6";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20261121-8";
 import { MathematicsEngine } from "./mathematics.js?v=20261121-8";

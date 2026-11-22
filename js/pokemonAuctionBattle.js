@@ -3,7 +3,7 @@ import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFact
 import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261123-1";
 import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261123-1";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
-import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-3";
+import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-6";
 
 export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
@@ -19,7 +19,7 @@ export function sanitizeAuctionBattleRules(settings = {}) {
 
 export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved ? 1 : 0);
 export const battleUpgradeUsed = prep => Boolean(prep.transformed || prep.mega);
-export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit", "auction-command", "auction-reveal-moves", "auction-switch", "auction-pivot"];
+export const auctionBattlePhases = ["auction-prep", "auction-wheel", "auction-battle", "auction-hit", "auction-command", "auction-reveal-moves", "auction-switch", "auction-pivot"];
 const prepMs = 60000;
 const advancedPrepMs = 120000;
 const turnMs = 20000;
@@ -83,7 +83,7 @@ const createUnit = (id,advanced,duel = advanced) => {
 export function prepareAuctionBattle(game, players, now) {
   const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(id => createUnit(id,usesAuctionAbilities(game)))]));
   if (players.filter(uid => teams[uid].length).length < 2) return false;
-  game.battle = {teams, prep:{}, turn:0, ...(usesAuctionAbilities(game) ? {duel:true} : {})};
+  game.battle = {teams, prep:{}, turn:0, ...(usesAuctionAbilities(game) ? {duel:true} : {openingRoll:Math.random()})};
   game.phase = "auction-prep";
   game.phaseEndsAt = now + (game.battle.duel ? advancedPrepMs : prepMs);
   return true;
@@ -125,7 +125,17 @@ function nextBattleTurn(game, players, now) {
       const species = catalog.get(unit.id);
       return usesAuctionAbilities(game) ? auctionBattleSpeed(unit,species,battle) : species.stats.speed;
     };
-    battle.order = survivors.sort((a, b) => leadSpeed(b) - leadSpeed(a));
+    battle.order = [...survivors].sort((a, b) => leadSpeed(b) - leadSpeed(a));
+    if (game.phase === "auction-prep" && battle.turn === 0 && !usesAuctionAbilities(game)) {
+      const starterUid = survivors[Math.floor((battle.openingRoll ?? Math.random()) * survivors.length)];
+      const starterIndex = battle.order.indexOf(starterUid);
+      battle.order = [...battle.order.slice(starterIndex),...battle.order.slice(0,starterIndex)];
+      battle.openingWheel = {players:survivors,starterUid,startedAt:now,spinEndsAt:now+3200};
+      delete battle.openingRoll;
+      game.phase = "auction-wheel";
+      game.phaseEndsAt = battle.openingWheel.spinEndsAt + 900;
+      return;
+    }
   }
   if (usesAuctionAbilities(game)) {
     const remaining = survivors.filter(uid => !battle.roundActed?.includes(uid));
