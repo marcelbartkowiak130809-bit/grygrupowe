@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createPokemonGame } from "../js/pokemon.js";
-import { auctionBattlePrep, auctionBattleTimeout, auctionBattlePokemon, battleTeam, prepareAuctionBattle } from "../js/pokemonAuctionBattle.js";
+import { advancedMove, auctionBattleDamage, auctionBattlePrep, auctionBattleTimeout, auctionBattlePokemon, battleTeam, prepareAuctionBattle } from "../js/pokemonAuctionBattle.js";
 import { activeBattleSlot, activeBattleUnit, auctionDuelAction, auctionDuelBot } from "../js/pokemonAuctionDuel.js";
 import { auctionCommandContext, auctionCommandDigest } from "../js/pokemonAuctionCommitments.js";
 
@@ -106,6 +106,45 @@ test("held items trigger on the correct step, and item choice is reserved when M
   assert.equal(mega.unit("a").id,target);
   assert.equal(mega.unit("a").hp,70);
   assert.ok(mega.game.battle.events.find(entry=>entry.toId===target));
+});
+
+test("advanced prep lasts two minutes and each trainer gets one of each held item",()=>{
+  const d = duel([6,25,1],[4]);
+  assert.equal(d.game.phaseEndsAt,121000);
+  const equip = (uid,slot,item)=>d.prep(uid,{kind:"item",slot,item});
+  assert.equal(equip("a",0,"leftovers"),undefined);
+  assert.ok(equip("a",1,"leftovers"));
+  assert.equal(equip("b",0,"leftovers"),undefined);
+  assert.equal(equip("a",2,"focus-sash"),undefined);
+  assert.equal(d.prep("a",{kind:"evolve",slot:2,target:2}),undefined);
+  assert.equal(battleTeam(d.game,"a")[2].item,"focus-sash");
+  assert.equal(d.prep("a",{kind:"mega",slot:0,target:auctionBattlePokemon(6).megas[0]}),undefined);
+  assert.equal(equip("a",1,"leftovers"),undefined);
+  assert.equal(equip("a",1,""),undefined);
+  assert.equal(equip("a",2,"leftovers"),undefined);
+  d.start();
+  assert.equal(d.game.phase,"auction-command");
+});
+
+test("Mega Zygarde gains a special signature that hits Fairy and can equip real damaging moves",()=>{
+  const d = duel([718],[35]);
+  const base = battleTeam(d.game,"a")[0];
+  assert.deepEqual(base.tactics,[414,482]);
+  assert.equal(d.prep("a",{kind:"tactic",slot:0,index:1,move:406}),undefined);
+  assert.equal(d.prep("a",{kind:"mega",slot:0,target:10301}),undefined);
+  d.start();
+  assert.equal(advancedMove(d.unit("a"),"signature").name,"Thousand Arrows");
+  const fairy = d.unit("b");
+  const preview = {...base,id:10301};
+  assert.equal(auctionBattleDamage(preview,fairy,"signature",d.game,"b").factor,1);
+  const damage = auctionBattleDamage(preview,fairy,"signature",d.game,"b").damage;
+  assert.ok(damage>0);
+  fairy.stages = {specialDefense:6};
+  assert.equal(auctionBattleDamage(preview,fairy,"signature",d.game,"b").damage,damage);
+  d.play(move("signature",true),move("basic"));
+  assert.equal(d.unit("a").id,10301);
+  assert.equal(advancedMove(d.unit("a"),"signature").kind,"special");
+  assert.ok(d.game.battle.events.some(entry=>entry.name==="Nihil Light" && entry.damage>0));
 });
 
 test("Focus Sash prevents a knockout once and consuming Sitrus Berry activates Unburden",()=>{

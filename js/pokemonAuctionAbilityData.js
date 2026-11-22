@@ -1731,6 +1731,7 @@ export const battleMoveProperties = {
   714:["moongeist-beam",100,["mirror","protect"],"",0,0,1,1,0,0,0,5],
   716:["zing-zap",100,["contact","metronome","mirror","protect"],"",0,0,1,1,30,0,0,10],
   718:["multi-attack",100,["contact","metronome","mirror","protect"],"",0,0,1,1,0,0,0,10],
+  920:["nihil-light",100,["protect"],"",0,0,1,1,0,0,0,10],
   720:["mind-blown",100,["mirror","protect"],"",0,0,1,1,0,0,0,5],
   721:["plasma-fists",100,["contact","mirror","protect","punch"],"",0,0,1,1,0,0,0,15],
   742:["double-iron-bash",100,["contact","mirror","protect","punch"],"",0,0,2,2,30,0,0,5],

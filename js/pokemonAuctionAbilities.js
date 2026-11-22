@@ -1,5 +1,5 @@
-import { battleAbilityFlags, battleAbilityNames, battleSpeciesAbilities } from "./pokemonAuctionAbilityData.js?v=20261122-1";
-import { checkHeldBerry, consumeItem, heldItem } from "./pokemonAuctionTactics.js?v=20261122-1";
+import { battleAbilityFlags, battleAbilityNames, battleSpeciesAbilities } from "./pokemonAuctionAbilityData.js?v=20261123-1";
+import { checkHeldBerry, consumeItem, heldItem } from "./pokemonAuctionTactics.js?v=20261123-1";
 
 export const auctionAbilityChoices = id => battleSpeciesAbilities[id] || [];
 export const auctionAbility = unit => unit?.copiedAbility || unit?.ability || auctionAbilityChoices(unit?.id)[0];
@@ -274,6 +274,7 @@ function typeFactor(move, targetTypes, a, field, factors) {
   return targetTypes.reduce((value,defense) => {
     let factor = factors[move.type]?.[defense] ?? 1;
     if (defense === "ghost" && ["scrappy","minds-eye"].includes(a) && ["normal","fighting"].includes(move.type)) factor = 1;
+    if (move.key === "nihil-light" && defense === "fairy") factor = 1;
     if (move.key === "freeze-dry" && defense === "water") factor = 2;
     if (field.weather === "winds" && defense === "flying" && factor > 1) factor = 1;
     return value * factor;
@@ -342,7 +343,7 @@ function damageStats(attacker,target,from,to,toTypes,move,a,b,field,log,duel,cri
   const atk = special ? "specialAttack" : "attack";
   const def = special ? "specialDefense" : "defense";
   let offense = (from.stats[atk] + (duel ? 20 : 0)) * stageFactor(b === "unaware" || critical && stage(attacker,atk) < 0 ? 0 : stage(attacker,atk));
-  let defense = (to.stats[def] + (duel ? 20 : 0)) * stageFactor(a === "unaware" || critical && stage(target,def) > 0 ? 0 : stage(target,def));
+  let defense = (to.stats[def] + (duel ? 20 : 0)) * stageFactor(move.key === "nihil-light" || a === "unaware" || critical && stage(target,def) > 0 ? 0 : stage(target,def));
   const power = (id, amount) => { offense *= amount; log(id); };
   const block = (id, amount) => { defense *= amount; log(id); };
   if (!special && ["pure-power","huge-power"].includes(a)) power(a,2);
@@ -445,6 +446,7 @@ function onHit({attacker,target,move,a,b,fromTypes,toTypes,field,log,chance,batt
     return true;
   };
   if (a !== "sheer-force" && b !== "shield-dust" && move.ailment && chance(move.ailmentChance * (a === "serene-grace" ? 2 : 1))) inflict(move.ailment);
+  if (a !== "sheer-force" && b !== "shield-dust" && move.targetStat && chance(move.secondary * (a === "serene-grace" ? 2 : 1))) boostTarget(move.targetStat,-1);
   if (b !== "shield-dust" && (a === "toxic-chain" || a === "poison-touch" && contact) && chance(30) && inflict("poison")) log(a);
 }
 
@@ -663,7 +665,7 @@ export function resolveAuctionAbilityAttack({attacker,target,battle,getMove,cata
   if (defenseAbility === "tera-shell" && target.hp === target.maxHp) { factor = .5; log(b); }
   const evasion = defenseAbility === "sand-veil" && field.weather === "sand" ||
     defenseAbility === "snow-cloak" && field.weather === "snow";
-  const evasionStage = ["keen-eye","minds-eye","illuminate"].includes(a) ? 0 : stage(target,"evasion");
+  const evasionStage = attack.key === "nihil-light" || ["keen-eye","minds-eye","illuminate"].includes(a) ? 0 : stage(target,"evasion");
   const aim = Math.max(-6,Math.min(6,stage(attacker,"accuracy") - evasionStage));
   const aimFactor = aim < 0 ? 3/(3-aim) : (3+aim)/3;
   const accuracy = attack.accuracy * aimFactor * (a === "compound-eyes" ? 1.3 : a === "victory-star" ? 1.1 : 1) *

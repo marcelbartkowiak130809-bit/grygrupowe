@@ -1399,6 +1399,7 @@ export const battleMoveData = {
  "910":["Mighty Cleave","rock",95,"physical"],
  "911":["Tachyon Cutter","steel",50,"special"],
  "919":["Malignant Chain","poison",100,"special"],
+ "920":["Nihil Light","dragon",100,"special"],
  "621":["Hyperspace Fury","dark",100,"physical"],
  "781":["Behemoth Blade","steel",100,"physical"],
  "782":["Behemoth Bash","steel",100,"physical"],

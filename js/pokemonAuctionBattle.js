@@ -1,9 +1,9 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261120-5";
-import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261122-1";
-import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261122-2";
-import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261122-1";
-import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261122-1";
+import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFactors } from "./pokemonAuctionBattleData.js?v=20261123-1";
+import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261123-1";
+import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261123-1";
+import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
+import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-1";
 
 export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
@@ -21,9 +21,11 @@ export const battleEvolutionsUsed = prep => prep.evolutionsUsed ?? (prep.evolved
 export const battleUpgradeUsed = prep => Boolean(prep.transformed || prep.mega);
 export const auctionBattlePhases = ["auction-prep", "auction-battle", "auction-hit", "auction-command", "auction-reveal-moves", "auction-switch", "auction-pivot"];
 const prepMs = 60000;
+const advancedPrepMs = 120000;
 const turnMs = 20000;
 const hitMs = 770;
 const dex = new Map(pokemonDex.map(item => [item.id, item]));
+const megaZygarde = 10301;
 const fallbackSignatures = {
   132:["Transform",null,0,"physical"],
   202:["Counter","fighting",85,"physical"],
@@ -39,7 +41,7 @@ const catalog = new Map(Object.entries(battleSpeciesData).map(([key, entry]) => 
   const [[hp, attack, defense, specialAttack, specialDefense, speed], signature, evolutions, megas, formName, formTypes, baseId] = entry;
   const base = dex.get(baseId || id);
   const form = battleAlternateForms[baseId]?.includes(id);
-  const spritePath = id===10301 ? "other/official-artwork/10301.png" : `${id}.png`;
+  const spritePath = id===megaZygarde ? `other/official-artwork/${id}.png` : `${id}.png`;
   return [id, {
     ...base, id, baseId:baseId || id, name:formName || base.name, types:formTypes || base.types, bst:hp+attack+defense+specialAttack+specialDefense+speed,
     sprite:formName ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spritePath}` : base.sprite,
@@ -83,7 +85,7 @@ export function prepareAuctionBattle(game, players, now) {
   if (players.filter(uid => teams[uid].length).length < 2) return false;
   game.battle = {teams, prep:{}, turn:0, ...(usesAuctionAbilities(game) ? {duel:true} : {})};
   game.phase = "auction-prep";
-  game.phaseEndsAt = now + prepMs;
+  game.phaseEndsAt = now + (game.battle.duel ? advancedPrepMs : prepMs);
   return true;
 }
 
@@ -179,6 +181,7 @@ export function auctionBattlePrep(game, uid, action, players, now) {
   }
   if (game.battle.duel && kind === "item") {
     if (!unit || megaUsesHeldSlot(unit) || action.item && !Object.hasOwn(auctionHeldItems,action.item)) return "Ten przedmiot jest niedostępny.";
+    if (action.item && battleTeam(game,uid).some(teammate=>teammate !== unit && teammate.item === action.item)) return "Inny Pokémon w Twojej drużynie trzyma już ten przedmiot.";
     if (action.item) unit.item = action.item;
     else delete unit.item;
     return;
@@ -210,7 +213,9 @@ export function auctionBattlePrep(game, uid, action, players, now) {
     player.transformed = true;
     return;
   }
-  battleTeam(game, uid)[action.slot] = createUnit(action.target,usesAuctionAbilities(game),Boolean(game.battle.duel));
+  const evolved = createUnit(action.target,usesAuctionAbilities(game),Boolean(game.battle.duel));
+  if (unit.item) evolved.item = unit.item;
+  battleTeam(game, uid)[action.slot] = evolved;
   player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, kind, sequence:(player.evolution?.sequence || 0)+1};
   if (paid) player.transformed = true;
   else player.evolutionsUsed = used + 1;
@@ -242,7 +247,8 @@ export function advancedMove(unit, kind) {
   if (kind === "struggle") return {name:"Struggle",type:"",power:50,basePower:50,kind:"physical",key:"struggle",
     accuracy:100,flags:["contact"],minHits:1,maxHits:1,priority:0,crit:0,slot:kind,pp:1};
   if (tacticalMoves[kind]) return tacticalMoves[kind];
-  const [name,type,power,category] = kind === "signature" ? battleSignature(unit) : battleMoveData[0];
+  const [name,type,power,category] = kind === "signature"
+    ? (unit.id === megaZygarde && !unit.copiedSignature ? battleMoveData[920] : battleSignature(unit)) : battleMoveData[0];
   const [key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,pp] =
     moveProperties.get(name) || [name.toLowerCase(),100,["contact"],"",0,0,1,1,0,0,0,kind === "basic" ? 35 : 10];
   return {name,type:type || "normal",power,basePower:power,kind:category,key,accuracy,flags,ailment,ailmentChance,drain,minHits,maxHits,secondary,priority,crit,slot:kind,pp};

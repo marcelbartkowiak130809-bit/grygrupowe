@@ -1,6 +1,9 @@
-import { tacticalLearnsets } from "./pokemonAuctionTacticsData.js?v=20261122-1";
+import { tacticalLearnsets } from "./pokemonAuctionTacticsData.js?v=20261123-1";
 
 const moves = [
+  [414,"Earth Power","ground",90,10,"10% szans na obniżenie Obrony Specjalnej celu.",{kind:"special",secondary:10,targetStat:"specialDefense"}],
+  [482,"Sludge Wave","poison",95,10,"10% szans na zatrucie celu.",{kind:"special",secondary:10,ailment:"poison",ailmentChance:10}],
+  [406,"Dragon Pulse","dragon",85,10,"Specjalny atak typu Dragon.",{kind:"special",flags:["pulse"]}],
   [182,"Protect","normal",0,10,"Chroni przed większością ruchów w tej turze.",{effect:"protect",priority:4}],
   [14,"Swords Dance","normal",0,20,"Atak +2.",{effect:"boost",stats:{attack:2}}],
   [369,"U-turn","bug",70,20,"Po trafieniu wymienia Pokémona.",{effect:"pivot",flags:["contact"]}],
