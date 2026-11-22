@@ -1,0 +1,1 @@
+Flagi wektorowe z [country-flags](https://github.com/hampusborgos/country-flags/tree/c09927e63705529bbf59ca6684cd9b23225dddad/svg). Autorzy zbioru wskazują Wikimedia Commons i domenę publiczną w [README](https://github.com/hampusborgos/country-flags/blob/c09927e63705529bbf59ca6684cd9b23225dddad/README.md).

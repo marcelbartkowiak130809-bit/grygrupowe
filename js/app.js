@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261117-10";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261122-4";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261122-5";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import {newSoloRun, soloGameEvent} from './soloSiteStats.js?v=20261119-10';
 import { Effects } from "./effects.js";
@@ -14,7 +14,7 @@ import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261121-14";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261121-20";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261122-4";
+import { gamesList, getGameMode } from "./games.js?v=20261122-5";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261121-14";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261121-14";
@@ -30,6 +30,8 @@ import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from 
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20261121-8";
 import { applyPriceGuessAction, createPriceGuessGame, priceGuessMode, priceGuessSettings } from "./priceGuess.js?v=20261122-4";
 import { stopPriceGuessTimer } from "./priceGuessView.js?v=20261122-4";
+import { applyCountryGuessAction, countryGuessMode, countryGuessSettings, createCountryGuessGame } from "./countryGuess.js?v=20261122-5";
+import { stopCountryGuessTimer } from "./countryGuessView.js?v=20261122-5";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-8";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-8";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-8";
@@ -70,7 +72,7 @@ import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-20";
 import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261121-20";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-20";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261122-4";
+import { playerMini, renderRoom } from "./room.js?v=20261122-5";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261121-8";
@@ -78,7 +80,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261121-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261121-14";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261122-4";
+import { scheduleBot } from "./botController.js?v=20261122-5";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -997,6 +999,7 @@ const additionalModeRewardConfig = Object.freeze({
   "board-szachy": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   [chartForecastMode]: { point:.45, scoreCap:100, winner:18, xp:45 },
   [priceGuessMode]: {point:5,scoreCap:12,winner:20,xp:35},
+  [countryGuessMode]: {point:5,scoreCap:12,winner:20,xp:35},
   "board-cztery": { participation:50, point:12, scoreCap:8, winner:70, xp:60 },
   "board-memory": { participation:45, point:10, scoreCap:8, winner:65, xp:55 },
   "board-domino": { participation:45, point:9, scoreCap:10, winner:65, xp:55 },
@@ -1055,7 +1058,7 @@ function additionalModeReward(room, uid, config, scores, winners) {
 function settleAdditionalModeResult(room) {
   const config = additionalModeRewardConfig[room?.gameMode];
   if (!room?.game || !config || !["result", "gameSummary"].includes(room.game.phase) || !room.game.finished || room.game.rewarded) return;
-  if([chartForecastMode,priceGuessMode].includes(room.gameMode) && room.hostUid!==state.currentUser) return;
+  if([chartForecastMode,priceGuessMode,countryGuessMode].includes(room.gameMode) && room.hostUid!==state.currentUser) return;
   if (room.gameMode?.startsWith("minecraft-") && Array.isArray(room.game.usedQuestionIds)) {
     room.settings = {
       ...(room.settings || {}),
@@ -2644,6 +2647,13 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   setModeSetting(key,value){
     const room=activeRoom();
     if(!room||room.hostUid!==state.currentUser)return;
+    if (room.gameMode===countryGuessMode && ["rounds","flagSeconds"].includes(key)) {
+      if (room.status!=="lobby") return;
+      room.settings={...room.settings,...countryGuessSettings({...room.settings,[key]:value})};
+      touchRoom(room);
+      render();
+      return;
+    }
     if (room.gameMode===priceGuessMode && ["rounds","priceSeconds","priceCategories"].includes(key)) {
       if (room.status!=="lobby") return;
       const settings={...room.settings,[key]:value};
@@ -2696,6 +2706,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
      room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === chartForecastMode ? createChartForecastGame(room.players, room.settings, serverNow()): mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === priceGuessMode) room.game = createPriceGuessGame(room.players,room.settings,serverNow());
+    if (mode.id === countryGuessMode) room.game = createCountryGuessGame(room.players,room.settings,serverNow());
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
     if(fee){room.game.entryFee=fee;room.game.betPot=fee*room.players.length;room.pendingEntryFees=Object.fromEntries(room.players.map(uid=>[uid,fee]));}
@@ -2836,6 +2847,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   bombTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="bomba")return;return mutateRoomGame((game,current)=>BombEngine.timeout(game,expected.activeUid,current.players,current.settings,expected),{sound:"roundEnd",after:settleBombResult});},
   bombNextRound(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>BombEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   closestTruthAnswer(value){return mutateRoomGame((game,room)=>ClosestTruthEngine.answer(game,state.currentUser,value,room.players,room.settings),{sound:"submit",after:settleClosestTruthResult});},
+  countryGuessAction(kind,value,expected) {
+    return mutateRoomGame((game,room)=>{
+      if (room.gameMode!==countryGuessMode || game.phase!==expected.phase || game.round!==expected.round) return "Ta runda już się zmieniła.";
+      return applyCountryGuessAction(game,state.currentUser,kind,value,room.players,serverNow());
+    },{quietRejected:kind==="tick",sound:kind==="guess"?"submit":undefined});
+  },
   priceGuessAction(kind,value,expected) {
     return mutateRoomGame((game,room)=>{
       if (room.gameMode!==priceGuessMode || game.phase!==expected.phase || game.round!==expected.round) return "Ta runda już się zmieniła.";
@@ -3525,6 +3542,7 @@ function renderNow(options = {}) {
   const preserveChartForecast = softRender && chartForecast && oldView?.querySelector("[data-chart-forecast]");
   stopChartForecastTimer();
   stopPriceGuessTimer();
+  stopCountryGuessTimer();
   if (!chartForecast) stopChartForecastView();
   const chess = screen === "game" && markerRoom?.gameMode === "board-szachy";
   const preserveChess = softRender && chess && oldView?.querySelector("[data-chess-game]");
@@ -3545,7 +3563,8 @@ function renderNow(options = {}) {
   const preserveAuctionBattle = softRender && auctionBattlePhases.includes(auction?.phase) && oldView?.querySelector("[data-auction-battle]");
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
   const preservePriceGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===priceGuessMode && oldView?.querySelector("[data-price-game]");
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess ? oldView : document.createElement("div");
+  const preserveCountryGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===countryGuessMode && oldView?.querySelector("[data-country-game]");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);

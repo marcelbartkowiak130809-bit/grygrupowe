@@ -11,6 +11,7 @@ import { PoisonCandyEngine } from "./poisonCandy.js?v=20261121-9";
 import { BombEngine, bombCategories } from "./bomb.js?v=20261121-8";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
 import { applyPriceGuessAction, currentPriceGuessItem, priceGuessBotAnswer, priceGuessHasAnswer, priceGuessMode } from "./priceGuess.js?v=20261122-4";
+import { applyCountryGuessAction, countryGuessMode, currentCountry } from "./countryGuess.js?v=20261122-5";
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
@@ -131,6 +132,7 @@ export function botActor(room) {
   if (room.gameMode === "pokemon-types" && game.phase === "choose") return bots.find(uid => isMissing(game.selectedTypes, uid)) || "";
   if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
   if (room.gameMode === priceGuessMode && game.phase === "price-guess") return bots.find(uid=>!priceGuessHasAnswer(game,uid)) || "";
+  if (room.gameMode === countryGuessMode && game.phase === "country-guess") return bots.find(uid=>!game.botPasses?.[uid]) || "";
   if (room.gameMode === "pokemon-auction") {
     if (game.phase === "auction-prep") return bots.find(uid => battleTeam(game, uid).length && !game.battle.prep?.[uid]?.ready) || "";
     if (game.battle?.duel) return bots.find(uid=>auctionDuelNeedsBot(game,uid)) || "";
@@ -575,6 +577,14 @@ export function botMutation(room) {
       case "najblizej-prawdy":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => ClosestTruthEngine.answer(g, bot, correct() ? numberAnswer(g) : numberAnswer(g) + 17, players, settings);
         break;
+      case countryGuessMode:
+        if (bot && game.phase==="country-guess" && currentCountry(game) && serverNow()<game.phaseEndsAt) {
+          return g=>{
+            if (correct()) return applyCountryGuessAction(g,bot,"guess",currentCountry(g).name,players,serverNow());
+            (g.botPasses ||= {})[bot] = true;
+          };
+        }
+        break;
       case priceGuessMode:
         if (game.phase==="price-guess" && !priceGuessHasAnswer(game,bot) && currentPriceGuessItem(game)) {
           const guess=priceGuessBotAnswer(game,botDifficulty(room,bot).id);
@@ -797,9 +807,9 @@ export function scheduleBot(room, { mutate, onDone }) {
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
-  const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw"].includes(room.gameMode) ? serverNow() : Date.now());
+  const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? serverNow() : Date.now());
   const baseDelay = botDelay(room, "answer", actor);
-  const think = room.gameMode === "pokemon-type-draw" ? Math.max(2500,baseDelay) : baseDelay;
+  const think = ["pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? Math.max(2500,baseDelay) : baseDelay;
   const delay = expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {

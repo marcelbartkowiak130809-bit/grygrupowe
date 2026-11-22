@@ -10,6 +10,8 @@ import { bombDefaults, renderBombGame } from "./bomb.js?v=20261121-8";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20261121-8";
 import { priceGuessMode, priceGuessDefaults } from "./priceGuess.js?v=20261122-4";
 import { renderPriceGuessGame } from "./priceGuessView.js?v=20261122-4";
+import { countryGuessDefaults, countryGuessMode } from "./countryGuess.js?v=20261122-5";
+import { renderCountryGuessGame } from "./countryGuessView.js?v=20261122-5";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-8";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
@@ -217,6 +219,14 @@ export const gamesRegistry = {
     players:"2–8 osób",minPlayers:2,maxPlayers:8,allowReports:true,
     supportsLobby:true,supportsSolo:false,symbol:"🏷️",art:"price-guess",audience:"knowledge",badges:["new"],
     render:renderPriceGuessGame,defaultSettings:priceGuessDefaults,
+  },
+  [countryGuessMode]: {
+    id:countryGuessMode,name:"Guess the Country",
+    description:"Zgadnij kraj po fladze. Pierwsza poprawna odpowiedź zdobywa punkt.",
+    help:["Wpisz nazwę kraju po polsku lub angielsku.","Jeśli nie trafisz, próbuj dalej do końca rundy.","Wygrywa osoba z największą liczbą odgadniętych flag."],
+    players:"2–8 osób",minPlayers:2,maxPlayers:8,allowReports:true,
+    supportsLobby:true,supportsSolo:false,symbol:"🌍",art:"country-guess",audience:"knowledge",badges:["new"],
+    render:renderCountryGuessGame,defaultSettings:countryGuessDefaults,
   },
   "najblizej-prawdy": {
     id: "najblizej-prawdy",
