@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createPokemonGame } from "../js/pokemon.js";
 import { advancedMove, auctionBattleDamage, auctionBattlePrep, auctionBattleTimeout, auctionBattlePokemon, battleTeam, prepareAuctionBattle } from "../js/pokemonAuctionBattle.js";
-import { activeBattleSlot, activeBattleUnit, auctionDuelAction, auctionDuelBot } from "../js/pokemonAuctionDuel.js";
+import { activeBattleSlot, activeBattleUnit, auctionDuelAction, auctionDuelBot, auctionDuelImpactAt } from "../js/pokemonAuctionDuel.js";
 import { auctionCommandContext, auctionCommandDigest } from "../js/pokemonAuctionCommitments.js";
 
 const players = ["a","b"];
@@ -41,6 +41,8 @@ test("both choices lock before reveal, and a faster attack is blocked by Protect
   assert.deepEqual(game.battle.events.map(entry=>entry.uid),["b","a"]);
   assert.equal(game.battle.events[0].name,"Protect");
   assert.equal(game.battle.events[1].blocked,true);
+  assert.equal(game.battle.events[1].playAt-game.battle.events[0].playAt,1000);
+  assert.ok(game.phaseEndsAt>auctionDuelImpactAt(game.battle.events[1]));
   assert.equal(d.unit("b").hp,d.unit("b").maxHp);
   assert.equal(d.unit("b").usedPP["182"],1);
   const context = auctionCommandContext({roomId:"room",game},"a");
@@ -48,6 +50,20 @@ test("both choices lock before reveal, and a faster attack is blocked by Protect
   d.tick();
   assert.equal(game.phase,"auction-command");
   assert.equal(d.unit("b").protect,undefined);
+});
+
+test("equal-priority attacks follow effective speed and preserve HP before each impact",()=>{
+  const d = duel([25],[4]);
+  d.start();
+  d.unit("a").condition = "paralysis";
+  const startHp = d.unit("a").hp;
+  d.play(move("basic"),move("basic"));
+  const attacks = d.game.battle.events.filter(entry=>entry.targetUid);
+  const [first,second] = attacks;
+  assert.deepEqual(attacks.map(entry=>entry.uid),["b","a"]);
+  assert.equal(first.targetHpBefore,startHp);
+  assert.equal(second.attackerHpBefore,startHp-first.damage);
+  assert.equal(auctionDuelImpactAt(second)-auctionDuelImpactAt(first),1000);
 });
 
 test("switches precede attacks and Regenerator or Natural Cure apply on leaving",()=>{

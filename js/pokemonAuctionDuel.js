@@ -1,10 +1,13 @@
-import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-2";
+import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-3";
 import { auctionAbility, auctionBattleSpeed, auctionDuelEnter, auctionDuelLeave, auctionDuelPriority, auctionDuelResidual, duelRoll } from "./pokemonAuctionAbilities.js?v=20261123-1";
 
 const commandMs = 20000;
 const revealMs = 5000;
 const switchMs = 15000;
 const hitMs = 1300;
+const actionSpacingMs = 1000;
+const impactMs = 210;
+export const auctionDuelImpactAt = entry => entry.playAt ? entry.playAt + (entry.targetUid ? impactMs : 0) : 0;
 export const activeBattleSlot = (game,uid) => game.battle.activeSlots?.[uid];
 export const activeBattleUnit = (game,uid) => battleTeam(game,uid)[activeBattleSlot(game,uid)];
 const units = (game,players) => battleSurvivors(game,players).filter(uid => activeBattleUnit(game,uid)?.hp);
@@ -135,7 +138,7 @@ function revealPhase(game,players,now) {
   if (units(game,players).every(uid=>game.battle.commits?.[uid] === "bot")) resolveRound(game,players,now);
 }
 
-function executeMove(game,uid,order,players) {
+function executeMove(game,uid,order,players,playAt) {
   const attacker = activeBattleUnit(game,uid);
   const targetUid = targetFor(game,uid,players,order.target);
   const target = activeBattleUnit(game,targetUid);
@@ -144,10 +147,11 @@ function executeMove(game,uid,order,players) {
   const playable = order.move === "struggle" || auctionDuelMoveAvailable(attacker,order.move);
   const move = advancedMove(attacker,order.move);
   if (!playable) {
-    event(game,uid,{name:move.name,skipped:true,abilityEvents:["Cursed Body"]});
+    event(game,uid,{name:move.name,playAt,skipped:true,abilityEvents:["Cursed Body"]});
     return;
   }
   battle.activeUid = uid;
+  const attackerHpBefore = attacker.hp, targetHpBefore = target.hp;
   const hit = advancedAttack(attacker,target,order.move,battle,false,targetUid);
   const cryId = attacker.id;
   if (!hit.skipped && order.move !== "struggle") {
@@ -162,20 +166,25 @@ function executeMove(game,uid,order,players) {
   } else if (hit.copies && move.name === "Sketch" && move.name !== advancedMove(target,"signature").name) {
     attacker.copiedSignature = advancedMoveSignature(target);
   }
-  event(game,uid,{...hit,cryId,targetUid,targetSlot:activeBattleSlot(game,targetUid),knockedOut:!target.hp,attackerOut:!attacker.hp});
+  event(game,uid,{...hit,cryId,playAt,attackerHpBefore,targetHpBefore,targetUid,
+    targetSlot:activeBattleSlot(game,targetUid),knockedOut:!target.hp,attackerOut:!attacker.hp});
   if (hit.pivot && attacker.hp && reserves(game,uid).length) return true;
 }
 
 function finishRound(game,players,now) {
   const battle = game.battle;
+  const playAt = Math.max(now,battle.nextActionAt || 0);
   const active = units(game,players);
   const opponents = Object.fromEntries(active.map(uid => [uid, activeBattleUnit(game,targetFor(game,uid,players))]));
   for (const uid of active) {
     const unit = activeBattleUnit(game,uid);
     const rival = opponents[uid] || players.map(id=>activeBattleUnit(game,id)).find(candidate=>candidate && candidate !== unit);
     if (!rival) continue;
+    const attackerHpBefore = unit.hp;
     const abilityEvents = auctionDuelResidual(unit,rival,battle,auctionBattlePokemon);
-    if (abilityEvents.length || !unit.hp) event(game,uid,{name:!unit.hp ? "Nokaut" : "Koniec tury",abilityEvents});
+    if (abilityEvents.length || !unit.hp || unit.hp !== attackerHpBefore) {
+      event(game,uid,{name:!unit.hp ? "Nokaut" : "Koniec tury",abilityEvents,attackerHpBefore,playAt});
+    }
   }
   const source = {harshSun:"desolate-land",heavyRain:"primordial-sea",winds:"delta-stream"}[battle.weather?.kind];
   if (source && !units(game,players).some(uid=>auctionAbility(activeBattleUnit(game,uid)) === source)) delete battle.weather;
@@ -183,14 +192,19 @@ function finishRound(game,players,now) {
   delete battle.pivotUid;
   delete battle.activeUid;
   battle.last = [...(battle.events || [])].reverse().find(entry=>entry.damage) || battle.events?.at(-1) || {name:"Koniec tury"};
-  phase(game,"auction-hit",now,hitMs);
+  delete battle.nextActionAt;
+  phase(game,"auction-hit",now,Math.max(hitMs,playAt-now+400));
 }
 
 function executeRemaining(game,players,now) {
   const battle = game.battle;
   while (battle.pending?.length) {
     const {uid,order} = battle.pending.shift();
-    if (executeMove(game,uid,order,players)) {
+    const playAt = Math.max(now,battle.nextActionAt || 0);
+    const count = battle.events.length;
+    const pivot = executeMove(game,uid,order,players,playAt);
+    if (battle.events.length > count) battle.nextActionAt = playAt + actionSpacingMs;
+    if (pivot) {
       battle.pivotUid = uid;
       return phase(game,"auction-pivot",now,switchMs);
     }
@@ -217,6 +231,7 @@ function resolveRound(game,players,now) {
   }
   const attackers = active.filter(uid=>orders[uid].kind === "move");
   [...attackers].sort(compareSpeed).forEach(uid=>{ if (orders[uid].mega) megaEvolve(game,uid,players); });
+  battle.nextActionAt = now + (battle.events.some(entry=>entry.toId) ? 650 : 250);
   const priority = uid => {
     const unit = activeBattleUnit(game,uid);
     return auctionDuelPriority(unit,advancedMove(unit,orders[uid].move));
