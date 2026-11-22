@@ -9,10 +9,12 @@ import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuct
 import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-2";
 
 const views = new WeakMap();
+const spriteLoads = new Map();
+const evolutionBySprite = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
 const formClass = kind => kind && kind !== "evolve" ? `is-${kind}` : "";
 const nickname = (accounts, uid) => escapeHtml(accounts[uid]?.nick || "Gracz");
-const sprite = pokemon => `<img class="battle-sprite" src="${pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
+const sprite = pokemon => `<img class="battle-sprite" data-battle-species="${pokemon.id}" src="${pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
 const chips = types => types.map(type =>
   `<img class="battle-type" src="/assets/pokemon/types/${type}.svg" alt="${type}" title="${type}">`
 ).join("");
@@ -277,27 +279,80 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
   </section>`;
 }
 
-function animateEvolution(root, event) {
-  if (!motionEnabled()) return;
+function decodedSprite(pokemon) {
+  if (!pokemon) return Promise.resolve(null);
+  if (spriteLoads.has(pokemon.id)) return spriteLoads.get(pokemon.id);
+  const image = new Image();
+  image.src=pokemon.sprite;
+  const ready = (async ()=>{
+    try {
+      await image.decode();
+    } catch {
+      if (!pokemon.spriteFallback || pokemon.spriteFallback === pokemon.sprite) return null;
+      image.src=pokemon.spriteFallback;
+      await image.decode();
+    }
+    return image;
+  })().catch(()=>null);
+  spriteLoads.set(pokemon.id,ready);
+  if (spriteLoads.size>24) spriteLoads.delete(spriteLoads.keys().next().value);
+  void ready.then(result=>{
+    if (result?.src!==pokemon.sprite && spriteLoads.get(pokemon.id)===ready) spriteLoads.delete(pokemon.id);
+  });
+  return ready;
+}
+
+async function animateEvolution(root, event) {
   const card = event.uid ? battleCard(root,event.uid,event.slot) : root.querySelector(`[data-battle-prep-slot="${event.slot}"]`);
   const art = card?.querySelector(".battle-unit-art");
   const evolved = art?.querySelector(".battle-sprite");
-  if (!evolved?.animate) return;
-  const pokemon = auctionBattlePokemon(event.fromId);
-  art.querySelector(".battle-evolution-old")?.remove();
-  art.querySelector(".battle-evolution-flash")?.remove();
-  const former = root.ownerDocument.createElement("img");
-  former.className="battle-sprite battle-evolution-old";
-  former.src=pokemon.sprite;
-  former.alt="";
+  if (!evolved || Number(evolved.dataset.battleSpecies)!==event.toId) return;
+  evolutionBySprite.get(evolved)?.cancel();
+  const animations = [];
+  let former;
   const flash=root.ownerDocument.createElement("span");
+  const cancel = () => {
+    evolved.style.removeProperty("visibility");
+    animations.forEach(animation=>animation.cancel());
+    former?.remove();
+    flash.remove();
+    evolutionBySprite.delete(evolved);
+  };
+  const current = () => root.isConnected && root.contains(evolved) && evolutionBySprite.get(evolved)?.cancel===cancel &&
+    Number(evolved.dataset.battleSpecies)===event.toId;
+  evolutionBySprite.set(evolved,{id:event.toId,cancel});
+  evolved.style.visibility="hidden";
+  const target = decodedSprite(auctionBattlePokemon(event.toId));
+  const before = await decodedSprite(auctionBattlePokemon(event.fromId));
+  if (!current()) return;
+  if (before) {
+    const outgoing=before.cloneNode();
+    if (await outgoing.decode().then(()=>true,()=>false)) {
+      if (!current()) return;
+      former=outgoing;
+      former.className="battle-sprite battle-evolution-old";
+      former.alt="";
+      art.append(former);
+    }
+  }
+  if (!current()) return;
+  const after = await target;
+  if (!current()) return;
+  const display = after || before;
+  if (display && evolved.src!==display.src) evolved.src=display.src;
+  const decoded = display && await evolved.decode().then(()=>true,()=>false);
+  if (!current()) return;
+  if (!decoded || !former || !evolved.animate || !motionEnabled()) return cancel();
+
+  evolved.style.removeProperty("visibility");
   const effect = formClass(event.kind || (event.mega ? "mega" : ""));
   flash.className=`battle-evolution-flash ${effect}`;
-  art.append(former,flash);
+  art.append(flash);
   const duration=event.uid?650:effect?1450:1050;
-  former.animate([{opacity:1},{opacity:1,filter:"brightness(0) invert(1)",offset:.28},{opacity:0,scale:1.2,offset:.58},{opacity:0}],{duration,fill:"forwards"});
-  evolved.animate([{opacity:0},{opacity:0,offset:.42},{opacity:1,scale:1.19,offset:.7},{opacity:1,scale:1}],{duration});
-  flash.animate([{opacity:0,scale:.4},{opacity:1,scale:1,offset:.48},{opacity:0,scale:2.1}],{duration}).onfinish=()=>{former.remove();flash.remove();};
+  animations.push(former.animate([{opacity:1},{opacity:1,filter:"brightness(1.9) saturate(.6)",offset:.28},{opacity:0,scale:1.2,offset:.68},{opacity:0}],{duration,fill:"forwards"}),
+    evolved.animate([{opacity:0},{opacity:0,offset:.36},{opacity:1,scale:1.19,offset:.66},{opacity:1,scale:1}],{duration}),
+    flash.animate([{opacity:0,scale:.4},{opacity:1,scale:1,offset:.48},{opacity:0,scale:2.1}],{duration}));
+  animations.at(-1).onfinish=cancel;
 }
 
 function playDuelEffects(root,game,view) {
@@ -317,17 +372,18 @@ function playDuelEffects(root,game,view) {
   view.shownEvents = events.length;
   const actions = fresh.filter(entry=>entry.toId || entry.targetUid);
   actions.forEach((entry,index)=>{
+    if (entry.toId) {
+      void animateEvolution(root,{...entry,kind:"mega"});
+      return;
+    }
     const playAt = entry.playAt || serverNow() + index*350;
     if (entry.playAt && serverNow()-playAt > 700) return;
     window.setTimeout(()=>{
       const current = () => views.get(root) === view && root.isConnected &&
         view.commandTurn === battle.turn && Boolean(root.querySelector(".duel-stage")) && serverNow()-playAt < 850;
       if (!current()) return;
-      if (entry.toId) animateEvolution(root,{...entry,kind:"mega"});
-      else {
-        playBattleCry(entry,battleTeam(game,entry.uid)[entry.slot]?.id,current);
-        animateBattleAction(root,entry);
-      }
+      playBattleCry(entry,battleTeam(game,entry.uid)[entry.slot]?.id,current);
+      animateBattleAction(root,entry);
     },Math.max(0,playAt-serverNow()));
   });
 }
@@ -355,6 +411,11 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   }
   const profiles={...room.playerProfiles,...accounts};
   const now=serverNow();
+  if (game.phase==="auction-prep" || game.phase==="auction-command") {
+    for (const player of room.players) for (const unit of battleTeam(game,player)) {
+      if (unit.megaTarget) void decodedSprite(auctionBattlePokemon(unit.megaTarget));
+    }
+  }
   if (game.phase==="auction-prep") {
     for (const player of room.players) preloadBattleCry(battleTeam(game,player)[battleSlots(game,player)[0]]);
   } else if (game.phase==="auction-command") {
@@ -365,6 +426,10 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   const body=game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) :
     game.battle.duel ? duelMarkup(game,profiles,uid,room.players,timer,view,now) : battleMarkup(game,profiles,uid,room.players,timer,view.selection);
   patchRoomView(root,key,`<main class="page pokemon-game-page" data-auction-battle>${body}</main>`);
+  for (const image of root.querySelectorAll(".battle-sprite[data-battle-species]")) {
+    const transition = evolutionBySprite.get(image);
+    if (transition && transition.id!==Number(image.dataset.battleSpecies)) transition.cancel();
+  }
   const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt,turn:game.battle.turn};
   const paint = () => renderAuctionBattle(root,room,accounts,uid,actions,timer);
   clearTimeout(view.playbackTimer);
@@ -377,7 +442,11 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
     },Math.max(16,next-now));
   }
   root.querySelectorAll("[data-battle-upgrade]").forEach(button=>{
-    button.onclick=()=>actions.pokemonBattlePrep({kind:button.dataset.battleUpgrade,slot:Number(button.dataset.slot),target:Number(button.dataset.evolution)},expected);
+    button.onclick=()=>{
+      const target = Number(button.dataset.evolution);
+      void decodedSprite(auctionBattlePokemon(target));
+      return actions.pokemonBattlePrep({kind:button.dataset.battleUpgrade,slot:Number(button.dataset.slot),target},expected);
+    };
   });
   root.querySelectorAll("[data-battle-reorder]").forEach(button=>{
     button.onclick=()=>actions.pokemonBattlePrep({kind:"reorder",slot:Number(button.dataset.slot),direction:Number(button.dataset.battleReorder)},expected);
