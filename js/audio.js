@@ -85,6 +85,7 @@ function loadSettings() {
 let settings = loadSettings();
 let context;
 let musicGain;
+let sampleGain;
 let musicFilter;
 let musicCompressor;
 let ambientTimer;
@@ -97,6 +98,8 @@ const trackPlayback = new Map();
 let activeTrackKey = "";
 let lastHoverSoundAt = 0;
 const TRACK_PREVIEW_LIMIT_SECONDS = 30;
+const sfxSamples = new Map();
+const canPlaySample = () => started && !settings.muted && settings.sfxVolume > 0;
 
 function getContext() {
   if (!context) {
@@ -122,7 +125,27 @@ function getContext() {
 
 function updateGains() {
   if (musicGain) musicGain.gain.value = settings.muted || musicSuppressed ? 0 : settings.musicVolume;
+  if (sampleGain) sampleGain.gain.value = settings.muted ? 0 : settings.sfxVolume * .65;
   updateTrackAudioVolumes();
+}
+
+function loadSfxSample(url) {
+  if (!canPlaySample() || !url) return null;
+  const cached = sfxSamples.get(url);
+  if (cached) return cached;
+  const ctx = getContext();
+  const sample = fetch(url).then(response => {
+    if (!response.ok) throw new Error("Sound sample unavailable");
+    return response.arrayBuffer();
+  }).then(data => ctx.decodeAudioData(data)).catch(() => {
+    setTimeout(() => {
+      if (sfxSamples.get(url) === sample) sfxSamples.delete(url);
+    },15000);
+    return null;
+  });
+  sfxSamples.set(url,sample);
+  if (sfxSamples.size > 64) sfxSamples.delete(sfxSamples.keys().next().value);
+  return sample;
 }
 
 function persist() {
@@ -316,6 +339,25 @@ export const Audio = {
         scheduleAmbient();
       }
     }, { once: true });
+  },
+  preloadSfxSample(url) {
+    void loadSfxSample(url);
+  },
+  async playSfxSample(url, isCurrent) {
+    const requestedAt = performance.now();
+    const buffer = await loadSfxSample(url);
+    if (!buffer || !canPlaySample() || performance.now() - requestedAt > 850 || !isCurrent()) return;
+    const ctx = getContext();
+    if (!sampleGain) {
+      sampleGain = ctx.createGain();
+      sampleGain.connect(ctx.destination);
+      updateGains();
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(sampleGain);
+    source.onended = () => source.disconnect();
+    source.start();
   },
   play(name) {
     if (!started || settings.muted || settings.sfxVolume === 0) return;

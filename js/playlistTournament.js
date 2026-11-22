@@ -1,5 +1,5 @@
 import { escapeHtml } from './utils.js?v=20261121-8';
-import { Audio } from './audio.js?v=20261117-10';
+import { Audio } from './audio.js?v=20261123-2';
 import { tournamentMusicCatalog, tournamentCatalogForRegion } from './tournamentMusic.js?v=20261121-8';
 import { songSpotTrackLinks } from './songSpotLibrary.js?v=20261117-10';
 import { PlaylistTournamentEngine as engine, tournamentMatchKey, tournamentPair, tournamentDuration } from './playlistTournamentEngine.js?v=20261117-10';

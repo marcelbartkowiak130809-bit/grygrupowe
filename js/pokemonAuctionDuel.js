@@ -1,4 +1,4 @@
-import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-1";
+import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-2";
 import { auctionAbility, auctionBattleSpeed, auctionDuelEnter, auctionDuelLeave, auctionDuelPriority, auctionDuelResidual, duelRoll } from "./pokemonAuctionAbilities.js?v=20261123-1";
 
 const commandMs = 20000;
@@ -149,6 +149,7 @@ function executeMove(game,uid,order,players) {
   }
   battle.activeUid = uid;
   const hit = advancedAttack(attacker,target,order.move,battle,false,targetUid);
+  const cryId = attacker.id;
   if (!hit.skipped && order.move !== "struggle") {
     const pressure = ((move.power > 0 || ["status","lower"].includes(move.effect)) && auctionAbility(target) === "pressure") ? 2 : 1;
     (attacker.usedPP ||= {})[order.move] = (attacker.usedPP?.[order.move] || 0) + pressure;
@@ -161,7 +162,7 @@ function executeMove(game,uid,order,players) {
   } else if (hit.copies && move.name === "Sketch" && move.name !== advancedMove(target,"signature").name) {
     attacker.copiedSignature = advancedMoveSignature(target);
   }
-  event(game,uid,{...hit,targetUid,targetSlot:activeBattleSlot(game,targetUid),knockedOut:!target.hp,attackerOut:!attacker.hp});
+  event(game,uid,{...hit,cryId,targetUid,targetSlot:activeBattleSlot(game,targetUid),knockedOut:!target.hp,attackerOut:!attacker.hp});
   if (hit.pivot && attacker.hp && reserves(game,uid).length) return true;
 }
 

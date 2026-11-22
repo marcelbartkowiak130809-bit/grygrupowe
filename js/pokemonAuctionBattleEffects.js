@@ -1,3 +1,19 @@
+import { Audio } from "./audio.js?v=20261123-2";
+
+// PokéAPI cry IDs match the battle catalogue, including alternate and Mega forms.
+const crySource = "https://raw.githubusercontent.com/PokeAPI/cries/b3a9044bb839b5e3152aaa536c7b463a0fcf0140/cries/pokemon/latest";
+const cryUrl = id => Number.isSafeInteger(id) && id > 0 ? `${crySource}/${id}.ogg` : "";
+
+export function preloadBattleCry(unit) {
+  for (const id of [unit?.id,unit?.megaTarget]) Audio.preloadSfxSample(cryUrl(id));
+}
+
+export function playBattleCry(event, fallbackId, isCurrent) {
+  if (event?.targetUid && !event.skipped && !event.tactical) {
+    void Audio.playSfxSample(cryUrl(event.cryId ?? fallbackId),isCurrent).catch(() => {});
+  }
+}
+
 const accents = {
   normal:"#c5d1ea", fire:"#ff9657", water:"#60caff", electric:"#ffe36b", grass:"#85ec9c", ice:"#a0efff",
   fighting:"#ff846f", poison:"#f49ae9", ground:"#ebbf80", flying:"#b1c3ff", psychic:"#ff87b5", bug:"#d1ee7a",

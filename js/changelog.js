@@ -27,7 +27,7 @@ function buildChangelogEntries(now = Date.now()) {
         "Gospodarz może włączyć turową bitwę drużyn kupionych w Licytacji teamu.",
         "Podczas przygotowań ustawisz drużynę i wykonasz jedną darmową ewolucję. Za 5$ z budżetu aukcji możesz też wybrać Megaewolucję lub specjalną formę, np. Zacian Crowned Sword albo Primal Groudon.",
         "W bitwie wybierasz atakującego i cel. Statystyki, typy, ataki specjalne i pozostałe HP decydują o wyniku.",
-        "Opcja ⭐ Zaawansowane włącza zdolności Pokémonów, pogodę i statusy. Masz 2 minuty na ustawienie ruchów, zdolności i przedmiotów. Każdego przedmiotu możesz użyć raz na drużynę.",
+        "Opcja ⭐ Zaawansowane włącza zdolności Pokémonów, pogodę i statusy. Masz 2 minuty na ustawienie ruchów, zdolności i przedmiotów. Każdego przedmiotu możesz użyć raz na drużynę. Przy ataku słychać okrzyk danego Pokémona.",
         "W bitwie zaawansowanej wybierasz w ukryciu atak lub zmianę Pokémona. Możesz ustawić ruchy taktyczne, trzymać przedmioty i aktywować Megaewolucję w trakcie walki.",
         "Zgadnij cenę w kategorii Wiedza. Podaj kwotę w złotówkach i zdobądź punkt za najbliższy strzał. Po rundzie sprawdzisz źródło ceny.",
         "Guess the Country w kategorii Wiedza. Rozpoznaj kraj po fladze szybciej od pozostałych graczy.",

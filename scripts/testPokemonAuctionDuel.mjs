@@ -144,7 +144,7 @@ test("Mega Zygarde gains a special signature that hits Fairy and can equip real 
   d.play(move("signature",true),move("basic"));
   assert.equal(d.unit("a").id,10301);
   assert.equal(advancedMove(d.unit("a"),"signature").kind,"special");
-  assert.ok(d.game.battle.events.some(entry=>entry.name==="Nihil Light" && entry.damage>0));
+  assert.ok(d.game.battle.events.some(entry=>entry.name==="Nihil Light" && entry.cryId===10301 && entry.damage>0));
 });
 
 test("Focus Sash prevents a knockout once and consuming Sitrus Berry activates Unburden",()=>{

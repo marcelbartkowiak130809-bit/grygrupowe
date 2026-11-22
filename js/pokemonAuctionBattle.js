@@ -3,7 +3,7 @@ import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFact
 import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261123-1";
 import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261123-1";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
-import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-1";
+import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-2";
 
 export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
@@ -288,6 +288,7 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
   const advanced = usesAuctionAbilities(game);
   const oldHp = target.hp, oldAttackerHp = attacker.hp;
   const hit = advanced ? advancedAttack(attacker,target,move,battle,false,action.targetUid) : auctionBattleDamage(attacker,target,move);
+  const cryId = attacker.id;
   const [moveName,moveType,,moveCategory] = move === "signature" ? battleSignature(attacker) : battleMoveData[0];
   const name = hit.name || moveName;
   if (!hit.skipped || hit.disabled && move === "basic") attacker.signatureSpent = move === "signature";
@@ -309,7 +310,7 @@ export function auctionBattleAttack(game, uid, action, players, now, automated =
     battle.noDamage = target.hp >= oldHp && attacker.hp >= oldAttackerHp ? (battle.noDamage || 0) + 1 : 0;
     hit.attackerOut = attacker.hp === 0;
   }
-  battle.last = {turn:battle.turn,uid,slot:action.slot,targetUid:action.targetUid,targetSlot:action.targetSlot,
+  battle.last = {turn:battle.turn,uid,cryId,slot:action.slot,targetUid:action.targetUid,targetSlot:action.targetSlot,
     name,moveType:moveType || "normal",moveCategory,...hit,knockedOut:target.hp === 0};
   game.phase = "auction-hit";
   game.phaseEndsAt = now + hitMs;

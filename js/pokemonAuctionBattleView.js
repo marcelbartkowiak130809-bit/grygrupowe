@@ -1,11 +1,11 @@
 import { escapeHtml } from "./utils.js?v=20261121-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-1";
+import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-2";
 import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleTypes, statusNames } from "./pokemonAuctionAbilities.js?v=20261123-1";
-import { activeBattleSlot, activeBattleUnit, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-1";
+import { activeBattleSlot, activeBattleUnit, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-2";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
-import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled } from "./pokemonAuctionBattleEffects.js?v=20261122-2";
+import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-2";
 
 const views = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
@@ -282,12 +282,16 @@ function playDuelEffects(root,game,view) {
   const events = battle.events || [];
   const fresh = events.slice(view.shownEvents);
   view.shownEvents = events.length;
-  if (!motionEnabled()) return;
   const actions = fresh.filter(entry=>entry.toId || entry.targetUid);
   actions.forEach((entry,index)=>window.setTimeout(()=>{
-    if (views.get(root) !== view || view.commandTurn !== battle.turn || !root.querySelector(".duel-stage")) return;
+    const current = () => views.get(root) === view && root.isConnected &&
+      view.commandTurn === battle.turn && Boolean(root.querySelector(".duel-stage"));
+    if (!current()) return;
     if (entry.toId) animateEvolution(root,{...entry,kind:"mega"});
-    else animateBattleAction(root,entry);
+    else {
+      playBattleCry(entry,battleTeam(game,entry.uid)[entry.slot]?.id,current);
+      animateBattleAction(root,entry);
+    }
   },index*Math.min(350,700/Math.max(1,actions.length-1))));
 }
 
@@ -312,6 +316,13 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
     view.revealing = false;
   }
   const profiles={...room.playerProfiles,...accounts};
+  if (game.phase==="auction-prep") {
+    for (const player of room.players) preloadBattleCry(battleTeam(game,player)[battleSlots(game,player)[0]]);
+  } else if (game.phase==="auction-command") {
+    for (const player of room.players) preloadBattleCry(activeBattleUnit(game,player));
+  } else if (game.phase==="auction-battle") {
+    for (const unit of battleTeam(game,game.battle.activeUid)) if (unit.hp) preloadBattleCry(unit);
+  }
   const body=game.phase==="auction-prep" ? prepMarkup(game,profiles,uid,room.players,timer) :
     game.battle.duel ? duelMarkup(game,profiles,uid,room.players,timer,view) : battleMarkup(game,profiles,uid,room.players,timer,view.selection);
   patchRoomView(root,key,`<main class="page pokemon-game-page" data-auction-battle>${body}</main>`);
@@ -378,8 +389,11 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
     button.onclick=()=>actions.pokemonBattleAttack({...view.selection,move:button.dataset.battleMove},expected);
   });
   if(!game.battle.duel&&game.phase==="auction-hit"&&game.battle.last&&view.hit!==game.battle.last.turn){
-    view.hit=game.battle.last.turn;
-    animateBattleAction(root,game.battle.last);
+    const last=game.battle.last;
+    view.hit=last.turn;
+    playBattleCry(last,battleTeam(game,last.uid)[last.slot]?.id,()=>root.isConnected && views.get(root)===view &&
+      view.hit===last.turn && Boolean(root.querySelector("[data-auction-battle]")));
+    animateBattleAction(root,last);
   }
   if(game.phase==="auction-prep"&&evolution?.sequence!==view.evolution){
     view.evolution=evolution?.sequence;
