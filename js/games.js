@@ -8,8 +8,8 @@ import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.j
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20261121-9";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20261121-8";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20261121-8";
-import { priceGuessMode, priceGuessDefaults } from "./priceGuess.js?v=20261122-4";
-import { renderPriceGuessGame } from "./priceGuessView.js?v=20261122-4";
+import { priceGuessMode, priceGuessDefaults } from "./priceGuess.js?v=20261122-6";
+import { renderPriceGuessGame } from "./priceGuessView.js?v=20261122-6";
 import { countryGuessDefaults, countryGuessMode } from "./countryGuess.js?v=20261122-5";
 import { renderCountryGuessGame } from "./countryGuessView.js?v=20261122-5";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";

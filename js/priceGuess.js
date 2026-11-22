@@ -1,4 +1,4 @@
-import { priceGuessItems } from "./priceGuessData.js?v=20261122-4";
+import { priceGuessItems } from "./priceGuessData.js?v=20261122-6";
 
 export const priceGuessMode = "zgadnij-cene";
 export const priceGuessCategories = {

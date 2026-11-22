@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261122-5";
+import { getGameMode } from "./games.js?v=20261122-6";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-14";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -9,8 +9,8 @@ import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20261121-8"
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20261121-9";
 import { renderBombLobbySettings } from "./bomb.js?v=20261121-8";
 import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20261121-8";
-import { priceGuessMode } from "./priceGuess.js?v=20261122-4";
-import { renderPriceGuessLobby } from "./priceGuessView.js?v=20261122-4";
+import { priceGuessMode } from "./priceGuess.js?v=20261122-6";
+import { renderPriceGuessLobby } from "./priceGuessView.js?v=20261122-6";
 import { countryGuessMode } from "./countryGuess.js?v=20261122-5";
 import { renderCountryGuessLobby } from "./countryGuessView.js?v=20261122-5";
 import { renderRankingLobbySettings } from "./ranking.js?v=20261121-8";
