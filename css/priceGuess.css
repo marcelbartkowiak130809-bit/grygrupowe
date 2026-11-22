@@ -1,0 +1,74 @@
+.game-visual-price-guess {
+  background:radial-gradient(circle at 70% 18%,#ffdc8c80,transparent 28%),linear-gradient(145deg,#075b51,#26866a 55%,#ac7132);
+}
+.price-lobby .most-category-box { grid-column:1/-1; }
+.price-game { max-width:900px; }
+.price-panel {
+  --price-text:#f6f8f2;--price-muted:#adcbc2;--price-line:#38615c;--price-card:#152f33;--price-gold:#ffdc91;
+  display:grid;gap:14px;padding:clamp(14px,3vw,26px);border-radius:24px;border:1px solid var(--price-line);color:var(--price-text);
+  background:radial-gradient(ellipse at 12% 0,#214a40,transparent 62%),linear-gradient(145deg,#122a2d,#111d2b);
+  box-shadow:0 20px 54px #04172262;
+}
+.price-heading { display:flex;align-items:center;justify-content:space-between;gap:10px; }
+.price-heading .eyebrow,.price-product-copy .eyebrow { margin:0;color:var(--price-gold); }
+.price-countdown {
+  min-width:58px;text-align:center;border:1px solid var(--price-line);border-radius:10px;padding:5px 8px;
+  background:var(--price-card);font-weight:850;font-variant-numeric:tabular-nums;
+}
+.price-countdown[data-urgent="true"] { color:#ffb39f;border-color:#d37761; }
+.price-product { display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(12px,3vw,26px);align-items:center; }
+.price-photo {
+  display:grid;place-items:center;aspect-ratio:4/3;overflow:hidden;border-radius:17px;padding:12px;
+  background:radial-gradient(ellipse at 45% 40%,#fff 35%,#e9efeb 100%);color:#193b36;
+}
+.price-photo > * { grid-area:1/1; }
+.price-photo img { width:100%;height:100%;min-height:0;object-fit:contain; }
+.price-photo img[hidden] { display:none; }
+.price-photo-fallback { font-size:clamp(48px,12vw,92px); }
+.price-photo:has(img:not([hidden])) .price-photo-fallback { visibility:hidden; }
+.price-product-copy { min-width:0;display:grid;gap:9px; }
+.price-product-copy h1,.price-panel>h1 { margin:0;font-size:clamp(24px,4.4vw,43px);line-height:1.04;overflow-wrap:anywhere; }
+.price-product-copy p:not(.eyebrow),.price-wait { margin:0;color:var(--price-muted); }
+.price-guess-controls { display:grid;gap:12px; }
+.price-guess-form { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px; }
+.price-guess-form label { grid-column:1/-1;font-weight:800; }
+.price-guess-form>div { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;font-weight:850; }
+.price-guess-form input { width:100%;min-width:0;margin:0;font-variant-numeric:tabular-nums; }
+.price-guess-form button { min-height:44px; }
+.price-saved { margin:0;padding:8px 10px;color:var(--price-gold);font-weight:850; }
+.price-players,.price-guesses,.price-scores { display:grid;gap:5px;list-style:none;padding:0;margin:0; }
+.price-players { grid-template-columns:repeat(auto-fit,minmax(min(100%,125px),1fr)); }
+.price-players li,.price-guesses li,.price-scores li {
+  min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;
+  border:1px solid var(--price-line);border-radius:10px;background:var(--price-card);
+}
+.price-players li[data-answered="true"] small { color:var(--price-gold); }
+.price-players small { white-space:nowrap;color:var(--price-muted); }
+.price-panel .mini-player { min-width:0; }
+.price-panel .mini-player .nick { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.price-answer-reveal { display:grid;gap:3px;margin-top:5px;color:var(--price-gold);animation:priceReveal .3s ease-out both; }
+.price-answer-reveal strong { color:inherit;font-size:clamp(28px,6vw,54px);font-weight:900;line-height:1.08; }
+.price-answer-reveal a { color:var(--price-muted);font-size:.78rem;text-decoration:underline; }
+.price-guesses li { display:grid;grid-template-columns:minmax(0,1fr) auto auto;font-variant-numeric:tabular-nums; }
+.price-guesses b { color:var(--price-muted); }
+.price-guesses li.price-closest { border-color:#a28a55; }
+.price-guesses li.price-closest b,.price-scores b { color:var(--price-gold); }
+.price-scores li { background:transparent; }
+.price-panel>.primary { justify-self:start; }
+.price-game .leave-game { margin-top:10px; }
+@keyframes priceReveal { from { opacity:.25;transform:translateY(5px); } }
+.light-theme .price-panel {
+  --price-text:#16342d;--price-muted:#385953;--price-line:#a8c7b7;--price-card:#f1f8f2;--price-gold:#764708;
+  background:radial-gradient(ellipse at 15% 0,#d3eae0,transparent 72%),#fafcf9;box-shadow:0 18px 44px #13352c1c;
+}
+.light-theme .price-countdown[data-urgent="true"] { color:#862a16; }
+@media(max-width:590px) {
+  .price-panel { gap:10px;border-radius:17px; }
+  .price-product { grid-template-columns:1fr;gap:10px; }
+  .price-photo { aspect-ratio:16/9;max-height:240px; }
+  .price-product-copy { gap:5px; }
+  .price-guesses li { grid-template-columns:minmax(0,1fr) auto; }
+  .price-guesses b { grid-column:1/-1;font-size:.8rem; }
+  .price-guess-form button { padding-inline:9px; }
+}
+@media(prefers-reduced-motion:reduce) { .price-answer-reveal { animation:none; } }

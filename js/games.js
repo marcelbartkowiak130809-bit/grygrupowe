@@ -8,6 +8,8 @@ import { friendshipDefaults, renderFriendshipTestGame } from "./friendshipTest.j
 import { poisonCandyDefaults, renderPoisonCandyGame } from "./poisonCandy.js?v=20261121-9";
 import { bombDefaults, renderBombGame } from "./bomb.js?v=20261121-8";
 import { closestTruthDefaults, renderClosestTruthGame } from "./closestTruth.js?v=20261121-8";
+import { priceGuessMode, priceGuessDefaults } from "./priceGuess.js?v=20261122-4";
+import { renderPriceGuessGame } from "./priceGuessView.js?v=20261122-4";
 import { rankingDefaults, renderRankingGame } from "./ranking.js?v=20261121-8";
 import { fiveSecondsDefaults, renderFiveSecondsGame } from "./fiveSeconds.js?v=20261121-8";
 import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
@@ -207,6 +209,14 @@ export const gamesRegistry = {
     players:"2–8 osób", minPlayers:2, maxPlayers:8, allowReports:true,
     supportsLobby:true, supportsSolo:false, supportsBots:false, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
     render:renderChartForecastGame, defaultSettings:chartForecastDefaults,
+  },
+  [priceGuessMode]: {
+    id:priceGuessMode,name:"Zgadnij cenę",
+    description:"Ile kosztuje ten samochód, kubek albo zestaw LEGO? Zgaduj ceny w złotówkach.",
+    help:["Każdy podaje jeden strzał w złotówkach.","Po rundzie zobaczysz cenę referencyjną i źródło.","Punkt zdobywa każdy, kto był najbliżej ceny."],
+    players:"2–8 osób",minPlayers:2,maxPlayers:8,allowReports:true,
+    supportsLobby:true,supportsSolo:false,symbol:"🏷️",art:"price-guess",audience:"knowledge",badges:["new"],
+    render:renderPriceGuessGame,defaultSettings:priceGuessDefaults,
   },
   "najblizej-prawdy": {
     id: "najblizej-prawdy",

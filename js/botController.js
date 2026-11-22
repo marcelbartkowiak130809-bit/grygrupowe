@@ -10,6 +10,7 @@ import { FriendshipTestEngine } from "./friendshipTest.js?v=20261121-8";
 import { PoisonCandyEngine } from "./poisonCandy.js?v=20261121-9";
 import { BombEngine, bombCategories } from "./bomb.js?v=20261121-8";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
+import { applyPriceGuessAction, currentPriceGuessItem, priceGuessBotAnswer, priceGuessHasAnswer, priceGuessMode } from "./priceGuess.js?v=20261122-4";
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
@@ -129,6 +130,7 @@ export function botActor(room) {
   if (room.gameMode === "quiz" && game.phase?.endsWith("-buzz")) return bots.find(uid => !game.eliminated?.includes(uid)) || "";
   if (room.gameMode === "pokemon-types" && game.phase === "choose") return bots.find(uid => isMissing(game.selectedTypes, uid)) || "";
   if (room.gameMode === "sequence" && game.phase === "create") return bots.find(uid => !game.ready?.[uid]) || "";
+  if (room.gameMode === priceGuessMode && game.phase === "price-guess") return bots.find(uid=>!priceGuessHasAnswer(game,uid)) || "";
   if (room.gameMode === "pokemon-auction") {
     if (game.phase === "auction-prep") return bots.find(uid => battleTeam(game, uid).length && !game.battle.prep?.[uid]?.ready) || "";
     if (game.battle?.duel) return bots.find(uid=>auctionDuelNeedsBot(game,uid)) || "";
@@ -572,6 +574,12 @@ export function botMutation(room) {
         break;
       case "najblizej-prawdy":
         if (game.phase === "answering" && isMissing(game.answers, bot)) return g => ClosestTruthEngine.answer(g, bot, correct() ? numberAnswer(g) : numberAnswer(g) + 17, players, settings);
+        break;
+      case priceGuessMode:
+        if (game.phase==="price-guess" && !priceGuessHasAnswer(game,bot) && currentPriceGuessItem(game)) {
+          const guess=priceGuessBotAnswer(game,botDifficulty(room,bot).id);
+          return g=>applyPriceGuessAction(g,bot,"guess",guess,players,serverNow());
+        }
         break;
       case "ranking":
         if (game.phase === "ranking" && isMissing(game.submissions, bot)) return g => RankingEngine.submit(g, bot, orderAnswer(g), players, settings);

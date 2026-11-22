@@ -22,13 +22,14 @@ function buildChangelogEntries(now = Date.now()) {
     {
       version: "v5.14.0",
       date: "2026-11-20",
-      title: "Bitwa Pokémon po Licytacji teamu",
+      title: "Bitwa Pokémon i Zgadnij cenę",
       changes: [
         "Gospodarz może włączyć turową bitwę drużyn kupionych w Licytacji teamu.",
         "W ciągu minuty przygotowań ustawisz drużynę i wykonasz jedną darmową ewolucję. Za 5$ z budżetu aukcji możesz też wybrać Megaewolucję lub specjalną formę, np. Zacian Crowned Sword albo Primal Groudon.",
         "W bitwie wybierasz atakującego i cel. Statystyki, typy, ataki specjalne i pozostałe HP decydują o wyniku.",
         "Opcja ⭐ Zaawansowane włącza zdolności Pokémonów, pogodę i statusy. Zdolność wybierzesz podczas przygotowań.",
         "W bitwie zaawansowanej wybierasz w ukryciu atak lub zmianę Pokémona. Możesz ustawić ruchy taktyczne, trzymać przedmioty i aktywować Megaewolucję w trakcie walki.",
+        "Zgadnij cenę w kategorii Wiedza. Podaj kwotę w złotówkach i zdobądź punkt za najbliższy strzał. Po rundzie sprawdzisz źródło ceny.",
       ],
     },
     {

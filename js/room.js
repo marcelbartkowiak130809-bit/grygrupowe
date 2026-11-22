@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261122-2";
+import { getGameMode } from "./games.js?v=20261122-4";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261121-14";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -9,6 +9,8 @@ import { renderFriendshipLobbySettings } from "./friendshipTest.js?v=20261121-8"
 import { renderPoisonCandyLobbySettings } from "./poisonCandy.js?v=20261121-9";
 import { renderBombLobbySettings } from "./bomb.js?v=20261121-8";
 import { renderClosestTruthLobbySettings } from "./closestTruth.js?v=20261121-8";
+import { priceGuessMode } from "./priceGuess.js?v=20261122-4";
+import { renderPriceGuessLobby } from "./priceGuessView.js?v=20261122-4";
 import { renderRankingLobbySettings } from "./ranking.js?v=20261121-8";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20261121-8";
 import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
@@ -71,6 +73,7 @@ function settingsHtml(mode, room, isHost, actions) {
   if (mode.id === "zatruty-cukierek") return renderPoisonCandyLobbySettings(room, isHost);
   if (mode.id === "bomba") return renderBombLobbySettings(room, isHost);
   if (mode.id === "najblizej-prawdy") return renderClosestTruthLobbySettings(room, isHost);
+  if (mode.id === priceGuessMode) return renderPriceGuessLobby(room,isHost);
   if (mode.id === "ranking") return renderRankingLobbySettings(room, isHost);
   if (mode.id === "5-sekund") return renderFiveSecondsLobbySettings(room, isHost);
   if (mode.id === "zegar") return renderClockLobbySettings(room, isHost);
@@ -117,6 +120,10 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-bomb-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.bombSetting, input.type === "checkbox" ? input.checked : input.value); });
   root.querySelectorAll("[data-bomb-category]").forEach(input => { input.onchange = () => actions.setBombCategories([...root.querySelectorAll("[data-bomb-category]:checked")].map(item => item.dataset.bombCategory)); });
   root.querySelectorAll("[data-truth-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.truthSetting, input.type === "checkbox" ? input.checked : input.value); });
+  root.querySelectorAll("[data-price-setting]").forEach(input=>{ input.onchange=()=>actions.setModeSetting(input.dataset.priceSetting,Number(input.value)); });
+  root.querySelectorAll("[data-price-category]").forEach(input=>{
+    input.onchange=()=>actions.setModeSetting("priceCategories",[...root.querySelectorAll("[data-price-category]:checked")].map(item=>item.dataset.priceCategory));
+  });
   root.querySelectorAll("[data-truth-category]").forEach(input => { input.onchange = () => actions.setClosestTruthCategories([...root.querySelectorAll("[data-truth-category]:checked")].map(item => item.dataset.truthCategory)); });
   root.querySelectorAll("[data-ranking-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.rankingSetting, input.type === "checkbox" ? input.checked : input.value); });
   root.querySelectorAll("[data-ranking-category]").forEach(input => { input.onchange = () => actions.setRankingCategories([...root.querySelectorAll("[data-ranking-category]:checked")].map(item => item.dataset.rankingCategory)); });
