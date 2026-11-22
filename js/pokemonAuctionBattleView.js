@@ -6,7 +6,7 @@ import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattle
 import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleSpeed, auctionBattleTypes, auctionDuelPriority, statusNames } from "./pokemonAuctionAbilities.js?v=20261123-1";
 import { activeBattleSlot, activeBattleUnit, auctionDuelImpactAt, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-6";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
-import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-2";
+import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-7";
 
 const views = new WeakMap();
 const spriteLoads = new Map();

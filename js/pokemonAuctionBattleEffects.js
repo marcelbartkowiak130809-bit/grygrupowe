@@ -1,4 +1,4 @@
-import { Audio } from "./audio.js?v=20261123-2";
+import { Audio } from "./audio.js?v=20261123-7";
 
 // PokéAPI cry IDs match the battle catalogue, including alternate and Mega forms.
 const crySource = "https://raw.githubusercontent.com/PokeAPI/cries/b3a9044bb839b5e3152aaa536c7b463a0fcf0140/cries/pokemon/latest";

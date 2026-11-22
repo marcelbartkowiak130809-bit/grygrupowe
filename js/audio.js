@@ -125,7 +125,7 @@ function getContext() {
 
 function updateGains() {
   if (musicGain) musicGain.gain.value = settings.muted || musicSuppressed ? 0 : settings.musicVolume;
-  if (sampleGain) sampleGain.gain.value = settings.muted ? 0 : settings.sfxVolume * .65;
+  if (sampleGain) sampleGain.gain.value = settings.muted ? 0 : settings.sfxVolume * .325;
   updateTrackAudioVolumes();
 }
 
