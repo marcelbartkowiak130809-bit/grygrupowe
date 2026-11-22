@@ -27,7 +27,7 @@ test("queue contains each eligible game once, with a consistent local time acros
   });
   const seen = new Set();
   let state = weeklyUnlockSnapshot(firstUnlock - 1);
-  assert.equal(state.remaining, 19);
+  assert.equal(state.remaining, 21);
   while (state.next) {
     const { modeId, unlockAt } = state.next;
     assert.ok(!seen.has(modeId));
@@ -37,7 +37,7 @@ test("queue contains each eligible game once, with a consistent local time acros
     seen.add(modeId);
     state = weeklyUnlockSnapshot(unlockAt + hour);
   }
-  assert.equal(seen.size, 19);
+  assert.equal(seen.size, 21);
   assert.equal(state.remaining, 0);
   assert.equal(state.nextChangeAt, undefined);
   for (const id of ["pojedynek-hitow", "minecraft-mob", "minecraft-journey", "minecraft-backpack",
@@ -46,4 +46,21 @@ test("queue contains each eligible game once, with a consistent local time acros
     assert.equal(isModeLocked(id, firstUnlock - 1), false);
   }
   assert.equal(isModeLocked("pokemon-dex", firstUnlock + 365 * 24 * hour), true);
+});
+
+test("Wiedza modes open in December and move later releases back two Saturdays", () => {
+  for (const [id, iso] of [
+    ["board-memory", "2026-11-28T19:00:00Z"],
+    ["zgadnij-cene", "2026-12-05T19:00:00Z"],
+    ["guess-the-country", "2026-12-12T19:00:00Z"],
+    ["pokemon-last-letter", "2026-12-19T19:00:00Z"],
+    ["board-domino", "2026-12-26T19:00:00Z"],
+    ["pokemon-evolution", "2027-01-02T19:00:00Z"],
+  ]) {
+    const timestamp = Date.parse(iso);
+    assert.equal(weeklyModeRelease(id)?.unlockAt, timestamp);
+    assert.equal(isModeLocked(id, timestamp - 1), true);
+    assert.equal(isModeLocked(id, timestamp), false);
+    assert.equal(weeklyUnlockSnapshot(timestamp).latest.modeId, id);
+  }
 });

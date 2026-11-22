@@ -1,6 +1,6 @@
 import { identityCategories, identityCategoryNames } from "../content/kim-jestem/categories.js?v=20260822-2";
 import { $, avatarHtml, escapeHtml, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml, safeCosmeticClass } from "./utils.js?v=20261121-8";
-import { levelBadgeHtml } from "./progression.js?v=20261121-8";
+import { levelBadgeHtml } from "./progression.js?v=20261122-7";
 import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { hasGamePass } from "./gamePasses.js?v=20261121-9";

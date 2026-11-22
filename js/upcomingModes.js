@@ -1,4 +1,4 @@
-import { weeklyModeRelease } from "./weeklyUnlocks.js?v=20261121-7";
+import { weeklyModeRelease } from "./weeklyUnlocks.js?v=20261122-7";
 
 // Główne tryby mają własną, niezależną kolejkę premier.
 export const MODE_UNLOCKS_ENABLED = true;

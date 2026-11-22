@@ -13,6 +13,8 @@ const warsawHour = new Intl.DateTimeFormat("en-GB", {
 const releaseOrder = [
   "minecraft-redstone",
   "board-memory",
+  "zgadnij-cene",
+  "guess-the-country",
   "pokemon-last-letter",
   "board-domino",
   "pokemon-evolution",
