@@ -361,9 +361,23 @@ export function startRoomPresence(roomId, userId) {
   if (!canUseRemote() || !roomId || !userId) return () => {};
   const clientId = clientPresenceId();
   const presenceRef = firebaseDatabaseApi.ref(remoteDatabase, `rooms/${roomId}/presence/${userId}/${clientId}`);
-  const touch = () => firebaseDatabaseApi.set(presenceRef, { seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now(), online:true }).catch(() => {});
-  let stopped = false, timer = null;
-  const stop = () => { stopped = true; if (timer) clearInterval(timer); firebaseDatabaseApi.remove(presenceRef).catch(() => {}); };
+  const transactionOptions = {applyLocally:false};
+  let stopped = false, writing = false, timer;
+  // Gra zapisuje /rooms/{id} transakcją. Bezpośrednie set/remove na
+  // podścieżce obecności przerywały oczekującą transakcję tej samej karty.
+  const touch = () => {
+    if (stopped || writing) return;
+    writing = true;
+    void firebaseDatabaseApi.runTransaction(presenceRef, () => stopped ? undefined : {
+      seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now(), online:true,
+    }, transactionOptions).catch(() => {}).finally(() => { writing = false; });
+  };
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    clearInterval(timer);
+    void firebaseDatabaseApi.runTransaction(presenceRef, () => null, transactionOptions).catch(() => {});
+  };
   // Rejestruj obecność od razu. Sprawdzanie /players przed pierwszym heartbeatem
   // powodowało wyścig przy dołączaniu: drugi klient był już na liście graczy,
   // ale nie zdążył jeszcze pojawić się w obecności i pokój zamykał się błędnie.
@@ -372,7 +386,7 @@ export function startRoomPresence(roomId, userId) {
   // lobby, a po krótkim odświeżeniu nadal działa bezpieczny okres tolerancji.
   Promise.resolve(firebaseDatabaseApi.onDisconnect?.(presenceRef)?.set?.({ seenAt:firebaseDatabaseApi.serverTimestamp?.() || Date.now(), online:false })).catch(() => {});
   touch();
-  timer = setInterval(() => { if (!stopped) touch(); }, 10000);
+  timer = setInterval(touch, 10000);
   return stop;
 }
 
@@ -1154,9 +1168,9 @@ export async function loadRemoteRoom(roomId) {
 
 export async function mutateRemoteRoomGame(roomId, mutate) {
   if (!canUseRemote() || !roomId) return null;
-  let mutationError="";
-  try {
+  const write = async () => {
     const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
+    let mutationError="";
     const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
       if(!current?.gameState){mutationError="Stan gry nie jest dostępny.";return;}
       const game=normalizeFirebaseValue(JSON.parse(JSON.stringify(current.gameState)));
@@ -1173,7 +1187,18 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
     if(!result.committed||mutationError)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
     const value=result.snapshot.val();
     return value?{ok:true,room:normalizeRemoteRoom(value)}:{ok:false,error:"Pokój już nie istnieje."};
+  };
+  try {
+    try {
+      return await write();
+    } catch (error) {
+      if (error?.message !== "set") throw error;
+      // SDK może też wycofać zapis przy rozłączeniu karty. Uruchom
+      // ponownie z kontrolą aktualnej rundy, aby nie powielać ofert.
+      return await write();
+    }
   } catch(error) {
+    if (error?.message === "set") return {ok:false,error:"Synchronizacja przerwała akcję. Spróbuj ponownie."};
     return {ok:false,error:error?.code||error?.message||"Nie udało się zsynchronizować akcji."};
   }
 }

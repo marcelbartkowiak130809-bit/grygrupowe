@@ -1,8 +1,8 @@
-import { gamesList } from "./games.js?v=20261123-4";
+import { gamesList } from "./games.js?v=20261123-5";
 import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
 import { homeMusicFeatureHtml, homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261122-7';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261121-14";
+import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261123-5";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261122-7";
 import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261121-20";
 import { escapeHtml, icon } from "./utils.js?v=20261121-8";

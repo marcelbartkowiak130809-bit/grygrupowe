@@ -2,7 +2,7 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20261121-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20261121-14";
+import { ImpostorEngine } from "./impostor.js?v=20261123-5";
 import { IdentityEngine, identityBotResponse, identityBotTurn } from "./identity.js?v=20261121-11";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20261121-8";
 import { MostLikelyEngine } from "./mostLikely.js?v=20261121-8";
@@ -15,7 +15,7 @@ import { applyCountryGuessAction, countryGuessMode, currentCountry } from "./cou
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
-import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261123-4";
+import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261123-5";
 import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261123-3";
 import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261123-3";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
@@ -36,10 +36,10 @@ import { MusicDuelEngine, MusicArenaEngine } from "./music.js?v=20261123-2";
 import { LyricsEngine } from "./lyrics.js?v=20261123-2";
 import { PopularityEngine } from "./popularity.js?v=20261123-2";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261121-8";
-import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261121-14";
+import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261123-5";
 import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261121-8";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261121-12";
-import { serverNow } from "./firebase.js?v=20261121-14";
+import { serverNow } from "./firebase.js?v=20261123-5";
 import { gameMomentKey } from "./roomLifecycle.js";
 import { hangmanBotLetter, numberMysteryBotAction, randomBotChoice, sequenceBotGuess, shuffledBotChoices } from "./botDeduction.js?v=20261121-8";
 
