@@ -616,7 +616,8 @@ const auctionSections = [".auction-scout", ".auction-header", ".auction-wallet",
 const auctionSectionMarkup = new WeakMap();
 const loadingAuctionSprites = new WeakSet();
 const auctionPreloads = new WeakMap();
-const auctionShinyChime = new URL("../assets/pokemon/auction-shiny.wav",import.meta.url).href;
+// Existing Pokémon Legends: Arceus clip, served by the soundboard's audio CDN.
+const auctionShinyChime = "https://media.soundfactory.ai/media/2026/05/legends-arceus-shiny-noise.mp3";
 const shinyStars = [[14,39,-12,-5,0],[29,17,-4,-12,65],[68,17,6,-12,100],[88,39,13,-4,30],[81,70,10,8,145],[23,71,-9,7,175]];
 
 function revealAuctionShiny(image, isCurrent) {
