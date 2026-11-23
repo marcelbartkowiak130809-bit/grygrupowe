@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261123-13";
+import { getGameMode } from "./games.js?v=20261123-14";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261123-8";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -19,7 +19,7 @@ import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
 import { renderPokemonLobbySettings } from "./pokemon.js?v=20261123-13";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
 import { chartForecastMode } from "./chartForecast.js?v=20261121-20";
-import { renderChartForecastLobby } from "./chartForecastView.js?v=20261123-8";
+import { renderChartForecastLobby } from "./chartForecastView.js?v=20261123-14";
 import { renderQuizLobbySettings } from "./quiz.js?v=20261121-8";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20261121-8";
 import { renderMarkerLobbySettings } from "./marker.js?v=20261121-8";

@@ -1,4 +1,4 @@
-import { chartForecastRanking, chartForecastSettings, chartRoundOptions, chartTimeOptions, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-20";
+import { applyChartForecastAction, chartForecastDefaults, chartForecastRanking, chartForecastSettings, chartRoundOptions, chartTimeOptions, createChartForecastGame, currentForecastChart, forecastPlayers } from "./chartForecast.js?v=20261121-20";
 import { chartNumber, drawForecastSegment, forecastPointer, paintForecastChart } from "./chartForecastCanvas.js?v=20261121-17";
 import { chartForecastData } from "./chartForecastData.js?v=20261121-20";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
@@ -12,6 +12,34 @@ const accuracy = value => `${percentage.format(value || 0)}%`;
 const drafts = new WeakMap();
 const draftStorageKey = "grygrupowe_chart_forecast_draft";
 let clock, chartBinding;
+export const chartForecastSoloMode = "dorysuj-wykres-solo";
+const soloPlayer = "solo";
+const soloAccounts = {[soloPlayer]:{nick:"Twoja prognoza"}};
+let soloRoom;
+
+export function renderChartForecastSolo(root,onExit) {
+  const room = soloRoom ??= {
+    roomId:chartForecastSoloMode, hostUid:soloPlayer, players:[soloPlayer],
+    game:{...createChartForecastGame([soloPlayer],chartForecastDefaults,serverNow()), siteGameId:crypto.randomUUID()},
+  };
+  renderChartForecastGame(root,{room,accounts:soloAccounts,currentUser:soloPlayer,solo:true},{
+    chartForecastAction(action,payload,expected) {
+      const game = room.game;
+      if (!root.isConnected || room!==soloRoom || game.phase!==expected.phase || game.phaseEndsAt!==expected.phaseEndsAt) return false;
+      if (applyChartForecastAction(game,soloPlayer,action,payload,room.players,serverNow())) return false;
+      renderChartForecastSolo(root,onExit);
+      return true;
+    },
+    restartChartForecast() {
+      soloRoom = null;
+      renderChartForecastSolo(root,onExit);
+    },
+    leaveRoom() {
+      soloRoom = null;
+      onExit();
+    },
+  });
+}
 
 export function stopChartForecastTimer() { clearInterval(clock); }
 export function stopChartForecastView() {
@@ -74,12 +102,12 @@ function statLine(row,unit) {
   return `<div class="chart-stats"><strong>${accuracy(row?.accuracy)}</strong><span>${error}</span></div>`;
 }
 
-function resultPanel(game,chart,state,currentUser,accounts,row,source) {
+function resultPanel(game,chart,state,currentUser,accounts,row,source,solo) {
   const tabs=game.chartRounds.map((item,index)=>`<button type="button" class="ghost" data-chart-review="${index}" aria-pressed="${state.review===index}">${escapeHtml(catalog.get(item.chartId)?.title||"Wykres")} <b>${accuracy(item.rows?.[currentUser]?.accuracy)}</b></button>`).join("");
   const payout=game.rewardSummary?.payouts?.[currentUser];
   return `<section class="chart-final">
     <div class="chart-stats"><strong>${accuracy(game.scores[currentUser])}</strong><span>Średnia trafność ${payout!=null?`· +${payout}$`:""}</span></div>
-    ${scoresHtml(game,accounts,currentUser)}
+    ${solo?"":scoresHtml(game,accounts,currentUser)}
   </section>
   <section class="chart-review"><h2>Twoje wykresy</h2><div class="chart-review-tabs">${tabs}</div>${chartStage(chart,{caption:true})}${statLine(row,chart.unit)}${source}</section>`;
 }
@@ -201,7 +229,7 @@ function bindCanvas(canvas,paint,animate) {
   return chartBinding.repaint;
 }
 
-export function renderChartForecastGame(root,{room,accounts,currentUser},actions) {
+export function renderChartForecastGame(root,{room,accounts,currentUser,solo=false},actions) {
   stopChartForecastTimer();
   const game=room.game, players=forecastPlayers(game,room.players);
   const summary=game.phase==="result", revealing=game.phase==="chart-reveal";
@@ -228,7 +256,7 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   const winning=game.winners?.includes(currentUser);
   const ranking=summary?(game.chartRanking||chartForecastRanking(game)):[];
   const place=ranking.includes(currentUser)?1+ranking.filter(uid=>game.scores[uid]>game.scores[currentUser]).length:0;
-  const finalTitle=winning?(game.winners.length>1?"Remis":"Wygrywasz!")
+  const finalTitle=solo?"Wynik solo":winning?(game.winners.length>1?"Remis":"Wygrywasz!")
     :place?`Zajmujesz ${place}. miejsce`:"Koniec partii";
   const steps=`<div class="chart-steps" aria-label="Wykres ${game.round} z ${game.chartIds.length}">${game.chartIds.map((_,index)=>`<span class="${index<game.round?"is-past":""} ${index===game.round-1?"is-current":""}"></span>`).join("")}</div>`;
   const ready=`Gotowi · ${players.filter(uid=>Object.hasOwn(game.forecasts||{},uid)).length}/${players.length}`;
@@ -236,16 +264,17 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   const legend=`<div class="chart-legend"><span class="chart-actual-label">Rzeczywiste dane</span>${rankedLines.map(item=>`<button type="button" class="ghost" data-chart-highlight="${escapeHtml(item.uid)}" aria-pressed="${state.highlight===item.uid}" style="--series-color:${item.color}">${profile(item.uid)} · ${accuracy(roundResult.rows[item.uid].accuracy)}</button>`).join("")}</div>`;
   const source=`<a class="chart-source" href="${escapeHtml(chart.source)}" rel="noopener noreferrer" target="_blank">Dane · ${escapeHtml(chart.publisher)} ↗</a>`;
   const tools=`<div class="chart-actions"><button type="button" class="ghost" data-chart-undo>Cofnij</button><button type="button" class="primary" data-chart-submit>Gotowe</button></div>`;
-  const drawingFooter=`<div class="chart-drawing-footer"><div><span>${ready}</span>${editable?'<span data-chart-status aria-live="polite"></span>':""}</div>${editable?tools:""}</div>`;
+  const drawingFooter=`<div class="chart-drawing-footer"><div>${solo?"":`<span>${ready}</span>`}${editable?'<span data-chart-status aria-live="polite"></span>':""}</div>${editable?tools:""}</div>`;
   const revealFooter=`${legend}${statLine(row,chart.unit)}<div class="chart-actions">${source}${host?`<button type="button" class="primary" data-chart-next>${game.round===game.chartIds.length?"Pokaż wyniki":"Następny wykres"}</button>`:""}</div>`;
-  const phasePanel=summary?resultPanel(game,chart,state,currentUser,accounts,row,source)
+  const phasePanel=summary?resultPanel(game,chart,state,currentUser,accounts,row,source,solo)
     :`${chartStage(chart,{editable})}${revealing?revealFooter:drawingFooter}`;
+  const showClock=!summary && (!solo || !revealing);
   patchRoomView(root,`${matchKey}:${game.round}:${game.phase}`,`<main class="page chart-forecast-page" data-chart-forecast>
-    <header class="chart-heading"><div><p class="eyebrow">${summary?"Podsumowanie":"Dorysuj wykres"}</p><h1>${summary?finalTitle:escapeHtml(chart.title)}</h1></div>
-      ${summary?"":`<div class="chart-progress">${steps}<span>${game.round}/${game.chartIds.length}</span><time data-chart-clock></time></div>`}
+    <header class="chart-heading"><div><p class="eyebrow">${summary?"Podsumowanie":solo?"Dorysuj wykres · Solo":"Dorysuj wykres"}</p><h1>${summary?finalTitle:escapeHtml(chart.title)}</h1></div>
+      ${summary?"":`<div class="chart-progress">${steps}<span>${game.round}/${game.chartIds.length}</span>${showClock?"<time data-chart-clock></time>":""}</div>`}
     </header>
     ${phasePanel}
-    <footer class="chart-footer">${summary&&host?'<button type="button" class="ghost" data-chart-lobby>Wróć do pokoju</button>':""}<button type="button" class="ghost" data-chart-leave>Wyjdź</button></footer>
+    <footer class="chart-footer">${summary&&solo?'<button type="button" class="primary" data-chart-restart>Zagraj jeszcze raz</button>':""}${summary&&host&&!solo?'<button type="button" class="ghost" data-chart-lobby>Wróć do pokoju</button>':""}<button type="button" class="ghost" data-chart-leave>${solo?"Wróć do Wiedzy":"Wyjdź"}</button></footer>
   </main>`);
 
   const canvas=root.querySelector(".chart-canvas"), panel=root.querySelector("[data-chart-forecast]");
@@ -267,9 +296,11 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   panel.querySelector("[data-chart-leave]").onclick=()=>actions.leaveRoom();
   const lobby=panel.querySelector("[data-chart-lobby]");
   if(lobby) lobby.onclick=()=>actions.returnToRoom();
+  const restart=panel.querySelector("[data-chart-restart]");
+  if(restart) restart.onclick=actions.restartChartForecast;
   panel.querySelectorAll("[data-chart-review]").forEach(button=>button.onclick=()=>{
     state.review=Number(button.dataset.chartReview);
-    renderChartForecastGame(root,{room,accounts,currentUser},actions);
+    renderChartForecastGame(root,{room,accounts,currentUser,solo},actions);
   });
   panel.querySelectorAll("[data-chart-highlight]").forEach(button=>button.onclick=()=>{
     state.highlight=state.highlight===button.dataset.chartHighlight?"":button.dataset.chartHighlight;
@@ -278,5 +309,5 @@ export function renderChartForecastGame(root,{room,accounts,currentUser},actions
   });
   const next=panel.querySelector("[data-chart-next]");
   if(next) next.onclick=()=>actions.chartForecastAction("next",null,expected);
-  if(!summary) bindClock(panel,game,players,host,actions,expected,state,updateControls);
+  if(showClock) bindClock(panel,game,players,host,actions,expected,state,updateControls);
 }

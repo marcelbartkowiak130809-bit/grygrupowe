@@ -18,7 +18,7 @@ import { clockDefaults, renderClockGame } from "./clock.js?v=20261121-8";
 import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261123-13";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-9";
 import { chartForecastDefaults, chartForecastMode } from "./chartForecast.js?v=20261121-20";
-import { renderChartForecastGame } from "./chartForecastView.js?v=20261123-8";
+import { chartForecastSoloMode, renderChartForecastGame } from "./chartForecastView.js?v=20261123-14";
 import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261121-8";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-8";
@@ -209,8 +209,14 @@ export const gamesRegistry = {
     description:"Przewiduj dalszy ciąg prawdziwych danych i porównuj swój wykres z liniami znajomych.",
     help:["Przeciągnij od punktu startowego do końca wykresu.","Każdy fragment możesz przerysować albo cofnąć ostatnią zmianę.","Najwyższa średnia trafność ze wszystkich rund wygrywa."],
     players:"2–8 osób", minPlayers:2, maxPlayers:8, allowReports:true,
-    supportsLobby:true, supportsSolo:false, supportsBots:false, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
+    supportsLobby:true, supportsSolo:true, soloModeId:chartForecastSoloMode, supportsBots:false, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
     render:renderChartForecastGame, defaultSettings:chartForecastDefaults,
+  },
+  [chartForecastSoloMode]: {
+    id:chartForecastSoloMode, name:"Dorysuj wykres · Solo",
+    description:"Dorysuj pięć wykresów i sprawdź swoją średnią trafność.",
+    players:"Tryb solo", minPlayers:1, maxPlayers:1, supportsLobby:false, supportsSolo:true,
+    symbol:"📈", art:"chart-forecast", audience:"knowledge", hiddenFromLibrary:true,
   },
   [priceGuessMode]: {
     id:priceGuessMode,name:"Zgadnij cenę",
