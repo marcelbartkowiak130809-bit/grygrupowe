@@ -1,5 +1,5 @@
 import { $, escapeHtml, icon } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261123-9";
+import { getGameMode } from "./games.js?v=20261123-10";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { commerceCreationHtml, commerceSummaryHtml, defaultCommercePreferences, normalizeCommerceSettings, saveCommercePreferences } from "./gamePasses.js?v=20261121-9";
 import { minecraftModeIcons } from "./minecraft.js?v=20261121-12";

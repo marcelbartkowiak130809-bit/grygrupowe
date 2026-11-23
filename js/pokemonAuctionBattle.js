@@ -3,7 +3,7 @@ import { battleAlternateForms, battleSpeciesData, battleMoveData, battleTypeFact
 import { battleMoveProperties } from "./pokemonAuctionAbilityData.js?v=20261123-1";
 import { auctionAbility, auctionAbilityChoices, auctionAbilitySupported, auctionBattleSpeed, bladeAegislash, completeZygarde, noiceEiscue, resolveAuctionAbilityAttack } from "./pokemonAuctionAbilities.js?v=20261123-1";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
-import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-6";
+import { advanceAuctionDuel, auctionDuelBot, auctionDuelSurrender } from "./pokemonAuctionDuel.js?v=20261123-10";
 
 export const auctionBattleDefaults = { freeEvolutions:1, megaEnabled:true, megaPrice:5, showDamagePreview:false, advancedAbilities:false };
 export const auctionBattleLimits = { freeEvolutions:10, megaPrice:500 };
@@ -66,6 +66,7 @@ for (const [baseId,id,name,stats] of [
 
 export const auctionBattlePokemon = id => catalog.get(id);
 export const battleTeam = (game, uid) => game.battle?.teams?.[uid] || [];
+export const auctionShinySprite = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`;
 export const battleSignature = unit => unit.copiedSignature || unit.lockedSignature || catalog.get(unit.id).signature;
 export const battleSlots = (game, uid) => game.battle?.prep?.[uid]?.order || battleTeam(game, uid).map((_, slot) => slot);
 export const battleHasUnits = (game, uid) => battleTeam(game, uid).some(unit => unit.hp > 0);
@@ -81,7 +82,11 @@ const createUnit = (id,advanced,duel = advanced) => {
 };
 
 export function prepareAuctionBattle(game, players, now) {
-  const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(id => createUnit(id,usesAuctionAbilities(game)))]));
+  const teams = Object.fromEntries(players.map(uid => [uid, (game.teams?.[uid] || []).filter(id => catalog.has(id)).map(id => {
+    const unit = createUnit(id,usesAuctionAbilities(game));
+    if (game.shinyLots?.[id] === true) unit.shiny = true;
+    return unit;
+  })]));
   if (players.filter(uid => teams[uid].length).length < 2) return false;
   game.battle = {teams, prep:{}, turn:0, ...(usesAuctionAbilities(game) ? {duel:true} : {openingRoll:Math.random()})};
   game.phase = "auction-prep";
@@ -224,6 +229,7 @@ export function auctionBattlePrep(game, uid, action, players, now) {
     return;
   }
   const evolved = createUnit(action.target,usesAuctionAbilities(game),Boolean(game.battle.duel));
+  if (unit.shiny) evolved.shiny = true;
   if (unit.item) evolved.item = unit.item;
   battleTeam(game, uid)[action.slot] = evolved;
   player.evolution = {slot:action.slot, fromId:unit.id, toId:action.target, kind, sequence:(player.evolution?.sequence || 0)+1};

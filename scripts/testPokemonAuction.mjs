@@ -3,6 +3,7 @@ import test from "node:test";
 import { createPokemonGame, PokemonEngine, pokemonAuctionCanBid, repairPokemonAuctionClock } from "../js/pokemon.js";
 import { botActor } from "../js/botController.js";
 import { pokemonDex } from "../js/pokemonData.js";
+import { auctionBattlePrep, prepareAuctionBattle } from "../js/pokemonAuctionBattle.js";
 
 const mode = "pokemon-auction";
 const items = [25, 133, 149, 150];
@@ -12,6 +13,35 @@ function expire(game, players, rules = settings) {
   game.phaseEndsAt = Date.now() - 1;
   PokemonEngine.timeout(game, players[0], players, rules);
 }
+
+test("shiny rolls are saved per lot and remain cosmetic through purchase and evolution", t => {
+  const players = ["a", "b"];
+  const rolls = [0.029, 0.03, 0.5, 0.9];
+  let calls = 0;
+  t.mock.method(Math,"random",() => calls++ < items.length ? 0 : rolls.shift() ?? 0.5);
+  const game = createPokemonGame(mode,players,{...settings,generations:[1]});
+  const [bulbasaur,ivysaur] = game.items;
+  assert.equal(bulbasaur,1);
+  assert.deepEqual(game.shinyLots,{[bulbasaur]:true});
+  assert.equal(PokemonEngine.bid(game,"a",1,players),undefined);
+  assert.equal(PokemonEngine.pass(game,"b",players),undefined);
+  assert.deepEqual(game.auctionResult,{itemId:bulbasaur,winner:"a",price:1});
+  assert.equal(game.budgets.a,9);
+  expire(game,players);
+  assert.equal(PokemonEngine.bid(game,"b",1,players),undefined);
+  assert.equal(PokemonEngine.pass(game,"a",players),undefined);
+  const saved = JSON.parse(JSON.stringify(game));
+  const legacy = {...saved};
+  delete legacy.shinyLots;
+  for (const match of [saved,legacy]) {
+    assert.equal(prepareAuctionBattle(match,players,Date.now()),true);
+    assert.equal(auctionBattlePrep(match,"a",{kind:"evolve",slot:0,target:ivysaur},players,Date.now()),undefined);
+  }
+  assert.equal(saved.battle.teams.a[0].shiny,true);
+  assert.equal(saved.battle.teams.b[0].shiny,undefined);
+  const {shiny,...evolved} = saved.battle.teams.a[0];
+  assert.deepEqual(evolved,legacy.battle.teams.a[0]);
+});
 
 test("passing and expiry advance unsold lots all the way to an empty final", () => {
   const players = ["a", "b"];
@@ -35,7 +65,7 @@ test("passing and expiry advance unsold lots all the way to an empty final", () 
   assert.deepEqual(game.scores, { a: 0, b: 0 });
 });
 
-test("full-team auctions add unseen lots until both teams fill and then enter battle", () => {
+test("full-team auctions add unseen lots until both teams fill and then enter battle", t => {
   const players = ["a", "b"];
   const rules = {...settings, requireFullTeams:true, battleAfterAuction:true, generations:[1]};
   const game = createPokemonGame(mode, players, rules);
@@ -45,6 +75,7 @@ test("full-team auctions add unseen lots until both teams fill and then enter ba
   });
   assert.equal(PokemonEngine.pass(game,"a",players),undefined);
   assert.equal(PokemonEngine.pass(game,"b",players),undefined);
+  t.mock.method(Math,"random",()=>0);
   expire(game,players,rules);
   assert.equal(game.phase,"auction");
   assert.equal(game.round,5);
@@ -57,6 +88,8 @@ test("full-team auctions add unseen lots until both teams fill and then enter ba
   assert.equal(game.items.length,6);
   assert.equal(new Set(game.items).size,6);
   assert.ok(game.items.every(id=>id<=151));
+  assert.equal(game.shinyLots[game.items[4]],true);
+  assert.equal(game.shinyLots[game.items[5]],true);
   assert.deepEqual(game.auctionResult,{itemId:game.items[5],winner:"b",price:1,automatic:true});
   assert.equal(game.budgets.b,9);
   expire(game,players,rules);

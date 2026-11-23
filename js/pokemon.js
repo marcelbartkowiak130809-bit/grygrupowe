@@ -3,8 +3,8 @@ import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v
 import { hasGamePass } from "./gamePasses.js?v=20261121-9";
 import { serverNow } from "./firebase.js?v=20261123-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
-import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-6";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261123-9";
+import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, auctionShinySprite, battleSlots, battleSurrendered, battleTeam, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-10";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261123-10";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -21,6 +21,7 @@ const scoreMap = players => Object.fromEntries(players.map(uid => [uid, 0]));
 const phaseEnd = seconds => Date.now() + Math.max(3, Number(seconds) || 15) * 1000;
 const auctionBidMs = 7000;
 const auctionRevealMs = 1250;
+const auctionShinyChance = 0.03;
 const auctionEnd = () => serverNow() + auctionBidMs;
 const pokemonNow = game => ["pokemon-auction","pokemon-type-draw"].includes(game.mode) ? serverNow() : Date.now();
 const pokemon = text => { const key = clean(text); return byName.get(key) || pokemonDex.find(item => clean(item.name).startsWith(key)); };
@@ -146,11 +147,13 @@ export function createPokemonGame(mode, players, settings) {
       const other = index + Math.floor(Math.random() * (pool.length - index));
       [pool[index], pool[other]] = [pool[other], pool[index]];
     }
+    const items = pool.slice(0, count).map(item => item.id);
     const game = {
       mode, phase: "auction", round: 1, scores, teamSize, battleAfterAuction:settings.battleAfterAuction===true,
       requireFullTeams:settings.requireFullTeams===true,
       battleRules:sanitizeAuctionBattleRules(settings),
-      items: pool.slice(0, count).map(item => item.id), auctionIndex: 0,
+      items, auctionIndex: 0,
+      shinyLots: Object.fromEntries(items.filter(() => Math.random() < auctionShinyChance).map(id => [id, true])),
       budgets: Object.fromEntries(players.map(uid => [uid, budget])),
       teams: Object.fromEntries(players.map(uid => [uid, []])),
       purchases: Object.fromEntries(players.map(uid => [uid, []])),
@@ -278,6 +281,9 @@ function advanceAuction(game, players, settings) {
       return;
     }
     game.items = [...game.items, next.id];
+    if (Math.random() < auctionShinyChance) {
+      game.shinyLots = { ...game.shinyLots, [next.id]:true };
+    }
   }
   game.round = game.auctionIndex + 1;
   game.currentBid = 0;
@@ -536,7 +542,7 @@ function auctionTeamMarkup(game, accounts, currentUser) {
     const item = byId.get(team[index]);
     if (!item) return '<span class="auction-slot is-empty" aria-label="Wolne miejsce">+</span>';
     const purchase = purchases.find(entry => entry.id === item.id);
-    return `<div class="auction-slot">${sprite(item)}<b>${escapeHtml(pokemonDisplayName(item))}</b><small>${purchase ? `${Number(purchase.price)}$` : ""}</small></div>`;
+    return `<div class="auction-slot">${sprite(item,"",game.shinyLots?.[item.id])}<b>${escapeHtml(pokemonDisplayName(item))}</b><small>${purchase ? `${Number(purchase.price)}$` : ""}</small></div>`;
   });
   return `<aside class="pokemon-auction-team auction-roster"><div class="pokemon-auction-team-head">${avatarHtml(profile,"pokemon-player-avatar")}<b>Twój team · ${team.length}/${game.teamSize}</b></div><div class="auction-slots">${slots.join("")}</div></aside>`;
 }
@@ -552,7 +558,7 @@ function auctionOpponentsMarkup(game, accounts, players, currentUser) {
       const budget = Number(game.budgets?.[uid] || 0);
       return `<li class="auction-opponent">
         <div class="auction-opponent-head"><b title="${nick}">${nick}</b><strong title="Pozostały budżet">${budget}$</strong></div>
-        <div class="auction-opponent-team" aria-label="Team gracza ${nick}">${team.length ? team.map(item => `<span title="${escapeHtml(pokemonDisplayName(item))}">${sprite(item)}</span>`).join("") : "<small>Pusty team</small>"}</div>
+        <div class="auction-opponent-team" aria-label="Team gracza ${nick}">${team.length ? team.map(item => `<span title="${escapeHtml(pokemonDisplayName(item))}">${sprite(item,"",game.shinyLots?.[item.id])}</span>`).join("") : "<small>Pusty team</small>"}</div>
       </li>`;
     }).join("")}</ul>
   </section>`;
@@ -560,6 +566,7 @@ function auctionOpponentsMarkup(game, accounts, players, currentUser) {
 
 function auctionMarkup(game, accounts, currentUser, players) {
   const item = byId.get(game.items?.[game.auctionIndex]);
+  const shiny = game.shinyLots?.[item?.id] === true;
   const revealing = game.phase === "auction-reveal";
   const result = game.auctionResult;
   const leaderName = escapeHtml(accounts[game.highestBidder]?.nick || "Gracz");
@@ -578,11 +585,11 @@ function auctionMarkup(game, accounts, currentUser, players) {
     : leading ? "Czekasz na przebicie albo pas." : "Pas dotyczy tego Pokémona.";
   const winner = result?.winner;
   const outcome = winner === currentUser ? "Pokémon dołącza do twojego teamu!" : winner ? `Kupuje ${escapeHtml(accounts[winner]?.nick || "Gracz")}` : "Nikt nie kupił tego Pokémona";
-  return `<div class="pokemon-auction-layout auction-stage" data-auction-lot="${game.auctionIndex}" data-auction-item="${item?.id || 0}" data-auction-bid="${price}" data-auction-leading="${leading}">
+  return `<div class="pokemon-auction-layout auction-stage" data-auction-lot="${game.auctionIndex}" data-auction-item="${item?.id || 0}" data-auction-shiny="${shiny}" data-auction-bid="${price}" data-auction-leading="${leading}">
     <div class="auction-main">
       <header class="auction-header"><div><p class="eyebrow">POKÉMON · ${game.auctionIndex + 1}/${game.items.length}</p><h1>Licytacja teamu</h1></div>${timerMarkup(game)}</header>
       <div class="auction-wallet" aria-label="Twój portfel"><span><i class="auction-wallet-coin" aria-hidden="true">$</i> Twój portfel</span><strong>${budget}$</strong></div>
-      <div class="auction-spotlight">${item ? card(item, {showBst:revealing,auction:true}) : "<p>Brak Pokémona do licytacji.</p>"}</div>
+      <div class="auction-spotlight">${item ? card(item, {showBst:revealing,auction:true,shiny}) : "<p>Brak Pokémona do licytacji.</p>"}</div>
       <div class="auction-turn">
       ${revealing ? `<div class="auction-outcome ${winner === currentUser ? "is-mine" : ""}" role="status"><small>${result?.automatic ? "AUTOMATYCZNY ZAKUP" : winner ? "SPRZEDANO" : "BEZ OFERT"}</small><strong>${outcome}</strong>${winner ? `<span>${Number(result.price)}$</span>` : ""}</div>` : `
         <div class="auction-price ${leading ? "is-leading" : ""}" role="status"><span>${status}</span><strong>${price}$</strong></div>
@@ -605,14 +612,17 @@ function prepareAuctionSpotlight(root, game) {
   const shown = root.querySelector("[data-auction-sprite]");
   if (shown && !loadingAuctionSprites.has(shown)) {
     loadingAuctionSprites.add(shown);
-    void shown.decode().then(()=>{
-      if (root.contains(shown)) shown.dataset.auctionSpriteReady="true";
-    },()=>{});
+    const reveal = () => {
+      if (root.contains(shown) && shown.naturalWidth) shown.dataset.auctionSpriteReady="true";
+    };
+    shown.addEventListener("load",reveal,{once:true});
+    void shown.decode().then(reveal,()=>{});
   }
   const next = byId.get(game.items?.[Number(game.auctionIndex)+1]);
-  if (next && auctionPreloads.get(root)?.src!==next.spriteFallback) {
+  const src = next && auctionImageUrl(next,game.shinyLots?.[next.id]);
+  if (src && auctionPreloads.get(root)?.src!==src) {
     const image = new Image();
-    image.src=next.spriteFallback;
+    image.src=src;
     auctionPreloads.set(root,image);
     void image.decode().catch(()=>{});
   }
@@ -628,7 +638,8 @@ function updateAuctionView(root, previousAuction, html) {
   template.innerHTML = html;
   const nextAuction = template.content.querySelector("[data-auction-lot]");
   const lotChanged = previousAuction.dataset.auctionLot !== nextAuction.dataset.auctionLot ||
-    previousAuction.dataset.auctionItem !== nextAuction.dataset.auctionItem;
+    previousAuction.dataset.auctionItem !== nextAuction.dataset.auctionItem ||
+    previousAuction.dataset.auctionShiny !== nextAuction.dataset.auctionShiny;
   const previousMarkup = auctionSectionMarkup.get(previousAuction);
   const markup = auctionSections.map((selector,index) => {
     const next = template.content.querySelector(selector);
@@ -648,6 +659,7 @@ function updateAuctionView(root, previousAuction, html) {
   }
   previousAuction.dataset.auctionLot = nextAuction.dataset.auctionLot;
   previousAuction.dataset.auctionItem = nextAuction.dataset.auctionItem;
+  previousAuction.dataset.auctionShiny = nextAuction.dataset.auctionShiny;
   previousAuction.dataset.auctionBid = nextAuction.dataset.auctionBid;
   previousAuction.dataset.auctionLeading = nextAuction.dataset.auctionLeading;
 }
@@ -657,7 +669,13 @@ function auctionFinalMarkup(game, accounts) {
   const champion = winners.length > 1 ? "Remis na szczycie" : winners.length ? `${escapeHtml(accounts[winners[0]]?.nick || "Gracz")} wygrywa` : "Bez zwycięzcy";
   const rows = (game.ranking || []).map((row, index) => {
     const won = winners.includes(row.uid);
-    const team = (row.team || []).map(id => game.battle ? auctionBattlePokemon(id) : byId.get(id)).filter(Boolean).map(item => `<span>${sprite(item)}${game.battle?"":`<b>${item.bst}</b>`}</span>`);
+    const slots = game.battle ? battleSlots(game,row.uid) : [];
+    const team = (row.team || []).flatMap((id,index) => {
+      const item = game.battle ? auctionBattlePokemon(id) : byId.get(id);
+      if (!item) return [];
+      const shiny = game.battle ? battleTeam(game,row.uid)[slots[index]]?.shiny : game.shinyLots?.[id];
+      return `<span>${sprite(item,"",shiny)}${game.battle?"":`<b>${item.bst}</b>`}</span>`;
+    });
     const score = battleSurrendered(game,row.uid) ? "Poddanie" : game.battle ? `${row.remaining || 0}/${team.length} aktywnych` : `${row.bst} BST`;
     return `<article class="auction-ranking-row ${won ? "is-winner" : ""}" style="--auction-rank:${index}"><div>${resultPlayerMiniHtml(accounts[row.uid] || { nick: "Gracz" }, won ? "win" : "lose")}<strong>${score}</strong></div><div class="auction-ranking-team">${team.join("") || "<small>Pusty skład</small>"}</div></article>`;
   });
@@ -668,7 +686,8 @@ function pokemonAnswerFormMarkup(id) { return `<form class="pokemon-answer-form"
 function dexFormMarkup(answer) { const answered=Boolean(answer), value=answered ? escapeHtml(pokemonDisplayName(answer)) : ""; return `<form class="pokemon-answer-form" data-pokemon-form="answer"><div class="pokemon-autocomplete"><input id="pokemon-answer" autocomplete="off" placeholder="Nazwa Pokémona" value="${value}" ${answered ? "disabled" : ""}><div id="pokemon-suggestions" class="pokemon-suggestions"></div></div><button class="primary" type="submit" ${answered ? "disabled" : ""}>${answered ? "Wysłano" : "Odpowiedz"}</button></form>`; }
 function pokemonDisplayName(item) { return item?.name?.replace(/-normal$/, "") || ""; }
 function evolutionFormMarkup(base, answers = []) { const chain=pokemonDex.filter(item => item.evolutionChain === base?.evolutionChain), fields=chain.length >= 3 ? 2 : 1, locked=Array.isArray(answers) && answers.length > 0, anchor=`<div class="evolution-anchor" draggable="true" data-evolution-anchor>${sprite(base,"pokemon-evolution-sprite")}<span>${escapeHtml(pokemonDisplayName(base))}</span><small>Przeciągnij między odpowiedzi</small></div>`, slot=index=>`<div class="evolution-answer-slot" data-evolution-slot="${index}"><div class="tiny">${index === 0 && fields > 1 ? "Wcześniejsza ewolucja" : index === 1 ? "Późniejsza ewolucja" : "Ewolucja"}</div><div class="pokemon-autocomplete"><input data-pokemon-evolution-input="${index}" autocomplete="off" placeholder="Nazwa Pokémona" value="${locked ? escapeHtml(pokemonDisplayName(answers[index])) : ""}" ${locked ? "disabled" : ""}><div class="pokemon-suggestions" data-pokemon-evolution-suggestions="${index}"></div></div></div>`; return `<form class="pokemon-evolution-form" data-pokemon-evolution-form><div class="evolution-race-fields">${fields === 1 ? `${anchor}${slot(0)}` : `${slot(0)}${anchor}${slot(1)}`}</div><button class="primary" type="submit" ${locked ? "disabled" : ""}>${locked ? "Wysłano" : "Zatwierdź ewolucję"}</button></form>`; }
-function sprite(item, className = "") { return `<img class="${className}" src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">`; }
+const auctionImageUrl = (item,shiny) => shiny ? auctionShinySprite(item.id) : item.spriteFallback;
+function sprite(item, className = "", shiny = false) { return `<img class="${className}" src="${shiny ? auctionShinySprite(item.id) : item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">`; }
 
 const pokemonSuggestionPools = new WeakMap();
 
@@ -745,10 +764,10 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
 }
 function resultMarkup(game, accounts, actions, title = "Wyniki rundy") { const topPoints = Math.max(0, ...(game.ranking || []).map(row => Number(row.points) || 0)); const rows = (game.ranking || []).map(row => { const team = Array.isArray(row.team) ? `<div class="pokemon-mini-team">${row.team.map(id => { const item = pokemonDex.find(pokemon => pokemon.id === id); return item ? sprite(item) : ""; }).join("")}</div>` : ""; const answer = Array.isArray(row.answer) ? row.answer.map(item => item ? `${sprite(item,"pokemon-result-sprite")} ${escapeHtml(label(item))}` : "").join(" ") : row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : ""; return `<div class="pokemon-result-row"><div>${resultPlayerMiniHtml(accounts[row.uid], Number(row.points) === topPoints && topPoints > 0 ? "win" : "lose")}${team}</div><span>${answer || (row.bst != null ? `${row.bst} BST` : row.difference != null ? (Number.isFinite(row.difference) ? `różnica ${row.difference}` : "brak odpowiedzi") : row.points != null ? `${row.points} pkt` : row.correct ? "trafienie" : "-")}</span></div>`; }).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE</p><h1>${title}</h1><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
 function dexResultMarkup(game, accounts) { const target = pokemonDex.find(item => item.id === game.target); const rows = (game.ranking || []).map((row, index) => `<article class="pokemon-dex-result-row ${index === 0 ? "winner" : ""}"><div>${resultPlayerMiniHtml(accounts[row.uid], index === 0 ? "win" : "lose")}${row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : "Brak odpowiedzi"}</div><strong>${Number.isFinite(row.difference) ? `Różnica: ${row.difference}` : "Poza rankingiem"} · ${Number(game.scores?.[row.uid] || 0)} pkt</strong></article>`).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE POKÉDEXU</p><h1>Numer ${game.target} skrywał...</h1>${target ? `<div class="pokemon-dex-reveal">${sprite(target,"pokemon-reveal-sprite")}<div><b>${escapeHtml(label(target))}</b><small>National Dex #${target.id}</small></div></div>` : ""}<p class="muted">Najbliżej celu był:</p><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
-function card(item, {showBst=false,auction=false} = {}) {
+function card(item, {showBst=false,auction=false,shiny=false} = {}) {
   const bst = showBst ? `<strong>${item.bst} BST</strong>` : auction ? '<strong aria-hidden="true">&nbsp;</strong>' : "";
   const image = auction
-    ? `<img data-auction-sprite="${item.id}" src="${escapeHtml(item.spriteFallback)}" alt="" aria-hidden="true">`
+    ? `<img data-auction-sprite="${item.id}" src="${escapeHtml(auctionImageUrl(item,shiny))}" alt="" aria-hidden="true" ${shiny ? `onerror="this.onerror=null;this.src='${item.spriteFallback}'"` : ""}>`
     : sprite(item);
   return `<div class="pokemon-card">${image}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${bst}</div></div>`;
 }

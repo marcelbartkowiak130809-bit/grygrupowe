@@ -2,9 +2,9 @@ import { avatarHtml, escapeHtml, icon } from "./utils.js?v=20261121-8";
 import { serverNow } from "./firebase.js?v=20261123-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { hasGamePass, pokemonBattleScoutPass } from "./gamePasses.js?v=20261121-9";
-import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-6";
+import { advancedMove, auctionBattleDamage, auctionBattleDefaults, auctionBattlePokemon, auctionDuelTactics, auctionShinySprite, battleEvolutionsUsed, battleHasUnits, battleSignature, battleSignatureEffectiveness, battleSlots, battleSurrendered, battleTeam, battleUpgradeUsed, megaUsesHeldSlot, usesAuctionAbilities } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { auctionAbility, auctionAbilityChoices, auctionAbilityDescription, auctionAbilityName, auctionAbilitySupported, auctionBattleField, auctionBattleSpeed, auctionBattleTypes, auctionDuelPriority, statusNames } from "./pokemonAuctionAbilities.js?v=20261123-1";
-import { activeBattleSlot, activeBattleUnit, auctionDuelImpactAt, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-6";
+import { activeBattleSlot, activeBattleUnit, auctionDuelImpactAt, auctionDuelMoveAvailable, auctionDuelMoves, auctionDuelPP } from "./pokemonAuctionDuel.js?v=20261123-10";
 import { auctionHeldItems, learnableTactics, tacticalMoves } from "./pokemonAuctionTactics.js?v=20261123-1";
 import { animateBattleAction, animateBattleEntry, battleAccent, battleCard, motionEnabled, playBattleCry, preloadBattleCry } from "./pokemonAuctionBattleEffects.js?v=20261123-7";
 
@@ -14,7 +14,7 @@ const evolutionBySprite = new WeakMap();
 const name = pokemon => pokemon.name.replace(/(^|[- ])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
 const formClass = kind => kind && kind !== "evolve" ? `is-${kind}` : "";
 const nickname = (accounts, uid) => escapeHtml(accounts[uid]?.nick || "Gracz");
-const sprite = pokemon => `<img class="battle-sprite" data-battle-species="${pokemon.id}" src="${pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
+const sprite = (pokemon,shiny) => `<img class="battle-sprite" data-battle-species="${pokemon.id}" ${shiny ? "data-battle-shiny" : ""} src="${shiny ? auctionShinySprite(pokemon.id) : pokemon.sprite}" alt="${escapeHtml(name(pokemon))}" draggable="false" onerror="this.onerror=null;this.src='${pokemon.spriteFallback}'">`;
 const chips = types => types.map(type =>
   `<img class="battle-type" src="/assets/pokemon/types/${type}.svg" alt="${type}" title="${type}">`
 ).join("");
@@ -91,7 +91,7 @@ function stats(pokemon) {
 
 function unitArt(unit, pokemon, battle) {
   const hp = Math.max(0,unit.hp/unit.maxHp);
-  return `<div class="battle-unit-art">${sprite(pokemon)}</div>
+  return `<div class="battle-unit-art">${sprite(pokemon,unit.shiny)}</div>
     <b>${escapeHtml(name(pokemon))}</b><div class="battle-types">${chips(battle ? auctionBattleTypes(unit,pokemon,battle) : pokemon.types)}</div>
     <div class="battle-hp" data-health="${hp<=.25?"low":hp<=.5?"medium":"high"}" aria-hidden="true"><i style="width:${hp*100}%"></i></div>
     <small class="battle-hp-count">${unit.hp} / ${unit.maxHp} HP</small>`;
@@ -334,25 +334,26 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
   </section>`;
 }
 
-function decodedSprite(pokemon) {
+function decodedSprite(pokemon,shiny) {
   if (!pokemon) return Promise.resolve(null);
-  if (spriteLoads.has(pokemon.id)) return spriteLoads.get(pokemon.id);
+  const src = shiny ? auctionShinySprite(pokemon.id) : pokemon.sprite;
+  if (spriteLoads.has(src)) return spriteLoads.get(src);
   const image = new Image();
-  image.src=pokemon.sprite;
+  image.src=src;
   const ready = (async ()=>{
     try {
       await image.decode();
     } catch {
-      if (!pokemon.spriteFallback || pokemon.spriteFallback === pokemon.sprite) return null;
+      if (!pokemon.spriteFallback || pokemon.spriteFallback === src) return null;
       image.src=pokemon.spriteFallback;
       await image.decode();
     }
     return image;
   })().catch(()=>null);
-  spriteLoads.set(pokemon.id,ready);
+  spriteLoads.set(src,ready);
   if (spriteLoads.size>24) spriteLoads.delete(spriteLoads.keys().next().value);
   void ready.then(result=>{
-    if (result?.src!==pokemon.sprite && spriteLoads.get(pokemon.id)===ready) spriteLoads.delete(pokemon.id);
+    if (result?.src!==src && spriteLoads.get(src)===ready) spriteLoads.delete(src);
   });
   return ready;
 }
@@ -377,8 +378,9 @@ async function animateEvolution(root, event) {
     Number(evolved.dataset.battleSpecies)===event.toId;
   evolutionBySprite.set(evolved,{id:event.toId,cancel});
   evolved.style.visibility="hidden";
-  const target = decodedSprite(auctionBattlePokemon(event.toId));
-  const before = await decodedSprite(auctionBattlePokemon(event.fromId));
+  const shiny = evolved.hasAttribute("data-battle-shiny");
+  const target = decodedSprite(auctionBattlePokemon(event.toId),shiny);
+  const before = await decodedSprite(auctionBattlePokemon(event.fromId),shiny);
   if (!current()) return;
   if (before) {
     const outgoing=before.cloneNode();
@@ -468,7 +470,7 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   const now=serverNow();
   if (game.phase==="auction-prep" || game.phase==="auction-command") {
     for (const player of room.players) for (const unit of battleTeam(game,player)) {
-      if (unit.megaTarget) void decodedSprite(auctionBattlePokemon(unit.megaTarget));
+      if (unit.megaTarget) void decodedSprite(auctionBattlePokemon(unit.megaTarget),unit.shiny);
     }
   }
   if (game.phase==="auction-prep") {
@@ -508,8 +510,9 @@ export function renderAuctionBattle(root, room, accounts, uid, actions, timer) {
   root.querySelectorAll("[data-battle-upgrade]").forEach(button=>{
     button.onclick=()=>{
       const target = Number(button.dataset.evolution);
-      void decodedSprite(auctionBattlePokemon(target));
-      return actions.pokemonBattlePrep({kind:button.dataset.battleUpgrade,slot:Number(button.dataset.slot),target},expected);
+      const slot = Number(button.dataset.slot);
+      void decodedSprite(auctionBattlePokemon(target),battleTeam(game,uid)[slot]?.shiny);
+      return actions.pokemonBattlePrep({kind:button.dataset.battleUpgrade,slot,target},expected);
     };
   });
   root.querySelectorAll("[data-battle-reorder]").forEach(button=>{

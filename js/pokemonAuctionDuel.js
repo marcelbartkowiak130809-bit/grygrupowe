@@ -1,4 +1,4 @@
-import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-6";
+import { advancedAttack, advancedMove, auctionBattlePokemon, auctionDuelTactics, battleSlots, battleSurvivors, battleTeam, finishBattle } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { auctionAbility, auctionBattleSpeed, auctionDuelEnter, auctionDuelLeave, auctionDuelPriority, auctionDuelResidual, duelRoll } from "./pokemonAuctionAbilities.js?v=20261123-1";
 
 const commandMs = 20000;
