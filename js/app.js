@@ -14,7 +14,7 @@ import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261123-8";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261123-8";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261123-10";
+import { gamesList, getGameMode } from "./games.js?v=20261123-11";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261123-8";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261123-8";
@@ -35,7 +35,7 @@ import { stopCountryGuessTimer } from "./countryGuessView.js?v=20261123-8";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-8";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-8";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-8";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer } from "./pokemon.js?v=20261123-10";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer, typeRaceRounds } from "./pokemon.js?v=20261123-11";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { auctionDuelAction } from "./pokemonAuctionDuel.js?v=20261123-10";
 import { auctionCommandContext, clearAuctionCommand, readAuctionCommand, saveAuctionCommand } from "./pokemonAuctionCommitments.js?v=20261122-1";
@@ -72,7 +72,7 @@ import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-20";
 import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261122-7";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-20";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261123-10";
+import { playerMini, renderRoom } from "./room.js?v=20261123-11";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -80,7 +80,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261123-8";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261123-10";
+import { scheduleBot } from "./botController.js?v=20261123-11";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -2668,10 +2668,10 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       render({preserveDrafts:true});
       return;
     }
-    if (room.gameMode === "pokemon-type-draw" && ["generations","noRepeatPokemon"].includes(key)) {
+    if (room.gameMode === "pokemon-type-draw" && ["generations","noRepeatPokemon","rounds"].includes(key)) {
       if (room.status !== "lobby") return;
       if (key === "generations" && (!Array.isArray(value) || !value.length)) return;
-      room.settings = {...room.settings,[key]:key === "noRepeatPokemon" ? value === true : value};
+      room.settings = {...room.settings,[key]:key === "rounds" ? typeRaceRounds(value) : key === "noRepeatPokemon" ? value === true : value};
       touchRoom(room);
       animateHostSettingChange(value);
       render({preserveDrafts:true});
@@ -2718,7 +2718,27 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(fee){room.game.entryFee=fee;room.game.betPot=fee*room.players.length;room.pendingEntryFees=Object.fromEntries(room.players.map(uid=>[uid,fee]));}
     touchRoom(room); setRoomUrl(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
   },
-  returnToRoom() { const room = activeRoom(); if (room) { if(room.gameMode===chartForecastMode && room.hostUid!==state.currentUser)return; if(closeLonelyFinishedRoom(room,{notify:true}))return; keepRoomCategoryUsage(room); room.status = "lobby"; room.game = null; touchRoom(room); setRoomUrl(room); Router.go("room"); } },
+  clearTypeRaceHistory() {
+    const room = activeRoom();
+    if (room?.gameMode !== "pokemon-type-draw" || room.status !== "lobby" || room.hostUid !== state.currentUser) return;
+    room.settings = {...room.settings,usedRacePokemonIds:[]};
+    touchRoom(room);
+    render({preserveDrafts:true});
+  },
+  returnToRoom() {
+    const room = activeRoom();
+    if (!room || (room.gameMode === chartForecastMode && room.hostUid !== state.currentUser)) return;
+    if (closeLonelyFinishedRoom(room,{notify:true})) return;
+    keepRoomCategoryUsage(room);
+    if (room.gameMode === "pokemon-type-draw" && Array.isArray(room.game?.usedRacePokemonIds)) {
+      room.settings = {...room.settings,usedRacePokemonIds:room.game.usedRacePokemonIds};
+    }
+    room.status = "lobby";
+    room.game = null;
+    touchRoom(room);
+    setRoomUrl(room);
+    Router.go("room");
+  },
   chartForecastAction(action,payload,expected) {
     const room=activeRoom();
     if(room?.gameMode!==chartForecastMode || (action==="next" && room.hostUid!==state.currentUser)) return false;

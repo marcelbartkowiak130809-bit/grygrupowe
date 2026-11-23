@@ -49,8 +49,12 @@ function usedRacePokemon(game) {
   return Array.isArray(game?.usedRacePokemonIds) ? game.usedRacePokemonIds : [];
 }
 
+const typeRaceRoundLimit = 100;
+export const typeRaceRounds = value => Math.max(1, Math.min(typeRaceRoundLimit, Math.floor(Number(value) || 5)));
+const typeRaceDex = settings => pokemonCandidates({ ...settings, generations:typeRaceGenerations(settings) });
+
 function typeRacePool(settings, game) {
-  const pool = pokemonCandidates({ ...settings, generations:typeRaceGenerations(settings) });
+  const pool = typeRaceDex(settings);
   if (settings?.noRepeatPokemon !== true) return pool;
   const used = new Set(usedRacePokemon(game));
   return pool.filter(item => !used.has(item.id));
@@ -78,7 +82,7 @@ function startTypeRaceRound(game, settings) {
   const available = pool.filter(([key]) => !previous.includes(key));
   const pick = randomItem(available.length ? available : pool);
   if (!pick) {
-    Object.assign(game, { phase:"result", phaseEndsAt:0, finished:true });
+    Object.assign(game, { phase:"result", phaseEndsAt:0, finished:true, racePoolExhausted:true });
     return false;
   }
   const [key, types] = pick;
@@ -93,13 +97,14 @@ function finishTypeRace(game, players, settings, winner = "", item = null) {
   if (winner) {
     game.scores ||= scoreMap(players);
     game.scores[winner] = (Number(game.scores[winner]) || 0) + 1;
-    if (settings.noRepeatPokemon === true && item) game.usedRacePokemonIds = [...usedRacePokemon(game), item.id];
+    const used = usedRacePokemon(game);
+    if (item && !used.includes(item.id)) game.usedRacePokemonIds = [...used, item.id];
   }
   game.raceWinner = winner;
   game.raceAnswerId = (item || randomItem(typeRaceCandidates(game.drawnTypes, settings, game)))?.id || 0;
   game.phase = "result";
   game.phaseEndsAt = 0;
-  game.finished = game.round >= (Number(settings.rounds) || 5);
+  game.finished = game.round >= typeRaceRounds(settings.rounds);
 }
 function pickEvolutionBase(settings) {
   const pool = pokemonCandidates(settings);
@@ -131,6 +136,8 @@ export function createPokemonGame(mode, players, settings) {
   const extras = { passUses:{}, scoutHints:{} };
   if (mode === "pokemon-type-draw") {
     const game = {mode, round:1, scores, ...extras};
+    const used = usedRacePokemon(settings);
+    if (used.length) game.usedRacePokemonIds = [...used];
     startTypeRaceRound(game, settings);
     return game;
   }
@@ -389,7 +396,7 @@ export const PokemonEngine = {
       const key = clean(text);
       const item = byName.get(key) || byName.get(`${key}normal`);
       if (item?.id <= 1025 && !typeRaceGenerations(settings).includes(item.generation)) return "Generacja tego Pokémona jest wyłączona.";
-      if (item && settings.noRepeatPokemon === true && usedRacePokemon(game).includes(item.id)) return "Ten Pokémon został już zaliczony w tej partii.";
+      if (item && settings.noRepeatPokemon === true && usedRacePokemon(game).includes(item.id)) return "Ten Pokémon został już zaliczony w tym pokoju.";
       if (!item || !typeRaceCandidates(game.drawnTypes, settings, game).some(candidate => candidate.id === item.id)) return "Ten Pokémon nie pasuje do losowania. Spróbuj jeszcze raz.";
       finishTypeRace(game, players, settings, uid, item);
       return;
@@ -511,7 +518,7 @@ function typeRaceMarkup(game, settings) {
     return `<div class="pokemon-draw-slot" aria-hidden="true"><div class="pokemon-draw-strip">${strip.map(typeChip).join("")}</div><span class="pokemon-draw-static">?</span></div>`;
   }).join("");
   return `<div class="pokemon-draw-stage ${drawing ? "is-drawing" : ""}">
-    <p class="eyebrow">RUNDA ${game.round}/${settings.rounds || 5}</p>
+    <p class="eyebrow">RUNDA ${game.round}/${typeRaceRounds(settings.rounds)}</p>
     <h1>${drawing ? "Losowanie typów…" : game.drawnTypes.length === 2 ? "Podaj Pokémona z oboma typami" : "Podaj Pokémona z tym typem"}</h1>
     <div class="pokemon-drawn-types">${typeSlots}</div>
     ${drawing ? "" : `${timerMarkup(game)}${pokemonAnswerFormMarkup("answer")}`}
@@ -529,6 +536,7 @@ function typeRaceResult(game, accounts, players) {
   const example = byId.get(game.raceAnswerId);
   return `<section class="panel pokemon-panel center">
     <p class="eyebrow">POKÉMON · LOSOWANIE TYPÓW</p><h1>${title}</h1>
+    ${game.racePoolExhausted ? '<p class="muted">Brak Pokémonów pasujących do ustawień pokoju.</p>' : ""}
     ${example ? `<div class="pokemon-draw-answer"><p>${game.raceWinner ? "Poprawna odpowiedź" : "Przykładowa odpowiedź"}</p>${card(example)}</div>` : ""}
     <div class="pokemon-results">${sorted.map(uid => `<div class="pokemon-result-row"><b>${playerName(uid)}</b><span>${Number(game.scores?.[uid] || 0)} pkt</span></div>`).join("")}</div>
     ${game.finished ? '<button class="primary" id="pokemon-lobby">Wróć do lobby</button>' : '<button class="primary" id="pokemon-next">Następna runda</button>'}
@@ -691,10 +699,10 @@ function sprite(item, className = "", shiny = false) { return `<img class="${cla
 
 const pokemonSuggestionPools = new WeakMap();
 
-function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=false} = {}) {
+function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=false, used=[]} = {}) {
   if (!input || !suggestions || input.disabled) return;
   const bound = pokemonSuggestionPools.has(input);
-  pokemonSuggestionPools.set(input, pool);
+  pokemonSuggestionPools.set(input, {pool,used:new Set(used)});
   if (bound) return;
   let active = -1;
   const close = () => {
@@ -704,9 +712,10 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
     input.removeAttribute("aria-activedescendant");
   };
   const select = option => {
+    if (!option || option.disabled) return;
     input.value = option.dataset.pokemonSuggestion;
     close();
-    input.focus();
+    input.focus({preventScroll:true});
   };
   input.setAttribute("role", "combobox");
   input.setAttribute("aria-autocomplete", "list");
@@ -718,14 +727,19 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
     close();
     const query = clean(input.value);
     if (!query) return;
-    const matches = pokemonSuggestionPools.get(input).filter(item => clean(item.name).startsWith(query)).slice(0, 8);
+    const {pool,used} = pokemonSuggestionPools.get(input);
+    const prefixMatches = pool.filter(item => clean(item.name).startsWith(query));
+    const available = prefixMatches.filter(item => !used.has(item.id)).slice(0, 8);
+    const blocked = prefixMatches.filter(item => used.has(item.id)).slice(0, 8);
+    const matches = [...available, ...blocked];
     suggestions.innerHTML = matches.map((item, index) => {
       const name = escapeHtml(pokemonDisplayName(item));
-      return `<button type="button" tabindex="-1" role="option" aria-label="${name}" aria-selected="false" id="${suggestions.id}-${index}" class="pokemon-suggestion" data-pokemon-suggestion="${name}">${sprite(item, "pokemon-suggestion-sprite")}<span>${name}</span></button>`;
+      const alreadyUsed = used.has(item.id);
+      return `<button type="button" tabindex="-1" role="option" aria-label="${name}${alreadyUsed ? ", wykorzystany" : ""}" aria-selected="false" id="${suggestions.id}-${index}" class="pokemon-suggestion" data-pokemon-suggestion="${name}" ${alreadyUsed ? 'disabled aria-disabled="true"' : ""}>${sprite(item, "pokemon-suggestion-sprite")}<span>${name}</span>${alreadyUsed ? '<small>Użyty</small>' : ""}</button>`;
     }).join("");
     input.setAttribute("aria-expanded", String(matches.length > 0));
   });
-  suggestions.addEventListener("pointerdown", event => {
+  suggestions.addEventListener("mousedown", event => {
     if (event.target.closest("[data-pokemon-suggestion]")) event.preventDefault();
   });
   suggestions.addEventListener("click", event => {
@@ -734,21 +748,27 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
   });
   input.addEventListener("blur", close);
   input.form?.addEventListener("submit", close);
+  if (tabComplete) {
+    input.form?.querySelector('[type="submit"]')?.addEventListener("mousedown", event => event.preventDefault());
+  }
   input.addEventListener("keydown", event => {
-    const options = suggestions.children;
-    if (!options.length || event.isComposing) return;
+    if (!suggestions.children.length || event.isComposing) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    const options = [...suggestions.querySelectorAll("[data-pokemon-suggestion]:enabled")];
+    if (!options.length) return;
     if (event.key === "Tab" && tabComplete && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
       event.preventDefault();
       select(options[active] || options[0]);
       return;
     }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      close();
-    }
     if (event.key === "Enter" && active >= 0) {
       if (!tabComplete) event.preventDefault();
       select(options[active]);
+      return;
     }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
@@ -758,9 +778,13 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
       const option = options[active];
       option.setAttribute("aria-selected", "true");
       input.setAttribute("aria-activedescendant", option.id);
-      option.scrollIntoView({block:"nearest"});
+      const listRect = suggestions.getBoundingClientRect();
+      const optionRect = option.getBoundingClientRect();
+      if (optionRect.bottom > listRect.bottom) suggestions.scrollTop += optionRect.bottom - listRect.bottom;
+      else if (optionRect.top < listRect.top) suggestions.scrollTop -= listRect.top - optionRect.top;
     }
   });
+  if (tabComplete) input.focus({preventScroll:true});
 }
 function resultMarkup(game, accounts, actions, title = "Wyniki rundy") { const topPoints = Math.max(0, ...(game.ranking || []).map(row => Number(row.points) || 0)); const rows = (game.ranking || []).map(row => { const team = Array.isArray(row.team) ? `<div class="pokemon-mini-team">${row.team.map(id => { const item = pokemonDex.find(pokemon => pokemon.id === id); return item ? sprite(item) : ""; }).join("")}</div>` : ""; const answer = Array.isArray(row.answer) ? row.answer.map(item => item ? `${sprite(item,"pokemon-result-sprite")} ${escapeHtml(label(item))}` : "").join(" ") : row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : ""; return `<div class="pokemon-result-row"><div>${resultPlayerMiniHtml(accounts[row.uid], Number(row.points) === topPoints && topPoints > 0 ? "win" : "lose")}${team}</div><span>${answer || (row.bst != null ? `${row.bst} BST` : row.difference != null ? (Number.isFinite(row.difference) ? `różnica ${row.difference}` : "brak odpowiedzi") : row.points != null ? `${row.points} pkt` : row.correct ? "trafienie" : "-")}</span></div>`; }).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE</p><h1>${title}</h1><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
 function dexResultMarkup(game, accounts) { const target = pokemonDex.find(item => item.id === game.target); const rows = (game.ranking || []).map((row, index) => `<article class="pokemon-dex-result-row ${index === 0 ? "winner" : ""}"><div>${resultPlayerMiniHtml(accounts[row.uid], index === 0 ? "win" : "lose")}${row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : "Brak odpowiedzi"}</div><strong>${Number.isFinite(row.difference) ? `Różnica: ${row.difference}` : "Poza rankingiem"} · ${Number(game.scores?.[row.uid] || 0)} pkt</strong></article>`).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE POKÉDEXU</p><h1>Numer ${game.target} skrywał...</h1>${target ? `<div class="pokemon-dex-reveal">${sprite(target,"pokemon-reveal-sprite")}<div><b>${escapeHtml(label(target))}</b><small>National Dex #${target.id}</small></div></div>` : ""}<p class="muted">Najbliżej celu był:</p><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
@@ -844,8 +868,10 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const suggestions = root.querySelector("#pokemon-suggestions");
   if (suggestions) {
     // Respect the available generations without revealing which Pokémon have the drawn types.
-    const pool = game.mode === "pokemon-type-draw" ? typeRacePool(settings, game) : pokemonDex;
-    bindPokemonAnswerSuggestions(root.querySelector("#pokemon-answer"), suggestions, pool, {tabComplete:game.mode === "pokemon-type-draw"});
+    const typeRace = game.mode === "pokemon-type-draw";
+    const pool = typeRace ? typeRaceDex(settings) : pokemonDex;
+    const used = typeRace && settings.noRepeatPokemon === true ? usedRacePokemon(game) : [];
+    bindPokemonAnswerSuggestions(root.querySelector("#pokemon-answer"), suggestions, pool, {tabComplete:typeRace, used});
   }
   if (game.mode === "pokemon-evolution") {
     root.querySelectorAll("[data-pokemon-evolution-input]").forEach(input => {
@@ -883,10 +909,14 @@ export function renderPokemonLobbySettings(room, isHost) {
     const last = typeRace && checked && selectedGenerations.length === 1;
     return `<label class="check"${last ? ' title="Co najmniej jedna generacja musi zostać włączona."' : ""}><input data-pokemon-generation="${generation}" type="checkbox" ${checked ? "checked" : ""} ${!isHost || last ? "disabled" : ""}> Gen ${generation}</label>`;
   }).join("");
-  const roundOrHearts = ["pokemon-last-letter", "pokemon-match-type"].includes(room.gameMode) ? `<label>Serca na gracza <input data-pokemon-setting="hearts" type="number" min="1" max="5" value="${Math.max(1, Math.min(5, s.hearts || 3))}" ${isHost ? "" : "disabled"}></label>` : `<label>Liczba rund <input data-pokemon-setting="rounds" type="number" min="1" max="20" value="${s.rounds || 5}" ${isHost ? "" : "disabled"}></label>`;
+  const roundOrHearts = ["pokemon-last-letter", "pokemon-match-type"].includes(room.gameMode) ? `<label>Serca na gracza <input data-pokemon-setting="hearts" type="number" min="1" max="5" value="${Math.max(1, Math.min(5, s.hearts || 3))}" ${isHost ? "" : "disabled"}></label>` : `<label>Liczba rund <input data-pokemon-setting="rounds" type="number" min="1" max="${typeRace ? typeRaceRoundLimit : 20}" value="${typeRace ? typeRaceRounds(s.rounds) : s.rounds || 5}" ${isHost ? "" : "disabled"}></label>`;
   const questionSettings = `<label>Czas odpowiedzi <input data-pokemon-setting="answerTime" type="number" min="5" max="60" value="${s.answerTime || 15}" ${isHost ? "" : "disabled"}></label>${room.gameMode === "pokemon-types" ? `<label>Czas wyboru typu <input data-pokemon-setting="selectTime" type="number" min="5" max="30" value="${s.selectTime || 10}" ${isHost ? "" : "disabled"}></label>` : ""}${roundOrHearts}${room.gameMode === "pokemon-evolution" ? `<label>Dozwolone kierunki<select data-pokemon-setting="evolutionMode" ${isHost ? "" : "disabled"}><option value="both" ${s.evolutionMode !== "later" ? "selected" : ""}>Wcześniejsze i późniejsze ewolucje</option><option value="later" ${s.evolutionMode === "later" ? "selected" : ""}>Tylko późniejsze ewolucje</option></select></label>` : ""}`;
   const typeCountSetting = room.gameMode === "pokemon-type-draw" ? `<label>Liczba typów<select data-pokemon-setting="typeCount" ${isHost ? "" : "disabled"}>${[[0,"Losowo"],[1,"Jeden typ"],[2,"Dwa typy"]].map(([value,label]) => `<option value="${value}" ${Number(s.typeCount || 0) === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>` : "";
-  const repeatSetting = typeRace ? `<label class="check"><input data-pokemon-setting="noRepeatPokemon" type="checkbox" ${s.noRepeatPokemon === true ? "checked" : ""} ${isHost ? "" : "disabled"}> Każdy Pokémon tylko raz na partię</label>` : "";
+  const usedCount = usedRacePokemon(s).length;
+  const repeatSetting = typeRace ? `<div class="type-race-repeat-setting">
+    <label class="check"><input data-pokemon-setting="noRepeatPokemon" type="checkbox" ${s.noRepeatPokemon === true ? "checked" : ""} ${isHost ? "" : "disabled"}> Każdy Pokémon raz na pokój</label>
+    ${isHost ? `<button type="button" class="ghost type-race-clear" data-type-race-clear ${usedCount ? "" : "disabled"}>Wyczyść użyte (${usedCount})</button>` : ""}
+  </div>` : "";
   const generationSettings = `<div><p class="tiny">${typeRace ? "DOZWOLONE GENERACJE" : "GENERACJE"}</p><div class="pokemon-types">${generations}</div></div>`;
   const battleSettings = sanitizeAuctionBattleRules(s);
   const hostOnly = isHost ? "" : "disabled";

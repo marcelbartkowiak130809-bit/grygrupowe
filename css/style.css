@@ -1962,6 +1962,17 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 }
 .pokemon-draw-stage .pokemon-suggestions { max-height:min(300px,40dvh); }
 .pokemon-draw-stage .pokemon-suggestion span { text-transform:capitalize; }
+.pokemon-draw-stage .pokemon-suggestion:disabled {
+  color:var(--muted,#9da7bb);
+  background:transparent;
+  border-color:var(--line,#29334a);
+  box-shadow:none;
+  cursor:default;
+}
+.pokemon-draw-stage .pokemon-suggestion:disabled img { filter:grayscale(1); opacity:.65; }
+.pokemon-draw-stage .pokemon-suggestion:disabled small { margin-inline-start:auto; }
+.type-race-repeat-setting { display:flex; align-items:center; flex-wrap:wrap; gap:6px 12px; }
+.type-race-repeat-setting .type-race-clear { min-height:32px; padding:4px 9px; font-size:.75rem; }
 .pokemon-draw-answer { width:min(100%,460px); margin:12px auto; }
 .pokemon-draw-answer p { margin:8px 0; }
 @keyframes pokemon-type-roll { to { transform:translateY(-864px); } }

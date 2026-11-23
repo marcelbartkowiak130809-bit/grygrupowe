@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPokemonGame, pokemonCandidates, pokemonDefaults, PokemonEngine, typeRaceCandidates } from "../js/pokemon.js";
+import { createPokemonGame, pokemonCandidates, pokemonDefaults, PokemonEngine, typeRaceCandidates, typeRaceRounds } from "../js/pokemon.js";
 import { gamesRegistry } from "../js/games.js";
 import { isModeLocked } from "../js/upcomingModes.js";
 
@@ -73,6 +73,30 @@ test("generation bans and repeated answers are enforced for the entire room", ()
   PokemonEngine.answer(saved, "b", "Charmeleon", players, settings);
   assert.deepEqual(saved.scores, {a:1,b:1});
   assert.deepEqual(saved.usedRacePokemonIds, [4,5]);
+  const roomSettings = {...settings,usedRacePokemonIds:saved.usedRacePokemonIds};
+  const replay = createPokemonGame(mode,players,roomSettings);
+  replay.drawnTypes = ["fire"];
+  expire(replay,roomSettings);
+  assert.match(PokemonEngine.answer(replay,"a","Charmander",players,roomSettings), /w tym pokoju/);
+  assert.equal(PokemonEngine.answer(replay,"a","Charizard",players,roomSettings),undefined);
+  assert.deepEqual(roomSettings.usedRacePokemonIds,[4,5]);
+  const cleared = createPokemonGame(mode,players,{...roomSettings,usedRacePokemonIds:[]});
+  assert.ok(typeRaceCandidates(["fire"],roomSettings,cleared).some(item => item.id === 4));
+});
+
+test("type draws can continue beyond twenty rounds up to the room limit", () => {
+  const settings = {...defaults,rounds:120};
+  const game = createPokemonGame(mode,players,settings);
+  assert.equal(typeRaceRounds(settings.rounds),100);
+  game.round = 99;
+  expire(game,settings);
+  expire(game,settings);
+  assert.equal(game.finished,false);
+  PokemonEngine.nextRound(game,players,settings);
+  assert.equal(game.round,100);
+  expire(game,settings);
+  expire(game,settings);
+  assert.equal(game.finished,true);
 });
 
 test("a consumed combination is skipped, and timeout examples remain playable", () => {
