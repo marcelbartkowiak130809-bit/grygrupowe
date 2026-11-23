@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createPokemonGame, PokemonEngine, pokemonAuctionCanBid, repairPokemonAuctionClock } from "../js/pokemon.js";
-import { botActor } from "../js/botController.js";
+import { botActor, botMutation, scheduleBot } from "../js/botController.js";
+import { auctionBotBidLimit } from "../js/pokemonAuctionBot.js";
 import { pokemonDex } from "../js/pokemonData.js";
 import { auctionBattlePrep, prepareAuctionBattle } from "../js/pokemonAuctionBattle.js";
 
@@ -190,6 +191,48 @@ test("the next eligible bot can act after another bot passes", () => {
   assert.equal(botActor(room), "bot:b");
   PokemonEngine.pass(game, "bot:b", players);
   assert.equal(botActor(room), "bot:c");
+});
+
+test("bots bid quickly at every level and stronger bidders value an uncovered counter", () => {
+  const bot="bot:x", players=["a",bot];
+  for (const advancedAbilities of [false,true]) {
+    const game=createPokemonGame(mode,players,{teamSize:6,budget:50,battleAfterAuction:true,advancedAbilities});
+    Object.assign(game,{items:[6,...items,212,9,59,65,151,135,197],highestBidder:"a",currentBid:10,teams:{a:[212],[bot]:[]}});
+    const room={gameMode:mode,game,players,hostUid:"a",roomId:"AUCTION",playerProfiles:{[bot]:{botDifficulty:"expert"}}};
+    const priceWithCounter=auctionBotBidLimit(game,bot,players,"expert");
+    assert.ok(priceWithCounter>=11);
+    const weak=auctionBotBidLimit(game,bot,players,"easy");
+    assert.ok(weak<priceWithCounter);
+    assert.equal(botMutation(room)(game),undefined);
+    assert.equal(game.highestBidder,bot);
+    assert.equal(game.currentBid,11);
+
+    game.teams.a=[9];
+    assert.equal(auctionBotBidLimit(game,bot,players,"easy"),weak);
+    assert.ok(auctionBotBidLimit(game,bot,players,"expert")<11);
+    game.battleAfterAuction=false;
+    const bstOnly=auctionBotBidLimit(game,bot,players,"expert");
+    game.teams.a=[212];
+    assert.equal(auctionBotBidLimit(game,bot,players,"expert"),bstOnly);
+    game.battleAfterAuction=true;
+    game.teams[bot]=[59];
+    const alreadyCovered=auctionBotBidLimit(game,bot,players,"expert");
+    game.teams[bot]=[65];
+    assert.ok(auctionBotBidLimit(game,bot,players,"expert")>alreadyCovered);
+
+    game.teams={a:[9],[bot]:[]};
+    game.highestBidder="a";
+    game.currentBid=10;
+    for (const level of ["easy","normal","hard","expert"]){
+      room.playerProfiles[bot].botDifficulty=level;
+      const plan=scheduleBot(room,{mutate:()=>{}});
+      assert.ok(plan.delay>=600 && plan.delay<=1050);
+      assert.equal(plan.key,scheduleBot({...room,updatedAt:123},{mutate:()=>{}}).key);
+    }
+    assert.equal(botMutation(room)(game),undefined);
+    assert.equal(game.auctionResult.winner,"a");
+    assert.equal(game.auctionResult.price,10);
+  }
 });
 
 test("a raise renews the seven-second clock and invalid legacy deadlines are bounded", () => {

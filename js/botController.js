@@ -20,6 +20,7 @@ import { ClockEngine } from "./clock.js?v=20261121-8";
 import { PokemonEngine, pokemonAuctionCanBid, pokemonCandidates, typeRaceCandidates } from "./pokemon.js?v=20261123-13";
 import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261123-10";
+import { auctionBotBidLimit } from "./pokemonAuctionBot.js?v=20261123-16";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
 import { QuizEngine, quizQuestions } from "./quiz.js?v=20261121-8";
 import { MathematicsEngine } from "./mathematics.js?v=20261121-8";
@@ -661,13 +662,9 @@ export function botMutation(room) {
       case "pokemon-auction":
         if (bot && (game.battle?.duel || ["auction-prep","auction-battle"].includes(game.phase))) return g => auctionBattleBotAction(g, bot, players, serverNow());
         if (pokemonAuctionCanBid(game, bot)) return g => {
-          const budget = Number(g.budgets[bot]);
-          const current = Number(g.currentBid || 0);
-          const slots = Math.max(1, g.teamSize - (g.teams?.[bot]?.length || 0));
-          const target = pokemonDex.find(item => item.id === g.items?.[g.auctionIndex]);
-          const limit = Math.min(budget, Math.max(1, Math.ceil(budget / slots * ((target?.bst || 300) / 390))));
-          if (limit <= current) return PokemonEngine.pass(g, bot, players);
-          return PokemonEngine.bid(g, bot, current + 1, players);
+          const offer = Number(g.currentBid || 0)+1;
+          const limit = auctionBotBidLimit(g,bot,players,botDifficulty(room,bot).id);
+          return offer<=limit ? PokemonEngine.bid(g,bot,offer,players) : PokemonEngine.pass(g,bot,players);
         };
         break;
       case "wavelength":
@@ -817,24 +814,27 @@ export function botMutation(room) {
 export function scheduleBot(room, { mutate, onDone }) {
   if (!room?.game || !botsOf(room).length) return false;
   const chart = room.gameMode === chartForecastMode;
+  const bidding = room.gameMode === "pokemon-auction" && room.game.phase === "auction";
   if (!chart && !botMutation(room)) return false;
   const actor = botActor(room);
   if (chart && !actor) return false;
   const scheduledActor = actor || botsOf(room)[0];
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
-  const key = chart ? JSON.stringify([room.roomId,hostUid,moment,actor]) : mode==='marker'
+  const {currentBid,highestBidder} = room.game;
+  const key = chart || bidding ? JSON.stringify([room.roomId,hostUid,moment,actor,currentBid,highestBidder]) : mode==='marker'
     ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${scheduledActor}:${room.game.phaseEndsAt||0}:${scheduledActor===room.game.drawerUid?Object.keys(room.game.coverage?.[scheduledActor]||{}).length:0}`
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
   const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? serverNow() : Date.now());
-  const baseDelay = botDelay(room, "answer", scheduledActor);
+  const baseDelay = bidding ? (currentBid ? 600 : 850)+Math.round(Math.random()*450) : botDelay(room, "answer", scheduledActor);
   const think = ["pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? Math.max(2500,baseDelay) : baseDelay;
   const delay = chart ? Math.max(50,chartBotDueAt(room,actor)-serverNow())
     : expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {
     if (currentRoom.hostUid !== hostUid || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return;
-    if (chart && botActor({...currentRoom,game}) !== actor) return;
+    if ((chart || bidding) && botActor({...currentRoom,game}) !== actor) return;
+    if (bidding && (game.currentBid !== currentBid || game.highestBidder !== highestBidder)) return;
     // Re-evaluate against the transaction snapshot, including expiry and votes
     // submitted while the bot was thinking. Never replay a captured answer.
     const freshMutation = botMutation({ ...currentRoom, game });
