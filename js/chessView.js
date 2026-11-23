@@ -1,5 +1,5 @@
 import { chessInfo, chessMoveLog, chessPosition, chessTime } from "./chessGame.js?v=20261121-8";
-import { serverNow } from "./firebase.js?v=20261123-8";
+import { serverNow } from "./firebase.js?v=20261123-20";
 import { patchRoomView } from "./roomViewPatch.js?v=20261121-7";
 import { escapeHtml } from "./utils.js?v=20261121-8";
 

@@ -4,11 +4,11 @@ import { guessPeopleBotAction } from "./guessPeopleBot.js?v=20261121-8";
 import { GUESS_PEOPLE_MODE, guessPeopleDefaults, sanitizeGuessPeopleSettings, createGuessPeopleGame, reconcileGuessPeople, guessPeopleAction, renderGuessPeopleGame } from "./guessPeople.js?v=20261121-8";
 import { boardPlayerStripHtml, escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v=20261121-9";
-import { serverNow } from "./firebase.js?v=20261123-8";
+import { serverNow } from "./firebase.js?v=20261123-20";
 import { chessMode, chessInfo, chessDefaults, chessSettings, chessMinutes, chessIncrements, createChessGame, chessGameAction } from "./chessGame.js?v=20261121-8";
-import { renderChessGame } from "./chessView.js?v=20261123-8";
+import { renderChessGame } from "./chessView.js?v=20261123-20";
 import { createLetterTable, letterTableAction, letterTableDefaults, letterTableInfo, letterTableMode } from "./letterTable.js?v=20261123-19";
-import { renderLetterTable } from "./letterTableView.js?v=20261123-19";
+import { renderLetterTable } from "./letterTableView.js?v=20261123-20";
 
 export const boardModeDefinitions = [
   chessInfo,

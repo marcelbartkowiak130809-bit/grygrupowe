@@ -4,7 +4,7 @@ import { Audio } from "./audio.js";
 import { Effects } from "./effects.js";
 import { botTooltip } from "./bots.js?v=20261121-8";
 import { inGamePurchaseById } from "./gamePasses.js?v=20261121-9";
-import { readImpostorPairVote, saveImpostorPairVote } from "./firebase.js?v=20261123-8";
+import { readImpostorPairVote, saveImpostorPairVote } from "./firebase.js?v=20261123-20";
 import { impostorPairId, pairFeedbackReasons } from "./impostorPairFeedback.js?v=20261121-14";
 
 let timerId;

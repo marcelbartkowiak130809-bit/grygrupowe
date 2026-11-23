@@ -543,98 +543,107 @@ export function hashRoomPassword(value = "") {
   for (const char of String(value)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); }
   return (hash >>> 0).toString(36);
 }
+const isWyrChoice = value => value === "a" || value === "b";
+
 export function getLocalWouldYouRatherAnswers(playerId = "guest") {
-  return readLocal(WOULD_YOU_RATHER_ANSWERS_KEY)[playerId] || {};
+  const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY) || {};
+  const previousGuestAnswers=playerId==="guest" ? answers.anonymous : null;
+  return {...previousGuestAnswers,...answers[playerId]};
 }
-export async function getWouldYouRatherAnswer(questionId, playerId = "guest", remotePlayerId = "") {
-  const localAnswer = getLocalWouldYouRatherAnswers(playerId)[questionId];
-  if (localAnswer === "a" || localAnswer === "b") return localAnswer;
-  if (canUseRemote() && remotePlayerId) {
-    try {
-      const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `profiles/${remotePlayerId}/answeredWouldYouRather/${questionId}`));
-      const remoteAnswer = snapshot.val();
-      if (remoteAnswer === "a" || remoteAnswer === "b") {
-        const answers = readLocal(WOULD_YOU_RATHER_ANSWERS_KEY);
-        answers[playerId] = { ...(answers[playerId] || {}), [questionId]: remoteAnswer };
-        saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
-        return remoteAnswer;
-      }
-      const voteSnapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `wouldYouRatherVotes/${questionId}/voters/${remotePlayerId}`));
-      const recordedAnswer = voteSnapshot.val();
-      if (recordedAnswer === "a" || recordedAnswer === "b") {
-        const answers = readLocal(WOULD_YOU_RATHER_ANSWERS_KEY);
-        answers[playerId] = { ...(answers[playerId] || {}), [questionId]: recordedAnswer };
-        saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
-        return recordedAnswer;
-      }
-    } catch {}
-  }
+
+function rememberWyrAnswer(playerId,questionId,choice) {
+  const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY) || {};
+  answers[playerId]={...answers[playerId],[questionId]:choice};
+  saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
+}
+
+export async function loadWouldYouRatherHistory(playerId) {
+  const user=remoteAuth?.currentUser;
+  if(!canUseRemote() || user.isAnonymous || user.uid!==playerId) return;
+  try {
+    const ref=firebaseDatabaseApi.ref(remoteDatabase,`profiles/${user.uid}/answeredWouldYouRather`);
+    const recorded=(await wyrRequest(firebaseDatabaseApi.get(ref),1400)).val();
+    const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY) || {};
+    const history=Object.fromEntries(Object.entries(recorded||{}).filter(([,choice])=>isWyrChoice(choice)));
+    answers[playerId]={...answers[playerId],...history};
+    saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
+  } catch {}
+}
+
+async function wyrRequest(request,timeout=2200) {
+  let timer;
+  try {
+    return await Promise.race([request,new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(new Error("Vote request timed out")),timeout);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+export async function getWouldYouRatherAnswer(questionId,playerId="guest",remotePlayerId="") {
+  const local=getLocalWouldYouRatherAnswers(playerId)[questionId];
+  if(isWyrChoice(local)) return local;
+  const uid=remoteAuth?.currentUser?.uid;
+  if(!canUseRemote() || !remotePlayerId || uid!==remotePlayerId) return null;
+  try {
+    const ref=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}/voters/${uid}`);
+    const answer=(await wyrRequest(firebaseDatabaseApi.get(ref),1400)).val();
+    if(isWyrChoice(answer)){rememberWyrAnswer(playerId,questionId,answer);return answer;}
+  } catch {}
   return null;
 }
+
+const wyrTotals=(entry,source)=>({a:Number(entry?.a)||0,b:Number(entry?.b)||0,source});
+const localWyrTotals=questionId=>wyrTotals(readLocal(WOULD_YOU_RATHER_VOTES_KEY)?.[questionId],"demo");
 export async function getWouldYouRatherVotes(questionId) {
-  if (remoteDatabase) {
+  if(remoteDatabase){
     try {
-      const snapshot = await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `wouldYouRatherVotes/${questionId}`));
-      return { a:snapshot.val()?.a || 0, b:snapshot.val()?.b || 0, source:"firebase" };
+      const ref=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
+      return wyrTotals((await wyrRequest(firebaseDatabaseApi.get(ref),1400)).val(),"firebase");
     } catch {}
   }
-  const votes=readLocal(WOULD_YOU_RATHER_VOTES_KEY)[questionId] || {};
-  return { a:votes.a || 0, b:votes.b || 0, source:"demo" };
+  return localWyrTotals(questionId);
 }
-export function subscribeWouldYouRatherVotes(questionId, callback) {
-  if (!remoteDatabase) return () => {};
-  const votesRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
-  return firebaseDatabaseApi.onValue(votesRef,snapshot=>callback({a:snapshot.val()?.a||0,b:snapshot.val()?.b||0,source:"firebase"}));
+
+export function subscribeWouldYouRatherVotes(questionId,callback) {
+  if(!remoteDatabase) return ()=>{};
+  const ref=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
+  return firebaseDatabaseApi.onValue(ref,snapshot=>callback(wyrTotals(snapshot.val(),"firebase")),()=>{});
 }
-export async function voteWouldYouRather({ questionId, choice, playerId, remotePlayerId = playerId, persistProfile }) {
-  const answers=readLocal(WOULD_YOU_RATHER_ANSWERS_KEY), playerAnswers=answers[playerId] || {};
-  if (playerAnswers[questionId]) return { accepted:false, choice:playerAnswers[questionId], votes:await getWouldYouRatherVotes(questionId) };
-  // The database rule binds the vote to Firebase Auth's UID. Never trust the
-  // caller's cached/profile id here: after a guest/account switch it can be a
-  // nickname or an old UID and the otherwise valid transaction is rejected.
-  const authenticatedUid = remoteAuth?.currentUser?.uid || remotePlayerId;
-  if (canUseRemote() && persistProfile) {
+
+export async function voteWouldYouRather({questionId,choice,playerId}) {
+  if(!isWyrChoice(choice)) return {accepted:false};
+  const existing=getLocalWouldYouRatherAnswers(playerId)[questionId];
+  if(isWyrChoice(existing)) return {accepted:false,choice:existing,votes:await getWouldYouRatherVotes(questionId)};
+  const uid=remoteAuth?.currentUser?.uid;
+  if(canUseRemote()){
+    const ref=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
     try {
-      const profileAnswer=await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${authenticatedUid}/answeredWouldYouRather/${questionId}`));
-      if (profileAnswer.exists()) return { accepted:false, choice:profileAnswer.val(), votes:await getWouldYouRatherVotes(questionId) };
-    } catch {}
-  }
-  if (canUseRemote()) {
-    try {
-      if (!authenticatedUid) return { accepted:false, error:"Nie udało się zweryfikować gracza. Odśwież stronę i spróbuj ponownie." };
-      // RTDB rules intentionally reject a second write from the same voter.
-      // Check the voter first so a repeated answer is reported as a duplicate
-      // instead of surfacing as a misleading `permission_denied`/offline error.
-      const existingVote = (await firebaseDatabaseApi.get(firebaseDatabaseApi.ref(remoteDatabase, `wouldYouRatherVotes/${questionId}/voters/${authenticatedUid}`))).val();
-      if (existingVote === "a" || existingVote === "b") {
-        playerAnswers[questionId] = existingVote; answers[playerId] = playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY, answers);
-        return { accepted:false, choice:existingVote, votes:await getWouldYouRatherVotes(questionId) };
+      const result=await wyrRequest(firebaseDatabaseApi.runTransaction(ref,current=>{
+        if(isWyrChoice(current?.voters?.[uid])) return;
+        // Even the first vote needs both counters for the database rules.
+        const {a,b}=wyrTotals(current,"firebase");
+        return {a:a+Number(choice==="a"),b:b+Number(choice==="b"),voters:{...current?.voters,[uid]:choice}};
+      },{applyLocally:false}),3000);
+      const snapshot=result.snapshot.val();
+      const recorded=snapshot?.voters?.[uid];
+      if(isWyrChoice(recorded)){
+        rememberWyrAnswer(playerId,questionId,recorded);
+        return {accepted:result.committed,choice:recorded,votes:wyrTotals(snapshot,"firebase")};
       }
-      let duplicateChoice = "";
-      const voteRef=firebaseDatabaseApi.ref(remoteDatabase,`wouldYouRatherVotes/${questionId}`);
-      const result=await firebaseDatabaseApi.runTransaction(voteRef,current=>{
-        const votes = current && typeof current === "object" ? { ...current } : {};
-        const voters = votes.voters && typeof votes.voters === "object" ? { ...votes.voters } : {};
-        if (voters[authenticatedUid] === "a" || voters[authenticatedUid] === "b") {
-          duplicateChoice = voters[authenticatedUid];
-          return current;
-        }
-        votes[choice] = (Number(votes[choice]) || 0) + 1;
-        voters[authenticatedUid] = choice;
-        votes.voters = voters;
-        return votes;
-      });
-      if (duplicateChoice) return { accepted:false, choice:duplicateChoice, votes:await getWouldYouRatherVotes(questionId) };
-      if (!result?.committed) return { accepted:false, error:"Nie udało się zapisać głosu online. Spróbuj ponownie." };
-      if (persistProfile) await firebaseDatabaseApi.set(firebaseDatabaseApi.ref(remoteDatabase,`profiles/${authenticatedUid}/answeredWouldYouRather/${questionId}`),choice);
-      playerAnswers[questionId]=choice; answers[playerId]=playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
-      return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
-    } catch (error) { return { accepted:false, error:"Nie udało się zapisać głosu online. Sprawdź połączenie i spróbuj ponownie." }; }
+    } catch {
+      // A competing tab may have won the transaction. Recover its choice first.
+      const recorded=await getWouldYouRatherAnswer(questionId,playerId,uid);
+      if(isWyrChoice(recorded)) return {accepted:false,choice:recorded,votes:await getWouldYouRatherVotes(questionId)};
+    }
   }
-  playerAnswers[questionId]=choice; answers[playerId]=playerAnswers; saveLocal(WOULD_YOU_RATHER_ANSWERS_KEY,answers);
-  const votes=readLocal(WOULD_YOU_RATHER_VOTES_KEY), item=votes[questionId] || {a:0,b:0};
-  item[choice]=(item[choice]||0)+1;votes[questionId]=item;saveLocal(WOULD_YOU_RATHER_VOTES_KEY,votes);
-  return { accepted:true, votes:await getWouldYouRatherVotes(questionId) };
+  const concurrentAnswer=getLocalWouldYouRatherAnswers(playerId)[questionId];
+  if(isWyrChoice(concurrentAnswer)) return {accepted:false,choice:concurrentAnswer,votes:localWyrTotals(questionId)};
+  rememberWyrAnswer(playerId,questionId,choice);
+  const votes=readLocal(WOULD_YOU_RATHER_VOTES_KEY) || {};
+  const {a,b}=wyrTotals(votes[questionId],"demo");
+  votes[questionId]={a:a+Number(choice==="a"),b:b+Number(choice==="b")};
+  saveLocal(WOULD_YOU_RATHER_VOTES_KEY,votes);
+  return {accepted:true,choice,votes:localWyrTotals(questionId)};
 }
 export async function loadPublicProfiles() {
   if (!remoteDatabase) return {};

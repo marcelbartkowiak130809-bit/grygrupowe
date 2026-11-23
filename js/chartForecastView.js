@@ -3,7 +3,7 @@ import { chartNumber, drawForecastSegment, forecastPointer, paintForecastChart }
 import { chartForecastData } from "./chartForecastData.js?v=20261121-20";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
-import { serverNow } from "./firebase.js?v=20261123-8";
+import { serverNow } from "./firebase.js?v=20261123-20";
 
 const catalog = new Map(chartForecastData.map(chart => [chart.id, chart]));
 const colors = ["#49c5d9","#f6aa53","#cc88e8","#a2d357","#f27c95","#a6aaff","#eac94f","#68d8ab"];

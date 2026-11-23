@@ -1,19 +1,25 @@
 import { wouldYouRatherCategories, wouldYouRatherQuestions } from "../content/co-wolisz/questions.js?v=20260602-11";
-import { $, escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, getWouldYouRatherVotes, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261123-8";
+import { escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
+import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, loadWouldYouRatherHistory, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261123-20";
 
-const state={category:"Losowe",current:null,votes:{a:0,b:0,source:"demo"},choice:null,loading:false};
+let state={category:"Losowe"};
 let unsubscribe=()=>{};
 let renderToken=0;
-const pool=()=>wouldYouRatherQuestions.filter(q=>state.category==="Losowe"?!q.adult:q.category===state.category);
-const playerKey=(profile,playerId)=>playerId||(profile?profile.nickOnly?`guest_${profile.nick}`:`account_${profile.nick}`:"anonymous");
-function chooseNext(profile,playerId){
-  const answered=getLocalWouldYouRatherAnswers(playerKey(profile,playerId)), available=pool().filter(q=>!answered[q.id]&&q.id!==state.current?.id);
-  const candidates=available.length?available:pool().filter(q=>q.id!==state.current?.id);
-  state.current=candidates[Math.floor(Math.random()*Math.max(1,candidates.length))]||pool()[0];
-  state.choice=answered[state.current?.id]||null;
+const isChoice=value=>value==="a"||value==="b";
+const playerKey=(profile,playerId)=>playerId||(profile?profile.nickOnly?`guest_${profile.nick}`:`account_${profile.nick}`:"guest");
+const knownAnswers=(profile,key)=>({...profile?.answeredWouldYouRather,...getLocalWouldYouRatherAnswers(key)});
+async function chooseNext(profile,key,skipId,isCurrent){
+  const answered=knownAnswers(profile,key);
+  const available=wouldYouRatherQuestions.filter(q=>!isChoice(answered[q.id]) && (state.category==="Losowe"?!q.adult:q.category===state.category));
+  const skipped=available.find(q=>q.id===skipId);
+  const candidates=available.filter(q=>q.id!==skipId);
+  while(candidates.length && isCurrent()){
+    const [question]=candidates.splice(Math.floor(Math.random()*candidates.length),1);
+    if(!isChoice(await getWouldYouRatherAnswer(question.id,key,key))) return question;
+  }
+  if(skipped && isCurrent() && !isChoice(await getWouldYouRatherAnswer(skipped.id,key,key))) return skipped;
+  return null;
 }
-async function loadVotes(){if(!state.current)return;state.loading=true;state.votes=await getWouldYouRatherVotes(state.current.id);state.loading=false;}
 const pct=(value,total)=>total?Math.round(value/total*100):0;
 const age = value => { if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||"")))return null;const date=new Date(`${value}T00:00:00`),today=new Date();let years=today.getFullYear()-date.getFullYear();if(today.getMonth()<date.getMonth()||today.getMonth()===date.getMonth()&&today.getDate()<date.getDate())years--;return years; };
 const isMinor = profile => profile?.birthDate && age(profile.birthDate) !== null && age(profile.birthDate) < 18;
@@ -25,18 +31,84 @@ function answerCard(side,text,votes,total,selected,picked){
     ${selected?`<div class="wyr-results"><b>${percent}%</b><div class="wyr-bar"><i style="width:${percent}%"></i></div><small>${picked===side?"Twój wybór · ":""}${votes} ${votes===1?"głos":"głosów"}</small></div>`:'<span class="wyr-pick">Wybieram</span>'}
   </button>`;
 }
-export function stopWouldYouRather(){unsubscribe();unsubscribe=()=>{};renderToken++;}
-export async function renderWouldYouRather(root,{profile,playerId},actions){
-  const token=++renderToken;if(!state.current)chooseNext(profile,playerId);const localKey=playerKey(profile,playerId),pendingChoice=state.choice,storedAnswer=await getWouldYouRatherAnswer(state.current.id,localKey,playerId);state.choice=storedAnswer||profile?.answeredWouldYouRather?.[state.current.id]||pendingChoice||null;await loadVotes();if(token!==renderToken)return;const q=state.current,total=state.votes.a+state.votes.b,selected=Boolean(state.choice);
-  unsubscribe();unsubscribe=subscribeWouldYouRatherVotes(q.id,votes=>{if(votes.a===state.votes.a&&votes.b===state.votes.b)return;state.votes=votes;actions.refresh();});
-  root.innerHTML=`<main class="page wyr-page choice-board board-shell enter"><section class="wyr-header"><div><p class="eyebrow">TRYB SOLO</p><h1>Co wolisz?</h1><p class="muted">Wybieraj jedną z dwóch opcji i porównuj swoje odpowiedzi z innymi graczami.</p></div><div class="wyr-profile">${playerMiniHtml(profile||{nick:"Gość"})}<button class="ghost" id="wyr-home">Wróć do menu</button></div></section>
-  ${state.votes.source==="demo"?'<section class="warning wyr-demo">Tryb online jest chwilowo niedostępny. Grasz lokalnie, a wyniki są oznaczone jako demo.</section>':""}
-  <section class="panel wyr-filters"><div><p class="eyebrow">NASTRÓJ PYTAŃ</p><div class="wyr-mood-tabs">${moodTabs(profile)}</div></div><span class="badge wyr-mood-badge mood-${q.category.toLowerCase().replace(/[^a-z0-9]+/g,"-")}">${q.category}</span></section>
-  <section class="wyr-stage"><p class="eyebrow">${q.question}</p><h2>Wybierz jedną odpowiedź</h2><div class="wyr-grid">${answerCard("a",q.optionA,state.votes.a,total,selected,state.choice)}<div class="wyr-or">ALBO</div>${answerCard("b",q.optionB,state.votes.b,total,selected,state.choice)}</div>
-  ${selected?`<div class="wyr-summary"><b>${total}</b> ${total===1?"oddany głos":"oddanych głosów"} ${state.votes.source==="demo"?"· wyniki lokalne/demo":"· wyniki globalne na żywo"}</div>`:""}</section>
-  <section class="wyr-actions">${selected?'<button class="primary big" id="wyr-next">Następne pytanie</button>':""}<button class="ghost" id="wyr-skip">Pomiń</button></section></main>`;
-  $("#wyr-home").addEventListener("click",actions.goPlatform);root.querySelectorAll("[data-wyr-category]").forEach(button=>button.addEventListener("click",()=>{const apply=()=>{state.category=button.dataset.wyrCategory;chooseNext(profile,playerId);actions.refresh();};String(button.dataset.wyrCategory||"").startsWith("18+")?actions.confirmAdultSolo?.(apply):apply();}));root.querySelectorAll("[data-wyr-choice]").forEach(b=>b.addEventListener("click",()=>actions.wyrVote(b.dataset.wyrChoice)));$("#wyr-next")?.addEventListener("click",()=>{chooseNext(profile,playerId);actions.refresh();});$("#wyr-skip").addEventListener("click",()=>{chooseNext(profile,playerId);actions.refresh();});
+export function stopWouldYouRather(){
+  unsubscribe();unsubscribe=()=>{};
+  renderToken++;
+  state={category:"Losowe"};
 }
-export function setWouldYouRatherVote(choice,votes){state.choice=choice;state.votes=votes;}
+
+export async function renderWouldYouRather(root,{profile,playerId},actions){
+  const key=playerKey(profile,playerId);
+  if(state.key!==key) state={key,category:"Losowe",history:loadWouldYouRatherHistory(key)};
+  if(state.category==="18+" && isMinor(profile)){
+    state.category="Losowe";
+    state.current=null;
+    state.choice=null;
+    state.exhausted=false;
+  }
+  const token=++renderToken, isCurrent=()=>token===renderToken&&root.isConnected;
+  unsubscribe();unsubscribe=()=>{};
+  if(state.current && !state.choice && isChoice(knownAnswers(profile,key)[state.current.id])) state.current=null;
+  if(!state.current && !state.exhausted){
+    await state.history;
+    if(!isCurrent()) return;
+    const next=await chooseNext(profile,key,state.skipId,isCurrent);
+    if(!isCurrent()) return;
+    state.current=next;
+    state.exhausted=!next;
+  }
+  const q=state.current;
+  const again=(category,skipId)=>{
+    if(!isCurrent() || state.pending) return;
+    Object.assign(state,{category,current:null,choice:null,votes:null,skipId,exhausted:false});
+    void renderWouldYouRather(root,{profile,playerId},actions);
+  };
+  const paint=()=>{
+    if(!isCurrent()) return;
+    const votes=state.votes||{a:0,b:0};
+    const total=votes.a+votes.b, selected=Boolean(state.choice);
+    root.innerHTML=`<main class="page wyr-page choice-board board-shell"><section class="wyr-header"><div><p class="eyebrow">TRYB SOLO</p><h1>Co wolisz?</h1><p class="muted">Wybieraj jedną z dwóch opcji i porównuj swoje odpowiedzi z innymi graczami.</p></div><div class="wyr-profile">${playerMiniHtml(profile||{nick:"Gość"})}<button class="ghost" id="wyr-home">Wróć do menu</button></div></section>
+    <section class="panel wyr-filters"><div><p class="eyebrow">NASTRÓJ PYTAŃ</p><div class="wyr-mood-tabs">${moodTabs(profile)}</div></div></section>
+    ${q?`<section class="wyr-stage" data-wyr-question="${q.id}"><h2>Wybierz jedną odpowiedź</h2><div class="wyr-grid">${answerCard("a",q.optionA,votes.a,total,selected,state.choice)}<div class="wyr-or">ALBO</div>${answerCard("b",q.optionB,votes.b,total,selected,state.choice)}</div>
+      ${selected?`<div class="wyr-summary"><b>${total}</b> ${total===1?"oddany głos":"oddanych głosów"} · ${votes.source==="demo"?"wyniki z tego urządzenia":"wyniki globalne"}</div>`:""}</section>
+      <section class="wyr-actions">${selected?'<button class="primary big" id="wyr-next">Następne pytanie</button>':'<button class="ghost" id="wyr-skip">Pomiń</button>'}</section>`:
+      '<section class="panel wyr-stage"><h2>To już wszystkie pytania z tej kategorii</h2><p class="muted">Wybierz inny nastrój, żeby grać dalej.</p></section>'}
+    </main>`;
+    root.querySelector("#wyr-home").onclick=actions.goPlatform;
+    root.querySelectorAll("[data-wyr-category]").forEach(button=>{
+      button.disabled ||= Boolean(state.pending);
+      button.onclick=()=>{
+        const category=button.dataset.wyrCategory;
+        const apply=()=>again(category);
+        if(category.startsWith("18+")) actions.confirmAdultSolo?.(apply);
+        else apply();
+      };
+    });
+    for(const button of root.querySelectorAll("[data-wyr-choice]")){
+      button.disabled ||= Boolean(state.pending);
+      button.onclick=async()=>{
+        if(!isCurrent() || state.pending || state.choice) return;
+        const live=state;
+        live.pending=true;paint();
+        try { await actions.wyrVote(button.dataset.wyrChoice,q.id); }
+        finally { live.pending=false;if(isCurrent()) paint(); }
+      };
+    }
+    const next=root.querySelector("#wyr-next, #wyr-skip");
+    if(next){next.disabled=Boolean(state.pending);next.onclick=()=>again(state.category,q.id);}
+  };
+  paint();
+  if(q && state.choice && state.votes?.source==="firebase"){
+    unsubscribe=subscribeWouldYouRatherVotes(q.id,votes=>{
+      if(!isCurrent() || (votes.a===state.votes.a && votes.b===state.votes.b)) return;
+      state.votes=votes;paint();
+    });
+  }
+}
+export function setWouldYouRatherVote(questionId,key,choice,votes){
+  if(state.current?.id!==questionId || state.key!==key) return false;
+  Object.assign(state,{choice,votes});
+  return true;
+}
 export function currentWouldYouRather(){return state.current;}
 export function wouldYouRatherPlayerKey(profile,playerId){return playerKey(profile,playerId);}
