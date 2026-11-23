@@ -209,7 +209,7 @@ export const gamesRegistry = {
     description:"Przewiduj dalszy ciąg prawdziwych danych i porównuj swój wykres z liniami znajomych.",
     help:["Przeciągnij od punktu startowego do końca wykresu.","Każdy fragment możesz przerysować albo cofnąć ostatnią zmianę.","Najwyższa średnia trafność ze wszystkich rund wygrywa."],
     players:"2–8 osób", minPlayers:2, maxPlayers:8, allowReports:true,
-    supportsLobby:true, supportsSolo:true, soloModeId:chartForecastSoloMode, supportsBots:false, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
+    supportsLobby:true, supportsSolo:true, soloModeId:chartForecastSoloMode, supportsBots:true, symbol:"📈", art:"chart-forecast", audience:"knowledge", badges:["new"],
     render:renderChartForecastGame, defaultSettings:chartForecastDefaults,
   },
   [chartForecastSoloMode]: {

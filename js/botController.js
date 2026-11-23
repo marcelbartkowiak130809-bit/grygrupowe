@@ -12,6 +12,8 @@ import { BombEngine, bombCategories } from "./bomb.js?v=20261121-8";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
 import { applyPriceGuessAction, currentPriceGuessItem, priceGuessBotAnswer, priceGuessHasAnswer, priceGuessMode } from "./priceGuess.js?v=20261122-6";
 import { applyCountryGuessAction, countryGuessMode, currentCountry } from "./countryGuess.js?v=20261122-5";
+import { applyChartForecastAction, chartForecastMode, currentForecastChart } from "./chartForecast.js?v=20261121-20";
+import { chartForecastBotDueAt, chartForecastBotLine } from "./chartForecastBot.js?v=20261123-15";
 import { RankingEngine } from "./ranking.js?v=20261121-8";
 import { FiveSecondsEngine, fiveSecondsCategories } from "./fiveSeconds.js?v=20261121-8";
 import { ClockEngine } from "./clock.js?v=20261121-8";
@@ -65,6 +67,7 @@ const orderUid = (game, keys = ["order", "turnOrder"], index = "turnIndex") => {
 const isMissing = (map, uid) => !(uid in object(map));
 const isPopularityChoiceMissing = (map, uid) => !["left", "right"].includes(object(map)[uid]);
 const firstMissingBot = (room, map) => botsOf(room).find(uid => isMissing(map, uid)) || botsOf(room)[0] || "";
+const chartBotDueAt = (room,uid) => chartForecastBotDueAt(room.game,uid,botDifficulty(room,uid).id);
 
 /*
  * Select the actor that is actually able to move in the current phase. The
@@ -75,6 +78,11 @@ export function botActor(room) {
   const game = room?.game;
   const bots = botsOf(room);
   if (!game || !bots.length) return "";
+  if (room.gameMode === chartForecastMode) {
+    if (game.phase !== "chart-draw" || serverNow() >= game.phaseEndsAt) return "";
+    return bots.filter(uid => game.players.includes(uid) && isMissing(game.forecasts,uid))
+      .sort((a,b) => chartBotDueAt(room,a)-chartBotDueAt(room,b))[0] || "";
+  }
   if (room.gameMode === 'marker') {
     const uid=game.phase==='select'?game.turnUid:bots.includes(game.drawerUid)?game.drawerUid:game.seekerUid;
     return bots.includes(uid)?uid:'';
@@ -500,6 +508,15 @@ export function botMutation(room) {
   if (!game || !players.length || !botsOf(room).length) return null;
   if (room.gameMode === "wavelength" && !game.guesserUid) game.guesserUid = players[1] || players[0] || "";
   let bot = botActor(room);
+  if (room.gameMode === chartForecastMode) {
+    if (!bot) return null;
+    const chart = currentForecastChart(game);
+    if (!chart) return null;
+    const visible = {history:chart.values.slice(0,chart.cut+1), horizon:chart.labels.length-chart.cut-1, scale:chart.scale, unit:chart.unit};
+    const key = `${game.siteGameId || game.phaseEndsAt}:${game.round}:${chart.id}:${bot}`;
+    const forecast = chartForecastBotLine(visible,botDifficulty(room,bot).id,key);
+    return g => applyChartForecastAction(g,bot,"submit",forecast,players,serverNow());
+  }
   const settings = room.settings || {};
   const correct = () => botShouldBeCorrect(room, bot);
 
@@ -799,21 +816,25 @@ export function botMutation(room) {
 
 export function scheduleBot(room, { mutate, onDone }) {
   if (!room?.game || !botsOf(room).length) return false;
-  const mutation = botMutation(room);
-  if (!mutation) return false;
-  const actor = botActor(room) || botsOf(room)[0];
-  const key = room.gameMode==='marker'
-    ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${actor}:${room.game.phaseEndsAt||0}:${actor===room.game.drawerUid?Object.keys(room.game.coverage?.[actor]||{}).length:0}`
+  const chart = room.gameMode === chartForecastMode;
+  if (!chart && !botMutation(room)) return false;
+  const actor = botActor(room);
+  if (chart && !actor) return false;
+  const scheduledActor = actor || botsOf(room)[0];
+  const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
+  const key = chart ? JSON.stringify([room.roomId,hostUid,moment,actor]) : mode==='marker'
+    ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${scheduledActor}:${room.game.phaseEndsAt||0}:${scheduledActor===room.game.drawerUid?Object.keys(room.game.coverage?.[scheduledActor]||{}).length:0}`
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
   const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? serverNow() : Date.now());
-  const baseDelay = botDelay(room, "answer", actor);
+  const baseDelay = botDelay(room, "answer", scheduledActor);
   const think = ["pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? Math.max(2500,baseDelay) : baseDelay;
-  const delay = expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
-  const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
+  const delay = chart ? Math.max(50,chartBotDueAt(room,actor)-serverNow())
+    : expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {
     if (currentRoom.hostUid !== hostUid || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return;
+    if (chart && botActor({...currentRoom,game}) !== actor) return;
     // Re-evaluate against the transaction snapshot, including expiry and votes
     // submitted while the bot was thinking. Never replay a captured answer.
     const freshMutation = botMutation({ ...currentRoom, game });

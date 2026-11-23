@@ -3,10 +3,63 @@ import test from "node:test";
 import { applyChartForecastAction, chartForecastSettings, createChartForecastGame, currentForecastChart, scoreChartForecast } from "../js/chartForecast.js";
 import { drawForecastSegment, forecastPointer } from "../js/chartForecastCanvas.js";
 import { chartForecastData } from "../js/chartForecastData.js";
+import { chartForecastBotDueAt, chartForecastBotLine } from "../js/chartForecastBot.js";
+import { botActor, scheduleBot } from "../js/botController.js";
 
 const players=["a","b"];
 const start=10_000;
 const make = () => createChartForecastGame(players,{rounds:3,chartTime:30},start);
+const levels = ["easy","normal","hard","expert"];
+
+test("forecast bots produce valid, distinct lines from visible information and get stronger by level", () => {
+  const means=levels.map(difficulty=>{
+    const scores=chartForecastData.flatMap(chart=>Array.from({length:12},(_,index)=>{
+      const input={history:chart.values.slice(0,chart.cut+1),horizon:chart.labels.length-chart.cut-1,scale:chart.scale,unit:chart.unit};
+      const key=`${chart.id}:${index}`;
+      const line=chartForecastBotLine(input,difficulty,key);
+      assert.deepEqual(line,chartForecastBotLine(input,difficulty,key));
+      const result=scoreChartForecast(chart,line);
+      assert.notEqual(result.miss,null);
+      assert.ok(result.accuracy<100);
+      return result.accuracy;
+    }));
+    return scores.reduce((sum,value)=>sum+value,0)/scores.length;
+  });
+  assert.ok(means[0]<40);
+  means.slice(1).forEach((value,index)=>assert.ok(value>means[index]+2));
+});
+
+test("chart bot deadlines survive room updates and every bot submits once before reveal", async t => {
+  let now=100_000;
+  t.mock.method(Date,"now",()=>now);
+  const bots=levels.map(level=>`bot:${level}`);
+  const roomPlayers=["host",...bots];
+  const game=createChartForecastGame(roomPlayers,{rounds:3,chartTime:30},now);
+  const room={roomId:"CHART",updatedAt:now,hostUid:"host",gameMode:game.mode,game,players:roomPlayers,
+    playerProfiles:Object.fromEntries(bots.map((uid,index)=>[uid,{botDifficulty:levels[index]}]))};
+  const first=botActor(room);
+  const muted=()=>{};
+  const options={mutate:mutation=>mutation(game,room),onDone:muted};
+  const firstPlan=scheduleBot(room,options);
+  assert.ok(firstPlan.delay>=7800);
+  const expertDue=chartForecastBotDueAt(game,bots[3],"expert");
+  assert.ok(expertDue-now>=12600 && expertDue-now<=23100);
+  const chart=currentForecastChart(game);
+  applyChartForecastAction(game,"host","submit",chart.values.slice(chart.cut+1),roomPlayers,now+1);
+  room.updatedAt+=200;
+  assert.equal(scheduleBot(room,options).key,firstPlan.key);
+  for (let count=0;count<bots.length;count++){
+    const actor=botActor(room);
+    const plan=scheduleBot(room,options);
+    if(!count) assert.equal(actor,first);
+    now+=plan.delay;
+    await plan.run();
+    assert.ok(Object.hasOwn(game.forecasts,actor));
+    assert.equal(Object.keys(game.forecasts).length,count+2);
+  }
+  assert.equal(game.phase,"chart-reveal");
+  assert.equal(scheduleBot(room,options),false);
+});
 
 test("verified snapshots are well formed and matches draw distinct charts",()=>{
   assert.equal(new Set(chartForecastData.map(chart=>chart.id)).size,chartForecastData.length);
