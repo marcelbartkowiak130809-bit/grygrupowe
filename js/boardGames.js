@@ -7,9 +7,12 @@ import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v
 import { serverNow } from "./firebase.js?v=20261123-8";
 import { chessMode, chessInfo, chessDefaults, chessSettings, chessMinutes, chessIncrements, createChessGame, chessGameAction } from "./chessGame.js?v=20261121-8";
 import { renderChessGame } from "./chessView.js?v=20261123-8";
+import { createLetterTable, letterTableAction, letterTableDefaults, letterTableInfo, letterTableMode } from "./letterTable.js?v=20261123-19";
+import { renderLetterTable } from "./letterTableView.js?v=20261123-19";
 
 export const boardModeDefinitions = [
   chessInfo,
+  letterTableInfo,
   { id:"board-chinczyk", name:"Chińczyk", icon:"🎲", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Rzucaj kostką, wyprowadzaj pionki i zbijaj rywali, zanim oni zrobią to samo.", rules:["Szóstka wyprowadza pionek z bazy.","Po wyrzuceniu szóstki dostajesz dodatkowy rzut.","Pierwszy gracz z czterema pionkami w domu wygrywa."], art:"board-ludo" },
   { id:"board-slowotwor", name:"Słowotwór", icon:"🔤", players:"2–4 osoby", minPlayers:2, maxPlayers:4, description:"Układaj słowa z własnych liter i zbieraj punkty za najciekawsze zagrania.", rules:["Wykorzystuj tylko litery ze swojego stojaka.","Dłuższe słowa i pełny stojak dają więcej punktów.","Jeśli nie masz pomysłu, możesz spasować i dobrać nowe litery."], art:"board-words" },
   { id:"board-statki", name:"Statki", icon:"🚢", players:"2 osoby", minPlayers:2, maxPlayers:2, description:"Ukryj flotę, namierzaj pola przeciwnika i zatop wszystkie jego statki.", rules:["Wybierz dokładnie siedem pól dla swojej floty.","Strzelaj na zmianę — trafione i chybione pola zostają oznaczone.","Zatopienie wszystkich siedmiu pól rywala kończy mecz."], art:"board-ships" },
@@ -22,6 +25,7 @@ export const boardModeDefinitions = [
 
 export const boardModeDefaults = {
   [chessMode]:chessDefaults,
+  [letterTableMode]:letterTableDefaults,
   [GUESS_PEOPLE_MODE]:guessPeopleDefaults,
   "board-chinczyk": { turnTime:45 },
   "board-slowotwor": { turnTime:45, rounds:6 },
@@ -134,6 +138,7 @@ function createDomino(players, settings) {
 export function createBoardGame(modeId, players, rawSettings = {}) {
   const settings=sanitizeBoardSettings(rawSettings,modeId);
   if (modeId === chessMode) return createChessGame(playersFor(players,2),settings,serverNow());
+  if (modeId === letterTableMode) return createLetterTable(playersFor(players,4),settings,serverNow());
   if (modeId === GUESS_PEOPLE_MODE) return createGuessPeopleGame(players,settings);
   let game;
   if(modeId === "board-chinczyk") game=createLudo(players,settings);
@@ -631,6 +636,7 @@ export const BoardEngine = {
     }
     game.players=nextPlayers.length?nextPlayers:previousPlayers;game.scores=objectOrEmpty(game.scores);game.players.forEach(player=>{if(!Number.isFinite(Number(game.scores[player])))game.scores[player]=0;});
     if(game.boardMode===chessMode)return chessGameAction(game,uid,action,payload,serverNow(),finishGame);
+    if(game.boardMode===letterTableMode)return letterTableAction(game,uid,action,payload,serverNow(),settings,finishGame);
     if(game.phase==="playing"&&game.currentUid&&!game.players.includes(game.currentUid))startTurn(game,Number(game.turnIndex)||0,settings);
     if(action === "board-extend-time") {
       const placementTurn=game.boardMode==="board-statki"&&game.phase==="placement"&&!game.placementSubmitted?.[uid];
@@ -834,6 +840,11 @@ export function renderBoardGame(root,{room,accounts,currentUser},actions){
   if (room.gameMode === chessMode) {
     const tick=renderChessGame(root,{room,accounts,currentUser},actions);
     if (game.phase==="playing") boardTimerId=window.setInterval(tick,200);
+    return;
+  }
+  if (room.gameMode === letterTableMode) {
+    const tick=renderLetterTable(root,{room,accounts,currentUser},actions);
+    if(game.phase==="playing") {boardTimerId=window.setInterval(tick,250);tick();}
     return;
   }
   if (room.gameMode === GUESS_PEOPLE_MODE) {

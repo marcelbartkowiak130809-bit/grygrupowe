@@ -14,7 +14,7 @@ import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261123-8";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261123-8";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261123-17";
+import { gamesList, getGameMode } from "./games.js?v=20261123-19";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261123-8";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261123-8";
@@ -66,13 +66,14 @@ import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
 let stopOnlineCountTooltip = () => {};
 let renderedTopBar = "";
-import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261123-8";
+import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261123-19";
+import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-19";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261121-20";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261123-18";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261123-19";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261121-20";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261123-17";
+import { playerMini, renderRoom } from "./room.js?v=20261123-19";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -80,7 +81,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261123-8";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261123-17";
+import { scheduleBot } from "./botController.js?v=20261123-19";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -999,6 +1000,7 @@ const additionalModeRewardConfig = Object.freeze({
 
   "board-chinczyk": { participation:45, point:10, scoreCap:8, winner:65, xp:55 },
   "board-slowotwor": { participation:40, point:2, scoreCap:28, winner:60, xp:55, referenceRounds:6, lengthStep:2, lengthCap:18 },
+  [letterTableMode]: { participation:40, point:.4, scoreCap:100, winner:60, xp:55 },
   "board-statki": { participation:55, point:12, scoreCap:8, winner:75, xp:70 },
   "board-reversi": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
   "board-warcaby": { participation:60, point:14, scoreCap:8, winner:85, xp:75 },
@@ -3068,7 +3070,18 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   falseMessageAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";return FalseMessageEngine.answer(game,state.currentUser,text,room.settings);},{sound:"submit"});},
   falseMessageEditAnswer(text, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wiadomości już minął.";if(!hasGamePass(profile(),"creative-license"))return "Nie masz aktywnej Licencji kreatywności.";return FalseMessageEngine.editAnswer(game,state.currentUser,text);},{sound:"submit"});},
   falseMessageChoose(answerUid, expected={}){return mutateRoomGame((game)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas wyboru już minął.";return FalseMessageEngine.choose(game,state.currentUser,answerUid);},{sound:"choice"});},
-  boardAction(action,payload="",expected={}){const room=activeRoom();if(!room?.game||room.gameMode?.startsWith("board-")!==true)return false;return mutateRoomGame((game,current)=>{if(expected.phase&&game.phase!==expected.phase)return "Stan gry już się zmienił.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt||0)&&action==="timeout")return "Czas na ten ruch już minął.";return BoardEngine.action(game,state.currentUser,action,payload,current.players,current.settings);},{sound:action.includes("fire")||action.includes("move")||action.includes("drop")||action.includes("play")?"choice":"turn",after:settleAdditionalModeResult});},
+  async letterTablePlay(payload,expected){
+    const room=activeRoom(), actor=state.currentUser;
+    if(room?.gameMode!==letterTableMode || room.game?.currentUid!==actor) return false;
+    const moment=gameMomentKey(room.game);
+    let error;
+    try { error=await prepareLetterDictionary(room.game,actor,payload); }
+    catch { error="Słownik jest chwilowo niedostępny. Spróbuj ponownie."; }
+    if(activeRoom()?.roomId!==room.roomId || state.currentUser!==actor || gameMomentKey(activeRoom()?.game)!==moment) return false;
+    if(error) {message(error,"info");return false;}
+    return actions.boardAction("letter-play",payload,expected);
+  },
+  boardAction(action,payload="",expected={}){const room=activeRoom();if(!room?.game||room.gameMode?.startsWith("board-")!==true)return false;return mutateRoomGame((game,current)=>{if(expected.phase&&game.phase!==expected.phase)return "Stan gry już się zmienił.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt||0)&&(action==="timeout"||current.gameMode===letterTableMode))return "Czas na ten ruch już minął.";return BoardEngine.action(game,state.currentUser,action,payload,current.players,current.settings);},{sound:action.includes("fire")||action.includes("move")||action.includes("drop")||action.includes("play")?"choice":"turn",after:settleAdditionalModeResult});},
   async boardUseTimeBoost(source){
     const room=activeRoom(),user=profile(),isPass=source==="board-pace-control",item=isPass?gamePassById("board-pace-control"):inGamePurchaseById("board-timeout-token");
     if(!room?.game||room.gameMode?.startsWith("board-")!==true||!user||!item)return false;
@@ -3092,7 +3105,19 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     message(isPass?"Mistrz tempa dodał ci 15 sekund.":"Kupiono dodatkowe 15 sekund.","info");
     return true;
   },
-  boardRestart(){const room=activeRoom();if(!room||room.hostUid!==state.currentUser||room.gameMode?.startsWith("board-")!==true)return message("Tylko host może rozpocząć ponowny mecz.","info");return mutateRoomGame((game,current)=>{if(game.phase!=="result")return "Mecz jeszcze trwa.";if(current.gameMode==="board-szachy"&&current.players.length<2)return "Do rewanżu potrzeba dwóch graczy.";BoardEngine.restart(game,current.players,current.settings);if(current.gameMode==="board-szachy")Object.assign(game,{siteGameId:uid("GAME"),startedAt:serverNow()});current.status="playing";},{sound:"gameStart"});},
+  boardRestart(){
+    const room=activeRoom();
+    if(!room||room.hostUid!==state.currentUser||room.gameMode?.startsWith("board-")!==true) return message("Tylko host może rozpocząć ponowny mecz.","info");
+    const replayable=["board-szachy",letterTableMode].includes(room.gameMode);
+    const after=room.gameMode===letterTableMode ? current=>{ current.status="playing"; } : undefined;
+    return mutateRoomGame((game,current)=>{
+      if(game.phase!=="result") return "Mecz jeszcze trwa.";
+      if(replayable && current.players.length<2) return "Do rewanżu potrzeba dwóch graczy.";
+      BoardEngine.restart(game,current.players,current.settings);
+      if(replayable) Object.assign(game,{siteGameId:uid("GAME"),startedAt:serverNow()});
+      current.status="playing";
+    },{sound:"gameStart",after});
+  },
   musicSearchTracks(query, region="global"){return searchMusicTracks(query, region);},
   musicDuelSelect(track, expected={}){return mutateRoomGame((game,room)=>{reconcileMusicPlayers(game,room);if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Czas na wybór utworu już minął.";return MusicDuelEngine.select(game,state.currentUser,track,room.settings);},{sound:"submit"});},
   musicDuelVote(target, expected={}){return mutateRoomGame((game,room)=>{reconcileMusicPlayers(game,room);if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Głosowanie już się zakończyło.";return MusicDuelEngine.vote(game,state.currentUser,target);},{sound:"vote"});},
@@ -3573,6 +3598,8 @@ function renderNow(options = {}) {
   if (!chartForecast) stopChartForecastView();
   const chess = screen === "game" && markerRoom?.gameMode === "board-szachy";
   const preserveChess = softRender && chess && oldView?.querySelector("[data-chess-game]");
+  const letterTable = screen === "game" && markerRoom?.gameMode === letterTableMode;
+  const preserveLetterTable = softRender && letterTable && oldView?.querySelector("[data-letter-table]");
   const drafts = previousScope === scope && !preserveRoom && !typeRace ? captureInputDrafts(root) : {fields:[]};
   root.dataset.routeScope = scope;
   const preservedScrollY = softRender ? window.scrollY : null;
@@ -3584,14 +3611,14 @@ function renderNow(options = {}) {
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
-  if (!auction && !chess && !chartForecast) clearSideReactions(root);
+  if (!auction && !chess && !chartForecast && !letterTable) clearSideReactions(root);
   const activeAuctionLots = ["auction","auction-reveal"].includes(auction?.phase);
   const preserveAuctionResult = softRender && auction?.phase === "result" && oldView?.querySelector("[data-auction-final]");
   const preserveAuctionBattle = softRender && auctionBattlePhases.includes(auction?.phase) && oldView?.querySelector("[data-auction-battle]");
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
   const preservePriceGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===priceGuessMode && oldView?.querySelector("[data-price-game]");
   const preserveCountryGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===countryGuessMode && oldView?.querySelector("[data-country-game]");
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess || preserveLetterTable ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3615,7 +3642,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(screen!=="solo") stopWouldYouRather();
-  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess && !preserveChartForecast) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess && !preserveChartForecast && !preserveLetterTable) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
@@ -3649,7 +3676,7 @@ function renderNow(options = {}) {
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
       setupRoundAdvance(view, room, actions);
       if (preserveTypeRace) view.querySelectorAll(".quick-reactions-bar,.quick-reaction-bubble-layer").forEach(node => node.remove());
-      if (auction || chess || chartForecast) renderSideReactions(root, room, state.accounts, actions);
+      if (auction || chess || chartForecast || letterTable) renderSideReactions(root, room, state.accounts, actions);
       else if (mode.id !== "polacz-nas") renderQuickReactions(view, room, state.accounts, actions);
       addHonorPrompt(view, room);
       identityVoiceChat.sync(room,state.currentUser);

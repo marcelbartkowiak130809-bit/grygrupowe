@@ -36,8 +36,9 @@ import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?
 import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261123-7";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261121-8";
 
-import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261123-8";
+import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261123-19";
 import { chessInfo, chessMode } from "./chessGame.js?v=20261121-8";
+import { letterTableInfo, letterTableMode } from "./letterTable.js?v=20261123-19";
 import { minecraftDefaults, renderMinecraftGame } from "./minecraft.js?v=20261121-12";
 import { renderLastBackpack } from './lastBackpack.js?v=20261121-8';
 import { renderAlexJourney } from './alexJourney.js?v=20261121-8';
@@ -427,6 +428,11 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
     ...chessInfo, help:chessInfo.rules, symbol:"♞", audience:"board", badges:["new"],
     allowReports:true, supportsLobby:true, supportsSolo:false, supportsBots:true,
     render:renderBoardGame, defaultSettings:boardModeDefaults[chessMode],
+  },
+  [letterTableMode]: {
+    ...letterTableInfo, help:letterTableInfo.rules, symbol:letterTableInfo.icon, audience:"board", badges:["new"],
+    allowReports:true, supportsLobby:true, supportsSolo:false, supportsBots:false,
+    render:renderBoardGame, defaultSettings:boardModeDefaults[letterTableMode],
   },
   "board-warcaby": {
     id:"board-warcaby", name:"Warcaby", description:"Planuj bicia, rób damki i zablokuj wszystkie pionki przeciwnika.", help:["Pionki poruszają się po ciemnych polach po skosie.","Bicie jest obowiązkowe, a dojście do końca robi damkę.","Wygrywa gracz, który zbije albo zablokuje rywala."], allowReports:true, players:"2 osoby", minPlayers:2, maxPlayers:2, supportsLobby:true, supportsSolo:false, symbol:"♟️", art:"board-checkers", audience:"board", badges:["new"], render:renderBoardGame, defaultSettings:boardModeDefaults["board-warcaby"],

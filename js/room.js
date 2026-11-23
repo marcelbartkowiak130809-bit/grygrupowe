@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261123-17";
+import { getGameMode } from "./games.js?v=20261123-19";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261123-8";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -42,7 +42,7 @@ import { renderMusicDuelLobbySettings, renderMusicArenaLobbySettings } from "./m
 import { renderLyricsLobbySettings } from "./lyrics.js?v=20261123-7";
 import { renderPopularityLobbySettings } from "./popularity.js?v=20261123-7";
 import { renderSongSpotLobbySettings } from "./deferredMusicModes.js?v=20261121-8";
-import { renderBoardLobbySettings } from "./boardGames.js?v=20261123-8";
+import { renderBoardLobbySettings } from "./boardGames.js?v=20261123-19";
 import { minecraftModeIcons, renderMinecraftLobbySettings } from "./minecraft.js?v=20261121-12";
 
 const pokemonCardIds = { "pokemon-dex":25, "pokemon-last-letter":133, "pokemon-evolution":1, "pokemon-auction":149, "pokemon-types":7, "pokemon-match-type":4 };
