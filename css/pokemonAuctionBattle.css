@@ -30,6 +30,17 @@
 .battle-unit[data-battle-matchup="super"] { --matchup-color:#ffcf78; }
 .battle-unit[data-battle-matchup] { border-color:var(--matchup-color);box-shadow:inset 0 0 13px color-mix(in srgb,var(--matchup-color) 23%,transparent); }
 .battle-unit .battle-matchup-label { color:var(--matchup-color);font-weight:800; }
+.auction-battle-panel :is(.battle-unit,.duel-moves button)[data-battle-matchup="quad"] {
+  --matchup-color:#dda0ff;--matchup-glow:#ab42ff;
+  border-color:var(--matchup-color);
+  box-shadow:inset 0 0 15px #ab42ff40,0 0 10px #ab42ff80;
+  animation:battleQuadPulse 1.25s ease-in-out infinite alternate;
+}
+.auction-battle-panel [data-battle-matchup="quad"] .battle-matchup-label { color:var(--matchup-color);font-weight:900; }
+@keyframes battleQuadPulse {
+  from { box-shadow:inset 0 0 11px color-mix(in srgb,var(--matchup-glow) 23%,transparent),0 0 4px color-mix(in srgb,var(--matchup-glow) 44%,transparent); }
+  to { box-shadow:inset 0 0 20px color-mix(in srgb,var(--matchup-glow) 48%,transparent),0 0 14px color-mix(in srgb,var(--matchup-glow) 78%,transparent); }
+}
 .battle-unit-art { position:relative;width:62px;height:57px; }
 .battle-sprite { width:100%;height:100%;position:relative;z-index:1;object-fit:contain;image-rendering:pixelated; }
 .battle-evolution-old,.battle-evolution-flash { position:absolute;inset:0;pointer-events:none; }
@@ -253,6 +264,10 @@
 .light-theme .battle-unit[data-battle-matchup="effective"] { --matchup-color:#1a7350; }
 .light-theme .battle-unit[data-battle-matchup="super"] { --matchup-color:#8b4a0b; }
 .light-theme .auction-battle-panel .battle-unit[data-battle-matchup] { border-color:var(--matchup-color); }
+.light-theme .auction-battle-panel :is(.battle-unit,.duel-moves button)[data-battle-matchup="quad"] {
+  --matchup-color:#7021bf;--matchup-glow:#962af3;
+  border-color:var(--matchup-color);
+}
 .light-theme .auction-battle-panel .battle-surrender,.light-theme .battle-team h2 small { color:#993342; }
 .light-theme .duel-stage {
   --stage-light:#73b1dd;--stage-wash:#dbeafa;
@@ -298,5 +313,8 @@
   .duel-controls { margin:3px 0; }
   .light-theme .battle-move-row { background:#f5f8fd;border-color:#bdcbdc; }
 }
-@media(prefers-reduced-motion:reduce) { .battle-hp i { transition:none; } }
+@media(prefers-reduced-motion:reduce) {
+  .battle-hp i { transition:none; }
+  .auction-battle-panel :is(.battle-unit,.duel-moves button)[data-battle-matchup="quad"] { animation:none; }
+}
 .auction-spotlight [data-auction-sprite]:not([data-auction-sprite-ready]) { visibility:hidden; }

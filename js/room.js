@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261123-8";
+import { getGameMode } from "./games.js?v=20261123-9";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261123-8";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -16,7 +16,7 @@ import { renderCountryGuessLobby } from "./countryGuessView.js?v=20261123-8";
 import { renderRankingLobbySettings } from "./ranking.js?v=20261121-8";
 import { renderFiveSecondsLobbySettings } from "./fiveSeconds.js?v=20261121-8";
 import { renderClockLobbySettings } from "./clock.js?v=20261121-8";
-import { renderPokemonLobbySettings } from "./pokemon.js?v=20261123-8";
+import { renderPokemonLobbySettings } from "./pokemon.js?v=20261123-9";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
 import { chartForecastMode } from "./chartForecast.js?v=20261121-20";
 import { renderChartForecastLobby } from "./chartForecastView.js?v=20261123-8";

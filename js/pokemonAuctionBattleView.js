@@ -265,9 +265,15 @@ function duelMarkup(game,accounts,uid,players,timer,view,now) {
         const available = !labels || auctionDuelMoveAvailable(unit,move);
         const hit = target?.hp && available && details.power && (game.battleRules.showDamagePreview || scout)
           ? auctionBattleDamage(moveUnit,target,move,game,targetUid) : null;
-        return `<button type="button" class="ghost" data-duel-move="${move}" style="--accent:${battleAccent(details.type)}" aria-pressed="${order?.move===move}" ${available?"":"disabled"}>
+        const quad = scout && hit?.factor===4;
+        const hint = hit && [
+          game.battleRules.showDamagePreview ? `≈ ${hit.damage} HP` : "",
+          scout && hit.factor>1 ? `<span class="battle-matchup-label">×${hit.factor} super skuteczny</span>` : "",
+          scout && hit.factor===0 ? "odporność" : "",
+        ].filter(Boolean).join(" · ");
+        return `<button type="button" class="ghost" data-duel-move="${move}" ${quad?'data-battle-matchup="quad"':""} style="--accent:${battleAccent(details.type)}" aria-pressed="${order?.move===move}" ${available?"":"disabled"}>
           <strong>${moveTypeIcon(details.type)}${escapeHtml(details.name)}<span class="duel-move-kind" title="${categoryLabel}" aria-label="${categoryLabel}">${icon(categoryIcon,13)}</span></strong><small>${labels ? `${auctionDuelPP(moveUnit,move)}/${details.pp} PP` : "Brak PP w innych ruchach"}${priority ? ` · Priorytet ${priority>0?"+":""}${priority}` : ""}${details.description ? ` · ${details.description}` : ""}</small>
-          ${hit ? `<small>${game.battleRules.showDamagePreview ? `≈ ${hit.damage} HP` : ""}${scout && hit.factor>1 ? " · super skuteczny" : ""}${scout && hit.factor===0 ? " · odporność" : ""}</small>` : ""}
+          ${hint ? `<small>${hint}</small>` : ""}
         </button>`;
       }).join("")}</div>
       ${unit.megaTarget && !unit.transformBase ? `<label class="check"><input type="checkbox" data-duel-mega ${view.mega?"checked":""} ${order?.kind==="switch"?"disabled":""}> ✦ Megaewolucja razem z ruchem</label>` : ""}
@@ -294,8 +300,8 @@ function battleMarkup(game, accounts, uid, players, timer, selection) {
       const selected = player===uid ? slot===selection.slot : player===selection.targetUid && slot===selection.targetSlot;
       const species = auctionBattlePokemon(unit.id);
       const factor = showMatchups && player!==uid && unit.hp>0 ? battleSignatureEffectiveness(attacker,unit,game,player) : 0;
-      const matchup = factor>1 ? "super" : factor===1 ? "effective" : "";
-      const badge = player!==uid && ownsMatchups ? `<small class="battle-matchup-label"${matchup ? "" : ' aria-hidden="true"'}>${matchup==="super" ? `×${factor} Super` : matchup ? "×1 Skuteczny" : "&nbsp;"}</small>` : "";
+      const matchup = factor===4 ? "quad" : factor>1 ? "super" : factor===1 ? "effective" : "";
+      const badge = player!==uid && ownsMatchups ? `<small class="battle-matchup-label"${matchup ? "" : ' aria-hidden="true"'}>${factor>1 ? `×${factor} Super` : matchup ? "×1 Skuteczny" : "&nbsp;"}</small>` : "";
       const condition = unit.perishTurn ? `Perish · ${Math.ceil((unit.perishTurn - turn) / game.battle.order.length)}`
         : statusNames[unit.condition] || (unit.confusion ? statusNames.confusion : "");
       const ability = advanced ? `<small class="battle-ability-chip">${escapeHtml([auctionAbilityName(auctionAbility(unit)),condition].filter(Boolean).join(" · "))}</small>` : "";
