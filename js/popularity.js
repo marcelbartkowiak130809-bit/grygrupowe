@@ -4,6 +4,7 @@ import { Audio } from "./audio.js?v=20261123-7";
 import { musicCatalogForRegion, musicPreviewCatalog, musicRegionLabel, musicRegionOptions, musicRegionPicker } from "./music.js?v=20261123-7";
 import { popularityViewSnapshots, popularityViewAuditMeta } from "./popularityViewSnapshots.js?v=20260903-audit4";
 import { SPOTIFY_MONTHLY_LISTENERS_AUDIT_DATE, spotifyMonthlyListenerSnapshots } from "./spotifyListenerSnapshots.js?v=20260904-1";
+import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 
 const array = value => Array.isArray(value) ? value : [];
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -813,15 +814,15 @@ function hashColor(value) {
 }
 function safeNick(accounts, uid) { return accounts?.[uid]?.nick || accounts?.[uid]?.displayName || "Gracz"; }
 function userProfile(accounts, room, uid) { return { ...(room?.playerProfiles?.[uid] || {}), ...(accounts?.[uid] || {}), nick:safeNick(accounts, uid), uid }; }
-function popularityArt(track, side, reveal = false, metric = "views") {
+function popularityArt(track, metric) {
   if (!track) return "";
   const artistMode = isArtistMetric(metric), hue = hashColor(track.artist), query = artistMode ? normalizedText(track.artist) : trackQuery(track.topTrack || track);
   const note = artistMode ? "" : `<span class="popularity-art-note">♫</span>`;
-  return `<div class="popularity-art is-loading ${reveal ? "is-revealed" : ""}" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}">${note}<small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
+  return `<div class="popularity-art is-loading" data-popularity-artwork data-artwork-query="${escapeHtml(query)}" style="--popularity-hue:${hue}">${note}<small>${escapeHtml(track.artist || "Artysta")}</small></div>`;
 }
 function popularityTrackCard(track, side, { selected = false, reveal = false, correct = false, disabled = false, metric = "views" } = {}) {
   const artistMode = isArtistMetric(metric), title = artistMode ? track?.artist || "Brak artysty" : track?.title || "Brak utworu", subtitle = artistMode ? (reveal && track?.topTrack?.title ? `Top utwór: ${track.topTrack.title}` : "") : track?.artist || "", entity = artistMode ? "artystę" : "piosenkę", value = reveal ? `<strong class="popularity-value" data-popularity-number="${valueFor(track, metric)}" data-popularity-metric="${cleanMetric(metric)}">${formatPopularityValue(0, metric)}</strong>` : `<span class="popularity-hidden-value">???</span>`;
-  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected || disabled ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, side, reveal, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
+  return `<button class="popularity-choice popularity-${side} ${selected ? "is-selected" : ""} ${reveal && correct ? "is-correct" : ""} ${reveal && !correct ? "is-wrong" : ""}" data-popularity-choice="${side}" aria-label="${escapeHtml(`Wybierz ${entity} ${side === "left" ? "A" : "B"}: ${title}`)}" aria-pressed="${selected ? "true" : "false"}" ${reveal || selected || disabled ? "disabled" : ""}><span class="popularity-side-label">${side === "left" ? "A" : "B"}</span>${popularityArt(track, metric)}<span class="popularity-track-copy"><b>${escapeHtml(title)}</b>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}${value}</span>${reveal ? `<span class="popularity-reveal-mark">${correct ? "✓" : "×"}</span>` : ""}</button>`;
 }
 function popularityRanking(game, accounts, room, winners = []) {
   const winnerSet = new Set(winners);
@@ -867,7 +868,6 @@ export function stopPopularityTimer() {
   stopPopularityPreview();
 }
 function schedulePopularityTimer(root, game, actions, expected) {
-  stopPopularityTimer();
   if (game.phase !== "choosing" || !Number(game.phaseEndsAt)) return;
   const update = () => {
     const element = root.querySelector("[data-popularity-time]");
@@ -1120,14 +1120,16 @@ function popularityMargin(pair, metric) {
   const left = valueFor(pair?.[0], metric), right = valueFor(pair?.[1], metric);
   return left === right ? "identyczny wynik" : `przewaga ${formatPopularityValue(Math.abs(left - right), metric)}`;
 }
-function bindPopularityKeyboard(root, actions, expected, solo = false) {
+function bindPopularityKeyboard(root) {
   const handler = event => {
     if (!root.isConnected || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
     const key = String(event.key || "").toLowerCase();
     const side = key === "a" || event.key === "ArrowLeft" ? "left" : key === "d" || event.key === "ArrowRight" ? "right" : "";
     if (!side) return;
+    const button = root.querySelector(`[data-popularity-choice="${side}"]:enabled`);
+    if (!button) return;
     event.preventDefault();
-    if (solo) actions.popularitySoloChoose(side); else actions.popularityChoose(side, expected);
+    button.click();
   };
   popularityKeyHandler = handler;
   window.addEventListener("keydown", handler);
@@ -1150,34 +1152,65 @@ function animatePopularityValues(root) {
   popularityAnimationFrame = window.requestAnimationFrame(tick);
 }
 
+function popularityPrompt(game, icon, detail) {
+  return `<section class="popularity-question"><span>${icon}</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${detail}</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div>`;
+}
+
+function popularityStage(pair, round, metric, revealed, options) {
+  const key = encodeURIComponent(JSON.stringify([round, metric, ...pair.map(track => track?.id)]));
+  return `<div id="popularity-pair-${key}" class="popularity-duel-stage${revealed ? " popularity-reveal-stage" : ""}">${popularityTrackCard(pair[0], "left", options("left"))}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", options("right"))}</div>`;
+}
+
+const popularityViewPhases = new WeakMap();
+function updatePopularityView(root, key, game, phase, pair, html) {
+  const phaseKey = JSON.stringify([key, phase, game.round, game.phaseEndsAt, game.metric, pair.map(track => track?.id)]);
+  const changed = popularityViewPhases.get(root) !== phaseKey;
+  if (changed) stopPopularityTimer();
+  patchRoomView(root, key, html);
+  if (changed) {
+    popularityViewPhases.set(root, phaseKey);
+    bindPopularityKeyboard(root);
+    if (["roundResult", "reveal", "over"].includes(phase)) animatePopularityValues(root);
+    hydratePopularityArtwork(root, pair, game.metric);
+  }
+  Audio.bindTrackVolumeControls(root);
+  return changed;
+}
+
 export function renderPopularityGame(root, { room, accounts, currentUser }, actions) {
   const game = room.game, result = game.roundResult || {}, selected = isPopularityChoice(game.choices?.[currentUser]) ? game.choices[currentUser] : "", expected = { phase:game.phase, phaseEndsAt:game.phaseEndsAt };
   const pair = array(game.phase === "roundResult" ? result.pair : game.pair).slice(0, 2);
   let content = popularityHeader(game);
+  if (["choosing", "roundResult"].includes(game.phase)) {
+    const size = popularityPoolSize(game.metric, game.region);
+    const entity = isArtistMetric(game.metric) ? "artystów" : "utworów";
+    content += popularityPrompt(game, "📊", `${size} ${entity} w bazie`);
+  }
   if (game.phase === "choosing") {
     const choiceCount = array(game.players).filter(uid => isPopularityChoice(game.choices?.[uid])).length, chosen = selected ? `<div class="popularity-choice-status"><span>✓</span><div><b>Twój wybór został zapisany</b><small>Czekamy na resztę graczy: ${choiceCount}/${game.players.length}.</small></div>${popularityReadyPlayers(game, accounts, room)}</div>` : `<div class="popularity-choice-status"><span>⚡</span><div><b>Wybierz stronę</b><small>${choiceCount ? `${choiceCount}/${game.players.length} graczy już wybrało.` : "Nie pokazujemy liczb, dopóki wszyscy nie odpowiedzą."}</small></div>${popularityReadyPlayers(game, accounts, room)}</div>`;
-    const librarySize = popularityPoolSize(game.metric, game.region), libraryEntity = isArtistMetric(game.metric) ? "artystów" : "utworów";
-    content += `<section class="popularity-question"><span>📊</span><div><b>${escapeHtml(metricQuestion(game.metric, game.reversed))}</b><small>${escapeHtml(metricSource(game.metric))} · ${librarySize} ${libraryEntity} w bazie</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:selected === "left", disabled:Boolean(selected), metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:selected === "right", disabled:Boolean(selected), metric:game.metric })}</div>${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
+    content += popularityStage(pair, game.round, game.metric, false, side => ({ selected:selected === side, disabled:Boolean(selected), metric:game.metric }));
+    content += `${popularityInsightHtml(game, accounts, currentUser, room, pair)}<div class="popularity-live-timer">Zaznacz do końca <b data-popularity-time></b></div>${chosen}`;
   } else if (game.phase === "roundResult") {
     const correct = result.correctSide, leftCorrect = correct === "tie" || correct === "left", rightCorrect = correct === "tie" || correct === "right";
     const winningTrack = correct === "left" ? pair[0] : correct === "right" ? pair[1] : null;
     const revealEntity = metricEntity(game.metric), revealQuantity = metricQuantity(game.metric), revealDirection = game.reversed ? "Mniej" : "Więcej";
-    content += `<section class="popularity-reveal-banner"><span class="popularity-reveal-icon">${correct === "tie" ? "=" : "✦"}</span><div><p class="eyebrow">UJAWNIENIE</p><h2>${correct === "tie" ? "Remis — oba wybory były trafione" : `${revealDirection} ${escapeHtml(revealQuantity)} ma ${revealEntity} ${correct === "left" ? "A" : "B"}`}</h2><p>${escapeHtml(metricSource(game.metric))} · ${escapeHtml(popularityMargin(pair, game.metric))}</p></div></section><div class="popularity-duel-stage popularity-reveal-stage" data-popularity-round="${Number(game.round || 1)}">${popularityTrackCard(pair[0], "left", { selected:Object.values(result.choices || {}).includes("left"), reveal:true, correct:leftCorrect, metric:game.metric })}<div class="popularity-vs"><span>VS</span><i></i></div>${popularityTrackCard(pair[1], "right", { selected:Object.values(result.choices || {}).includes("right"), reveal:true, correct:rightCorrect, metric:game.metric })}</div>${popularityPreviewHtml(winningTrack, game.metric)}<section class="popularity-picks-panel"><div class="section-heading"><div><p class="eyebrow">WASZE WYBORY</p><h2>Kto trafił?</h2></div><span class="badge">${array(result.awarded).length}/${game.players.length}</span></div><div class="popularity-picks-list">${popularityPlayerPicks(game, accounts, room)}</div></section><section class="popularity-ranking"><p class="eyebrow">AKTUALNY RANKING</p>${popularityRanking(game, accounts, room, array(result.awarded))}</section><button class="primary big" id="popularity-next">${Number(game.round) >= Number(game.totalRounds) ? "Pokaż końcowy ranking" : "Następna para"}</button>`;
+    content += popularityStage(pair, game.round, game.metric, true, side => ({
+      selected:result.choices?.[currentUser] === side, reveal:true, correct:side === "left" ? leftCorrect : rightCorrect, metric:game.metric,
+    }));
+    content += `<section class="popularity-reveal-banner"><span class="popularity-reveal-icon">${correct === "tie" ? "=" : "✦"}</span><div><p class="eyebrow">UJAWNIENIE</p><h2>${correct === "tie" ? "Remis — oba wybory były trafione" : `${revealDirection} ${escapeHtml(revealQuantity)} ma ${revealEntity} ${correct === "left" ? "A" : "B"}`}</h2><p>${escapeHtml(metricSource(game.metric))} · ${escapeHtml(popularityMargin(pair, game.metric))}</p></div></section>${popularityPreviewHtml(winningTrack, game.metric)}<section class="popularity-picks-panel"><div class="section-heading"><div><p class="eyebrow">WASZE WYBORY</p><h2>Kto trafił?</h2></div><span class="badge">${array(result.awarded).length}/${game.players.length}</span></div><div class="popularity-picks-list">${popularityPlayerPicks(game, accounts, room)}</div></section><section class="popularity-ranking"><p class="eyebrow">AKTUALNY RANKING</p>${popularityRanking(game, accounts, room, array(result.awarded))}</section><button class="primary big" id="popularity-next">${Number(game.round) >= Number(game.totalRounds) ? "Pokaż końcowy ranking" : "Następna para"}</button>`;
   } else {
     const top = Math.max(0, ...game.players.map(uid => Number(game.scores?.[uid] || 0))), winners = game.players.filter(uid => Number(game.scores?.[uid] || 0) === top && top > 0);
     content += `<section class="popularity-final"><span class="popularity-trophy">🏆</span><p class="eyebrow">KONIEC GRY</p><h2>${winners.length ? `Wygrywa ${winners.map(uid => escapeHtml(safeNick(accounts, uid))).join(", ")}!` : "Tym razem bez zwycięzcy"}</h2><p class="muted">Każdy trafny wybór dawał punkt.</p><section class="popularity-ranking">${popularityRanking(game, accounts, room, winners)}</section><button class="primary big" id="popularity-lobby">Zagraj ponownie</button></section>`;
   }
-  root.innerHTML = `<main class="page popularity-page popularity-room-page enter"><section class="panel popularity-panel">${content}<p class="popularity-snapshot-note">Liczby są stałym snapshotem rundy — wszyscy grają na tych samych danych.</p></section><button id="popularity-leave" class="ghost">Wyjdź z pokoju</button></main>`;
-  root.querySelectorAll("[data-popularity-choice]").forEach(button => button.addEventListener("click", () => actions.popularityChoose(button.dataset.popularityChoice, expected)));
-  root.querySelectorAll("[data-popularity-insight]").forEach(button => button.addEventListener("click", () => actions.popularityUseInsight(button.dataset.popularityInsight)));
-  root.querySelector("#popularity-next")?.addEventListener("click", actions.popularityNext);
-  root.querySelector("#popularity-lobby")?.addEventListener("click", actions.returnToRoom);
-  root.querySelector("#popularity-leave")?.addEventListener("click", () => actions.leaveRoom("music-select"));
-  schedulePopularityTimer(root, game, actions, expected);
-  if (game.phase === "choosing" && !selected) bindPopularityKeyboard(root, actions, expected);
-  if (game.phase === "roundResult") animatePopularityValues(root);
-  Audio.bindTrackVolumeControls(root);
-  hydratePopularityArtwork(root, pair, game.metric);
+  const key = JSON.stringify(["popularity-room", room.roomId, game.siteGameId || game.startedAt]);
+  const changed = updatePopularityView(root, key, game, game.phase, pair, `<main class="page popularity-page popularity-room-page"><section class="panel popularity-panel">${content}<p class="popularity-snapshot-note">Liczby są stałym snapshotem rundy — wszyscy grają na tych samych danych.</p></section><button id="popularity-leave" class="ghost">Wyjdź z pokoju</button></main>`);
+  root.querySelectorAll("[data-popularity-choice]").forEach(button => { button.onclick = () => actions.popularityChoose(button.dataset.popularityChoice, expected); });
+  root.querySelectorAll("[data-popularity-insight]").forEach(button => { button.onclick = () => actions.popularityUseInsight(button.dataset.popularityInsight); });
+  const next = root.querySelector("#popularity-next"), lobby = root.querySelector("#popularity-lobby");
+  if (next) next.onclick = actions.popularityNext;
+  if (lobby) lobby.onclick = actions.returnToRoom;
+  root.querySelector("#popularity-leave").onclick = () => actions.leaveRoom("music-select");
+  if (changed) schedulePopularityTimer(root, game, actions, expected);
 }
 
 const SOLO_METRICS = ["views", "listeners", "artistListeners"];
@@ -1370,7 +1403,6 @@ function popularitySoloLeaderboard(accounts = {}, playerId, state = {}, currentP
   return `<aside class="panel popularity-leaderboard" aria-label="Rankingi trybu solo"><div class="section-heading"><div><p class="eyebrow">KTO MA WIĘCEJ?</p><h2>Rankingi serii</h2></div><span class="badge">3</span></div><p class="popularity-leaderboard-note">Globalne i Polskie mają osobne rekordy — wyniki nigdy się nie mieszają.</p><div class="popularity-leaderboard-regions" role="tablist" aria-label="Wybierz katalog">${regionTabs}</div><div class="popularity-leaderboard-tabs" role="tablist" aria-label="Wybierz ranking">${metricTabs}</div>${panels}</aside>`;
 }
 function soloMetricButtons(state) { return `<div class="popularity-metric-switch" role="tablist" aria-label="Rodzaj statystyki">${[["views", "Wyświetlenia piosenek"], ["listeners", "Słuchacze piosenek"], ["artistListeners", "Słuchacze artystów"]].map(([id, label]) => `<button type="button" class="${state.metric === id ? "active" : ""}" data-popularity-solo-metric="${id}">${label}</button>`).join("")}</div>`; }
-function soloTrackCard(track, side, state, reveal = false) { return popularityTrackCard(track, side, { selected:reveal && state.lastResult?.selected === side, reveal, correct:reveal && (state.lastResult?.correctSide === "tie" || state.lastResult?.correctSide === side), metric:state.metric }); }
 
 function popularitySoloAnswerLabel(result, metric) {
   if (result?.correctSide === "tie") return "remis";
@@ -1379,25 +1411,33 @@ function popularitySoloAnswerLabel(result, metric) {
 }
 
 export function renderPopularitySolo(root, { profile, playerId, accounts = {}, leaderboard = {}, leaderboardRegion = "global", leaderboardMetric = "views" }, actions) {
-  if (typeof window !== "undefined") stopPopularityTimer();
   const state = readSoloState(playerId), game = { ...state, totalRounds:0 };
+  const revealed = state.status === "reveal" || state.status === "over";
+  const pair = array(revealed ? state.lastResult?.pair || state.pair : state.pair).slice(0, 2);
+  const metric = revealed ? state.lastResult?.metric || state.metric : state.metric;
   let content = popularityHeader(game, true);
+  if (state.status !== "idle") {
+    content += popularityPrompt(game, "🔥", "bez limitu rund");
+    content += popularityStage(pair, state.round, metric, revealed, side => ({
+      selected:revealed && state.lastResult?.selected === side, reveal:revealed,
+      correct:revealed && [side, "tie"].includes(state.lastResult?.correctSide), metric,
+    }));
+  }
   if (state.status === "idle") {
     content += `<section class="popularity-solo-start"><div class="popularity-solo-icon">♫</div><p class="eyebrow">SZYBKI SOLO RUN</p><h2>Ile trafień zrobisz z rzędu?</h2><p class="muted">Klikasz większą liczbę, następna para pojawia się od razu. Możesz przerwać serię w dowolnym momencie.</p>${soloRegionButtons(state)}${soloMetricButtons(state)}<div class="popularity-best-card"><span>🏆</span><div><small>TWÓJ REKORD</small><b>${Number(state.best || 0)} trafień</b></div></div><button class="primary big" id="popularity-solo-start">Zacznij serię</button></section>`;
   } else if (state.status === "reveal") {
-    const result = state.lastResult || {}, metric = result.metric || state.metric, pair = array(result.pair || state.pair).slice(0, 2), winningTrack = result.correctSide === "left" ? pair[0] : result.correctSide === "right" ? pair[1] : null, revealState = { ...state, metric }, selectedEntity = isArtistMetric(metric) ? "artystę" : "piosenkę";
-    content += `<section class="popularity-solo-over popularity-solo-reveal ${result.correct ? "is-correct" : "is-wrong"}"><div class="popularity-over-icon">${result.correct ? "✓" : "×"}</div><p class="eyebrow">${result.correct ? "POPRAWNA ODPOWIEDŹ" : "BŁĘDNA ODPOWIEDŹ"}</p><h2>${result.correct ? "Dobra dedukcja!" : "Tym razem nie."}</h2><p class="muted">Wybrano ${selectedEntity} ${result.selected === "left" ? "A" : "B"}. Poprawna odpowiedź: <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p><div class="popularity-duel-stage popularity-reveal-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", revealState, true)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", revealState, true)}</div>${popularityPreviewHtml(winningTrack, metric)}<p class="popularity-solo-reveal-note">Wartości zostaną na ekranie, dopóki nie przejdziesz dalej.</p><div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-next">Następna para</button><button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div></section>`;
+    const result = state.lastResult || {}, winningTrack = result.correctSide === "left" ? pair[0] : result.correctSide === "right" ? pair[1] : null, selectedEntity = isArtistMetric(metric) ? "artystę" : "piosenkę";
+    content += `<section class="popularity-solo-over popularity-solo-reveal ${result.correct ? "is-correct" : "is-wrong"}"><div class="popularity-over-icon">${result.correct ? "✓" : "×"}</div><p class="eyebrow">${result.correct ? "POPRAWNA ODPOWIEDŹ" : "BŁĘDNA ODPOWIEDŹ"}</p><h2>${result.correct ? "Dobra dedukcja!" : "Tym razem nie."}</h2><p class="muted">Wybrano ${selectedEntity} ${result.selected === "left" ? "A" : "B"}. Poprawna odpowiedź: <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p>${popularityPreviewHtml(winningTrack, metric)}<p class="popularity-solo-reveal-note">Wartości zostaną na ekranie, dopóki nie przejdziesz dalej.</p><div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-next">Następna para</button><button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div></section>`;
   } else if (state.status === "over") {
-    const result = state.lastResult || {}, pair = result.pair || state.pair;
-    const metric = result.metric || state.metric, revealState = { ...state, metric }, winningTrack = result.correctSide === "left" ? pair?.[0] : result.correctSide === "right" ? pair?.[1] : null;
-    content += `<section class="popularity-solo-over"><div class="popularity-over-icon">×</div><p class="eyebrow">SERIA ZAKOŃCZONA</p><h2>Streak: ${Number(state.streak || 0)}</h2><p class="muted">Błędna odpowiedź. Poprawna odpowiedź to <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p><div class="popularity-duel-stage popularity-reveal-stage">${soloTrackCard(pair?.[0], "left", revealState, true)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair?.[1], "right", revealState, true)}</div>${popularityPreviewHtml(winningTrack, metric)}<div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-restart">Zagraj jeszcze raz</button><button class="ghost" id="popularity-solo-menu">Wróć do muzyki</button></div></section>`;
+    const result = state.lastResult || {};
+    const winningTrack = result.correctSide === "left" ? pair?.[0] : result.correctSide === "right" ? pair?.[1] : null;
+    content += `<section class="popularity-solo-over"><div class="popularity-over-icon">×</div><p class="eyebrow">SERIA ZAKOŃCZONA</p><h2>Streak: ${Number(state.streak || 0)}</h2><p class="muted">Błędna odpowiedź. Poprawna odpowiedź to <b>${escapeHtml(popularitySoloAnswerLabel(result, metric))}</b>.</p>${popularityPreviewHtml(winningTrack, metric)}<div class="popularity-solo-over-actions"><button class="primary big" id="popularity-solo-restart">Zagraj jeszcze raz</button><button class="ghost" id="popularity-solo-menu">Wróć do muzyki</button></div></section>`;
   } else {
-    const pair = array(state.pair).slice(0, 2);
-    content += `<section class="popularity-question"><span>🔥</span><div><b>${escapeHtml(metricQuestion(state.metric))}</b><small>${escapeHtml(metricSource(state.metric))} · bez limitu rund</small></div></section><div class="popularity-key-hint"><span>A / D albo ← / →</span><small>Możesz też kliknąć kartę</small></div><div class="popularity-duel-stage" data-popularity-solo-round="${Number(state.round || 1)}">${soloTrackCard(pair[0], "left", state)}<div class="popularity-vs"><span>VS</span><i></i></div>${soloTrackCard(pair[1], "right", state)}</div><div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
+    content += `<div class="popularity-streak-bar"><span>STREAK</span><strong>${Number(state.streak || 0)}</strong><small>Rekord: ${Number(state.best || 0)}</small></div><div class="popularity-solo-controls">${soloMetricButtons(state)}<button class="ghost" id="popularity-solo-stop">Przerwij serię</button></div>`;
   }
-  root.innerHTML = `<main class="page popularity-page popularity-solo-page enter"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard, { region:leaderboardRegion, metric:leaderboardMetric })}</div><button id="popularity-solo-home" class="ghost">Wróć do muzyki</button></main>`;
-  root.querySelectorAll("[data-popularity-solo-region]").forEach(button => button.addEventListener("click", () => actions.popularitySoloRegion?.(button.dataset.popularitySoloRegion)));
-  root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => button.addEventListener("click", () => { actions.popularitySoloMetric(button.dataset.popularitySoloMetric); }));
+  updatePopularityView(root, `popularity-solo:${playerId}`, { ...game, metric }, state.status, pair, `<main class="page popularity-page popularity-solo-page"><div class="popularity-solo-layout"><section class="panel popularity-panel popularity-solo-main">${content}<p class="popularity-snapshot-note">Snapshot statystyk jest taki sam dla każdego gracza i nie wymaga połączenia z zewnętrznym API.</p></section>${popularitySoloLeaderboard(accounts, playerId, state, profile, leaderboard, { region:leaderboardRegion, metric:leaderboardMetric })}</div><button id="popularity-solo-home" class="ghost">Wróć do muzyki</button></main>`);
+  root.querySelectorAll("[data-popularity-solo-region]").forEach(button => { button.onclick = () => actions.popularitySoloRegion?.(button.dataset.popularitySoloRegion); });
+  root.querySelectorAll("[data-popularity-solo-metric]").forEach(button => { button.onclick = () => actions.popularitySoloMetric(button.dataset.popularitySoloMetric); });
   let activeLeaderboardRegion = leaderboardRegion === "polish" ? "polish" : "global";
   let activeLeaderboardMetric = SOLO_METRICS.includes(leaderboardMetric) ? leaderboardMetric : cleanMetric(state.metric);
   const applyLeaderboardSelection = () => {
@@ -1413,25 +1453,27 @@ export function renderPopularitySolo(root, { profile, playerId, accounts = {}, l
       panel.hidden = panel.dataset.popularityLeaderboardPanel !== `${activeLeaderboardRegion}:${activeLeaderboardMetric}`;
     });
   };
-  root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(button => button.addEventListener("click", () => {
+  root.querySelectorAll("[data-popularity-leaderboard-region]").forEach(button => { button.onclick = () => {
     activeLeaderboardRegion = button.dataset.popularityLeaderboardRegion === "polish" ? "polish" : "global";
     actions.popularitySoloLeaderboardRegion?.(activeLeaderboardRegion); applyLeaderboardSelection();
-  }));
-  root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => button.addEventListener("click", () => {
+  }; });
+  root.querySelectorAll("[data-popularity-leaderboard-metric]").forEach(button => { button.onclick = () => {
     activeLeaderboardMetric = SOLO_METRICS.includes(button.dataset.popularityLeaderboardMetric) ? button.dataset.popularityLeaderboardMetric : "views";
     actions.popularitySoloLeaderboardMetric?.(activeLeaderboardMetric); applyLeaderboardSelection();
-  }));
-  root.querySelector("#popularity-solo-start")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
-  root.querySelector("#popularity-solo-restart")?.addEventListener("click", () => actions.popularitySoloStart(state.metric, state.region));
-  root.querySelector("#popularity-solo-next")?.addEventListener("click", actions.popularitySoloNext);
-  root.querySelector("#popularity-solo-stop")?.addEventListener("click", actions.popularitySoloStop);
-  root.querySelector("#popularity-solo-menu")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
-  root.querySelector("#popularity-solo-home")?.addEventListener("click", actions.goMusicModes || actions.goPlatform);
-  root.querySelectorAll("[data-popularity-choice]").forEach(button => button.addEventListener("click", () => actions.popularitySoloChoose(button.dataset.popularityChoice)));
-  if (state.status === "playing") bindPopularityKeyboard(root, actions, {}, true);
-  if (["reveal", "over"].includes(state.status)) animatePopularityValues(root);
-  Audio.bindTrackVolumeControls(root);
-  hydratePopularityArtwork(root, state.pair || state.lastResult?.pair || [], state.metric);
+  }; });
+  const buttons = {
+    start:() => actions.popularitySoloStart(state.metric, state.region),
+    restart:() => actions.popularitySoloStart(state.metric, state.region),
+    next:actions.popularitySoloNext,
+    stop:actions.popularitySoloStop,
+    menu:actions.goMusicModes || actions.goPlatform,
+    home:actions.goMusicModes || actions.goPlatform,
+  };
+  for (const [name, handler] of Object.entries(buttons)) {
+    const button = root.querySelector(`#popularity-solo-${name}`);
+    if (button) button.onclick = handler;
+  }
+  root.querySelectorAll("[data-popularity-choice]").forEach(button => { button.onclick = () => actions.popularitySoloChoose(button.dataset.popularityChoice); });
 }
 
 export function renderPopularityLobbySettings(room, isHost) {

@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261123-21";
+import { renderGame } from "./game.js?v=20261124-1";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261123-20";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
@@ -33,7 +33,7 @@ import { falseMessageDefaults, renderFalseMessageGame } from "./falseMessage.js?
 import { secretRuleDefaults, renderSecretRuleGame } from "./secretRule.js?v=20261121-9";
 import { musicDuelDefaults, musicArenaDefaults, renderMusicDuelGame, renderMusicArenaGame } from "./music.js?v=20261123-7";
 import { lyricsDefaults, renderLyricsGame, renderLyricsSolo } from "./lyrics.js?v=20261123-7";
-import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261123-7";
+import { popularityDefaults, renderPopularityGame, renderPopularitySolo } from "./popularity.js?v=20261124-1";
 import { renderSongSpotGame, renderSongSpotSolo, songSpotDefaults, renderPlaylistTournament } from "./deferredMusicModes.js?v=20261121-8";
 
 import { boardModeDefaults, renderBoardGame } from "./boardGames.js?v=20261123-21";
