@@ -1100,7 +1100,7 @@ export async function syncRoomState(room) {
         const result=await firebaseDatabaseApi.runTransaction(roomRef,current=>{
           if(current&&Number(current.updatedAt||0)>=Number(cleanPayload.updatedAt||0))return current;
           return { ...cleanPayload, presence:current?.presence || cleanPayload.presence };
-        });
+        },{applyLocally:room.gameMode!=="pokemon-auction"});
         saved=result.snapshot.val()||cleanPayload;
       } catch(transactionError) {
         // The caller retries failed syncs. A get+set fallback is not atomic:
@@ -1166,7 +1166,7 @@ export async function loadRemoteRoom(roomId) {
   }
 }
 
-export async function mutateRemoteRoomGame(roomId, mutate) {
+export async function mutateRemoteRoomGame(roomId, mutate, {applyLocally=true} = {}) {
   if (!canUseRemote() || !roomId) return null;
   const write = async () => {
     const roomRef=firebaseDatabaseApi.ref(remoteDatabase,`rooms/${roomId}`);
@@ -1183,7 +1183,7 @@ export async function mutateRemoteRoomGame(roomId, mutate) {
       const cleanGame=cleanFirebaseWrite(game);
       if(JSON.stringify(cleanGame)===beforeGame){mutationError="Akcja jest już nieaktualna.";return current;}
       return {...current,gameState:cleanGame,chat:Array.isArray(cleanGame?.chat)?cleanGame.chat:[],updatedAt:Math.max(serverNow(),Number(current.updatedAt||0)+1)};
-    });
+    },{applyLocally});
     if(!result.committed||mutationError)return {ok:false,rejected:true,error:mutationError||"Akcja nie jest już dostępna."};
     const value=result.snapshot.val();
     return value?{ok:true,room:normalizeRemoteRoom(value)}:{ok:false,error:"Pokój już nie istnieje."};

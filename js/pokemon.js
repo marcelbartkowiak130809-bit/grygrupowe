@@ -1,10 +1,10 @@
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { avatarHtml, escapeHtml, icon, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { hasGamePass } from "./gamePasses.js?v=20261121-9";
-import { serverNow } from "./firebase.js?v=20261123-5";
+import { serverNow } from "./firebase.js?v=20261123-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, battleSurrendered, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-6";
-import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261123-7";
+import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261123-8";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -582,7 +582,7 @@ function auctionMarkup(game, accounts, currentUser, players) {
     <div class="auction-main">
       <header class="auction-header"><div><p class="eyebrow">POKÉMON · ${game.auctionIndex + 1}/${game.items.length}</p><h1>Licytacja teamu</h1></div>${timerMarkup(game)}</header>
       <div class="auction-wallet" aria-label="Twój portfel"><span><i class="auction-wallet-coin" aria-hidden="true">$</i> Twój portfel</span><strong>${budget}$</strong></div>
-      <div class="auction-spotlight">${item ? card(item, revealing, true) : "<p>Brak Pokémona do licytacji.</p>"}</div>
+      <div class="auction-spotlight">${item ? card(item, {showBst:revealing,auction:true}) : "<p>Brak Pokémona do licytacji.</p>"}</div>
       <div class="auction-turn">
       ${revealing ? `<div class="auction-outcome ${winner === currentUser ? "is-mine" : ""}" role="status"><small>${result?.automatic ? "AUTOMATYCZNY ZAKUP" : winner ? "SPRZEDANO" : "BEZ OFERT"}</small><strong>${outcome}</strong>${winner ? `<span>${Number(result.price)}$</span>` : ""}</div>` : `
         <div class="auction-price ${leading ? "is-leading" : ""}" role="status"><span>${status}</span><strong>${price}$</strong></div>
@@ -598,6 +598,25 @@ function auctionMarkup(game, accounts, currentUser, players) {
 
 const auctionSections = [".auction-scout", ".auction-header", ".auction-wallet", ".auction-turn", ".auction-sidebar"];
 const auctionSectionMarkup = new WeakMap();
+const loadingAuctionSprites = new WeakSet();
+const auctionPreloads = new WeakMap();
+
+function prepareAuctionSpotlight(root, game) {
+  const shown = root.querySelector("[data-auction-sprite]");
+  if (shown && !loadingAuctionSprites.has(shown)) {
+    loadingAuctionSprites.add(shown);
+    void shown.decode().then(()=>{
+      if (root.contains(shown)) shown.dataset.auctionSpriteReady="true";
+    },()=>{});
+  }
+  const next = byId.get(game.items?.[Number(game.auctionIndex)+1]);
+  if (next && auctionPreloads.get(root)?.src!==next.spriteFallback) {
+    const image = new Image();
+    image.src=next.spriteFallback;
+    auctionPreloads.set(root,image);
+    void image.decode().catch(()=>{});
+  }
+}
 
 function updateAuctionView(root, previousAuction, html) {
   if (!previousAuction) {
@@ -726,9 +745,12 @@ function bindPokemonAnswerSuggestions(input, suggestions, pool, {tabComplete=fal
 }
 function resultMarkup(game, accounts, actions, title = "Wyniki rundy") { const topPoints = Math.max(0, ...(game.ranking || []).map(row => Number(row.points) || 0)); const rows = (game.ranking || []).map(row => { const team = Array.isArray(row.team) ? `<div class="pokemon-mini-team">${row.team.map(id => { const item = pokemonDex.find(pokemon => pokemon.id === id); return item ? sprite(item) : ""; }).join("")}</div>` : ""; const answer = Array.isArray(row.answer) ? row.answer.map(item => item ? `${sprite(item,"pokemon-result-sprite")} ${escapeHtml(label(item))}` : "").join(" ") : row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : ""; return `<div class="pokemon-result-row"><div>${resultPlayerMiniHtml(accounts[row.uid], Number(row.points) === topPoints && topPoints > 0 ? "win" : "lose")}${team}</div><span>${answer || (row.bst != null ? `${row.bst} BST` : row.difference != null ? (Number.isFinite(row.difference) ? `różnica ${row.difference}` : "brak odpowiedzi") : row.points != null ? `${row.points} pkt` : row.correct ? "trafienie" : "-")}</span></div>`; }).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE</p><h1>${title}</h1><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
 function dexResultMarkup(game, accounts) { const target = pokemonDex.find(item => item.id === game.target); const rows = (game.ranking || []).map((row, index) => `<article class="pokemon-dex-result-row ${index === 0 ? "winner" : ""}"><div>${resultPlayerMiniHtml(accounts[row.uid], index === 0 ? "win" : "lose")}${row.answer ? `${sprite(row.answer,"pokemon-result-sprite")} ${escapeHtml(label(row.answer))}` : "Brak odpowiedzi"}</div><strong>${Number.isFinite(row.difference) ? `Różnica: ${row.difference}` : "Poza rankingiem"} · ${Number(game.scores?.[row.uid] || 0)} pkt</strong></article>`).join(""); const button=game.finished ? `<button class="primary" id="pokemon-lobby">Wróć do lobby</button>` : `<button class="primary" id="pokemon-next">Następna runda</button>`; return `<section class="panel pokemon-panel center"><p class="eyebrow">PODSUMOWANIE POKÉDEXU</p><h1>Numer ${game.target} skrywał...</h1>${target ? `<div class="pokemon-dex-reveal">${sprite(target,"pokemon-reveal-sprite")}<div><b>${escapeHtml(label(target))}</b><small>National Dex #${target.id}</small></div></div>` : ""}<p class="muted">Najbliżej celu był:</p><div class="pokemon-results">${rows || "<p class=muted>Brak wyników.</p>"}</div>${game.finished ? `<p class="money-pop">To koniec gry. Nagrody zostały przyznane.</p>` : ""}${button}</section>`; }
-function card(item, showBst = false, reserveBst = false) {
-  const bst = showBst ? `<strong>${item.bst} BST</strong>` : reserveBst ? '<strong aria-hidden="true">&nbsp;</strong>' : "";
-  return `<div class="pokemon-card">${sprite(item)}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${bst}</div></div>`;
+function card(item, {showBst=false,auction=false} = {}) {
+  const bst = showBst ? `<strong>${item.bst} BST</strong>` : auction ? '<strong aria-hidden="true">&nbsp;</strong>' : "";
+  const image = auction
+    ? `<img data-auction-sprite="${item.id}" src="${escapeHtml(item.spriteFallback)}" alt="" aria-hidden="true">`
+    : sprite(item);
+  return `<div class="pokemon-card">${image}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${bst}</div></div>`;
 }
 function lastLetterHearts(game, uid, settings) { const max = Math.max(1, Math.min(5, Number(settings.hearts) || 3)), left = Math.max(0, Math.min(max, Number(game.hearts?.[uid] ?? max))); return `<span class="pokemon-hearts" aria-label="${left}/${max} serc">${Array.from({ length:max }, (_, index) => `<span class="${index < left ? "heart-live" : "heart-lost"}">♥</span>`).join("")}</span>`; }
 function lastLetterPlayers(game, accounts, settings, current) { return `<aside class="pokemon-player-list"><p class="eyebrow">GRACZE</p>${(game.order || []).map(uid => `<div class="pokemon-player-row ${uid === current ? "is-current" : ""} ${game.eliminated?.includes(uid) ? "is-eliminated" : ""}">${avatarHtml(accounts[uid] || { nick:"Gracz" }, "pokemon-player-avatar")}<div><b>${escapeHtml(accounts[uid]?.nick || "Gracz")}</b>${lastLetterHearts(game, uid, settings)}</div></div>`).join("")}</aside>`; }
@@ -775,6 +797,7 @@ export function renderPokemonGame(root, { room, accounts, currentUser }, actions
   const scoutPanel = scoutOwned ? `<section class="pokemon-scout-panel">${scoutHint ? `<b>🧬 Wskazówka Skanera Pokédex</b><span>${escapeHtml(scoutHint)}</span>` : `<button class="ghost" data-pokemon-scout ${scoutUsed ? "disabled" : ""}>🧬 Użyj Skanera Pokédex</button>`}</section>` : "";
   if (game.mode === "pokemon-auction") {
     updateAuctionView(root, previousAuction, `<main class="page pokemon-game-page enter"><section class="panel pokemon-panel"><div class="auction-scout">${scoutPanel}</div>${body}</section></main>`);
+    prepareAuctionSpotlight(root,game);
   } else if (game.mode === "pokemon-type-draw") {
     const key = JSON.stringify([game.mode, room.roomId, game.siteGameId || game.startedAt, game.round, game.phase]);
     patchRoomView(root, key, `<main class="page pokemon-game-page enter" data-type-race-view><section class="panel pokemon-panel"><div ${scoutPanel?"":"hidden"}>${scoutPanel}</div>${body}</section></main>`);

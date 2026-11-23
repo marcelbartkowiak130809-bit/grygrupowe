@@ -1,5 +1,5 @@
 import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
-import { serverNow } from "./firebase.js?v=20261123-5";
+import { serverNow } from "./firebase.js?v=20261123-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { countryGuessRanking, countryGuessRounds, countryGuessSettings, countryGuessTimes, currentCountry } from "./countryGuess.js?v=20261122-5";
 

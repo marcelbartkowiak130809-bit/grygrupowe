@@ -1,4 +1,4 @@
-import { clearVoiceSession, hasVoiceSignaling, setVoiceSignal, subscribeVoiceSignals, serverNow } from "./firebase.js?v=20261123-5";
+import { clearVoiceSession, hasVoiceSignaling, setVoiceSignal, subscribeVoiceSignals, serverNow } from "./firebase.js?v=20261123-8";
 import { isBotId } from "./bots.js?v=20261121-8";
 
 const rtcConfig = { iceServers:[{ urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"] }] };

@@ -299,3 +299,4 @@
   .light-theme .battle-move-row { background:#f5f8fd;border-color:#bdcbdc; }
 }
 @media(prefers-reduced-motion:reduce) { .battle-hp i { transition:none; } }
+.auction-spotlight [data-auction-sprite]:not([data-auction-sprite-ready]) { visibility:hidden; }
