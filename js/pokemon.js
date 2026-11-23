@@ -5,6 +5,7 @@ import { serverNow } from "./firebase.js?v=20261123-8";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { auctionBattleDefaults, auctionBattleLimits, auctionBattlePhases, auctionBattlePokemon, auctionBattleTimeout, auctionShinySprite, battleSlots, battleSurrendered, battleTeam, prepareAuctionBattle, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { renderAuctionBattle } from "./pokemonAuctionBattleView.js?v=20261123-10";
+import { Audio } from "./audio.js?v=20261123-7";
 
 export const pokemonTypes = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
 const typeNames = { normal:"Normal", fire:"Fire", water:"Water", grass:"Grass", electric:"Electric", ice:"Ice", fighting:"Fighting", poison:"Poison", ground:"Ground", flying:"Flying", psychic:"Psychic", bug:"Bug", rock:"Rock", ghost:"Ghost", dragon:"Dragon", dark:"Dark", steel:"Steel", fairy:"Fairy" };
@@ -615,20 +616,39 @@ const auctionSections = [".auction-scout", ".auction-header", ".auction-wallet",
 const auctionSectionMarkup = new WeakMap();
 const loadingAuctionSprites = new WeakSet();
 const auctionPreloads = new WeakMap();
+const auctionShinyChime = new URL("../assets/pokemon/auction-shiny.wav",import.meta.url).href;
+const shinyStars = [[14,39,-12,-5,0],[29,17,-4,-12,65],[68,17,6,-12,100],[88,39,13,-4,30],[81,70,10,8,145],[23,71,-9,7,175]];
+
+function revealAuctionShiny(image, isCurrent) {
+  const stars = document.createElement("span");
+  stars.className = "auction-shiny-stars";
+  stars.setAttribute("aria-hidden","true");
+  stars.innerHTML = shinyStars.map(([x,y,dx,dy,delay]) => `<i style="--x:${x}%;--y:${y}%;--dx:${dx}px;--dy:${dy}px;--delay:${delay}ms"></i>`).join("");
+  image.after(stars);
+  window.setTimeout(() => stars.remove(),1050);
+  void Audio.playSfxSample(auctionShinyChime,isCurrent).catch(()=>{});
+}
 
 function prepareAuctionSpotlight(root, game) {
   const shown = root.querySelector("[data-auction-sprite]");
+  const shiny = game.shinyLots?.[game.items?.[game.auctionIndex]] === true;
+  const isCurrent = () => shown.isConnected && root.contains(shown);
   if (shown && !loadingAuctionSprites.has(shown)) {
     loadingAuctionSprites.add(shown);
+    if (shiny) Audio.preloadSfxSample(auctionShinyChime);
     const reveal = () => {
-      if (root.contains(shown) && shown.naturalWidth) shown.dataset.auctionSpriteReady="true";
+      if (!isCurrent() || !shown.naturalWidth || shown.dataset.auctionSpriteReady) return;
+      shown.dataset.auctionSpriteReady="true";
+      if (shiny && shown.currentSrc === auctionShinySprite(Number(shown.dataset.auctionSprite))) revealAuctionShiny(shown,isCurrent);
     };
     shown.addEventListener("load",reveal,{once:true});
     void shown.decode().then(reveal,()=>{});
   }
   const next = byId.get(game.items?.[Number(game.auctionIndex)+1]);
-  const src = next && auctionImageUrl(next,game.shinyLots?.[next.id]);
+  const nextShiny = next && game.shinyLots?.[next.id] === true;
+  const src = next && auctionImageUrl(next,nextShiny);
   if (src && auctionPreloads.get(root)?.src!==src) {
+    if (nextShiny) Audio.preloadSfxSample(auctionShinyChime);
     const image = new Image();
     image.src=src;
     auctionPreloads.set(root,image);
@@ -793,7 +813,7 @@ function card(item, {showBst=false,auction=false,shiny=false} = {}) {
   const image = auction
     ? `<img data-auction-sprite="${item.id}" src="${escapeHtml(auctionImageUrl(item,shiny))}" alt="" aria-hidden="true" ${shiny ? `onerror="this.onerror=null;this.src='${item.spriteFallback}'"` : ""}>`
     : sprite(item);
-  return `<div class="pokemon-card">${image}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${bst}</div></div>`;
+  return `<div class="pokemon-card">${auction && shiny ? `<span class="auction-shiny-art">${image}</span>` : image}<div><b>${escapeHtml(item.name)}</b><small>#${item.id} · Gen ${item.generation} · ${item.types.map(type => typeNames[type] || type).join(" / ")}</small>${bst}</div></div>`;
 }
 function lastLetterHearts(game, uid, settings) { const max = Math.max(1, Math.min(5, Number(settings.hearts) || 3)), left = Math.max(0, Math.min(max, Number(game.hearts?.[uid] ?? max))); return `<span class="pokemon-hearts" aria-label="${left}/${max} serc">${Array.from({ length:max }, (_, index) => `<span class="${index < left ? "heart-live" : "heart-lost"}">♥</span>`).join("")}</span>`; }
 function lastLetterPlayers(game, accounts, settings, current) { return `<aside class="pokemon-player-list"><p class="eyebrow">GRACZE</p>${(game.order || []).map(uid => `<div class="pokemon-player-row ${uid === current ? "is-current" : ""} ${game.eliminated?.includes(uid) ? "is-eliminated" : ""}">${avatarHtml(accounts[uid] || { nick:"Gracz" }, "pokemon-player-avatar")}<div><b>${escapeHtml(accounts[uid]?.nick || "Gracz")}</b>${lastLetterHearts(game, uid, settings)}</div></div>`).join("")}</aside>`; }

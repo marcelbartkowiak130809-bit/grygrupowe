@@ -318,3 +318,32 @@
   .auction-battle-panel :is(.battle-unit,.duel-moves button)[data-battle-matchup="quad"] { animation:none; }
 }
 .auction-spotlight [data-auction-sprite]:not([data-auction-sprite-ready]) { visibility:hidden; }
+.auction-shiny-art { position:relative; display:grid; }
+.auction-shiny-stars { position:absolute; inset:0; pointer-events:none; }
+.auction-shiny-stars i {
+  position:absolute;
+  inset-inline-start:var(--x);
+  top:var(--y);
+  width:clamp(9px,2vw,15px);
+  aspect-ratio:1;
+  opacity:0;
+  filter:drop-shadow(0 0 5px #ffc963);
+  animation:auctionShinyTwinkle 670ms var(--delay) ease-out both;
+}
+.auction-shiny-stars i::before {
+  content:"";
+  display:block;
+  width:100%;
+  height:100%;
+  background:linear-gradient(140deg,#fffdf1 28%,#ffcf65 65%,#f09c35);
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
+}
+.auction-shiny-stars i:nth-child(even) { width:clamp(7px,1.5vw,11px); }
+@keyframes auctionShinyTwinkle {
+  0% { opacity:0; transform:translate(-50%,-50%) scale(.25) rotate(-20deg); }
+  32% { opacity:1; transform:translate(-50%,-50%) scale(1.1) rotate(8deg); }
+  100% { opacity:0; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.4) rotate(32deg); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .auction-shiny-stars i { animation:none; opacity:1; transform:translate(-50%,-50%); }
+}

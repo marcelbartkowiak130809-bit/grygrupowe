@@ -1,4 +1,4 @@
-import { gamesList } from "./games.js?v=20261123-11";
+import { gamesList } from "./games.js?v=20261123-12";
 import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
 import { homeMusicFeatureHtml, homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261122-7';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
