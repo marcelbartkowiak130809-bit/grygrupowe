@@ -78,14 +78,14 @@ export function serverNow() {
   return Date.now() + serverTimeOffset;
 }
 
-export async function authenticateNick(nick, password) {
+export async function authenticateNick(nick, password, { create = true } = {}) {
   const email = nickToEmail(nick);
   if (!remoteAuth) return { uid: nick, email, provider: "local" };
   try {
     const credentials = await firebaseAuthApi.signInWithEmailAndPassword(remoteAuth, email, password);
     return { uid: credentials.user.uid, email, provider: "firebase" };
   } catch (error) {
-    if (!["auth/invalid-credential", "auth/user-not-found"].includes(error.code)) throw error;
+    if (!create || !["auth/invalid-credential", "auth/user-not-found"].includes(error.code)) throw error;
     const credentials = await firebaseAuthApi.createUserWithEmailAndPassword(remoteAuth, email, password);
     return { uid: credentials.user.uid, email, provider: "firebase" };
   }
@@ -96,6 +96,24 @@ export async function authenticateGuest() {
   if(remoteAuth.currentUser?.isAnonymous)return { uid:remoteAuth.currentUser.uid, provider:"firebase-anonymous" };
   const credentials=await firebaseAuthApi.signInAnonymously(remoteAuth);
   return { uid:credentials.user.uid, provider:"firebase-anonymous" };
+}
+
+export async function upgradeGuestAuth(guestId, nick, password) {
+  const email = nickToEmail(nick);
+  if (!remoteAuth || !remoteDatabase) {
+    if (window.__UDOWODNIJ_FIREBASE_CONFIG__?.apiKey) throw new Error("Backend unavailable");
+    return { uid:nick, email, provider:"local" };
+  }
+  const user = remoteAuth.currentUser;
+  if (user?.uid !== guestId) throw new Error("Guest session changed");
+  if (user.isAnonymous) {
+    const credential = firebaseAuthApi.EmailAuthProvider.credential(email, password);
+    const linked = await firebaseAuthApi.linkWithCredential(user, credential);
+    return { uid:linked.user.uid, email, provider:"firebase" };
+  }
+  if (user.email?.toLowerCase() !== email.toLowerCase()) throw new Error("Guest already upgraded");
+  const signedIn = await firebaseAuthApi.signInWithEmailAndPassword(remoteAuth, email, password);
+  return { uid:signedIn.user.uid, email, provider:"firebase" };
 }
 
 export function getFirebaseSession() {
@@ -503,6 +521,22 @@ export async function loadRemoteProfileState(uid) {
     return { ok:true, missing:!snapshot.exists(), profile:snapshot.val() || null };
   } catch { return { ok:false, missing:false, profile:null }; }
 }
+export async function saveGuestUpgrade(uid, profile, coins) {
+  if (!canUseRemote() || remoteAuth.currentUser.uid !== uid || remoteAuth.currentUser.isAnonymous) throw new Error("Guest is not upgraded");
+  const ref = firebaseDatabaseApi.ref(remoteDatabase, `profiles/${uid}`);
+  const initial = savedProfile(profile);
+  const result = await firebaseDatabaseApi.runTransaction(ref, current => {
+    if (current?.guestWalletTransferred) return;
+    return { ...initial, ...current, money:(Number(current?.money) || 0) + coins, sessionMoney:0, guestWalletTransferred:true };
+  }, { applyLocally:false });
+  const saved = result.snapshot.val();
+  if (!saved?.guestWalletTransferred) throw new Error("Guest wallet transfer was not confirmed");
+  const publicData = publicProfile({ ...profile, ...saved });
+  delete publicData.honorCounts;
+  void firebaseDatabaseApi.update(firebaseDatabaseApi.ref(remoteDatabase, `publicProfiles/${uid}`), publicData).catch(() => {});
+  return saved;
+}
+
 export async function syncPlayerProfile(uid, profile, { restorePotions = false, spinReward } = {}) {
   if (!canUseRemote() || !uid || !profile || profile.nickOnly) return false;
   try {

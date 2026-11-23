@@ -1,4 +1,4 @@
-import { accountModal, authModal } from "./auth.js?v=20261121-8";
+import { accountModal, authModal } from "./auth.js?v=20261124-2";
 import { Audio } from "./audio.js?v=20261123-7";
 import { changelogEntries, latestChangelog } from "./changelog.js?v=20261123-2";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
@@ -11,37 +11,37 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
-import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261123-20";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261124-1";
+import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, upgradeGuestAuth, saveGuestUpgrade, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261124-2";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261124-2";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261124-1";
+import { gamesList, getGameMode } from "./games.js?v=20261124-2";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261123-20";
-import { loadImpostorPairFeedback } from "./firebase.js?v=20261123-20";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261124-2";
+import { loadImpostorPairFeedback } from "./firebase.js?v=20261124-2";
 import { pairFeedbackReasons, summarizeImpostorPairFeedback } from "./impostorPairFeedback.js?v=20261121-14";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer, updateIdentityVoiceControls } from "./identity.js?v=20261121-11";
-import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261123-20";
+import { createIdentityVoiceChat } from "./identityVoiceChat.js?v=20261124-2";
 import { createOtherQuestionGame, OtherQuestionEngine, stopOtherQuestionTimer } from "./otherQuestion.js?v=20261121-8";
-import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261123-20";
+import { currentWouldYouRather, renderWouldYouRather, setWouldYouRatherVote, stopWouldYouRather, wouldYouRatherPlayerKey } from "./wouldYouRather.js?v=20261124-2";
 import { createMostLikelyGame, MostLikelyEngine, stopMostLikelyTimer } from "./mostLikely.js?v=20261121-8";
 import { createFriendshipTestGame, FriendshipTestEngine, stopFriendshipTimer } from "./friendshipTest.js?v=20261121-8";
 import { createPoisonCandyGame, PoisonCandyEngine, sanitizePoisonCandySettings, stopPoisonCandyTimer } from "./poisonCandy.js?v=20261121-9";
 import { createBombGame, BombEngine, sanitizeBombSettings, stopBombTimer } from "./bomb.js?v=20261121-8";
 import { createClosestTruthGame, ClosestTruthEngine, sanitizeClosestTruthSettings } from "./closestTruth.js?v=20261121-8";
 import { applyPriceGuessAction, createPriceGuessGame, priceGuessMode, priceGuessSettings } from "./priceGuess.js?v=20261122-6";
-import { stopPriceGuessTimer } from "./priceGuessView.js?v=20261123-20";
+import { stopPriceGuessTimer } from "./priceGuessView.js?v=20261124-2";
 import { applyCountryGuessAction, countryGuessMode, countryGuessSettings, createCountryGuessGame } from "./countryGuess.js?v=20261122-5";
-import { stopCountryGuessTimer } from "./countryGuessView.js?v=20261123-20";
+import { stopCountryGuessTimer } from "./countryGuessView.js?v=20261124-2";
 import { createRankingGame, RankingEngine, sanitizeRankingSettings } from "./ranking.js?v=20261121-8";
 import { createFiveSecondsGame, FiveSecondsEngine, sanitizeFiveSecondsSettings, stopFiveSecondsTimer } from "./fiveSeconds.js?v=20261121-8";
 import { createClockGame, ClockEngine, sanitizeClockSettings, stopClockTimer } from "./clock.js?v=20261121-8";
-import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer, typeRaceRounds } from "./pokemon.js?v=20261123-20";
+import { canStartPokemonAuction, createPokemonGame, PokemonEngine, repairPokemonAuctionClock, stopPokemonTimer, typeRaceRounds } from "./pokemon.js?v=20261124-2";
 import { auctionBattleAttack, auctionBattleDefaults, auctionBattlePhases, auctionBattlePrep, auctionBattleSurrender, sanitizeAuctionBattleRules } from "./pokemonAuctionBattle.js?v=20261123-10";
 import { auctionDuelAction } from "./pokemonAuctionDuel.js?v=20261123-10";
 import { auctionCommandContext, clearAuctionCommand, readAuctionCommand, saveAuctionCommand } from "./pokemonAuctionCommitments.js?v=20261122-1";
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-9";
 import { applyChartForecastAction, chartForecastMode, createChartForecastGame } from "./chartForecast.js?v=20261121-20";
-import { chartForecastSoloMode, renderChartForecastSolo, stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261123-20";
+import { chartForecastSoloMode, renderChartForecastSolo, stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261124-2";
 import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261121-8";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-8";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-8";
@@ -66,22 +66,22 @@ import { bindMobileHeader } from "./mobileHeader.js?v=20261012-7";
 let stopMobileHeader = () => {};
 let stopOnlineCountTooltip = () => {};
 let renderedTopBar = "";
-import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261123-21";
+import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261124-2";
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-1";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-1";
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-1";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-2";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
 import { Router } from "./router.js?v=20261118-30";
-import { playerMini, renderRoom } from "./room.js?v=20261124-1";
+import { playerMini, renderRoom } from "./room.js?v=20261124-2";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
 import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7";
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
-import { loadPresenceUsers } from "./firebase.js?v=20261123-20";
+import { loadPresenceUsers } from "./firebase.js?v=20261124-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261124-1";
+import { scheduleBot } from "./botController.js?v=20261124-2";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -2286,7 +2286,8 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   confirmAdultSolo(onConfirm) { return withAdultWarning(getGameMode("co-wolisz"), onConfirm, true); },
   roomHasNonAdultPlayer,
   openAuth(options = {}) {
-    const modal = authModal(actions, options); document.body.append(modal); Audio.play("modalOpen");
+    const guest = !options.existingOnly && profile()?.nickOnly ? profile() : null;
+    const modal = authModal(actions, { ...options, guest }); document.body.append(modal); Audio.play("modalOpen");
   },
   openAccount() {
     if (!profile()) return actions.openAuth({ title: "Zaloguj się lub utwórz konto", description: "Konto zapisuje coiny, kosmetyki i efekty nicku." });
@@ -2464,9 +2465,46 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       } catch { message("Nie udało się uruchomić gry po nicku. Sprawdź czy Anonymous Auth jest włączone."); return false; }
     }
     if (!password || password.length < 3) { message("Hasło musi mieć minimum 3 znaki."); return false; }
+    if (mode === "upgrade") {
+      const guestId = state.currentUser, guest = profile();
+      const date = validBirthDate(birthDate);
+      if (!guest?.nickOnly || !guestId) return false;
+      if (password.length < 6) { message("Hasło musi mieć minimum 6 znaków."); return false; }
+      if (!date) { message("Podaj poprawną datę urodzenia dla konta."); return false; }
+      if (accountByNick(clean)) { message("Ten nick jest już zajęty. Wybierz inny."); return false; }
+      const balance = Number(guest.sessionMoney);
+      const coins = Number.isFinite(balance) ? Math.max(0, balance) : 0;
+      try {
+        const auth = await upgradeGuestAuth(guestId, clean, password);
+        if (state.currentUser !== guestId || (auth.provider === "firebase" && auth.uid !== guestId)) return false;
+        const next = { ...defaultAccount(clean, password, auth, date), money:coins };
+        const saved = auth.provider === "firebase" ? await saveGuestUpgrade(auth.uid, next, coins) : {};
+        if (state.currentUser !== guestId || !profile()?.nickOnly) return false;
+        const { sessionMoney, sessionXp, ...account } = { ...next, ...saved };
+        account.nickOnly = false;
+        const accounts = { ...state.accounts, [auth.uid]:account };
+        if (auth.uid !== guestId) delete accounts[guestId];
+        saveAccounts(accounts);
+        state.accounts = accounts;
+        state.currentUser = auth.uid;
+        persistSession();
+        trackSiteEvent({ type:"userRegistered", eventId:`user:${auth.uid}` });
+        refreshPresence(); connectRooms(); actions.finishLogin();
+        message("Konto utworzone. Monety gościa zostały przeniesione.", "info");
+        return true;
+      } catch (error) {
+        message(["auth/email-already-in-use","auth/credential-already-in-use"].includes(error.code) ?
+          "Ten nick jest już zajęty. Wybierz inny." :
+          "Nie udało się dokończyć zapisu konta. Saldo gościa zostało na urządzeniu. Spróbuj ponownie z tym samym nickiem i hasłem.");
+        return false;
+      }
+    }
     try {
       const existingEntry = accountByNick(clean), existing = existingEntry?.[1];
-      const auth = await authenticateNick(clean, password);
+      const auth = await authenticateNick(clean, password, { create:mode !== "signIn" });
+      if (mode === "signIn" && auth.provider === "local" && existing?.passwordHash !== hashRoomPassword(`account:${password}`)) {
+        message("Sprawdź nick i hasło."); return false;
+      }
       const accountId = auth.uid;
       const remote=await loadRemoteProfile(accountId), isNewAccount=!remote&&!existing;
       if(!existing?.birthDate && !remote?.birthDate && !birthDate) { message("Podaj datę urodzenia dla konta."); return false; }

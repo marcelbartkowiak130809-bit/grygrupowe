@@ -1,6 +1,6 @@
 import { wouldYouRatherCategories, wouldYouRatherQuestions } from "../content/co-wolisz/questions.js?v=20260602-11";
 import { escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, loadWouldYouRatherHistory, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261123-20";
+import { getLocalWouldYouRatherAnswers, getWouldYouRatherAnswer, loadWouldYouRatherHistory, subscribeWouldYouRatherVotes } from "./firebase.js?v=20261124-2";
 
 let state={category:"Losowe"};
 let unsubscribe=()=>{};

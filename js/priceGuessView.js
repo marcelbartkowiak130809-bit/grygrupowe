@@ -1,5 +1,5 @@
 import { escapeHtml, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
-import { serverNow } from "./firebase.js?v=20261123-20";
+import { serverNow } from "./firebase.js?v=20261124-2";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { priceGuessSourceDate, priceGuessItems } from "./priceGuessData.js?v=20261122-6";
 import { currentPriceGuessItem, priceGuessCategories, priceGuessHasAnswer, priceGuessRanking, priceGuessRoundOptions, priceGuessSettings, priceGuessTimeOptions } from "./priceGuess.js?v=20261122-6";

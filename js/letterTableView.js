@@ -2,7 +2,7 @@ import { letterPoints, letterPremium, letterTableInfo, previewLetterPlay, tableA
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261123-7";
-import { serverNow } from "./firebase.js?v=20261123-20";
+import { serverNow } from "./firebase.js?v=20261124-2";
 
 const views=new WeakMap();
 const premiumNames={l2:"Litera ×2",l3:"Litera ×3",w2:"Słowo ×2",w3:"Słowo ×3"};
