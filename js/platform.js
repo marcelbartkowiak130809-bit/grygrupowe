@@ -65,8 +65,9 @@ export function renderCollectionModes(root, actions, categoryId, context = {}) {
   const activityStats = context.activityStats || window.__activityStats || {};
   const layout = getMobileGameLayout();
   const modes = libraryModesFor(gamesList, id);
-  if (["tiktok", "knowledge", "other"].includes(id)) modes.sort(compareMainModes);
   const now = Date.now();
+  if (id === "board") modes.sort((left,right)=>Number(isModeLocked(left.id,now))-Number(isModeLocked(right.id,now)));
+  else if (["tiktok", "knowledge", "other"].includes(id)) modes.sort(compareMainModes);
   root.innerHTML = `<main class="page platform-page collection-selection-page ${id}-selection-page enter">
     <header class="collection-selection-hero library-category-${id}">
       <button class="ghost" id="back-to-games" type="button">← Wróć do wszystkich trybów</button>
@@ -135,6 +136,11 @@ function syncWeeklyCards(root, actions, now) {
       const fresh = template.content.firstElementChild;
       const focused = card.contains(root.ownerDocument.activeElement);
       card.replaceWith(fresh);
+      if (!locked && fresh.dataset.libraryContext === "board") {
+        const grid = fresh.parentElement;
+        const firstLocked = grid.querySelector("[data-mode-locked]");
+        if (firstLocked) grid.insertBefore(fresh,firstLocked);
+      }
       bindModePlayActions(fresh, actions);
       if (focused) fresh.querySelector("button")?.focus({ preventScroll: true });
     } else {
