@@ -425,7 +425,7 @@ id: "marker", name: "Marker", description: "Rysuj krzyżyki, zanim przeciwnik zn
   },
   [chessMode]: {
     ...chessInfo, help:chessInfo.rules, symbol:"♞", audience:"board", badges:["new"],
-    allowReports:true, supportsLobby:true, supportsSolo:false, supportsBots:false,
+    allowReports:true, supportsLobby:true, supportsSolo:false, supportsBots:true,
     render:renderBoardGame, defaultSettings:boardModeDefaults[chessMode],
   },
   "board-warcaby": {

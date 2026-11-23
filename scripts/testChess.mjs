@@ -3,6 +3,8 @@ import test from "node:test";
 import { BoardEngine, createBoardGame, sanitizeBoardSettings } from "../js/boardGames.js";
 import { chessGameAction, chessMode, chessPosition, chessTime } from "../js/chessGame.js";
 import { weeklyModeRelease } from "../js/weeklyUnlocks.js";
+import { botActor, scheduleBot } from "../js/botController.js";
+import { chessBotAction } from "../js/chessBot.js";
 
 const players=["white","black"];
 const newGame=()=>JSON.parse(JSON.stringify(createBoardGame(chessMode,players,{chessMinutes:5,chessIncrement:3})));
@@ -75,4 +77,47 @@ test("remis, poddanie i przekroczenie czasu rozstrzygają partię raz",()=>{
   assert.deepEqual(flag.winners,["black"]);
   assert.equal(flag.chessClock.w,0);
   assert.match(BoardEngine.action(flag,"white","timeout","",players),/zakończony/);
+});
+
+test("chess bots choose legal moves without changing the game and can deliver mate",()=>{
+  for(const level of ["easy","normal","hard","expert"]){
+    const game=newGame();
+    const before=JSON.stringify(game);
+    const choice=chessBotAction(game,"white",level);
+    assert.equal(JSON.stringify(game),before);
+    assert.equal(BoardEngine.action(game,"white",choice.action,choice.payload,players),undefined);
+    assert.equal(game.chessMoves.length,1);
+    assert.equal(game.currentUid,"black");
+  }
+  const game=newGame();
+  game.chessStartFen="7k/8/5KQ1/8/8/8/8/8 w - - 0 1";
+  const choice=chessBotAction(game,"white","expert");
+  assert.equal(move(game,choice.payload),undefined);
+  assert.equal(game.chessEnd,"mate");
+});
+
+test("host schedules chess turns and responds to draw offers without waiting for the bot's own turn",async()=>{
+  const bot="bot:black", players=["white",bot];
+  const game=createBoardGame(chessMode,players,{chessMinutes:5,chessIncrement:3});
+  const room={roomId:"CHESS",gameMode:chessMode,game,players,hostUid:"white",playerProfiles:{[bot]:{botDifficulty:"normal"}}};
+  const options={mutate:mutation=>mutation(game,room)};
+  assert.equal(scheduleBot(room,options),false);
+  BoardEngine.action(game,"white","chess-offer","",players);
+  assert.equal(botActor(room),bot);
+  await scheduleBot(room,options).run();
+  assert.equal(game.chessDrawOffer,"");
+  assert.equal(game.currentUid,"white");
+  BoardEngine.action(game,"white","chess-move","e2|e4",players);
+  const plan=scheduleBot(room,options);
+  assert.equal(scheduleBot({...room,updatedAt:123},options).key,plan.key);
+  await plan.run();
+  assert.equal(game.chessMoves.length,2);
+  assert.equal(game.currentUid,"white");
+  await plan.run();
+  assert.equal(game.chessMoves.length,2);
+  BoardEngine.action(game,"white","chess-resign","",players);
+  BoardEngine.restart(game,players,{chessMinutes:5,chessIncrement:3});
+  assert.equal(botActor(room),bot);
+  await scheduleBot(room,options).run();
+  assert.equal(game.chessMoves.length,1);
 });

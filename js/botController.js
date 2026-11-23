@@ -40,6 +40,8 @@ import { LyricsEngine } from "./lyrics.js?v=20261123-7";
 import { PopularityEngine } from "./popularity.js?v=20261123-7";
 import { SongSpotEngine } from "./deferredMusicModes.js?v=20261121-8";
 import { BoardEngine, boardBotAction } from "./boardGames.js?v=20261123-8";
+import { chessMode } from "./chessGame.js?v=20261121-8";
+import { chessBotAction } from "./chessBot.js?v=20261123-17";
 import { GUESS_PEOPLE_MODE } from "./guessPeople.js?v=20261121-8";
 import { MinecraftEngine, minecraftBotAnswer } from "./minecraft.js?v=20261121-12";
 import { serverNow } from "./firebase.js?v=20261123-8";
@@ -54,7 +56,7 @@ function expired(game) {
   if (!game || game.finished) return false;
   const endsAt = game.variant === "full-test" && game.phase === "test" ? [game.testEndsAt]
     : [game.phaseEndsAt, game.guessEndsAt, game.countdownEndsAt, game.roundEndsAt, game.explodesAt, game.phase === "create" && game.createEndsAt];
-  const now = ["pokemon-auction","pokemon-type-draw"].includes(game.mode) ? serverNow() : Date.now();
+  const now = game.boardMode===chessMode || ["pokemon-auction","pokemon-type-draw"].includes(game.mode) ? serverNow() : Date.now();
   return endsAt.some(value => Number(value || 0) > 0 && now >= Number(value));
 }
 const activeFrom = (game, keys = []) => keys.map(key => game?.[key]).find(Boolean) || "";
@@ -109,6 +111,11 @@ export function botActor(room) {
   if (game.boardMode === GUESS_PEOPLE_MODE) {
     const actor = game.question ? game.targets?.[game.currentUid] : game.currentUid;
     return bots.includes(actor) ? actor : "";
+  }
+  if (room.gameMode===chessMode) {
+    if (game.phase!=="playing" || game.finished) return "";
+    if (game.chessDrawOffer && !bots.includes(game.chessDrawOffer)) return bots.find(uid=>game.players?.includes(uid)) || "";
+    return bots.includes(game.currentUid) ? game.currentUid : "";
   }
   if (game.boardMode?.startsWith("board-")) {
     if (game.boardMode === "board-statki" && game.phase === "placement") return bots.find(uid => !game.placementSubmitted?.[uid]) || "";
@@ -786,6 +793,12 @@ export function botMutation(room) {
         if (game.phase === "question" && isMissing(game.answers, bot)) return g => MinecraftEngine.answer(g, bot, minecraftBotAnswer(g, room, bot, correct(), botDifficulty(room, bot).id), players, settings);
         break;
       case GUESS_PEOPLE_MODE:
+      case chessMode:
+        if (bot && game.phase==="playing" && !game.finished) return g => {
+          const action=chessBotAction(g,bot,botDifficulty(room,bot).id,g.phaseEndsAt-serverNow());
+          if (action) return BoardEngine.action(g,bot,action.action,action.payload,players,settings);
+        };
+        break;
       case "board-chinczyk":
       case "board-slowotwor":
       case "board-statki":
@@ -814,27 +827,31 @@ export function botMutation(room) {
 export function scheduleBot(room, { mutate, onDone }) {
   if (!room?.game || !botsOf(room).length) return false;
   const chart = room.gameMode === chartForecastMode;
+  const chess = room.gameMode === chessMode;
   const bidding = room.gameMode === "pokemon-auction" && room.game.phase === "auction";
-  if (!chart && !botMutation(room)) return false;
+  if (!chart && !chess && !botMutation(room)) return false;
   const actor = botActor(room);
-  if (chart && !actor) return false;
+  if ((chart || chess) && !actor) return false;
   const scheduledActor = actor || botsOf(room)[0];
   const moment = gameMomentKey(room.game), hostUid = room.hostUid, mode = room.gameMode;
   const {currentBid,highestBidder} = room.game;
-  const key = chart || bidding ? JSON.stringify([room.roomId,hostUid,moment,actor,currentBid,highestBidder]) : mode==='marker'
+  const drawOffer = room.game.chessDrawOffer || "";
+  const key = chart || bidding || chess ? JSON.stringify([room.roomId,hostUid,moment,actor,currentBid,highestBidder,drawOffer]) : mode==='marker'
     ? `${room.roomId}:marker:${room.game.turn}:${room.game.phase}:${scheduledActor}:${room.game.phaseEndsAt||0}:${scheduledActor===room.game.drawerUid?Object.keys(room.game.coverage?.[scheduledActor]||{}).length:0}`
     : `${room.roomId}:${room.updatedAt}:${room.game.phase}:${room.game.turnIndex || 0}:${room.game.turnUid || ""}:${room.game.phaseEndsAt || ""}`;
   const deadline = room.game.variant === "full-test" ? room.game.testEndsAt
     : room.game.guessEndsAt || (room.game.phase === "create" ? room.game.createEndsAt : room.game.phaseEndsAt);
-  const timeLeft = Number(deadline || 0) - (["pokemon-auction","pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? serverNow() : Date.now());
-  const baseDelay = bidding ? (currentBid ? 600 : 850)+Math.round(Math.random()*450) : botDelay(room, "answer", scheduledActor);
+  const timeLeft = Number(deadline || 0) - (chess || ["pokemon-auction","pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? serverNow() : Date.now());
+  const baseDelay = bidding ? (currentBid ? 600 : 850)+Math.round(Math.random()*450)
+    : chess ? 650+Math.round(Math.random()*650) : botDelay(room, "answer", scheduledActor);
   const think = ["pokemon-type-draw",countryGuessMode].includes(room.gameMode) ? Math.max(2500,baseDelay) : baseDelay;
   const delay = chart ? Math.max(50,chartBotDueAt(room,actor)-serverNow())
     : expired(room.game) ? 80 : timeLeft > 0 ? Math.min(think, Math.max(80, timeLeft - 190)) : think;
   return { key, delay, run:() => Promise.resolve().then(() => mutate((game, currentRoom = room) => {
     if (currentRoom.hostUid !== hostUid || currentRoom.gameMode !== mode || gameMomentKey(game) !== moment) return;
-    if ((chart || bidding) && botActor({...currentRoom,game}) !== actor) return;
+    if ((chart || bidding || chess) && botActor({...currentRoom,game}) !== actor) return;
     if (bidding && (game.currentBid !== currentBid || game.highestBidder !== highestBidder)) return;
+    if (chess && (game.chessDrawOffer || "") !== drawOffer) return;
     // Re-evaluate against the transaction snapshot, including expiry and votes
     // submitted while the bot was thinking. Never replay a captured answer.
     const freshMutation = botMutation({ ...currentRoom, game });
