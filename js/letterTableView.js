@@ -1,4 +1,4 @@
-import { letterPoints, letterPremium, letterTableInfo, previewLetterPlay, tableAlphabet, tableCenter, tableSize } from "./letterTable.js?v=20261123-19";
+import { letterPoints, letterPremium, letterTableInfo, previewLetterPlay, tableAlphabet, tableCenter, tableSize } from "./letterTable.js?v=20261123-21";
 import { patchRoomView } from "./roomViewPatch.js?v=20261119-15";
 import { escapeHtml, playerMiniHtml } from "./utils.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261123-7";
@@ -125,7 +125,7 @@ export function renderLetterTable(root,{room,accounts,currentUser},actions) {
   const blankDialog=state.blank ? `<div class="lt-blank-panel" role="group" aria-label="Przypisz literę"><b>Wybierz literę</b><div>${tableAlphabet.map(letter=>`<button type="button" class="ghost" data-lt-blank="${letter}">${letter.toUpperCase()}</button>`).join("")}</div><button class="ghost" data-lt-action="blank-cancel">Anuluj</button></div>` : "";
 
   patchRoomView(root,key,`<main class="page lt-page" data-letter-table>
-    <header class="lt-heading"><div><p class="eyebrow">PLANSZÓWKI</p><h1>Słowa z woreczka</h1></div><div class="lt-turn ${yourTurn?"is-yours":""}" role="status"><b>${status}</b>${playing?'<time data-lt-clock></time>':""}</div></header>
+    <header class="lt-heading"><div><p class="eyebrow">PLANSZÓWKI</p><h1>${letterTableInfo.name}</h1></div><div class="lt-turn ${yourTurn?"is-yours":""}" role="status"><b>${status}</b>${playing?'<time data-lt-clock></time>':""}</div></header>
     <div class="lt-layout"><div class="lt-play">
       <div class="lt-board" role="group" aria-label="Plansza słów">${boardCells}</div>
       <div class="lt-workbench">

@@ -7,8 +7,8 @@ import { gamePassById, hasGamePass, inGamePurchaseById } from "./gamePasses.js?v
 import { serverNow } from "./firebase.js?v=20261123-20";
 import { chessMode, chessInfo, chessDefaults, chessSettings, chessMinutes, chessIncrements, createChessGame, chessGameAction } from "./chessGame.js?v=20261121-8";
 import { renderChessGame } from "./chessView.js?v=20261123-20";
-import { createLetterTable, letterTableAction, letterTableDefaults, letterTableInfo, letterTableMode } from "./letterTable.js?v=20261123-19";
-import { renderLetterTable } from "./letterTableView.js?v=20261123-20";
+import { createLetterTable, letterTableAction, letterTableDefaults, letterTableInfo, letterTableMode } from "./letterTable.js?v=20261123-21";
+import { renderLetterTable } from "./letterTableView.js?v=20261123-21";
 
 export const boardModeDefinitions = [
   chessInfo,

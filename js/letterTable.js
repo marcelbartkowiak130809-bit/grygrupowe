@@ -1,7 +1,7 @@
 export const letterTableMode = "board-slowa-z-woreczka";
 export const letterTableDefaults = {turnTime:90};
 export const letterTableInfo = {
-  id:letterTableMode,name:"Słowa z woreczka",icon:"🅰️",art:"board-words",players:"2–4 osoby",minPlayers:2,maxPlayers:4,
+  id:letterTableMode,name:"Plansza słów",icon:"🔠",art:"board-letter-table",players:"2–4 osoby",minPlayers:2,maxPlayers:4,
   description:"Dobieraj litery z woreczka i buduj słowa na wspólnej planszy.",
   rules:[
     "Pierwsze słowo musi przechodzić przez środek. Kolejne łącz z literami na planszy.",

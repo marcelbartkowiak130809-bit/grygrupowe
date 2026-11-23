@@ -1,13 +1,13 @@
-import { gamesList } from "./games.js?v=20261123-20";
+import { gamesList } from "./games.js?v=20261123-21";
 import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
 import { homeMusicFeatureHtml, homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261122-7';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261123-20";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261122-7";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261123-20";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261123-21";
 import { escapeHtml, icon } from "./utils.js?v=20261121-8";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261122-7";
-import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261123-20";
+import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261123-21";
 import { minecraftModeIcons } from "./minecraft.js?v=20261121-12";
 
 const filters = [
@@ -203,6 +203,14 @@ function visualSymbol(mode) {
   return item ? `<img src="${item.sprite}" alt="${escapeHtml(item.name)}" onerror="this.onerror=null;this.src='${item.spriteFallback}'">` : mode.symbol;
 }
 
+function gameCardArtwork(mode, showArtwork) {
+  if (!showArtwork) return '<span aria-hidden="true">???</span>';
+  if (mode.art === "board-letter-table") return `<div class="cover-letter-grid" aria-hidden="true"></div>
+    <span class="cover-letters" aria-hidden="true"><i>G<small>3</small></i><i>R<small>1</small></i><i>A<small>1</small></i></span>`;
+  if (mode.art === "bomb") return `<span class="cover-bomb" aria-hidden="true"><i class="cover-bomb-body"></i><i class="cover-bomb-fuse"></i><i class="cover-bomb-spark"></i><i class="cover-bomb-burst"></i></span>`;
+  return `<span class="cover-symbol" aria-hidden="true">${visualSymbol(mode)}</span>`;
+}
+
 function gameCard(mode, now = Date.now(), context = "") {
   const unlock = modeUnlockInfo(mode.id, now), locked = unlock.locked, revealName = locked && isUnlockDay(unlock.unlockAt);
   const origin = context && libraryModeCategory(mode);
@@ -218,9 +226,9 @@ function gameCard(mode, now = Date.now(), context = "") {
           : `<div class="game-card-play-options"><button class="primary" data-play-mode="${mode.id}">${icon("play", 17)} Pokój</button>${soloAvailable ? `<button class="ghost" data-play-solo-mode="${escapeHtml(soloModeId)}">${mode.id === "dokoncz-tekst" ? "🎤" : mode.id === "songspot" ? "🎧" : "🔥"} Solo</button>` : ""}</div>`
     : `<button class="${locked ? "ghost locked-play-button" : "primary"}" data-play-mode="${mode.id}">${locked ? icon("lock", 17) + " Niedostepne" : icon("play", 17) + " Zagraj"}</button>`;
   return `<article class="game-card ${mode.featured ? "featured-game" : ""} ${locked ? "locked-game-card coming-soon-card" : ""} ${revealName ? "unlock-day-card" : ""} ${unlock.celebrating ? "weekly-release-highlight" : ""}" data-game-id="${mode.id}" data-library-context="${context}" ${locked ? `data-mode-locked="true" title="${escapeHtml(lockedModeTitle(mode, unlock))}"` : ""}>
-    <div class="game-visual game-visual-${mode.art}">
+    <div class="game-visual ${locked && !revealName ? "" : `game-visual-${mode.art}`}">
       <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-      <span>${revealName ? visualSymbol(mode) : locked ? "???" : visualSymbol(mode)}</span>
+      ${gameCardArtwork(mode, !locked || revealName)}
       ${locked ? `<div class="coming-lock ${revealName ? "is-revealed" : ""}">${revealName ? `<small>DZIŚ O ${escapeHtml(formatUnlockTime(unlock.unlockAt))}</small>` : icon("lock", 50)}<b>${revealName ? "WKRÓTCE" : "???"}</b></div>` : ""}
       ${originLink}
     </div>
