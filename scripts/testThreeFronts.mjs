@@ -1,5 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {cardEffect,soundUrl} from '../js/fronts/effects.mjs';
 import {cards,cardById} from '../js/fronts/cards.mjs';
 import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView,occupied,tableLimit,turnMs} from '../js/fronts/engine.mjs';
 import {botMove} from '../js/fronts/bot.mjs';
@@ -143,4 +146,24 @@ test('dwadzieścia pełnych partii bota kończy się poprawnym wynikiem',()=>{
     assert.ok([-1,0,1].includes(state.winner));
     assert.ok(state.players.some(player=>player.hp===0));
   }
+});
+
+test('każda karta ma własny efekt i komplet oryginalnych próbek',()=>{
+  const all = [...cards,cardById.mini,cardById.egg];
+  assert.equal(new Set(all.map(card=>JSON.stringify(cardEffect(card.id)))).size,all.length);
+  const names = [
+    ...all.map(card=>'play-'+card.id),
+    ...all.filter(card=>card.attack>0).map(card=>'attack-'+card.id),
+    ...['fire','ice','wind'].map(element=>'element-'+element),
+    'draw','place','hit','castle','heal','shield','fall','turn','victory','defeat','trap-set',
+  ];
+  const signatures = new Set();
+  for (const name of names) {
+    const sample = readFileSync(new URL('..'+soundUrl(name),import.meta.url));
+    assert.equal(sample.toString('ascii',0,4),'RIFF',name);
+    assert.equal(sample.toString('ascii',8,12),'WAVE',name);
+    assert.ok(sample.length > 2000,name);
+    signatures.add(createHash('sha256').update(sample).digest('hex'));
+  }
+  assert.equal(signatures.size,names.length);
 });

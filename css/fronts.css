@@ -144,7 +144,25 @@
 .tf-fx-layer{position:fixed;z-index:21;inset:0;pointer-events:none;overflow:hidden}
 .tf-impact{position:fixed;display:grid;place-items:center;left:var(--x);top:var(--y);width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;color:var(--spell,#ffcb70);font:900 1.3rem system-ui;text-shadow:0 2px 4px #101420;animation:tf-pop .62s both;animation-delay:var(--delay,0ms)}
 .tf-impact::before{content:"";position:absolute;inset:20%;border:2px solid currentColor;box-shadow:0 0 16px currentColor,inset 0 0 12px currentColor;border-radius:50%;opacity:.65}
-.tf-attack-trail{position:fixed;left:var(--x);top:var(--y);width:var(--travel);height:3px;transform-origin:left center;rotate:var(--angle);color:var(--spell,#ffd775);background:linear-gradient(90deg,transparent,currentColor);box-shadow:0 0 10px currentColor;animation:tf-streak .35s ease-out both}
+.tf-fx-burst,.tf-fx-strike{position:fixed;color:var(--fx-color);pointer-events:none}
+.tf-fx-burst{z-index:2;width:0;height:0}
+.tf-fx-ring{position:absolute;inset:-29px;width:58px;height:58px;border:2px solid currentColor;border-radius:50%;box-shadow:0 0 12px currentColor,inset 0 0 8px currentColor;animation:tf-fx-ring .57s ease-out var(--fx-delay,0ms) both}
+.tf-fx-burst[data-phase="draw"] .tf-fx-ring{display:none}
+.tf-fx-burst[data-phase="draw"] .tf-fx-spark{font-size:9px}
+.tf-fx-spark{position:absolute;top:-.5em;left:-.5em;width:1em;text-align:center;font:800 16px/1 system-ui;text-shadow:0 0 8px currentColor;animation:tf-fx-spark .53s cubic-bezier(.17,.61,.26,1) both}
+.tf-fx-burst:is([data-shape="slash"],[data-shape="claw"]) .tf-fx-ring{border-width:0 4px 3px 0;border-radius:12% 62% 12% 62%;rotate:-31deg}
+.tf-fx-burst:is([data-shape="arrow"],[data-shape="rush"],[data-shape="comet"]) .tf-fx-ring{border-color:currentColor transparent;rotate:-19deg}
+.tf-fx-burst:is([data-shape="spark"],[data-shape="crack"],[data-shape="shards"]) .tf-fx-ring{border-radius:7px;rotate:35deg}
+.tf-fx-burst:is([data-shape="spark"],[data-shape="crack"]) .tf-fx-spark{font-size:21px}
+.tf-fx-burst:is([data-shape="bloom"],[data-shape="ward"]) .tf-fx-ring{border-style:double;border-width:5px;animation-name:tf-fx-ward}
+.tf-fx-burst:is([data-shape="spiral"],[data-shape="surge"]) .tf-fx-ring{border-style:dashed;animation-name:tf-fx-ward}
+.tf-fx-burst:is([data-shape="haze"],[data-shape="bubble"]) .tf-fx-ring{background:radial-gradient(ellipse,transparent 40%,currentColor);opacity:.38;border:0}
+.tf-fx-burst[data-shape="rain"] .tf-fx-spark{animation-name:tf-fx-rain}
+.tf-fx-strike{z-index:1;margin:-13px 0 0 -18px;width:37px;height:26px;font:900 23px/1 system-ui;text-align:center;text-shadow:0 0 12px currentColor;animation:tf-fx-travel .28s ease-in both}
+.tf-fx-strike::after{content:"";position:absolute;left:-30px;top:50%;width:40px;height:3px;background:linear-gradient(90deg,transparent,currentColor);box-shadow:0 0 8px currentColor}
+.tf-fx-strike:is([data-shape="arrow"],[data-shape="rush"],[data-shape="comet"],[data-shape="spark"])::after{left:-55px;width:65px;height:5px}
+.tf-fx-strike:is([data-shape="slash"],[data-shape="claw"])::after{width:33px;height:14px;border-top:2px solid currentColor;border-bottom:2px solid currentColor;border-radius:50%;background:none}
+.tf-fx-strike:is([data-shape="bubble"],[data-shape="ward"],[data-shape="spiral"])::after{left:0;top:-4px;width:29px;height:29px;border:2px solid currentColor;background:none;border-radius:50%}
 .tf-flying{position:fixed;margin:0;z-index:1;padding:0;border-radius:8px;width:47px;height:64px;left:var(--x);top:var(--y);translate:-50% -50%;object-fit:contain;background:#182733;border:1px solid #fff1b2;box-shadow:0 0 16px #ffd4898a;animation:tf-fly .42s cubic-bezier(.2,.6,.35,1) both}
 .tf-spell-art{position:fixed;left:var(--x);top:var(--y);width:95px;height:95px;translate:-50% -50%;object-fit:cover;border:2px solid var(--spell);border-radius:50%;box-shadow:0 0 25px var(--spell);animation:tf-spell .68s both}
 .tf-spell-art:is([data-spell="bolt"],[data-spell="meteor"],[data-spell="fire"]){border-radius:36% 64% 66% 34%;animation:tf-comet .62s ease-out both}
@@ -165,7 +183,11 @@
 @keyframes tf-vortex{0%{opacity:0;rotate:-110deg;scale:.36}45%{opacity:1}100%{opacity:0;rotate:35deg;scale:1.3}}
 @keyframes tf-victory{0%{opacity:0;transform:rotate(-55deg) scale(.45)}60%{opacity:1;transform:rotate(10deg) scale(1.35)}}
 @keyframes tf-pop{0%{opacity:0;transform:scale(.3)}24%{opacity:1;transform:scale(1.12)}80%{opacity:1}100%{opacity:0;transform:translateY(-25px) scale(1.17)}}
-@keyframes tf-streak{0%{opacity:0;transform:scaleX(0)}48%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1)}}
+@keyframes tf-fx-ring{0%{opacity:0;transform:scale(.25)}30%{opacity:.9}100%{opacity:0;transform:scale(1.62)}}
+@keyframes tf-fx-ward{0%{opacity:0;transform:scale(.4) rotate(-60deg)}34%{opacity:1}100%{opacity:0;transform:scale(1.48) rotate(65deg)}}
+@keyframes tf-fx-spark{0%{opacity:0;transform:scale(.35)}20%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--spin)) scale(.45)}}
+@keyframes tf-fx-rain{0%{opacity:0;transform:translate(var(--dx),-44px)}27%{opacity:1}100%{opacity:0;transform:translate(var(--dx),calc(var(--dy) + 36px)) scale(.65)}}
+@keyframes tf-fx-travel{0%{opacity:0;transform:rotate(var(--heading)) scale(.55)}20%{opacity:1}72%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--heading)) scale(1.14)}}
 @keyframes tf-float{50%{transform:translateY(-8px) rotate(calc(var(--tilt) + 2deg))}}
 @keyframes tf-spin{to{rotate:360deg}}
 @media(max-width:1280px){.tf-lobby,.tf-lobby-footer{margin-inline:16px}}

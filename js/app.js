@@ -3654,13 +3654,13 @@ function renderNow(options = {}) {
     frontsView = view;
     const accountId = profile() ? state.currentUser : null;
     view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Wczytuję karciankę…</p></section></main>';
-    return finish(import("./fronts/page.mjs?v=5").then(({mountFronts}) => {
+    return finish(import("./fronts/page.mjs?v=6").then(({mountFronts}) => {
       if (frontsView !== view || !view.isConnected || Router.current !== screen) return;
       stopFronts = mountFronts(view, {
         accountId,
         getNick: () => state.accounts[accountId]?.nick,
         openAuth: () => actions.openAuth({title:"Zaloguj się, aby zagrać w Trzy Fronty"}),
-        playSound: cue => Audio.playSfxSample(cue === "frontsDraw" ? "/assets/fronts/draw.wav" : "/assets/fronts/place.wav", () => view.isConnected && Router.current === screen),
+        playSound: url => Audio.playSfxSample(url, () => view.isConnected && Router.current === screen),
       });
     }).catch(() => {
       if (frontsView === view && view.isConnected) view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Nie udało się wczytać karcianki. Odśwież stronę i spróbuj ponownie.</p></section></main>';

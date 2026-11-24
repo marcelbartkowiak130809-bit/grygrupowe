@@ -2,6 +2,7 @@ import {cardById} from './cards.mjs?v=5';
 import {applyAction,attackPlays,cardPlays,createMatch,hydrateMatch,legalActions,matchView,occupied} from './engine.mjs?v=5';
 import {botMove} from './bot.mjs?v=5';
 import {art,back,battle,cardFace,catalogBody,landing} from './view.mjs?v=5';
+import {burst,cardEffect,soundUrl,strike} from './effects.mjs?v=1';
 
 // The former standalone HTML can still be cached at the address ending in a slash.
 if (document.getElementById('fronts-dialog')) location.replace('/trzy-fronty');
@@ -130,12 +131,13 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
   }
 
   const anchor = (side,key) => root.querySelector(`[data-anchor="${side}:${key}"]`);
-  const colors = {
-    fire:'#ff895f', ice:'#8cdeff', wind:'#bdffe0', hail:'#b3ddff', quake:'#ffc694',
-    rain:'#90ffd0', fog:'#cad7e9', trap:'#ffc785', gust:'#abf8d9', cleanse:'#96e1ff',
-    order:'#ffcf93', portal:'#eca1ff', camp:'#ffae56', thorns:'#cbef86', meteor:'#ff9a68',
-    barrier:'#83ffd9', boulder:'#cebaa7', bolt:'#fff199'
-  };
+  function sound(name,delay=0) {
+    const current = generation;
+    if (!delay) return playSound(soundUrl(name));
+    setTimeout(()=>{
+      if (current === generation) playSound(soundUrl(name));
+    },delay);
+  }
 
   function particle(className,{x,y},text='',fromArt='') {
     const element = document.createElement(fromArt?'img':'i');
@@ -152,10 +154,7 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
   function flyDraw(destination,card,delay=0) {
     const start = point(root.querySelector('[data-deck]'));
     const end = point(destination);
-    const soundGeneration = generation;
-    setTimeout(()=>{
-      if (generation === soundGeneration) playSound('frontsDraw');
-    },delay);
+    sound('draw',delay);
     if (reduced.matches || !start || !end || !destination || !destination.animate) return;
     const from = root.querySelector('[data-deck]').getBoundingClientRect();
     const to = destination.getBoundingClientRect();
@@ -182,6 +181,7 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     flight.onfinish = ()=>{
       sprite.remove();
       destination.classList.remove('tf-in-flight');
+      if (destination.isConnected) burst(effectsRoot,end,{color:'#ffdea6',glyph:'·',motion:'flutter'},'draw');
     };
   }
 
@@ -194,9 +194,18 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
   }
 
   function animate(effects,origin,oldAnchors) {
-    if (effects.some(effect=>['summon','spell','trap-set'].includes(effect.type))) playSound('frontsPlace');
+    const attacking = effects.some(effect=>effect.type==='attack');
+    const castDelay = attacking ? 175 : 65;
+    const heard = new Set();
+    const followUp = name => {
+      if (heard.has(name)) return;
+      heard.add(name);
+      sound(name,castDelay);
+    };
+    if (!attacking && effects.some(e=>['summon','spell','trap-set'].includes(e.type))) sound('place');
+
     for (const effect of effects) {
-      const {type,side,key,amount,card,to,element:elementType} = effect;
+      const {type,side,key,amount,card,to,element} = effect;
       const cell = anchor(side,key);
       const target = type==='spell' && key===-1 ? point(root.querySelector('[data-scene]')) : point(cell) || oldAnchors.get(`${side}:${key}`);
       if (type==='draw') {
@@ -209,15 +218,12 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
         flyDraw(drawn,own && effect.accepted ? cardById[view.players[side].hand.at(-1)] : null);
         continue;
       }
-      if (reduced.matches || !target) continue;
       if (type==='attack') {
+        const style = cardEffect(card);
+        sound('attack-'+card);
         const end = point(anchor(1-side,to)) || oldAnchors.get(`${1-side}:${to}`);
-        if (!end) continue;
-        const trail = particle('tf-attack-trail',target);
-        const x = end.x-target.x;
-        const y = end.y-target.y;
-        trail.style.setProperty('--travel',Math.hypot(x,y)+'px');
-        trail.style.setProperty('--angle',Math.atan2(y,x)+'rad');
+        if (reduced.matches || !target || !end) continue;
+        strike(effectsRoot,target,end,style);
         const attacker = cell?.querySelector('.tf-card');
         if (attacker) {
           attacker.style.setProperty('--lunge',side===view.you ? '-18px' : '18px');
@@ -225,27 +231,49 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
         }
         continue;
       }
-      if (type==='summon') {
-        const start = origin && side===view.you ? origin : point(root.querySelector(side===view.you ? '.tf-hand' : '.tf-hidden-hand'));
-        if (start) {
-          const fly = particle('tf-flying',start,'',art(cardById[card]));
-          fly.style.setProperty('--to-x',target.x+'px');
-          fly.style.setProperty('--to-y',target.y+'px');
+      if (type==='summon' || type==='spell' || type==='trap-set') {
+        if (type==='trap-set') {
+          if (side===view.you) sound('trap-set',85);
+          if (!reduced.matches && target) burst(effectsRoot,target,cardEffect('trap'),'place',75);
+          continue;
         }
-        particle('tf-impact',target,'✦').style.setProperty('--spell','#a8ffd9');
+        const style = cardEffect(card,element);
+        sound(element ? 'element-'+element : 'play-'+card,type==='summon'?195:castDelay);
+        if (reduced.matches || !target) continue;
+        if (type==='summon') {
+          const start = origin && side===view.you ? origin : point(root.querySelector(side===view.you ? '.tf-hand' : '.tf-hidden-hand'));
+          if (start) {
+            const fly = particle('tf-flying',start,'',art(cardById[card]));
+            fly.style.setProperty('--to-x',target.x+'px');
+            fly.style.setProperty('--to-y',target.y+'px');
+          }
+          burst(effectsRoot,target,style,'place',190);
+        } else {
+          const splash = particle('tf-spell-art',target,'',art(cardById[card]));
+          splash.style.setProperty('--spell',style.color);
+          splash.dataset.spell = element || card;
+          burst(effectsRoot,target,style,'spell',120);
+        }
         continue;
       }
-      if (type==='spell') {
-        const splash = particle('tf-spell-art',target,'',art(cardById[card]));
-        splash.style.setProperty('--spell',colors[elementType || card] || '#edbdff');
-        splash.dataset.spell = elementType || card;
-        continue;
-      }
-      const label = ['hit','base-hit'].includes(type) ? '−'+amount :
-        type==='heal' ? '+'+amount : type==='shield' ? '◈' : type==='trap-set' ? '◇' : '✧';
+      const feedback = {
+        hit: ['hit','−'+amount,'#ffb08d'],
+        'base-hit': ['castle','−'+amount,'#ff956f'],
+        heal: ['heal','+'+amount,'#91ffb2'],
+        shield: ['shield','◈','#b8eaff'],
+        fall: ['fall','✧','#ddd2ee'],
+      }[type];
+      if (!feedback) continue;
+      const [cue,label,color] = feedback;
+      followUp(cue);
+      if (reduced.matches || !target) continue;
       const impact = particle('tf-impact',target,label);
-      impact.style.setProperty('--spell',type==='heal'?'#91ffb2':type==='hit'||type==='base-hit'?'#ffa38d':'#b8eaff');
-      if (['hit','fall','shield','base-hit'].includes(type)) impact.style.setProperty('--delay','140ms');
+      impact.style.setProperty('--spell',color);
+      impact.style.setProperty('--delay',castDelay+'ms');
+      if (type==='shield' || type==='heal' || type==='base-hit') {
+        const style = cardEffect(type==='shield'?'barrier':type==='heal'?'rain':'quake');
+        burst(effectsRoot,target,style,'impact',castDelay);
+      }
     }
   }
 
@@ -259,11 +287,19 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     error = '';
     dismissChoice();
     render();
-    if (previous) animate(next.effects,origin,oldAnchors);
+    if (previous) {
+      if (next.turn !== previous.turn && next.active === next.you && next.phase==='battle') sound('turn');
+      animate(next.effects,origin,oldAnchors);
+    }
     else if (next.revision===0) dealCards();
     if (next.phase === 'finished') {
       if (dialog.open) dialog.close();
-      setTimeout(()=>{ if(view===next) showResult(); },reduced.matches?0:570);
+      const current = generation;
+      setTimeout(()=>{
+        if (view!==next || generation!==current) return;
+        if (next.winner!==-1) sound(next.winner===next.you?'victory':'defeat');
+        showResult();
+      },reduced.matches?0:570);
     }
   }
 
