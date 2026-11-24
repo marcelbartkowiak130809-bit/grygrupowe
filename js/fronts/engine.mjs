@@ -328,7 +328,7 @@ function nextTurn(state,now,timeout) {
     }
     if (definition(unit).ability === 'renew') heal(state,state.active,key,1);
   }
-  incoming.pendingDraw = true;
+  draw(state,state.active);
 }
 
 export function createMatch(names,now,random=Math.random) {

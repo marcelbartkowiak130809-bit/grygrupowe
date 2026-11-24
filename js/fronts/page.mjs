@@ -1,8 +1,8 @@
 import {cardById} from './cards.mjs?v=5';
-import {applyAction,attackPlays,cardPlays,createMatch,hydrateMatch,legalActions,matchView,occupied} from './engine.mjs?v=5';
-import {botMove} from './bot.mjs?v=5';
-import {art,back,battle,cardFace,catalogBody,landing} from './view.mjs?v=5';
-import {burst,cardEffect,soundUrl,strike} from './effects.mjs?v=1';
+import {applyAction,attackPlays,cardPlays,createMatch,effectiveCost,hydrateMatch,legalActions,matchView,occupied,tableLimit} from './engine.mjs?v=6';
+import {botMove} from './bot.mjs?v=6';
+import {art,back,battle,cardFace,catalogBody,landing} from './view.mjs?v=6';
+import {burst,cardEffect,soundUrl,strike} from './effects.mjs?v=2';
 
 // The former standalone HTML can still be cached at the address ending in a slash.
 if (document.getElementById('fronts-dialog')) location.replace('/trzy-fronty');
@@ -78,11 +78,16 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
   function getStatus() {
     if (!isMyTurn()) return view.phase==='finished' ? '' : 'Rywal planuje ruch.';
     if (selection?.type==='attack') return 'Wybierz podświetlony cel.';
-    if (view.players[view.you].pendingDraw) return 'Dobierz kartę z talii.';
+    if (view.players[view.you].pendingDraw) return 'Talia rozdaje kartę…';
     if (options.length) return selection ? cardById[view.players[view.you].hand[selection.index]].name : '';
     if (selection?.type==='card') return targets.has(`${view.you}:-2`) ? 'Wyłóż kartę przed sobą.' : 'Wybierz podświetlony cel.';
     const actions = legalActions(view,view.you);
-    return actions.length>1 ? 'Zagraj kartę lub wybierz jednostkę do ataku.' : 'Możesz zakończyć turę.';
+    const canPlay = actions.some(action=>action.type==='play');
+    const canAttack = actions.some(action=>action.type==='attack');
+    if (canPlay && canAttack) return 'Zagraj kartę z ręki albo wybierz gotową jednostkę do ataku.';
+    if (canPlay) return 'Wybierz kartę z podświetloną obwódką.';
+    if (canAttack) return 'Wybierz gotową jednostkę, aby zaatakować.';
+    return 'Brak dostępnych ruchów. Zakończ turę.';
   }
 
   function render() {
@@ -94,6 +99,7 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     else {
       root.innerHTML = battle(view,{
         now:now(),targets,
+        playable:new Set(isMyTurn() ? legalActions(view,view.you).filter(action=>action.type==='play').map(action=>action.index) : []),
         canAttack:isMyTurn() ? occupied(view,view.you).filter(key => attackPlays(view,view.you,key).length) : [],
         selected:selection,status:getStatus(),choices:options,error,busy
       });
@@ -193,9 +199,24 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     opposing.forEach((card,index)=>flyDraw(card,null,index*135));
   }
 
+  function announce(text,color,portrait) {
+    if (reduced.matches) return;
+    const center = point(root.querySelector('[data-scene]'));
+    if (!center) return;
+    const splash = particle('tf-banner-fx',center,text);
+    splash.style.setProperty('--banner-color',color);
+    if (portrait) {
+      splash.classList.add('tf-banner-legend');
+      const face = document.createElement('img');
+      face.src = art(portrait);
+      face.alt = '';
+      splash.prepend(face);
+    }
+  }
+
   function animate(effects,origin,oldAnchors) {
     const attacking = effects.some(effect=>effect.type==='attack');
-    const castDelay = attacking ? 175 : 65;
+    const castDelay = attacking ? 230 : 65;
     const heard = new Set();
     const followUp = name => {
       if (heard.has(name)) return;
@@ -224,9 +245,13 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
         const end = point(anchor(1-side,to)) || oldAnchors.get(`${1-side}:${to}`);
         if (reduced.matches || !target || !end) continue;
         strike(effectsRoot,target,end,style);
+        const table = root.querySelector('[data-table]');
+        table?.style.setProperty('--strike-color',style.color);
+        table?.classList.add('tf-table-impact');
         const attacker = cell?.querySelector('.tf-card');
         if (attacker) {
-          attacker.style.setProperty('--lunge',side===view.you ? '-18px' : '18px');
+          attacker.style.setProperty('--lunge-x',Math.round((end.x-target.x)*.19)+'px');
+          attacker.style.setProperty('--lunge-y',Math.round((end.y-target.y)*.27)+'px');
           attacker.classList.add('tf-lunge');
         }
         continue;
@@ -240,6 +265,10 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
         const style = cardEffect(card,element);
         sound(element ? 'element-'+element : 'play-'+card,type==='summon'?195:castDelay);
         if (reduced.matches || !target) continue;
+        const definition = cardById[card];
+        if (!element && !attacking && definition.rarity===3 && card!=='egg') {
+          announce(definition.name,style.color,definition);
+        }
         if (type==='summon') {
           const start = origin && side===view.you ? origin : point(root.querySelector(side===view.you ? '.tf-hand' : '.tf-hidden-hand'));
           if (start) {
@@ -288,7 +317,10 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     dismissChoice();
     render();
     if (previous) {
-      if (next.turn !== previous.turn && next.active === next.you && next.phase==='battle') sound('turn');
+      if (next.turn !== previous.turn && next.active === next.you && next.phase==='battle') {
+        sound('turn');
+        announce('Twoja tura','#b1ffe0');
+      }
       animate(next.effects,origin,oldAnchors);
     }
     else if (next.revision===0) dealCards();
@@ -444,6 +476,9 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     else {
       practice = hydrateMatch(practice);
       practice.deadline = now()+45000;
+      if (practice.players[practice.active].pendingDraw) {
+        practice = applyAction(practice,practice.active,{type:'draw'},now()) || practice;
+      }
     }
     resumeAvailable=true;
     storePractice();
@@ -517,14 +552,18 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
     if (!card) return;
     dismissChoice();
     if (!plays.length) {
-      error='Brakuje energii lub wolnego celu.';
+      const player = view.players[view.you];
+      const cost = effectiveCost(view,view.you,card);
+      error = cost > player.energy ? `Ta karta potrzebuje ${cost} energii. Masz ${player.energy}.` :
+        card.type==='unit' ? (occupied(view,view.you).length>=tableLimit ? 'Masz już pięć jednostek na stole.' : 'Lawina blokuje wykładanie jednostek w tej turze.') :
+        card.id==='trap' && player.trapped ? 'Pułapka już czeka na stole.' : 'Ta karta nie ma teraz celu.';
       return render();
     }
     error='';
     selection={type:'card',index,card,plays};
     if (plays[0].target===-1) {
       if (card.type==='unit') targets.set(`${ownSide()}:-2`,plays);
-      else options=[{label:'Zagraj',index:0,action:plays[0]}];
+      options=[{label:card.type==='unit'?'Wyłóż na stół':'Zagraj taktykę',index:0,action:plays[0]}];
     } else {
       const side = card.type==='unit' || card.target==='enemy' ? 1-ownSide() : ownSide();
       for (const play of plays) {
@@ -591,7 +630,7 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
         return;
       }
       case 'rules': return popup(`<header class="tf-dialog-header"><h2>Jak grać?</h2><button class="tf-quiet" data-do="close" aria-label="Zamknij">×</button></header>
-        <ol class="tf-rules"><li>Dobierz kartę z talii z boku stołu. Masz 45 s na turę i do 6 energii.</li>
+        <ol class="tf-rules"><li>Na początku tury talia automatycznie dobiera ci kartę. Kliknij podświetloną kartę, a potem „Wyłóż kartę”, „Zagraj” lub jej cel.</li>
         <li>Wyłóż do pięciu jednostek. Gotową jednostką atakujesz dowolnego wroga. Gdy rywal nie ma jednostek, możesz uderzyć w zamek.</li>
         <li>Zagrywaj taktyki, by leczyć, osłaniać, zamrażać albo zastawiać pułapki.</li>
         <li>Wygrywasz, gdy zamek rywala straci 20 HP. Gdy zabraknie kart, dobieranie rani zamek.</li></ol>`);
@@ -601,7 +640,6 @@ export function mountFronts(container, {accountId, getNick, openAuth, playSound}
       case 'again':
         dialog.close();
         return mode==='online' ? startOnline() : startPractice(false);
-      case 'draw': return act({type:'draw'});
       case 'end': return act({type:'end'});
       case 'clear': dismissChoice(); error=''; return render();
       case 'target': return chooseTarget(Number(side),Number(key));

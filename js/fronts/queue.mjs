@@ -57,8 +57,9 @@ export function updatePool(previous, uid, request, now, random, newId) {
     const own = ownEntry(pool,uid);
     if (own?.entry.state.phase === 'battle') {
       const state = own.entry.state;
-      const action = request.kind === 'status' ? {type:'timeout'} : request.id === own.id && request.revision === state.revision && request.action?.type !== 'timeout' ? request.action : null;
-      const result = applyAction(state,own.side,action,now);
+      const resumeDraw = request.kind === 'status' && now < state.deadline && state.players[state.active].pendingDraw;
+      const action = request.kind === 'status' ? {type:resumeDraw ? 'draw' : 'timeout'} : request.id === own.id && request.revision === state.revision && request.action?.type !== 'timeout' ? request.action : null;
+      const result = applyAction(state,resumeDraw ? state.active : own.side,action,now);
       if (result) {
         own.entry.state = result;
         own.entry.changed = now;
@@ -71,5 +72,6 @@ export function updatePool(previous, uid, request, now, random, newId) {
 export function needsUpdate(pool,uid,request,now) {
   if (request.kind !== 'status') return true;
   const own = ownEntry(pool,uid);
-  return own?.entry.state.phase === 'battle' && own.entry.state.deadline <= now;
+  const state = own?.entry.state;
+  return state?.phase === 'battle' && (state.deadline <= now || Boolean(state.players[state.active].pendingDraw));
 }

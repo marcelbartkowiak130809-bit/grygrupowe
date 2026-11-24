@@ -6,7 +6,7 @@ import {cardEffect,soundUrl} from '../js/fronts/effects.mjs';
 import {cards,cardById} from '../js/fronts/cards.mjs';
 import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView,occupied,tableLimit,turnMs} from '../js/fronts/engine.mjs';
 import {botMove} from '../js/fronts/bot.mjs';
-import {statusFor,updatePool} from '../js/fronts/queue.mjs';
+import {needsUpdate,statusFor,updatePool} from '../js/fronts/queue.mjs';
 
 const setup = (a=[],b=[]) => {
   const match = createMatch(['Lis','Sowa'],0,()=>.58);
@@ -63,17 +63,32 @@ test('atak wskazuje dowolną jednostkę i dopiero pusty stół odsłania zamek',
   assert.deepEqual(attackPlays(state,0,3),[{type:'attack',from:3,to:-1}]);
 });
 
-test('w kolejnej turze dobierasz raz, a rywal widzi tylko rewers',()=>{
-  let state=setup();
-  state=play(state,0,{type:'end'});
-  assert.deepEqual(legalActions(state,1),[{type:'draw'}]);
+test('nowa tura dobiera raz i natychmiast pozwala zagrać kartę',()=>{
+  let state=setup([],['fox']);
   const card=state.deck[0], count=state.deck.length;
-  state=play(state,1,{type:'draw'});
-  assert.equal(state.players[1].hand[0],card);
+  state=play(state,0,{type:'end'});
+  assert.equal(state.players[1].hand[1],card);
   assert.equal(state.deck.length,count-1);
+  assert.ok(legalActions(state,1).some(action=>action.type==='play'));
   assert.equal(applyAction(state,1,{type:'draw'},1),null);
   assert.deepEqual(matchView(state,0).effects,[{type:'draw',side:1,key:-1,accepted:true}]);
   assert.deepEqual(matchView(state,0).players[1].hand,[]);
+  state=play(state,1,{type:'play',index:0,target:-1});
+  assert.equal(Object.values(state.players[1].board)[0].card,'fox');
+});
+
+test('starsza partia oczekująca na dobranie wznawia się bez podwójnego dobierania',()=>{
+  const state=setup();
+  state.players[0].pendingDraw=true;
+  let pool={matches:{match:{players:['a','b'],state,changed:0}},active:{a:'match',b:'match'}};
+  assert.equal(needsUpdate(pool,'b',{kind:'status'},1),true);
+  pool=updatePool(pool,'b',{kind:'status'},1);
+  const live=pool.matches.match.state;
+  assert.equal(live.players[0].hand.length,1);
+  assert.equal(live.players[0].pendingDraw,undefined);
+  assert.equal(needsUpdate(pool,'a',{kind:'status'},1),false);
+  pool=updatePool(pool,'a',{kind:'status'},1);
+  assert.equal(pool.matches.match.state.players[0].hand.length,1);
 });
 
 test('pułapka, szlam i feniks działają przy wspólnym stole',()=>{
@@ -88,7 +103,6 @@ test('pułapka, szlam i feniks działają przy wspólnym stole',()=>{
   assert.equal(Object.values(state.players[1].board).find(unit=>unit.card==='egg').hp,2);
   state=play(state,0,{type:'end'});
   assert.equal(Object.values(state.players[1].board).find(unit=>unit.card==='phoenix').hp,2);
-  state=play(state,1,{type:'draw'});
   state=play(state,1,{type:'attack',from:5,to:-1});
   assert.equal(state.players[0].hp,20);
   assert.equal(state.players[1].board[5],undefined);

@@ -64,14 +64,15 @@ export function burst(layer,point,style,phase,delay=0) {
   const ring = document.createElement('i');
   ring.className = 'tf-fx-ring';
   burstNode.append(ring);
-  const count = phase === 'spell' ? 12 : 8;
+  const count = phase === 'spell' ? 18 : phase === 'attack' ? 14 : 8;
   for (let i=0;i<count;i++) {
     const spark = document.createElement('i');
     const angle = (i/count)*2*Math.PI;
     spark.className = 'tf-fx-spark';
     spark.textContent = style.glyph;
-    spark.style.setProperty('--dx',Math.round(Math.cos(angle)*(35+i%3*9))+'px');
-    spark.style.setProperty('--dy',Math.round(Math.sin(angle)*(32+i%4*7))+'px');
+    const reach = phase === 'attack' || phase === 'spell' ? 56 : 33;
+    spark.style.setProperty('--dx',Math.round(Math.cos(angle)*(reach+i%3*12))+'px');
+    spark.style.setProperty('--dy',Math.round(Math.sin(angle)*(reach+i%4*8))+'px');
     spark.style.setProperty('--spin',((i%2?1:-1)*(i+2)*13)+'deg');
     spark.style.animationDelay = delay+i*13+'ms';
     burstNode.append(spark);
@@ -91,6 +92,6 @@ export function strike(layer,start,end,style) {
   trace.style.setProperty('--heading',Math.atan2(end.y-start.y,end.x-start.x)+'rad');
   place(trace,start);
   layer.append(trace);
-  setTimeout(()=>trace.remove(),380);
-  burst(layer,end,style,'attack',165);
+  setTimeout(()=>trace.remove(),430);
+  burst(layer,end,style,'attack',230);
 }

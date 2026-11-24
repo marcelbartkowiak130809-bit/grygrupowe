@@ -1,5 +1,5 @@
 import {cardById} from './cards.mjs?v=5';
-import {applyAction,legalActions} from './engine.mjs?v=5';
+import {applyAction,legalActions} from './engine.mjs?v=6';
 
 function value(state,side) {
   const player = state.players[side];
