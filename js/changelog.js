@@ -24,7 +24,7 @@ function buildChangelogEntries(now = Date.now()) {
       date: "2026-11-24",
       title: "Trzy Fronty",
       changes: [
-        "Nowa karcianka na trzech frontach. Wystawiaj jednostki, broń zamku i zastawiaj pułapki.",
+        "Nowa karcianka przy wspólnym stole. Wykładaj jednostki, dobieraj karty z talii, broń zamku i zastawiaj pułapki.",
         "Wspólna talia ma 35 jednostek i 15 taktyk. Obejrzyj wszystkie karty w katalogu przed bitwą.",
         "Szukaj rywala online bez kodu pokoju albo zagraj trening ze Strażnikiem Szlaku.",
       ],

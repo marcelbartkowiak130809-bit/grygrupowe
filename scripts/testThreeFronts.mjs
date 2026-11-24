@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {cards,cardById} from '../js/fronts/cards.mjs';
-import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView,turnMs} from '../js/fronts/engine.mjs';
+import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView,occupied,tableLimit,turnMs} from '../js/fronts/engine.mjs';
 import {botMove} from '../js/fronts/bot.mjs';
 import {statusFor,updatePool} from '../js/fronts/queue.mjs';
 
@@ -45,38 +45,66 @@ test('każdą z 50 kart można zagrać zgodnie z jej celowaniem',()=>{
   }
 });
 
-test('gotowość, szarża i zasięg działają na właściwych frontach',()=>{
+test('atak wskazuje dowolną jednostkę i dopiero pusty stół odsłania zamek',()=>{
   let state=setup(['knight','lancer']);
-  state.players[1].board[1]=unit('ent');
-  state=play(state,0,{type:'play',index:0,lane:0});
-  assert.deepEqual(attackPlays(state,0,0),[]);
-  state=play(state,0,{type:'play',index:0,lane:1});
-  assert.deepEqual(attackPlays(state,0,1),[{type:'attack',from:1,to:1}]);
-  state=play(state,0,{type:'attack',from:1,to:1});
-  assert.equal(state.players[1].board[1].hp,3);
+  state.players[1].board={8:unit('ent',8),11:unit('knight',11)};
+  state=play(state,0,{type:'play',index:0,target:-1});
   assert.deepEqual(attackPlays(state,0,1),[]);
-  state.players[0].board[2]=unit('archer');
-  assert.deepEqual(attackPlays(state,0,2).map(action=>action.to),[2,1]);
-  state.fog[1]=3;
-  assert.deepEqual(attackPlays(state,0,2).map(action=>action.to),[2]);
+  state=play(state,0,{type:'play',index:0,target:-1});
+  assert.deepEqual(attackPlays(state,0,2),[{type:'attack',from:2,to:8},{type:'attack',from:2,to:11}]);
+  state=play(state,0,{type:'attack',from:2,to:8});
+  assert.equal(state.players[1].board[8].hp,3);
+  assert.deepEqual(attackPlays(state,0,2),[]);
+  state.players[0].board[3]=unit('archer',3);
+  state.players[1].board={};
+  assert.deepEqual(attackPlays(state,0,3),[{type:'attack',from:3,to:-1}]);
 });
 
-test('pułapka przerywa cios, szlam się dzieli, feniks się odradza',()=>{
-  let state=setup(['trap','bolt']);
-  state.players[1].board={0:unit('lancer'),1:unit('slime'),2:{...unit('phoenix'),hp:2}};
-  state=play(state,0,{type:'play',index:0,lane:0});
-  state=play(state,0,{type:'play',index:0,lane:1});
-  assert.equal(state.players[1].board[1].card,'mini');
-  state.players[0].hand=['bolt'];
-  state=play(state,0,{type:'play',index:0,lane:2});
-  assert.equal(state.players[1].board[2].card,'egg');
+test('w kolejnej turze dobierasz raz, a rywal widzi tylko rewers',()=>{
+  let state=setup();
   state=play(state,0,{type:'end'});
-  assert.equal(state.players[1].board[2].card,'phoenix');
-  assert.equal(state.players[1].board[2].hp,2);
-  state=play(state,1,{type:'attack',from:0,to:0});
+  assert.deepEqual(legalActions(state,1),[{type:'draw'}]);
+  const card=state.deck[0], count=state.deck.length;
+  state=play(state,1,{type:'draw'});
+  assert.equal(state.players[1].hand[0],card);
+  assert.equal(state.deck.length,count-1);
+  assert.equal(applyAction(state,1,{type:'draw'},1),null);
+  assert.deepEqual(matchView(state,0).effects,[{type:'draw',side:1,key:-1,accepted:true}]);
+  assert.deepEqual(matchView(state,0).players[1].hand,[]);
+});
+
+test('pułapka, szlam i feniks działają przy wspólnym stole',()=>{
+  let state=setup(['trap','bolt']);
+  state.unitSerial=10;
+  state.players[1].board={5:unit('lancer',5),6:unit('slime',6),7:{...unit('phoenix',7),hp:2}};
+  state=play(state,0,{type:'play',index:0,target:-1});
+  state=play(state,0,{type:'play',index:0,target:6});
+  assert.equal(Object.values(state.players[1].board).filter(unit=>unit.card==='mini').length,2);
+  state.players[0].hand=['bolt'];
+  state=play(state,0,{type:'play',index:0,target:7});
+  assert.equal(Object.values(state.players[1].board).find(unit=>unit.card==='egg').hp,2);
+  state=play(state,0,{type:'end'});
+  assert.equal(Object.values(state.players[1].board).find(unit=>unit.card==='phoenix').hp,2);
+  state=play(state,1,{type:'draw'});
+  state=play(state,1,{type:'attack',from:5,to:-1});
   assert.equal(state.players[0].hp,20);
-  assert.equal(state.players[1].board[0],undefined);
-  assert.equal(state.players[0].traps[0],undefined);
+  assert.equal(state.players[1].board[5],undefined);
+  assert.equal(state.players[0].trapped,undefined);
+});
+
+test('stół mieści do pięciu kart i wczytuje zapis ze starej planszy',()=>{
+  let state=setup(['fox']);
+  delete state.tableVersion;
+  state.players[0].board={0:unit('archer',18),2:unit('ent',19)};
+  state.players[0].traps={1:'trap'};
+  state.unitSerial=19;
+  const migrated=matchView(state,0);
+  assert.deepEqual(occupied(migrated,0),[18,19]);
+  assert.equal(migrated.players[0].trapped,true);
+  assert.equal(migrated.tableVersion,2);
+  state=setup(['fox']);
+  state.players[0].board=Object.fromEntries(Array.from({length:tableLimit},(_,index)=>[1+index,unit('slime',index+1)]));
+  assert.deepEqual(cardPlays(state,0,0),[]);
 });
 
 test('kolejka paruje dwóch graczy, odrzuca ponowioną i cudzą akcję',()=>{

@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20261124-2";
 import { Audio } from "./audio.js?v=20261123-7";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261124-4";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261124-8";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import {newSoloRun, soloGameEvent} from './soloSiteStats.js?v=20261119-10';
 import { Effects } from "./effects.js";
@@ -492,7 +492,7 @@ function updateDocumentTitle() {
   const landing = screen === "platform" ? homepage : category ? {
     path:category.path, title:categorySearchTitles[category.id], description:categoryDescriptions[category.id],
   } : screen === "three-fronts" ? {
-    path:"/trzy-fronty", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wystawiaj jednostki i zagrywaj taktyki na trzech frontach.",
+    path:"/trzy-fronty", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wykładaj jednostki i zagrywaj taktyki.",
   } : publicPage ? { ...publicPage, path:Router.pathForPublicScreen(screen) } : null;
   const room = activeRoom();
   const modeId = room?.gameMode || (["lobby","solo"].includes(screen) ? state.selectedGameMode : "");
@@ -3654,12 +3654,13 @@ function renderNow(options = {}) {
     frontsView = view;
     const accountId = profile() ? state.currentUser : null;
     view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Wczytuję karciankę…</p></section></main>';
-    return finish(import("./fronts/page.mjs?v=4").then(({mountFronts}) => {
+    return finish(import("./fronts/page.mjs?v=5").then(({mountFronts}) => {
       if (frontsView !== view || !view.isConnected || Router.current !== screen) return;
       stopFronts = mountFronts(view, {
         accountId,
         getNick: () => state.accounts[accountId]?.nick,
         openAuth: () => actions.openAuth({title:"Zaloguj się, aby zagrać w Trzy Fronty"}),
+        playSound: cue => Audio.playSfxSample(cue === "frontsDraw" ? "/assets/fronts/draw.wav" : "/assets/fronts/place.wav", () => view.isConnected && Router.current === screen),
       });
     }).catch(() => {
       if (frontsView === view && view.isConnected) view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Nie udało się wczytać karcianki. Odśwież stronę i spróbuj ponownie.</p></section></main>';

@@ -1,12 +1,12 @@
-import {cardById} from './cards.mjs';
-import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView} from './engine.mjs';
-import {botMove} from './bot.mjs';
-import {art,battle,cardFace,catalogBody,landing} from './view.mjs?v=4';
+import {cardById} from './cards.mjs?v=5';
+import {applyAction,attackPlays,cardPlays,createMatch,hydrateMatch,legalActions,matchView,occupied} from './engine.mjs?v=5';
+import {botMove} from './bot.mjs?v=5';
+import {art,back,battle,cardFace,catalogBody,landing} from './view.mjs?v=5';
 
 // The former standalone HTML can still be cached at the address ending in a slash.
 if (document.getElementById('fronts-dialog')) location.replace('/trzy-fronty');
 
-export function mountFronts(container, {accountId, getNick, openAuth}) {
+export function mountFronts(container, {accountId, getNick, openAuth, playSound}) {
   const scope = document.createElement('div');
   scope.className = 'fronts';
   const root = document.createElement('div');
@@ -73,15 +73,13 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
   const isMyTurn = () => view?.phase==='battle' && view.active===view.you;
   const ownSide = () => view.you;
   const dismissChoice = () => { selection = null; targets = new Map(); options = []; };
-  const displayLane = lane => ['Bór','Trakt','Przełęcz'][lane];
-  const moveTargets = new Set(['moveEnemy','moveAlly','swap']);
 
   function getStatus() {
     if (!isMyTurn()) return view.phase==='finished' ? '' : 'Rywal planuje ruch.';
     if (selection?.type==='attack') return 'Wybierz podświetlony cel.';
-    if (selection?.playsTo) return 'Wskaż pole docelowe.';
+    if (view.players[view.you].pendingDraw) return 'Dobierz kartę z talii.';
     if (options.length) return selection ? cardById[view.players[view.you].hand[selection.index]].name : '';
-    if (selection?.type==='card') return 'Wybierz podświetlone pole.';
+    if (selection?.type==='card') return targets.has(`${view.you}:-2`) ? 'Wyłóż kartę przed sobą.' : 'Wybierz podświetlony cel.';
     const actions = legalActions(view,view.you);
     return actions.length>1 ? 'Zagraj kartę lub wybierz jednostkę do ataku.' : 'Możesz zakończyć turę.';
   }
@@ -95,13 +93,13 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     else {
       root.innerHTML = battle(view,{
         now:now(),targets,
-        canAttack:isMyTurn() ? [0,1,2].filter(lane => attackPlays(view,view.you,lane).length) : [],
+        canAttack:isMyTurn() ? occupied(view,view.you).filter(key => attackPlays(view,view.you,key).length) : [],
         selected:selection,status:getStatus(),choices:options,error,busy
       });
       root.querySelector('.tf-hand').scrollLeft = scroll;
     }
     if (focus && !dialog.open) {
-      const replacement = [...root.querySelectorAll('[data-do]')].find(element => ['do','index','side','lane']
+      const replacement = [...root.querySelectorAll('[data-do]')].find(element => ['do','index','side','key']
         .every(key => element.dataset[key] === focus[key]));
       replacement?.focus({preventScroll:true});
     }
@@ -131,7 +129,7 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     return {x:box.left+box.width/2,y:box.top+box.height/2};
   }
 
-  const anchor = (side,lane) => root.querySelector(`[data-anchor="${side}:${lane}"]`);
+  const anchor = (side,key) => root.querySelector(`[data-anchor="${side}:${key}"]`);
   const colors = {
     fire:'#ff895f', ice:'#8cdeff', wind:'#bdffe0', hail:'#b3ddff', quake:'#ffc694',
     rain:'#90ffd0', fog:'#cad7e9', trap:'#ffc785', gust:'#abf8d9', cleanse:'#96e1ff',
@@ -151,36 +149,84 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     return element;
   }
 
-  function animate(effects,previous,origin) {
-    if (reduced.matches) return;
+  function flyDraw(destination,card,delay=0) {
+    const start = point(root.querySelector('[data-deck]'));
+    const end = point(destination);
+    const soundGeneration = generation;
+    setTimeout(()=>{
+      if (generation === soundGeneration) playSound('frontsDraw');
+    },delay);
+    if (reduced.matches || !start || !end || !destination || !destination.animate) return;
+    const from = root.querySelector('[data-deck]').getBoundingClientRect();
+    const to = destination.getBoundingClientRect();
+    const width = Math.min(from.width,72);
+    const height = width*1.45;
+    const sprite = document.createElement('div');
+    sprite.className = 'tf-card-flight';
+    sprite.style.cssText = `left:${start.x-width/2}px;top:${start.y-height/2}px;width:${width}px;height:${height}px`;
+    sprite.innerHTML = `<div class="tf-flight-inner">${back}${card?`<span class="tf-flight-face"><img src="${art(card)}" alt=""></span>`:''}</div>`;
+    effectsRoot.append(sprite);
+    destination.classList.add('tf-in-flight');
+    const x = end.x-start.x, y = end.y-start.y;
+    const duration = 480;
+    const flight = sprite.animate([
+      {offset:0,transform:'translate3d(0,0,0) rotate(10deg)'},
+      {offset:.24,transform:`translate3d(${x*.27}px,${y*.20-35}px,0) rotate(-13deg) scale(1.17)`},
+      {offset:.73,transform:`translate3d(${x*.85}px,${y*.83-10}px,0) rotate(6deg) scale(1.12)`},
+      {offset:1,transform:`translate3d(${x}px,${y}px,0) rotate(0) scale(${to.width/width},${to.height/height})`}
+    ],{duration,delay,fill:'both',easing:'cubic-bezier(.2,.6,.33,1)'});
+    if (card) sprite.firstElementChild.animate(
+      [{transform:'rotateY(0deg)'},{transform:'rotateY(0deg)',offset:.41},{transform:'rotateY(180deg)',offset:.89},{transform:'rotateY(180deg)'}],
+      {duration,delay,fill:'both'}
+    );
+    flight.onfinish = ()=>{
+      sprite.remove();
+      destination.classList.remove('tf-in-flight');
+    };
+  }
+
+  function dealCards() {
+    const own = [...root.querySelectorAll('.tf-hand .tf-card')];
+    const opposing = [...root.querySelectorAll('.tf-hidden-hand .tf-card-back')];
+    const hand = view.players[view.you].hand;
+    own.forEach((card,index)=>flyDraw(card,cardById[hand[index]],index*135+65));
+    opposing.forEach((card,index)=>flyDraw(card,null,index*135));
+  }
+
+  function animate(effects,origin,oldAnchors) {
+    if (effects.some(effect=>['summon','spell','trap-set'].includes(effect.type))) playSound('frontsPlace');
     for (const effect of effects) {
-      const {type,side,lane,amount,card,to,element:elementType} = effect;
-      const cell = anchor(side,lane);
-      const target = type==='spell' && lane===-1 ? point(root.querySelector('[data-scene]')) : point(cell);
+      const {type,side,key,amount,card,to,element:elementType} = effect;
+      const cell = anchor(side,key);
+      const target = type==='spell' && key===-1 ? point(root.querySelector('[data-scene]')) : point(cell) || oldAnchors.get(`${side}:${key}`);
       if (type==='draw') {
-        const drawn = side===view.you ? root.querySelector('.tf-hand .tf-card:last-child') : root.querySelector('.tf-hidden-hand .tf-card-back:last-child');
-        if (drawn) drawn.classList.add('tf-incoming');
+        const own = side===view.you;
+        const drawn = effect.accepted && root.querySelector(own ? '.tf-hand .tf-card:last-child' : '.tf-hidden-hand .tf-card-back:last-child');
+        if (drawn && own && !reduced.matches) {
+          const hand = drawn.parentElement;
+          if (drawn.offsetLeft+drawn.offsetWidth > hand.scrollLeft+hand.clientWidth) hand.scrollLeft = hand.scrollWidth;
+        }
+        flyDraw(drawn,own && effect.accepted ? cardById[view.players[side].hand.at(-1)] : null);
         continue;
       }
-      if (!target) continue;
+      if (reduced.matches || !target) continue;
       if (type==='attack') {
-        const end = point(anchor(1-side,previous?.players[1-side].board[to] ? to : -1));
+        const end = point(anchor(1-side,to)) || oldAnchors.get(`${1-side}:${to}`);
         if (!end) continue;
         const trail = particle('tf-attack-trail',target);
         const x = end.x-target.x;
         const y = end.y-target.y;
         trail.style.setProperty('--travel',Math.hypot(x,y)+'px');
         trail.style.setProperty('--angle',Math.atan2(y,x)+'rad');
-        const attacker = cell.querySelector('.tf-card');
+        const attacker = cell?.querySelector('.tf-card');
         if (attacker) {
           attacker.style.setProperty('--lunge',side===view.you ? '-18px' : '18px');
           attacker.classList.add('tf-lunge');
         }
         continue;
       }
-      if (type==='summon' || type==='move') {
-        const start = type==='move' ? point(anchor(side,effect.from)) :
-          origin && side===view.you ? origin : point(root.querySelector(side===view.you ? '.tf-hand' : '.tf-hidden-hand'));
+      if (type==='summon') {
+        const start = origin && side===view.you ? origin : point(root.querySelector(side===view.you ? '.tf-hand' : '.tf-hidden-hand'));
         if (start) {
           const fly = particle('tf-flying',start,'',art(cardById[card]));
           fly.style.setProperty('--to-x',target.x+'px');
@@ -208,12 +254,13 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     if (previous && next.revision < previous.revision) return;
     const changed = !view || next.revision !== view.revision || view.phase !== next.phase;
     if (!changed) return;
+    const oldAnchors = new Map([...root.querySelectorAll('[data-anchor]')].map(node=>[node.dataset.anchor,point(node)]));
     view = next;
     error = '';
     dismissChoice();
     render();
-    if (previous) animate(next.effects,previous,origin);
-    else root.querySelector('.tf-hand')?.classList.add('tf-deal');
+    if (previous) animate(next.effects,origin,oldAnchors);
+    else if (next.revision===0) dealCards();
     if (next.phase === 'finished') {
       if (dialog.open) dialog.close();
       setTimeout(()=>{ if(view===next) showResult(); },reduced.matches?0:570);
@@ -358,7 +405,10 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     searching='';
     announcedResult=false;
     if (!resume || !resumeAvailable) practice=createMatch([getNick(),'Strażnik Szlaku'],now());
-    else practice.deadline=now()+45000;
+    else {
+      practice = hydrateMatch(practice);
+      practice.deadline = now()+45000;
+    }
     resumeAvailable=true;
     storePractice();
     updateView(matchView(practice,0));
@@ -424,6 +474,7 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
 
   function selectCard(index) {
     if (!isMyTurn() || busy) return;
+    if (view.players[view.you].pendingDraw) return;
     if (selection?.index===index) { dismissChoice(); error=''; return render(); }
     const card = cardById[view.players[ownSide()].hand[index]];
     const plays = cardPlays(view,view.you,index);
@@ -435,44 +486,40 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
     }
     error='';
     selection={type:'card',index,card,plays};
-    if (plays[0].lane===-1) options=[{label:'Zagraj',index:0,action:plays[0]}];
-    else {
-      const side = ['enemy','moveEnemy'].includes(card.target) ? 1-ownSide() : ownSide();
+    if (plays[0].target===-1) {
+      if (card.type==='unit') targets.set(`${ownSide()}:-2`,plays);
+      else options=[{label:'Zagraj',index:0,action:plays[0]}];
+    } else {
+      const side = card.type==='unit' || card.target==='enemy' ? 1-ownSide() : ownSide();
       for (const play of plays) {
-        const key = `${side}:${play.lane}`;
+        const key = `${side}:${play.target}`;
         targets.set(key,[...(targets.get(key) || []),play]);
       }
     }
     render();
   }
 
-  function chooseSlot(side,lane) {
-    const plays = targets.get(`${side}:${lane}`);
+  function chooseTarget(side,key) {
+    const plays = targets.get(`${side}:${key}`);
     if (plays) {
-      if (selection?.type==='card' && !selection.playsTo && moveTargets.has(selection.card.target)) {
-        selection.playsTo=true;
-        targets.clear();
-        for (const play of plays) targets.set(`${side}:${play.to}`,[play]);
-        return render();
-      }
       if (plays.length===1) return act(plays[0]);
       targets.clear();
       options=plays.map((action,index)=>({
-        index,action,label:action.element==='fire'?'🔥 Ogień':action.element==='ice'?'❄ Lód':`↬ Wiatr · ${displayLane(action.to)}`
+        index,action,label:action.element==='fire'?'🔥 Ogień':action.element==='ice'?'❄ Lód':'↬ Wiatr'
       }));
       return render();
     }
     if (side===ownSide() && isMyTurn() && !busy) {
-      const attacks=attackPlays(view,view.you,lane);
-      if (attacks.length && !(selection?.type==='attack' && selection.from===lane)) {
+      const attacks=attackPlays(view,view.you,key);
+      if (attacks.length && !(selection?.type==='attack' && selection.from===key)) {
         dismissChoice();
-        selection={type:'attack',from:lane};
+        selection={type:'attack',from:key};
         for (const action of attacks) targets.set(`${1-side}:${action.to}`,[action]);
         error='';
         return render();
       }
     }
-    const unit = view.players[side].board[lane];
+    const unit = view.players[side].board[key];
     if (unit) {
       const card=cardById[unit.card];
       popup(`<header class="tf-dialog-header"><h2>${card.name}</h2><button class="tf-quiet" data-do="close" aria-label="Zamknij">×</button></header>
@@ -492,7 +539,7 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
   scope.addEventListener('click',async event=>{
     const button=event.target.closest('[data-do]');
     if (!button || button.disabled) return;
-    const {do:action,index,side,lane}=button.dataset;
+    const {do:action,index,side,key}=button.dataset;
     switch(action) {
       case 'online': return accountId ? startOnline() : openAuth();
       case 'practice': return accountId ? startPractice() : openAuth();
@@ -508,9 +555,9 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
         return;
       }
       case 'rules': return popup(`<header class="tf-dialog-header"><h2>Jak grać?</h2><button class="tf-quiet" data-do="close" aria-label="Zamknij">×</button></header>
-        <ol class="tf-rules"><li>Wybierz kartę i podświetlone pole. Na turę masz 45 s. Energia odnawia się i rośnie do 6.</li>
-        <li>Wybierz gotową jednostkę i jej cel. Puste pole naprzeciwko oznacza atak na zamek.</li>
-        <li>Zagrywaj taktyki, by leczyć, przesuwać, zamrażać albo zastawiać pułapki.</li>
+        <ol class="tf-rules"><li>Dobierz kartę z talii z boku stołu. Masz 45 s na turę i do 6 energii.</li>
+        <li>Wyłóż do pięciu jednostek. Gotową jednostką atakujesz dowolnego wroga. Gdy rywal nie ma jednostek, możesz uderzyć w zamek.</li>
+        <li>Zagrywaj taktyki, by leczyć, osłaniać, zamrażać albo zastawiać pułapki.</li>
         <li>Wygrywasz, gdy zamek rywala straci 20 HP. Gdy zabraknie kart, dobieranie rani zamek.</li></ol>`);
       case 'catalog': filter='all'; rarity='all'; return refreshCatalog();
       case 'close': return dialog.close();
@@ -518,9 +565,10 @@ export function mountFronts(container, {accountId, getNick, openAuth}) {
       case 'again':
         dialog.close();
         return mode==='online' ? startOnline() : startPractice(false);
+      case 'draw': return act({type:'draw'});
       case 'end': return act({type:'end'});
       case 'clear': dismissChoice(); error=''; return render();
-      case 'slot': return chooseSlot(Number(side),Number(lane));
+      case 'target': return chooseTarget(Number(side),Number(key));
       case 'hand': return selectCard(Number(index));
       case 'choice': return act(options[Number(index)]?.action);
       case 'leave':

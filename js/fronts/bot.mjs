@@ -1,18 +1,19 @@
-import {cardById} from './cards.mjs';
-import {applyAction,legalActions} from './engine.mjs';
+import {cardById} from './cards.mjs?v=5';
+import {applyAction,legalActions} from './engine.mjs?v=5';
 
 function value(state,side) {
   const player = state.players[side];
-  return player.hp*1.4 + player.hand.length*.7 + Object.entries(player.board).reduce((sum,[lane,unit]) => {
+  const exposed = !Object.keys(state.players[1-side].board).length;
+  return player.hp*1.4 + player.hand.length*.7 + Object.values(player.board).reduce((sum,unit) => {
     const card = cardById[unit.card];
-    const enemy = state.players[1-side].board[lane];
     const shield = (unit.shield || 0)+(unit.temporaryShield || 0);
-    return sum+1+card.attack*.85+unit.hp*.51+shield*.38+(enemy ? 0 : card.attack*.3)
+    return sum+1+card.attack*.85+unit.hp*.51+shield*.38+(exposed ? card.attack*.3 : 0)
       -(unit.poison ? .35 : 0)-(unit.freezeUntil > state.turn ? .8 : 0);
-  },0) + Object.keys(player.traps).length*1.35+Object.keys(player.thorns).filter(lane => player.thorns[lane] > state.turn).length*.75;
+  },0) + (player.trapped ? 1.35 : 0)+(player.thornsUntil > state.turn ? .75 : 0);
 }
 
 export function botMove(state,side,now,random=Math.random) {
+  if (state.players[side].pendingDraw) return {type:'draw'};
   const score = match => value(match,side)-value(match,1-side);
   const baseline = score(state);
   let best = {type:'end'};

@@ -1,5 +1,5 @@
-import {cards, cardById, rarities} from './cards.mjs';
-import {effectiveCost,lanes} from './engine.mjs';
+import {cards, cardById, rarities} from './cards.mjs?v=5';
+import {effectiveCost} from './engine.mjs?v=5';
 
 export const escape = value => String(value ?? '').replace(/[&<>"']/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export const art = card => `/assets/fronts/${card.art}.webp?v=3`;
@@ -34,38 +34,49 @@ export function landing(status,error,canResume=false) {
   <footer class="tf-lobby-footer"><span>35 jednostek</span><span>15 taktyk</span><button type="button" data-do="rules">Jak grać? <b>ⓘ</b></button></footer>`;
 }
 
-function castle(state,side,now) {
+function castle(state,side,now,targets) {
   const player = state.players[side];
   const own = side === state.you;
   const energy = Array.from({length:6},(_,i) => `<i class="${i<player.energy?'lit':i<player.maxEnergy?'spent':''}"></i>`).join('');
-  return `<div class="tf-castle ${state.active === side?'tf-active':''}" data-anchor="${side}:-1">
+  return `<button type="button" class="tf-castle ${state.active === side?'tf-active':''} ${targets.has(`${side}:-1`)?'tf-target':''}" data-anchor="${side}:-1" data-do="target" data-side="${side}" data-key="-1" aria-label="${own?'Twój zamek':'Zamek rywala'} · ${player.hp} HP">
     <span class="tf-fort ${player.hp<=7?'tf-fort-damaged':''}" aria-hidden="true">♜</span>
     <div class="tf-castle-label"><strong>${own?'Ty':escape(player.name)}</strong><span title="Życie zamku" class="tf-hp">♥ <b>${player.hp}</b><small>/20</small></span></div>
     <div class="tf-energy" title="Energia ${player.energy} z ${player.maxEnergy}" aria-label="Energia ${player.energy} z ${player.maxEnergy}">${energy}</div>
     ${state.active === side && state.phase==='battle' ? `<time class="tf-clock" data-clock>${Math.max(0,Math.ceil((state.deadline-now)/1000))} s</time>` : ''}
+  </button>`;
+}
+
+const tilts = [-4, 2, -1, 4, -3];
+
+function tableCard(state,side,key,targets,canAttack,selected) {
+  const unit = state.players[side].board[key];
+  const card = cardById[unit.card];
+  const own = side === state.you;
+  const ready = own && canAttack.includes(key);
+  const target = targets.has(`${side}:${key}`);
+  const selectedUnit = own && selected?.type==='attack' && selected.from===key;
+  const shields = (unit.shield || 0)+(unit.temporaryShield || 0);
+  return `<button type="button" class="tf-slot tf-occupied ${ready?'tf-ready':''} ${target?'tf-target':''} ${selectedUnit?'tf-selected':''}"
+    style="--tilt:${tilts[key%tilts.length]}deg;--lift:${key%3*4}px" data-anchor="${side}:${key}" data-side="${side}" data-key="${key}" data-do="target"
+    aria-label="${card.name}, atak ${card.attack}, życie ${unit.hp}" aria-pressed="${selectedUnit}">
+    <span class="tf-card tf-r${card.rarity}">${cardFace(card,{hp:unit.hp,compact:true})}</span>
+    <span class="tf-unit-conditions">${shields?`<i title="Tarcza ${shields}">◈ ${shields}</i>`:''}${unit.poison?'<i title="Trucizna">☠</i>':''}${unit.freezeUntil>state.turn?'<i title="Zamrożenie">❄</i>':''}${unit.mark||unit.exposedUntil>state.turn?'<i title="Oznaczenie">◎</i>':''}${unit.readyAt>state.turn?'<i title="Odpoczywa">zZ</i>':''}</span>
+  </button>`;
+}
+
+function tabletop(state,side,targets,canAttack,selected) {
+  const player = state.players[side];
+  const own = side === state.you;
+  const label = own?'Twoje jednostki':'Jednostki rywala';
+  return `<div class="tf-table-row ${own?'tf-table-own':'tf-table-rival'}" aria-label="${label}">
+    ${Object.keys(player.board).map(key=>tableCard(state,side,Number(key),targets,canAttack,selected)).join('')}
+    ${targets.has(`${side}:-2`)?`<button type="button" class="tf-drop" data-do="target" data-side="${side}" data-key="-2">↓ Wyłóż kartę</button>`:''}
   </div>`;
 }
 
-function boardSlot(state,side,lane,targets,canAttack,selected) {
-  const player = state.players[side];
-  const unit = player.board[lane];
-  const card = cardById[unit?.card];
-  const own = side === state.you;
-  const ready = own && canAttack.includes(lane);
-  const target = targets.has(`${side}:${lane}`);
-  const selectedUnit = own && selected?.type==='attack' && selected.from===lane;
-  const shields = (unit?.shield || 0)+(unit?.temporaryShield || 0);
-  const effects = [state.fog[lane]>state.turn?'Mgła':'',state.barriers[lane]>state.turn?'Lawina':'',player.thorns[lane]>state.turn?'Ciernie':''].filter(Boolean);
-  const hitLabel = unit ? `${card.name}, atak ${card.attack}, życie ${unit.hp}` : `${own?'Twoje':'Wrogie'} pole ${lane+1}`;
-  return `<div class="tf-slot-wrap" data-anchor="${side}:${lane}">
-    <button type="button" class="tf-slot ${ready?'tf-ready':''} ${target?'tf-target':''} ${selectedUnit?'tf-selected':''} ${unit?'tf-occupied':''}"
-      data-side="${side}" data-lane="${lane}" data-do="slot" aria-label="${hitLabel}" aria-pressed="${selectedUnit}">
-      ${card ? `<span class="tf-card tf-r${card.rarity}">${cardFace(card,{hp:unit.hp,cost:undefined,compact:true})}</span>` : `<span class="tf-slot-empty" aria-hidden="true">${target?own?'+':'◎':'◇'}</span>`}
-      ${card ? `<span class="tf-unit-conditions">${shields?`<i title="Tarcza ${shields}">◈ ${shields}</i>`:''}${unit.poison?'<i title="Trucizna">☠</i>':''}${unit.freezeUntil>state.turn?'<i title="Zamrożenie">❄</i>':''}${unit.mark?'<i title="Oznaczenie">◎</i>':''}${unit.readyAt>state.turn?'<i title="Odpoczywa">zZ</i>':''}</span>` : ''}
-    </button>
-    ${player.traps[lane] ? `<span class="tf-trap-mark" title="${own?'Fałszywy odwrót':'Zakryta pułapka'}">${back}</span>` : ''}
-    ${effects.length ? `<span class="tf-tile-effects" title="${effects.join(', ')}">${effects.join(' · ')}</span>` : ''}
-  </div>`;
+function tableMarkers(player,turn) {
+  const markers = [['❧','Ciernie',player.thornsUntil>turn],['☁','Mgła',player.fogUntil>turn],['⬢','Lawina',player.barrierUntil>turn]];
+  return `<span class="tf-table-markers">${player.trapped?`<span class="tf-trap-mark" title="Zakryta pułapka">${back}</span>`:''}${markers.filter(([, ,active])=>active).map(([icon,label])=>`<i title="${label}" aria-label="${label}">${icon}</i>`).join('')}</span>`;
 }
 
 export function battle(state,{now,targets,canAttack,selected,status,choices,error,busy}){
@@ -74,26 +85,29 @@ export function battle(state,{now,targets,canAttack,selected,status,choices,erro
   const yours = state.players[you];
   const active = state.active === you;
   const done = state.phase === 'finished';
-  const rivalHand = Math.min(rival.handCount,8);
+  const canDraw = active && !done && !busy && yours.pendingDraw;
   const deckName = `Wspólna talia, kart: ${state.deckCount}`;
   return `<header class="tf-top tf-battle-top"><strong class="tf-wordmark">Trzy <i>Fronty</i></strong>
       <div><button type="button" class="tf-quiet" data-do="catalog">Karty</button><button type="button" class="tf-quiet" data-do="leave">${done?'Menu':'Wyjdź'}</button></div></header>
-    <main class="tf-arena" aria-label="Pole bitwy" aria-busy="${busy}">
+    <main class="tf-arena" aria-label="Stół do gry" aria-busy="${busy}">
       <div class="tf-arena-clearing">
         <div class="tf-rival">
-          <div class="tf-hidden-hand" role="img" aria-label="Karty rywala: ${rival.handCount}">${Array.from({length:rivalHand},()=>back).join('')}</div>
-          ${castle(state,1-you,now)}
-          <div class="tf-deck" title="${deckName}" aria-label="${deckName}" role="img">${back}<b>${state.deckCount}</b></div>
+          <div class="tf-hidden-hand" role="img" aria-label="Karty rywala: ${rival.handCount}">${Array.from({length:rival.handCount},()=>back).join('')}</div>
+          ${castle(state,1-you,now,targets)}
+          ${tableMarkers(rival,state.turn)}
         </div>
         <div class="tf-field" data-scene>
-          ${lanes.map((lane,i)=>`<div class="tf-lane tf-lane-${lane}">
-            ${boardSlot(state,1-you,lane,targets,canAttack,selected)}
-            <span class="tf-front-label">${['Bór','Trakt','Przełęcz'][i]}</span>
-            ${boardSlot(state,you,lane,targets,canAttack,selected)}
-          </div>`).join('')}
+          <div class="tf-table-cards">
+            ${tabletop(state,1-you,targets,canAttack,selected)}
+            ${tabletop(state,you,targets,canAttack,selected)}
+          </div>
+          <button type="button" class="tf-deck ${canDraw?'tf-deck-ready':''} ${state.deckCount?'':'tf-deck-empty'}" data-do="draw" aria-label="${canDraw?'Dobierz kartę':deckName}" title="${deckName}" ${canDraw?'':'disabled'}>
+            <span class="tf-deck-stack" data-deck>${back}${back}${back}</span>
+            <span class="tf-deck-count">${canDraw?'Dobierz':'Talia'} <b>${state.deckCount}</b></span>
+          </button>
         </div>
-        <div class="tf-own">${castle(state,you,now)}
-          <button type="button" class="tf-end" data-do="end" ${!active||done||busy?'disabled':''}>Zakończ turę <span aria-hidden="true">→</span></button>
+        <div class="tf-own">${tableMarkers(yours,state.turn)}${castle(state,you,now,targets)}
+          <button type="button" class="tf-end" data-do="end" ${!active||done||busy||yours.pendingDraw?'disabled':''}>Zakończ turę <span aria-hidden="true">→</span></button>
         </div>
       </div>
       <div class="tf-command" ${error?'role="alert"':'aria-live="polite"'}>
@@ -105,7 +119,7 @@ export function battle(state,{now,targets,canAttack,selected,status,choices,erro
       <div class="tf-hand" aria-label="Twoje karty">${yours.hand.map((id,index)=>{
         const card = cardById[id];
         const cost = effectiveCost(state,you,card);
-        return `<button type="button" data-do="hand" data-index="${index}" class="tf-card tf-r${card.rarity} ${active && cost<=yours.energy?'tf-affordable':''} ${selected?.index===index?'tf-selected':''}" aria-pressed="${selected?.index===index}" aria-label="${card.name}, koszt ${cost}. ${card.text}">${cardFace(card,{cost})}</button>`;
+        return `<button type="button" data-do="hand" data-index="${index}" style="--tilt:${(index-(yours.hand.length-1)/2)*2}deg;--lift:${Math.abs(index-(yours.hand.length-1)/2)*2.7}px" class="tf-card tf-r${card.rarity} ${active && !yours.pendingDraw && cost<=yours.energy?'tf-affordable':''} ${selected?.index===index?'tf-selected':''}" aria-pressed="${selected?.index===index}" aria-label="${card.name}, koszt ${cost}. ${card.text}">${cardFace(card,{cost})}</button>`;
       }).join('')}</div>
     </main>`;
 }
