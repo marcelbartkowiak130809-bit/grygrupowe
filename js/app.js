@@ -88,7 +88,7 @@ import { potionPackById } from "./potionPacks.js?v=20261121-8";
 import { honorModal } from "./honor.js?v=20261121-8";
 import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261121-8";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261121-8";
-import { formatHappyHourCountdown, happyHourAt, happyHourBannerHtml, happyHourMultiplier, happyHourNextChange } from "./happyHour.js?v=20261121-8";
+import { createHappyHourBanner, happyHourMultiplier } from "./happyHour.js?v=20261124-3";
 
 const root = $("#app");
 let deferredPwaInstallPrompt = null;
@@ -191,9 +191,7 @@ const botSchedules = new Map();
 let roundAdvanceTimer = 0;
 let roundAdvanceInterval = 0;
 const roundAdvanceDeadlines = new Map();
-let happyHourTimer = 0;
-let happyHourRefreshTimer = 0;
-let happyHourResizeObserver = null;
+
 let roomPresenceStop = () => {};
 let roomPresenceId = "";
 const ROOM_PRESENCE_TTL_MS = 45000;
@@ -3443,60 +3441,7 @@ function addHonorPrompt(view, room) {
   prompt.querySelector("[data-open-honor]").addEventListener("click", () => actions.openHonor(room));
   view.append(prompt);
 }
-function renderHappyHourBanner() {
-  window.clearInterval(happyHourTimer);
-  window.clearTimeout(happyHourRefreshTimer);
-  happyHourResizeObserver?.disconnect();
-  happyHourResizeObserver = null;
-  happyHourTimer = 0;
-  happyHourRefreshTimer = 0;
-  root.classList.remove("has-happy-hour-banner");
-  root.style.removeProperty("--happy-hour-height");
-  document.querySelectorAll(".happy-hour-banner, .happy-hour-reopen").forEach(item => item.remove());
-  const event = happyHourAt(serverNow());
-  const nextChange = happyHourNextChange(serverNow());
-  if (!event) { if (nextChange) happyHourRefreshTimer = window.setTimeout(() => { if (root.isConnected) render(); }, Math.max(100, nextChange - serverNow() + 80)); return; }
-  root.insertAdjacentHTML("beforeend", happyHourBannerHtml(event));
-  const banner = root.querySelector(".happy-hour-banner"), reopen = root.querySelector(".happy-hour-reopen"), countdown = banner?.querySelector("[data-happy-hour-countdown]");
-  const dismissedKey = `happy-hour-dismissed:${event.eventId}`;
-  const isDismissed = localStorage.getItem(dismissedKey) === "1";
-  const setBannerVisibility = dismissed => {
-    if (dismissed) {
-      banner?.remove();
-      root.classList.remove("has-happy-hour-banner");
-      root.style.removeProperty("--happy-hour-height");
-      reopen?.removeAttribute("hidden");
-    } else {
-      reopen?.setAttribute("hidden", "");
-      root.classList.add("has-happy-hour-banner");
-    }
-  };
-  setBannerVisibility(isDismissed);
-  const seenKey = `happy-hour-seen:${event.eventId}`;
-  if (!localStorage.getItem(seenKey)) { localStorage.setItem(seenKey, "1"); message(`${event.icon} Happy Hour: ${event.label}`, "info"); }
-  banner?.querySelector("[data-happy-hour-dismiss]")?.addEventListener("click", () => { localStorage.setItem(dismissedKey, "1"); renderHappyHourBanner(); });
-  reopen?.addEventListener("click", () => { localStorage.removeItem(dismissedKey); renderHappyHourBanner(); });
-  const syncBannerLayout = () => {
-    if (!banner?.isConnected) return;
-    const topbar = root.querySelector(".topbar");
-    const topbarRect = topbar?.getBoundingClientRect();
-    const topbarBottom = topbarRect ? (topbarRect.bottom > 0 ? topbarRect.bottom : topbarRect.height) : 0;
-    banner.style.setProperty("--happy-hour-top", `${Math.ceil(topbarBottom + 12)}px`);
-    root.style.setProperty("--happy-hour-height", `${Math.ceil(banner.getBoundingClientRect().height)}px`);
-  };
-  syncBannerLayout();
-  if (window.ResizeObserver) {
-    happyHourResizeObserver = new ResizeObserver(syncBannerLayout);
-    const topbar = root.querySelector(".topbar");
-    if (topbar) happyHourResizeObserver.observe(topbar);
-    happyHourResizeObserver.observe(banner);
-  }
-  happyHourTimer = window.setInterval(() => {
-    const left = Math.max(0, Math.ceil((event.endsAt - serverNow()) / 1000));
-    if (countdown) countdown.textContent = formatHappyHourCountdown(left);
-    if (!left) { window.clearInterval(happyHourTimer); happyHourTimer = 0; document.querySelectorAll(".happy-hour-banner, .happy-hour-reopen").forEach(item => item.remove()); root.classList.remove("has-happy-hour-banner"); root.style.removeProperty("--happy-hour-height"); render(); }
-  }, 1000);
-}
+const renderHappyHourBanner = createHappyHourBanner(root, serverNow, event => message(`${event.icon} Happy Hour: ${event.label}`, "info"));
 
 const roundAdvanceControls = {
   udowodnij: { selector: "#next-round", action: "nextRound", delay: 3000 },
@@ -3657,6 +3602,7 @@ function renderNow(options = {}) {
   stopShopTimer(); stopGameTimer(); stopImpostorTimer(); stopIdentityTimer(); stopOtherQuestionTimer(); stopMostLikelyTimer(); stopFriendshipTimer(); stopPoisonCandyTimer(); stopBombTimer(); stopFiveSecondsTimer(); stopClockTimer(); stopPokemonTimer(); stopWavelengthTimer(); stopQuizTimer(); stopMathematicsTimer(); stopMarkerTimer(); stopSequenceTimer(); stopFamilyTimer(); stopWordChainTimer(); stopCharadesTimer(); stopHangmanTimer(); stopNumberMysteryTimer(); stopUniqueAnswerTimer(); stopConnectTimer(); stopLiarTimer(); stopFalseMessageTimer(); stopSecretRuleTimer(); stopMusicTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); stopSongSpotTimer(); stopSongSpotGameTimer(); stopBoardGameTimer();
   window.clearTimeout(roundAdvanceTimer); window.clearInterval(roundAdvanceInterval); roundAdvanceTimer = 0; roundAdvanceInterval = 0;
   syncAppShell();
+  renderHappyHourBanner();
   const auction = screen === "game" && markerRoom?.gameMode === "pokemon-auction" ? markerRoom.game : null;
   if (!auction && !chess && !chartForecast && !letterTable) clearSideReactions(root);
   const activeAuctionLots = ["auction","auction-reveal"].includes(auction?.phase);
@@ -3673,7 +3619,6 @@ function renderNow(options = {}) {
   const finish = result => {
     const after = () => {
       if (!view.isConnected || Router.current !== screen) return;
-      renderHappyHourBanner();
       if (screen === "game" && !view.querySelector(".adsense-game-rail")) view.insertAdjacentHTML("beforeend",adSenseBlock("Reklama","game-rail"));
       activatePublicAds(root,screen);
       restoreInputDrafts(view,drafts);

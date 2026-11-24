@@ -3,13 +3,13 @@
 .happy-hour-banner-copy{display:grid;min-width:0;flex:1 1 auto;gap:1px}
 .happy-hour-banner b{font-size:9px;letter-spacing:.15em;color:#fde68a;line-height:1.1}
 .happy-hour-banner strong{overflow:hidden;font-size:12px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
-.happy-hour-banner time{min-width:70px;padding:5px 6px;border-radius:8px;background:rgba(15,23,42,.3);font-size:11px;font-weight:900;text-align:center;white-space:nowrap}
+.happy-hour-banner time{flex:none;min-width:86px;padding:5px 6px;border-radius:8px;background:rgba(15,23,42,.3);font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
 .happy-hour-dismiss{display:grid;width:25px;height:25px;padding:0;place-items:center;border:0;border-radius:8px;background:rgba(15,23,42,.22);color:#fff;font-size:19px;line-height:1;cursor:pointer}
 .happy-hour-dismiss:hover{background:rgba(15,23,42,.42);transform:none}
 .happy-hour-reopen{position:fixed;z-index:70;bottom:max(16px,env(safe-area-inset-bottom));left:max(16px,env(safe-area-inset-left));display:grid;width:42px;height:42px;padding:0;place-items:center;border:1px solid rgba(251,191,36,.62);border-radius:13px;background:linear-gradient(135deg,#b45309,#db2777);box-shadow:0 10px 24px rgba(124,45,18,.35);font-size:20px;cursor:pointer;animation:happyHourIconIn .3s ease-out both}
 .happy-hour-reopen:hover{transform:translateY(-2px);box-shadow:0 13px 28px rgba(124,45,18,.42)}
 .happy-hour-sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.happy-hour-reopen[hidden]{display:none}
+.happy-hour-banner[hidden],.happy-hour-reopen[hidden]{display:none}
 .app.has-happy-hour-banner>.route-view{padding-top:calc(var(--happy-hour-height,0px) + 12px)}
 @keyframes happyHourIn{from{opacity:0;transform:translate(-50%,-12px) scale(.97)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 @keyframes happyHourIconIn{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
@@ -18,4 +18,5 @@
 .room-create-backdrop>.modal{flex:0 0 auto;max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 .light-theme .happy-hour-banner{box-shadow:0 14px 34px rgba(146,64,14,.2)}
 .light-theme .happy-hour-reopen{box-shadow:0 10px 24px rgba(146,64,14,.22)}
-@media(max-width:620px){.happy-hour-banner{top:var(--happy-hour-top,135px);width:calc(100vw - 20px);padding:8px 9px;gap:7px;border-radius:13px}.happy-hour-banner-icon{font-size:20px}.happy-hour-banner strong{font-size:11px}.happy-hour-banner time{min-width:68px;padding:5px 4px;font-size:10px}.happy-hour-dismiss{width:24px;height:24px}.happy-hour-reopen{bottom:max(12px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));width:40px;height:40px}}
+@media(max-width:620px){.happy-hour-banner{top:var(--happy-hour-top,135px);width:calc(100vw - 20px);padding:8px 9px;gap:7px;border-radius:13px}.happy-hour-banner-icon{font-size:20px}.happy-hour-banner strong{font-size:11px}.happy-hour-banner time{min-width:78px;padding:5px 4px;font-size:10px}.happy-hour-dismiss{width:24px;height:24px}.happy-hour-reopen{bottom:max(12px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));width:40px;height:40px}}
+@media(prefers-reduced-motion:reduce){.happy-hour-banner,.happy-hour-reopen{animation:none}}
