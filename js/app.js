@@ -72,7 +72,7 @@ import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMi
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
 import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-5";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
-import { Router } from "./router.js?v=20261118-30";
+import { Router } from "./router.js?v=20261124-6";
 import { playerMini, renderRoom } from "./room.js?v=20261124-2";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
@@ -182,6 +182,7 @@ function readUrlRoute() {
 const initialUrlRoute = readUrlRoute();
 const state = { accounts, currentUser:accounts[session.currentUser]?session.currentUser:null, rooms: [], activeRoomId:initialUrlRoute.room?null:(session.activeRoomId||null), selectedGameMode:initialUrlRoute.mode||session.selectedGameMode||"udowodnij", quizVariant:session.quizVariant||"casual", afterLogin: null, pendingJoin:null, pendingInviteMode:initialUrlRoute.mode?initialUrlRoute.mode:"", pendingInviteRoom:initialUrlRoute.room||"", pendingInviteInvalidMode:initialUrlRoute.room&&initialUrlRoute.invalidMode, pendingInviteJoining:false, inviteAuthPrompted:false, onlineBackend:null, networkOnline:navigator.onLine !== false, syncStatus:"idle", shopReturnScreen:null, onlineCount:1, globalStats:loadSiteStats(), globalStatsSignature:"", popularitySoloLeaderboard:{}, popularitySoloLeaderboardLoadedAt:0, popularitySoloLeaderboardRegion:"global", popularitySoloLeaderboardMetric:"views", songSpotLeaderboard:{}, songSpotLeaderboardOnline:false, songSpotLeaderboardLoadedAt:0, lyricsSoloLeaderboard:{}, lyricsSoloLeaderboardLoadedAt:0 };
 window.__globalStats = state.globalStats;
+if (Router.current === "three-fronts") state.activeRoomId = null;
 let friendDirectory = {};
 let stopFriendRequestsSubscription = () => {};
 let friendPresence = {};
@@ -490,6 +491,8 @@ function updateDocumentTitle() {
   const publicPage = publicSearchPages[screen];
   const landing = screen === "platform" ? homepage : category ? {
     path:category.path, title:categorySearchTitles[category.id], description:categoryDescriptions[category.id],
+  } : screen === "three-fronts" ? {
+    path:"/trzy-fronty/", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wystawiaj jednostki i zagrywaj taktyki na trzech frontach.",
   } : publicPage ? { ...publicPage, path:Router.pathForPublicScreen(screen) } : null;
   const room = activeRoom();
   const modeId = room?.gameMode || (["lobby","solo"].includes(screen) ? state.selectedGameMode : "");
@@ -2514,7 +2517,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
       state.currentUser = accountId; state.popularitySoloLeaderboard = {}; state.popularitySoloLeaderboardLoadedAt = 0; state.popularitySoloLeaderboardRegion = "global"; state.popularitySoloLeaderboardMetric = "views"; saveAccounts(state.accounts);persistSession(); syncPlayerProfile(accountId,state.accounts[accountId]);refreshPresence();connectRooms();Audio.play("success"); actions.finishLogin(); return true;
     } catch { message("Nie udało się zalogować. Spróbuj ponownie."); return false; }
   },
-  finishLogin() { if(state.pendingInviteRoom)return handlePendingInvite();if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || "platform"; state.afterLogin = null; if(destination==="lobby")setModeUrl(state.selectedGameMode); Router.go(destination); },
+  finishLogin() { if(state.pendingInviteRoom)return handlePendingInvite();if(state.pendingJoin){const pending=state.pendingJoin;state.pendingJoin=null;return actions.joinRoom(pending.roomId,pending.password);}const destination = state.afterLogin || (Router.current==="three-fronts"?"three-fronts":"platform"); state.afterLogin = null; if(destination==="lobby")setModeUrl(state.selectedGameMode); Router.go(destination); },
   async logout() {
     const roomUpdates=state.rooms.filter(room => room.players.includes(state.currentUser)).map(room => {
       interruptProveRoundForDeparture(room,state.currentUser);
@@ -3550,7 +3553,13 @@ function renderMusicLoader(view, mode) {
   start();
 }
 
+let frontsView;
+let stopFronts = () => {};
 function renderNow(options = {}) {
+  if (Router.current !== "three-fronts" && frontsView) {
+    stopFronts();
+    frontsView = null;
+  }
   const markerRoom=activeRoom(), markerView=root.querySelector('.route-game');
   if(Router.current==='game'&&markerRoom?.gameMode==='marker'&&markerRoom.game?.phase==='draw'&&markerView?.querySelector('.marker-page')?.dataset.markerViewKey===markerViewKey(markerRoom,state.currentUser)){
     renderMarkerGame(markerView,{room:markerRoom,currentUser:state.currentUser,accounts:state.accounts},actions);
@@ -3572,6 +3581,7 @@ function renderNow(options = {}) {
   const softRender = !options?.forceEnter && previousScope === scope;
   const screen = Router.current;
   const oldView = root.querySelector(".route-view");
+  const preserveFronts = screen === "three-fronts" && oldView === frontsView && previousScope === scope;
   const popularityRoom = screen === "game" && markerRoom?.gameMode === "popularnosc-hitow";
   const popularityView = popularityRoom || (screen === "solo" && state.selectedGameMode === "popularnosc-solo");
   const preservePopularity = softRender && popularityView && oldView?.querySelector(".popularity-page");
@@ -3611,7 +3621,7 @@ function renderNow(options = {}) {
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
   const preservePriceGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===priceGuessMode && oldView?.querySelector("[data-price-game]");
   const preserveCountryGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===countryGuessMode && oldView?.querySelector("[data-country-game]");
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess || preserveLetterTable || preserveWouldYouRather || preservePopularity ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveFronts || preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess || preserveLetterTable || preserveWouldYouRather || preservePopularity ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3637,6 +3647,24 @@ function renderNow(options = {}) {
   if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess && !preserveChartForecast && !preserveLetterTable && !preserveWouldYouRather) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
+  if (screen === "three-fronts") {
+    if (preserveFronts) return finish();
+    stopFronts();
+    stopFronts = () => {};
+    frontsView = view;
+    const accountId = profile() ? state.currentUser : null;
+    view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Wczytuję karciankę…</p></section></main>';
+    return finish(import("./fronts/page.mjs?v=4").then(({mountFronts}) => {
+      if (frontsView !== view || !view.isConnected || Router.current !== screen) return;
+      stopFronts = mountFronts(view, {
+        accountId,
+        getNick: () => state.accounts[accountId]?.nick,
+        openAuth: () => actions.openAuth({title:"Zaloguj się, aby zagrać w Trzy Fronty"}),
+      });
+    }).catch(() => {
+      if (frontsView === view && view.isConnected) view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Nie udało się wczytać karcianki. Odśwież stronę i spróbuj ponownie.</p></section></main>';
+    }));
+  }
   if(screen.startsWith("public:")) return finish(renderPublicPage(view,screen,actions));
   const requestedMusic = screen === "solo" ? state.selectedGameMode : ["room", "game"].includes(screen) ? activeMode : "";
   if (!musicModeReady(requestedMusic)) return finish(renderMusicLoader(view, requestedMusic));

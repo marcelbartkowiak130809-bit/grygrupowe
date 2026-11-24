@@ -9,6 +9,7 @@ export const publicRoutes = {
   "/kontakt":"public:kontakt",
 };
 const appRoutes = Object.fromEntries(libraryCategories.map(({ path, screen }) => [path, screen]));
+appRoutes["/trzy-fronty"] = appRoutes["/trzy-fronty/"] = "three-fronts";
 const publicScreens = new Set(Object.values(publicRoutes));
 const validScreens = new Set(["platform", ...Object.values(appRoutes), "lobby", "room", "game", "quiz-select", "shop", "solo", ...publicScreens]);
 let current = appRoutes[globalThis.window?.location?.pathname || "/"] || publicRoutes[globalThis.window?.location?.pathname || "/"] || "platform";

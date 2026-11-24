@@ -2,18 +2,10 @@
 @font-face{font-family:Fronts Display;src:url('/assets/fronts/cinzel-decorative-latin-ext.woff2') format('woff2');font-weight:700;font-display:swap;unicode-range:U+0100-02FF,U+1E00-1EFF}
 @font-face{font-family:Fronts Titles;src:url('/assets/fronts/cormorant-garamond-latin.woff2') format('woff2');font-weight:700;font-display:swap;unicode-range:U+0000-00FF,U+2000-206F}
 @font-face{font-family:Fronts Titles;src:url('/assets/fronts/cormorant-garamond-latin-ext.woff2') format('woff2');font-weight:700;font-display:swap;unicode-range:U+0100-02FF,U+1E00-1EFF}
-:root{color-scheme:dark;--ink:#f8edd9;--muted:#b3b8b5;--gold:#ffcd75;--mint:#8ef0cf;--bg:#111a25;--display:'Fronts Display',Georgia,serif;--titles:'Fronts Titles',Georgia,serif;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-*{box-sizing:border-box}
-body{margin:0;min-width:280px}
-button,input,select{font:inherit;color:inherit}
-button,a,input,select{-webkit-tap-highlight-color:transparent}
-a{color:inherit;text-decoration:none}
-button{cursor:pointer}
-button:disabled{cursor:default;opacity:.45}
-:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+.fronts{--ink:#f8edd9;--gold:#ffcd75;--mint:#8ef0cf;--display:'Fronts Display',Georgia,serif;--titles:'Fronts Titles',Georgia,serif;color:var(--ink);padding:clamp(12px,2vw,24px) 0 24px}
+.fronts :focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+.fronts button:disabled{cursor:default;opacity:.45}
 .tf-top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1280px;margin:auto;padding:18px 28px;color:var(--muted);font-size:.8rem;font-weight:700}
-.tf-brand{display:inline-flex;align-items:center;gap:9px;color:var(--ink)}
-.tf-brand img{width:30px;height:30px;border-radius:8px}
 .tf-lobby{isolation:isolate;position:relative;display:grid;align-items:center;min-height:min(690px,79svh);max-width:1224px;margin:auto;border:1px solid #9ab0946b;border-radius:30px;overflow:hidden;background:#14232d url('/assets/fronts/cover.webp') 62% 54%/cover}
 .tf-lobby::before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#081720f5 0%,#10222be0 24%,#0d1d2892 44%,transparent 78%)}
 .tf-lobby-copy{padding:clamp(32px,6vw,93px);max-width:550px;position:relative;z-index:1}
@@ -22,8 +14,7 @@ button:disabled{cursor:default;opacity:.45}
 .tf-crest{margin:0 0 19px;color:#ffdb8c;font-size:2rem;line-height:1;text-shadow:0 0 22px #ffbf69}
 .tf-pitch{font-size:clamp(.94rem,2vw,1.18rem);line-height:1.45;max-width:310px;color:#d4e1da;margin:26px 0 21px}
 .tf-lobby-actions{display:grid;gap:10px;max-width:360px}
-.tf-nick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:#d4dfd4;font-size:.82rem;font-weight:700}
-.tf-nick input,.tf-filters select{min-width:0;padding:8px 12px;border:1px solid #819b8d74;background:#172729d9;border-radius:9px}
+.tf-filters select{min-width:0;padding:8px 12px;border:1px solid #819b8d74;background:#172729d9;border-radius:9px;color:var(--ink)}
 .tf-primary,.tf-end,.tf-quiet{border:1px solid transparent;border-radius:11px;padding:10px 14px;font-weight:800;line-height:1.2}
 .tf-primary,.tf-end{color:#211607;background:linear-gradient(#ffe8a6,#ffc363);border-color:#ffebae;box-shadow:0 3px 0 #986536,0 8px 25px #fba94325}
 .tf-primary{display:flex;justify-content:space-between;padding:15px 18px;font-size:1.02rem}
@@ -192,4 +183,10 @@ button:disabled{cursor:default;opacity:.45}
   .tf-catalog-entry .tf-card-text{font-size:.65rem}
 }
 @media(max-width:350px){.tf-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}.tf-top>span{font-size:.69rem}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;scroll-behavior:auto!important}}
+.light-theme .fronts :is(.tf-lobby h1,.tf-castle-label strong,.tf-catalog-entry b,.tf-searchbox strong),.light-theme .fronts .tf-card strong{color:var(--ink)}
+.light-theme .fronts :is(.tf-card-stats b,.tf-hp b,.tf-deck b){color:inherit}
+.light-theme .fronts :is(.tf-dialog-header h2,.tf-result h2){color:var(--gold)}
+.light-theme .fronts .tf-wordmark{color:#172033}
+.light-theme .fronts :is(.tf-turn,.tf-filters b){color:#735119}
+.light-theme .fronts .tf-command{color:#334155}
+@media(prefers-reduced-motion:reduce){.fronts *,.fronts *::before,.fronts *::after,.tf-fx-layer *{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;scroll-behavior:auto!important}}

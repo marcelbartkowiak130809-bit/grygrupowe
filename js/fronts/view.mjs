@@ -16,17 +16,15 @@ export function cardFace(card,{cost=card.cost, hp=card.hp, compact=false} = {}) 
     ${compact ? '' : `<span class="tf-card-text">${card.text}</span>`}`;
 }
 
-export function landing(status,error,nick,canResume=false) {
-  return `<header class="tf-top"><a class="tf-brand" href="/"><img src="${logo}" alt=""> Gry grupowe</a><span>⚔ Karcianka dla dwóch osób</span></header>
-  <main class="tf-lobby">
+export function landing(status,error,canResume=false) {
+  return `<main class="tf-lobby">
     <div class="tf-lobby-copy">
       <p class="tf-crest" aria-hidden="true">✶</p>
       <h1>Trzy<br><em>Fronty</em></h1>
       <p class="tf-pitch">Wezwij jednostki, zastaw pułapki i przełam obronę zamku.</p>
       <div class="tf-lobby-actions">
         ${status ? `<div class="tf-searchbox" role="status"><span class="tf-spinner"></span><strong>${status}</strong><button type="button" class="tf-quiet" data-do="cancel">Anuluj</button></div>` :
-        `<label class="tf-nick">Twój nick<input data-nick maxlength="22" value="${escape(nick)}" placeholder="Wędrowiec" autocomplete="nickname"></label>
-        <button type="button" class="tf-primary" data-do="online">Szukaj rywala <span aria-hidden="true">↗</span></button>`}
+        `<button type="button" class="tf-primary" data-do="online">Szukaj rywala <span aria-hidden="true">↗</span></button>`}
         <div class="tf-secondary"><button type="button" class="tf-quiet" data-do="practice" ${status?'disabled':''}>${canResume?'Wróć do treningu':'Trening z botem'}</button><button type="button" class="tf-quiet" data-do="catalog">Katalog kart <span>50</span></button></div>
         ${error ? `<p class="tf-error" role="alert">${escape(error)}</p>` : ''}
       </div>

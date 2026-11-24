@@ -1,5 +1,5 @@
 /* Keep the gradient tied to the viewport even when filtering changes page height. */
-body:has(.home-menu-page) {
+body:has(.home-menu-page,.route-three-fronts) {
   background-attachment:fixed;
   background-size:100% 100lvh;
   background-repeat:no-repeat;
