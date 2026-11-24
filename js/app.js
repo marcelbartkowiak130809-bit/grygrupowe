@@ -70,7 +70,7 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-5";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-7";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
 import { Router } from "./router.js?v=20261124-6";
 import { playerMini, renderRoom } from "./room.js?v=20261124-2";
@@ -492,7 +492,7 @@ function updateDocumentTitle() {
   const landing = screen === "platform" ? homepage : category ? {
     path:category.path, title:categorySearchTitles[category.id], description:categoryDescriptions[category.id],
   } : screen === "three-fronts" ? {
-    path:"/trzy-fronty/", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wystawiaj jednostki i zagrywaj taktyki na trzech frontach.",
+    path:"/trzy-fronty", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wystawiaj jednostki i zagrywaj taktyki na trzech frontach.",
   } : publicPage ? { ...publicPage, path:Router.pathForPublicScreen(screen) } : null;
   const room = activeRoom();
   const modeId = room?.gameMode || (["lobby","solo"].includes(screen) ? state.selectedGameMode : "");

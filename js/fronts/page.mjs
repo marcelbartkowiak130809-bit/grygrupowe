@@ -3,6 +3,9 @@ import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView} fr
 import {botMove} from './bot.mjs';
 import {art,battle,cardFace,catalogBody,landing} from './view.mjs?v=4';
 
+// The former standalone HTML can still be cached at the address ending in a slash.
+if (document.getElementById('fronts-dialog')) location.replace('/trzy-fronty');
+
 export function mountFronts(container, {accountId, getNick, openAuth}) {
   const scope = document.createElement('div');
   scope.className = 'fronts';
