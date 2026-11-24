@@ -2,7 +2,7 @@ import {cards, cardById, rarities} from './cards.mjs';
 import {effectiveCost,lanes} from './engine.mjs';
 
 export const escape = value => String(value ?? '').replace(/[&<>"']/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-export const art = card => `/assets/fronts/${card.art}.webp?v=2`;
+export const art = card => `/assets/fronts/${card.art}.webp?v=3`;
 const logo = '/assets/icons/game-icon-180.png';
 export const back = `<span class="tf-card-back" aria-hidden="true"><img src="${logo}" alt=""></span>`;
 

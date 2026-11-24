@@ -1,7 +1,7 @@
 import {cardById} from './cards.mjs';
 import {applyAction,attackPlays,cardPlays,createMatch,legalActions,matchView} from './engine.mjs';
 import {botMove} from './bot.mjs';
-import {art,battle,cardFace,catalogBody,landing} from './view.mjs?v=2';
+import {art,battle,cardFace,catalogBody,landing} from './view.mjs?v=3';
 
 const root = document.querySelector('#fronts');
 const dialog = document.querySelector('#fronts-dialog');

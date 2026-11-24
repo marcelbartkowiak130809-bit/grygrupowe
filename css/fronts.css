@@ -128,7 +128,7 @@ button:disabled{cursor:default;opacity:.45}
 .tf-turn{color:var(--gold);white-space:nowrap;font-weight:800}
 .tf-turn b{color:#98afac}
 .tf-clear{margin-left:auto;padding:1px 8px;border-radius:7px;font-size:1rem}
-.tf-hand{display:flex;justify-content:safe center;align-items:flex-start;gap:7px;padding:4px 5px 8px;overflow-x:auto;scrollbar-width:thin}
+.tf-hand{display:flex;justify-content:safe center;align-items:stretch;gap:7px;padding:4px 5px 8px;overflow-x:auto;scrollbar-width:thin}
 .tf-hand .tf-card{flex:0 0 clamp(92px,12vw,110px);min-height:0;opacity:.73}
 .tf-hand .tf-card:hover,.tf-hand .tf-affordable,.tf-hand .tf-selected{opacity:1}
 .tf-hand .tf-card-text{font-size:.62rem}
