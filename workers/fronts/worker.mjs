@@ -1,5 +1,6 @@
 import {DurableObject} from 'cloudflare:workers';
 import {needsUpdate,statusFor,updatePool} from '../../js/fronts/queue.mjs';
+import {frontsLaunchState,frontsOpeningAt} from '../../js/fronts/launch.mjs';
 
 const kinds = ['join','cancel','act','status'];
 const identity = /^Bearer ([a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$/i;
@@ -15,6 +16,9 @@ export default {
     if (new URL(request.url).pathname !== '/match') return respond('Route',404);
     if (request.method === 'OPTIONS') return new Response(null,{status:204,headers});
     if (request.method !== 'POST') return respond('Method',405);
+    if (!frontsLaunchState().open) {
+      return Response.json({error:'Opening',openingAt:frontsOpeningAt},{status:423,headers});
+    }
     const token = identity.exec(request.headers.get('Authorization') || '')?.[1];
     if (!token) return respond('Session',401);
     const reader = request.body?.getReader();

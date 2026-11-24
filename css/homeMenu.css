@@ -279,6 +279,70 @@ body:has(.home-menu-page,.route-three-fronts) {
 }
 .home-fronts-tile .library-category-icon { background:#7b613a6b; color:#ffe2a1; }
 .home-fronts-tile .library-category-copy small,.home-fronts-tile i { color:#ffe2a1; }
+.home-menu-page .home-fronts-tile.fronts-seal,.fronts-seal.fronts-teaser {
+  position:relative; isolation:isolate; overflow:hidden; min-width:0;
+  color:#fff3db; border:1px solid #ad885d9c;
+  background:
+    linear-gradient(90deg,#110e11e8 0%,#18120fab 39%,#1b131316 76%),
+    #221a17 url('/assets/fronts/sealed-gate.webp') center 63%/cover;
+  box-shadow:inset 0 0 20px #0009,0 4px 13px #0005;
+}
+.home-menu-page .home-fronts-tile.fronts-seal { display:flex; min-height:94px; padding:9px 11px; }
+.home-menu-page .home-fronts-tile.fronts-seal:hover { border-color:#dfb16f; }
+.fronts-seal-copy { position:relative; z-index:1; display:grid; gap:3px; justify-items:start; text-shadow:0 1px 5px #000; }
+.fronts-seal .fronts-seal-copy small {
+  color:#ffd693; font:800 clamp(7px,1.1vw,10px)/1.15 system-ui; letter-spacing:.1em; text-transform:uppercase;
+}
+.fronts-seal-copy strong { color:#fff1db; line-height:1.1; font-size:clamp(11px,1.35vw,17px); }
+.fronts-seal-copy time { color:#fff5e4; font-size:11px; font-weight:700; white-space:nowrap; }
+.fronts-seal-clock { color:#ffdcac; font-size:10px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.fronts-seal-cracks { position:absolute; inset:0; pointer-events:none; filter:drop-shadow(0 0 4px #ff9e4b); opacity:.62; }
+.fronts-seal-cracks i {
+  position:absolute; inset:0;
+  animation:fronts-crack-in .58s ease-out both;
+}
+.fronts-seal-cracks i::before,.fronts-seal-cracks i::after { content:""; position:absolute; inset:0; }
+.fronts-seal-cracks i::before { clip-path:var(--fissure); background:#0b0808; }
+.fronts-seal-cracks i::after { clip-path:var(--ember); background:linear-gradient(130deg,#91603a 19%,#ffd590 49%,#ed904c 74%,#591f13); }
+[data-seal-stage="0"] .fronts-seal-cracks i,
+[data-seal-stage="1"] .fronts-seal-cracks i:nth-child(n+2),
+[data-seal-stage="2"] .fronts-seal-cracks i:nth-child(n+3),
+[data-seal-stage="3"] .fronts-seal-cracks i:nth-child(n+4),
+[data-seal-stage="4"] .fronts-seal-cracks i:nth-child(n+5),
+[data-seal-stage="5"] .fronts-seal-cracks i:nth-child(n+6),
+[data-seal-stage="6"] .fronts-seal-cracks i:nth-child(n+7),
+[data-seal-stage="7"] .fronts-seal-cracks i:nth-child(n+8) { display:none; }
+[data-seal-stage="6"] .fronts-seal-cracks,[data-seal-stage="7"] .fronts-seal-cracks { opacity:.8; }
+[data-seal-stage="8"] .fronts-seal-cracks { opacity:1; animation:fronts-seal-pulse 3.8s ease-in-out infinite; }
+.fronts-teaser-page { max-width:1080px; margin:auto; padding:24px 18px 44px; }
+.fronts-teaser-page > a { display:inline-flex; margin-bottom:14px; }
+.fronts-seal.fronts-teaser {
+  display:grid; align-items:center; min-height:clamp(280px,53vw,495px); border-radius:22px; padding:clamp(16px,6vw,60px);
+  background-position:center 60%;
+}
+.fronts-teaser .fronts-seal-copy { gap:9px; }
+.fronts-teaser .fronts-seal-copy small { font-size:clamp(11px,1.6vw,15px); }
+.fronts-teaser .fronts-seal-copy h1 { color:#fff1cf; margin:0; font:700 clamp(24px,6vw,67px)/1.05 'Fronts Display',Georgia,serif; }
+.fronts-teaser .fronts-seal-copy time { font-size:clamp(13px,2vw,19px); }
+.fronts-teaser .fronts-seal-clock {
+  margin-top:4px; padding:7px 11px; border:1px solid #c69c6e66; border-radius:8px;
+  background:#140e0ce8; font-size:clamp(17px,4vw,28px); font-weight:800;
+}
+.home-menu-page .fronts-unsealed { animation:fronts-unseal .68s ease-out both; }
+@keyframes fronts-crack-in { from { opacity:0; } to { opacity:1; } }
+@keyframes fronts-seal-pulse { 0%,100% { opacity:.62; } 45% { opacity:1; } }
+@keyframes fronts-unseal { 0% { filter:brightness(1.9); transform:scale(.97); } 100% { filter:brightness(1); transform:none; } }
+@media(max-width:520px) {
+  .home-menu-page .library-filter-categories { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .home-menu-page .library-filter-categories > a { grid-column:span 2; }
+  .home-menu-page .library-filter-categories > :is(.library-category-other,.home-fronts-tile) { grid-column:span 3; }
+  .home-menu-page .home-fronts-tile.fronts-seal { padding:8px 6px; min-height:87px; }
+  .fronts-seal-copy time { font-size:9px; }
+  .fronts-seal-clock { font-size:9px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .fronts-seal-cracks,.fronts-seal-cracks i,.home-menu-page .fronts-unsealed { animation:none; }
+}
 .library-filter-categories[hidden],.home-menu-page .games-grid[hidden],.library-empty[hidden] { display:none; }
 .library-empty { padding:16px; margin:0; color:#aebad0; }
 .home-menu-page .game-card-top:empty,.collection-selection-page .game-card-top:empty { display:none; }

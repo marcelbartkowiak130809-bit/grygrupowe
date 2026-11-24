@@ -1,6 +1,7 @@
 import { gamesList } from "./games.js?v=20261124-2";
 import { gameCategory, filterLibraryGames, libraryCategories, libraryGameTags, libraryModesFor, libraryModeCategory } from "./gameCategories.js?v=20261118-30";
 import { homeMusicFeatureHtml, homeModePicks, bindHomeMenu, categoryTilesHtml } from './homeMenu.js?v=20261122-7';
+import {frontsTileHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261124-2";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261122-7";
@@ -493,13 +494,7 @@ export function renderPlatform(root, actions, context = {}) {
          <div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div>
          <div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
        </div>
-       <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}
-         <a class="library-category-tile home-fronts-tile" href="/trzy-fronty">
-           <span class="library-category-icon" aria-hidden="true">⚔</span>
-           <span class="library-category-copy"><strong>Trzy Fronty</strong><small>Karcianka 1 na 1</small></span>
-           <i aria-hidden="true">↗</i>
-         </a>
-       </nav>
+       <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}${frontsTileHtml(context.clock?.())}</nav>
        <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
     </section>
     <section class="home-join" aria-labelledby="home-join-heading">
@@ -520,6 +515,14 @@ export function renderPlatform(root, actions, context = {}) {
     ${homeInfoHtml()}
   </main>`;
 
+  const seal = root.querySelector('.home-fronts-tile.fronts-seal');
+  watchFrontsLaunch(seal, context.clock || Date.now, now => {
+    const focused = document.activeElement === seal;
+    seal.outerHTML = frontsTileHtml(now);
+    const tile = root.querySelector('.home-fronts-tile');
+    tile.classList.add('fronts-unsealed');
+    if (focused) tile.focus();
+  });
   root.querySelector("#platform-poll")?.addEventListener("click", () => { actions.playSound?.("poll"); openPollModal(context, actions); });
   root.querySelector("#platform-poll")?.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { actions.playSound?.("poll"); openPollModal(context, actions); } });
   const countdown = root.querySelector("[data-poll-countdown]");

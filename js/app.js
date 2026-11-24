@@ -70,7 +70,9 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-7";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-11";
+import {frontsLaunchState} from './fronts/launch.mjs?v=1';
+import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
 import { Router } from "./router.js?v=20261124-6";
 import { playerMini, renderRoom } from "./room.js?v=20261124-2";
@@ -3652,6 +3654,15 @@ function renderNow(options = {}) {
     stopFronts();
     stopFronts = () => {};
     frontsView = view;
+    const clock = serverNow();
+    if (!frontsLaunchState(clock).open) {
+      view.innerHTML = frontsTeaserHtml(clock);
+      stopFronts = watchFrontsLaunch(view.querySelector('.fronts-teaser'),serverNow,()=>{
+        frontsView = null;
+        render();
+      });
+      return finish();
+    }
     const accountId = profile() ? state.currentUser : null;
     view.innerHTML = '<main class="page route-loading"><section class="panel"><h1>Trzy Fronty</h1><p role="status">Wczytuję karciankę…</p></section></main>';
     return finish(import("./fronts/page.mjs?v=7").then(({mountFronts}) => {
@@ -3672,7 +3683,7 @@ function renderNow(options = {}) {
   if(chartForecastSolo) return finish(renderChartForecastSolo(view,()=>actions.goLibraryCategory("knowledge")));
   if(screen==="solo" && state.selectedGameMode==="minecraft-journey") return preserveJourney ? finish() : finish(renderAlexJourney(view,{playerId:popularitySoloPlayerId()},actions));
   if(screen==="solo" && state.selectedGameMode==="minecraft-backpack") return finish(renderLastBackpack(view,{playerId:popularitySoloPlayerId()},actions));
-  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats})); }
+  if(screen==="platform") { ensureRoomPresence(null); return finish(renderPlatform(view,actions,{voterId:state.currentUser || "anonymous",globalStats:state.globalStats,clock:serverNow})); }
   const collection = libraryCategories.find(category => category.screen === screen);
   if (collection) return finish(renderCollectionModes(view,actions,collection.id));
   if(screen==="quiz-select") return profile()?finish(renderQuizSelect(view,actions)):Router.go("platform"); if(screen==="solo") { if(state.selectedGameMode === "playlista-cup" && preserveCup) return finish(); if(state.selectedGameMode === "playlista-cup") return finish(renderPlaylistTournament(view,{playerId:popularitySoloPlayerId(),getProfile:profile},actions)); if(state.selectedGameMode === "popularnosc-solo") { refreshPopularitySoloData(); return finish(renderPopularitySolo(view,{profile:profile(),playerId:popularitySoloPlayerId(),accounts:state.accounts,leaderboard:state.popularitySoloLeaderboard,leaderboardRegion:state.popularitySoloLeaderboardRegion,leaderboardMetric:state.popularitySoloLeaderboardMetric},actions)); } if(state.selectedGameMode === "dokoncz-tekst") { refreshLyricsSoloData(); return finish(renderLyricsSolo(view,{profile:profile(),playerId:lyricsSoloPlayerId(),accounts:state.accounts,leaderboard:state.lyricsSoloLeaderboard},actions)); } if(["songspot", "songspot-solo"].includes(state.selectedGameMode)) { refreshSongSpotData(); return finish(renderSongSpotSolo(view,{profile:profile(),getProfile:profile,playerId:songSpotPlayerId(),leaderboard:state.songSpotLeaderboard,online:state.songSpotLeaderboardOnline},actions)); } return finish(renderWouldYouRather(view,{profile:profile(),playerId:popularitySoloPlayerId()},actions)); } if(screen==="lobby") { const joinedRoom=activeRoom(); if(joinedRoom) return Router.go(joinedRoom.status === "lobby" ? "room" : "game"); return profile()?finish(renderLobby(view,state,actions)):Router.go("platform"); } if(screen==="shop") return profile()?finish(renderShop(view,{profile:profile()},actions)):actions.openAuth();
