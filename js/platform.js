@@ -494,7 +494,7 @@ export function renderPlatform(root, actions, context = {}) {
          <div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
        </div>
        <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}
-         <a class="library-category-tile home-fronts-tile" href="/trzy-fronty.html">
+         <a class="library-category-tile home-fronts-tile" href="/trzy-fronty/">
            <span class="library-category-icon" aria-hidden="true">⚔</span>
            <span class="library-category-copy"><strong>Trzy Fronty</strong><small>Karcianka 1 na 1</small></span>
            <i aria-hidden="true">↗</i>

@@ -2,14 +2,16 @@ import {cards, cardById, rarities} from './cards.mjs';
 import {effectiveCost,lanes} from './engine.mjs';
 
 export const escape = value => String(value ?? '').replace(/[&<>"']/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-export const art = card => `/assets/fronts/${card.art}.webp`;
+export const art = card => `/assets/fronts/${card.art}.webp?v=2`;
 const logo = '/assets/icons/game-icon-180.png';
 export const back = `<span class="tf-card-back" aria-hidden="true"><img src="${logo}" alt=""></span>`;
 
 export function cardFace(card,{cost=card.cost, hp=card.hp, compact=false} = {}) {
   return `<span class="tf-card-name">${card.name}</span>
-    <img class="tf-card-image" src="${art(card)}" alt="" ${compact?'':'loading="lazy"'} draggable="false">
-    ${cost === undefined ? '' : `<i class="tf-cost" aria-label="Koszt ${cost}">${cost}</i>`}
+    <span class="tf-artwork" style="--illustration:url('${art(card)}')">
+      <img class="tf-card-image" src="${art(card)}" alt="" ${compact?'':'loading="lazy"'} draggable="false">
+      ${cost === undefined ? '' : `<i class="tf-cost" aria-label="Koszt ${cost}">${cost}</i>`}
+    </span>
     ${card.type === 'unit' ? `<span class="tf-card-stats"><b title="Atak">⚔ ${card.attack}</b><b title="Życie">♥ ${hp}</b></span>` : '<span class="tf-card-stats tf-tactic-stat">✦ Taktyka</span>'}
     ${compact ? '' : `<span class="tf-card-text">${card.text}</span>`}`;
 }
