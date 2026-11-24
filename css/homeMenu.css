@@ -271,6 +271,14 @@ body:has(.home-menu-page) {
   outline:2px solid var(--library-accent,#a6f5e9); outline-offset:2px;
 }
 .library-filter-categories { margin-bottom:14px; }
+.home-menu-page .home-fronts-tile {
+  color:#fff1c7;
+  border-color:#e4b4648c;
+  background:linear-gradient(90deg,#182c34 5%,#192a33ed 38%,#20283055),
+    #1b3439 url('/assets/fronts/cover.webp') 64% 49%/cover;
+}
+.home-fronts-tile .library-category-icon { background:#7b613a6b; color:#ffe2a1; }
+.home-fronts-tile .library-category-copy small,.home-fronts-tile i { color:#ffe2a1; }
 .library-filter-categories[hidden],.home-menu-page .games-grid[hidden],.library-empty[hidden] { display:none; }
 .library-empty { padding:16px; margin:0; color:#aebad0; }
 .home-menu-page .game-card-top:empty,.collection-selection-page .game-card-top:empty { display:none; }

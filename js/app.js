@@ -1,6 +1,6 @@
 import { accountModal, authModal } from "./auth.js?v=20261124-2";
 import { Audio } from "./audio.js?v=20261123-7";
-import { changelogEntries, latestChangelog } from "./changelog.js?v=20261123-2";
+import { changelogEntries, latestChangelog } from "./changelog.js?v=20261124-4";
 import {claimSoloReward} from './soloRewards.js?v=20261117-10';
 import {newSoloRun, soloGameEvent} from './soloSiteStats.js?v=20261119-10';
 import { Effects } from "./effects.js";
@@ -70,7 +70,7 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-2";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-4";
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
 import { Router } from "./router.js?v=20261118-30";
 import { playerMini, renderRoom } from "./room.js?v=20261124-2";

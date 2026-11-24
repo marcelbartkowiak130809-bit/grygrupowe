@@ -20,6 +20,16 @@ function unlockedModeChanges(now = Date.now()) {
 function buildChangelogEntries(now = Date.now()) {
   return [
     {
+      version: "v5.15.0",
+      date: "2026-11-24",
+      title: "Trzy Fronty",
+      changes: [
+        "Nowa karcianka na trzech frontach. Wystawiaj jednostki, broń zamku i zastawiaj pułapki.",
+        "Wspólna talia ma 35 jednostek i 15 taktyk. Obejrzyj wszystkie karty w katalogu przed bitwą.",
+        "Szukaj rywala online bez kodu pokoju albo zagraj trening ze Strażnikiem Szlaku.",
+      ],
+    },
+    {
       version: "v5.14.0",
       date: "2026-11-20",
       title: "Bitwa Pokémon i nowe tryby w Wiedzy",

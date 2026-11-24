@@ -1,0 +1,13 @@
+{
+  "name": "grygrupowe-trzy-fronty",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-04-01",
+  "workers_dev": true,
+  "vars": {
+    "FRONTEND_ORIGIN": "https://grygrupowe.pages.dev"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "MATCHMAKER", "class_name": "Matchmaker" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Matchmaker"] }]
+}

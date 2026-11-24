@@ -1,0 +1,4 @@
+/functions/fronts-shared/
+/functions/node_modules/
+/workers/fronts/.wrangler/
+/.wrangler/

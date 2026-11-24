@@ -493,7 +493,13 @@ export function renderPlatform(root, actions, context = {}) {
          <div class="game-filters" role="group" aria-label="Filtr trybów">${filters.map(([id, label], index) => `<button class="filter-chip ${index ? "" : "active"}" type="button" data-game-filter="${id}" aria-pressed="${!index}">${label}</button>`).join("")}</div>
          <div data-library-layout hidden>${mobileGameLayoutSwitchHtml(mobileLayout)}</div>
        </div>
-       <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}</nav>
+       <nav class="library-category-grid library-filter-categories" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}
+         <a class="library-category-tile home-fronts-tile" href="/trzy-fronty.html">
+           <span class="library-category-icon" aria-hidden="true">⚔</span>
+           <span class="library-category-copy"><strong>Trzy Fronty</strong><small>Karcianka 1 na 1</small></span>
+           <i aria-hidden="true">↗</i>
+         </a>
+       </nav>
        <div class="games-grid"></div><p class="library-empty" role="status" hidden>Brak pasujących gier.</p>
     </section>
     <section class="home-join" aria-labelledby="home-join-heading">
