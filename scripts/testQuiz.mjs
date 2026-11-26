@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { quizQuestionRows } from "../content/quiz/questions.js";
-import { createQuizGame, questionById, quizQuestions, QuizEngine } from "../js/quiz.js";
+import { createQuizGame, questionById, quizQuestions, QuizEngine, renderQuizLobbySettings } from "../js/quiz.js";
 
 const players = ["a", "b"];
 const current = game => questionById(game.questionIds[game.questionIndex]);
@@ -11,10 +11,10 @@ test("every new quiz question is distinct and has four unique options with the i
   assert.equal(new Set(quizQuestions.map(question => canonical(question.q))).size, quizQuestions.length);
   for (const [difficulty, rows] of Object.entries(quizQuestionRows)) {
     assert.ok(rows.length >= 70, difficulty);
-    const questions = quizQuestions.filter(question => question.difficulty === difficulty);
+    const questions = rows.map((_, index) => questionById(`v2-${difficulty}-${index}`));
     assert.deepEqual([...new Set(questions.map(question => question.answer))].sort(), [0, 1, 2, 3]);
     for (const [index, question] of questions.entries()) {
-      assert.equal(questions[index].q, rows[index][0]);
+      assert.equal(question.q, rows[index][0]);
       assert.equal(question.options.length, 4, question.q);
       assert.equal(new Set(question.options.map(canonical)).size, 4, question.q);
       assert.equal(question.options[question.answer], rows[index][1], question.q);
@@ -23,7 +23,7 @@ test("every new quiz question is distinct and has four unique options with the i
 });
 
 test("Casual draws unique questions at the selected difficulty and scores their stored answer order", () => {
-  for (const difficulty of Object.keys(quizQuestionRows)) {
+  for (const difficulty of ["easy", "hard"]) {
     const game = createQuizGame(players, { difficulty, questionCount: 30 });
     assert.equal(new Set(game.questionIds).size, 30);
     while (game.phase !== "result") {
@@ -34,6 +34,21 @@ test("Casual draws unique questions at the selected difficulty and scores their 
     }
     assert.deepEqual(game.scores, { a: 30, b: 0 });
   }
+});
+
+test("Quiz offers exactly three filters and old medium rooms use the full pool", () => {
+  const settings = { difficulty:"medium" };
+  const html = renderQuizLobbySettings({ settings }, true);
+  assert.match(html, /<option value="all" selected>Wszystkie<\/option>/);
+  assert.match(html, /<option value="easy" >Łatwe<\/option>/);
+  assert.match(html, /<option value="hard" >Trudne<\/option>/);
+  assert.doesNotMatch(html, /value="medium"/);
+  assert.equal(createQuizGame(players, settings).difficulty, "all");
+  assert.equal(createQuizGame(players, { difficulty:"all" }).difficulty, "all");
+  assert.deepEqual(quizQuestions.reduce((counts, q) => {
+    counts[q.difficulty] = (counts[q.difficulty] || 0) + 1;
+    return counts;
+  }, {}), { easy:150, hard:150 });
 });
 
 test("competitive prompts advance across turns, round boundaries, assignments and timeouts", () => {
