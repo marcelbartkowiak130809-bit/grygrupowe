@@ -2,7 +2,7 @@ import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/q
 import { Audio } from "./audio.js?v=20261123-7";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
-export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", lifelinesEnabled:false };
+export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", lifelinesEnabled:false, alternativeScoring:false };
 const quizDifficultyLabels = { all:"Wszystkie", easy:"Łatwe", hard:"Trudne" };
 const quizDifficulty = value => Object.hasOwn(quizDifficultyLabels, value) ? value : quizDefaults.difficulty;
 
@@ -49,7 +49,15 @@ export const quizQuestions = Object.entries(quizQuestionRows)
 const questionsById = new Map([...quizQuestions, ...legacyQuestions].map(question => [question.id, question]));
 export const questionById = id => questionsById.get(id) || quizQuestions[0];
 const casualRevealMs = 6000;
-const phaseEnd = seconds => Date.now() + Math.max(30,Math.min(180,Number(seconds)||60))*1000;
+const questionDurationMs = seconds => Math.max(30,Math.min(180,Number(seconds)||60))*1000;
+const phaseEnd = seconds => Date.now() + questionDurationMs(seconds);
+
+function timedAnswerPoints(game, submittedAt) {
+  const duration = questionDurationMs(game.questionTime);
+  const elapsed = Math.max(0, submittedAt - (game.phaseEndsAt - duration));
+  const percentage = Math.min(100, Math.floor(elapsed * 100 / duration));
+  return 1000 - percentage * 10;
+}
 
 function shuffle(list) {
   const result = [...list];
@@ -76,7 +84,7 @@ function ensureCompetitiveState(game, players) {
 export function createQuizGame(players, settings) {
   const variant=settings.quizVariant === "competitive" ? "competitive" : "casual";
   const scores=Object.fromEntries(players.map(uid=>[uid,0]));
-  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, lifelinesEnabled:settings.lifelinesEnabled===true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
+  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, alternativeScoring:settings.alternativeScoring===true, lifelinesEnabled:settings.lifelinesEnabled===true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
   return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
 }
 const lifelineTypes = {
@@ -133,17 +141,28 @@ function revealCasualAnswer(game) {
   const question = questionById(game.questionIds[game.questionIndex]);
   game.answers ||= {};
   for (const uid of Object.keys(game.lifelines || {})) {
-    const first = activeLifeline(game,uid,"double")?.first;
-    if (first != null && game.answers[uid] == null) game.answers[uid] = first;
-  }
-  for (const [uid, option] of Object.entries(game.answers)) {
-    if (game.scoreOnReveal && (option === question.answer || game.bonusAnswers?.[uid] === question.answer)) {
-      game.scores[uid] = (game.scores[uid] || 0) + 1;
+    const double = activeLifeline(game,uid,"double");
+    if (double?.first == null || game.answers[uid] != null) continue;
+    game.answers[uid] = double.first;
+    if (game.alternativeScoring) {
+      game.answerValues ||= {};
+      game.answerValues[uid] = double.firstPoints || 0;
     }
   }
   game.history ||= [];
   const record = {id:question.id, answers:{...game.answers}};
   if (game.bonusAnswers) record.bonusAnswers = {...game.bonusAnswers};
+  if (game.alternativeScoring) record.points = {};
+  for (const [uid, option] of Object.entries(game.answers)) {
+    if (!game.scoreOnReveal || (option !== question.answer && game.bonusAnswers?.[uid] !== question.answer)) continue;
+    const points = game.alternativeScoring ? game.answerValues?.[uid] || 0 : 1;
+    game.scores[uid] = (game.scores[uid] || 0) + points;
+    if (game.alternativeScoring) {
+      record.points[uid] = points;
+      game.correctCounts ||= {};
+      game.correctCounts[uid] = (game.correctCounts[uid] || 0) + 1;
+    }
+  }
   game.history.push(record);
   game.phase = "question-reveal";
   game.phaseEndsAt = Date.now() + casualRevealMs;
@@ -159,12 +178,14 @@ function nextCasualQuestion(game) {
   game.phase = "question";
   game.answers = {};
   delete game.bonusAnswers;
+  delete game.answerValues;
   game.scoreOnReveal = true;
   game.phaseEndsAt = phaseEnd(game.questionTime);
 }
 
 function casualAnswer(game, uid, option, players) {
-  if (game.phase !== "question" || Date.now() >= game.phaseEndsAt) return "Czas na odpowiedź minął.";
+  const submittedAt = Date.now();
+  if (game.phase !== "question" || submittedAt >= game.phaseEndsAt) return "Czas na odpowiedź minął.";
   if (!Number.isInteger(option) || option < 0 || option > 3) return "Wybierz jedną z odpowiedzi.";
   game.answers ||= {};
   if (game.answers[uid] != null) return "Odpowiedź została już wysłana.";
@@ -172,10 +193,15 @@ function casualAnswer(game, uid, option, players) {
   const double = activeLifeline(game,uid,"double");
   if (double && double.first == null) {
     double.first = option;
+    if (game.alternativeScoring) double.firstPoints = timedAnswerPoints(game,submittedAt);
     return;
   }
   if (double && option === double.first) return "Wybierz inną odpowiedź.";
   game.answers[uid] = double ? double.first : option;
+  if (game.alternativeScoring) {
+    game.answerValues ||= {};
+    game.answerValues[uid] = timedAnswerPoints(game,submittedAt);
+  }
   if (double) {
     game.bonusAnswers ||= {};
     game.bonusAnswers[uid] = option;
@@ -364,7 +390,9 @@ function casualMarkup(game, accounts, currentUser) {
     : committed != null ? "Odpowiedź zapisana"
     : double ? (chosen == null ? "Wybierz pierwszą odpowiedź" : "Wybierz drugą odpowiedź")
     : "Czas na odpowiedź";
-  return `${quizQuestionHeader(game,question,status)}<div class="quiz-options">${options}</div>
+  const points = revealed && game.alternativeScoring ? game.history?.[game.questionIndex]?.points?.[currentUser] || 0 : null;
+  const statusWithPoints = points == null ? status : `${status} · +${points.toLocaleString("pl-PL")} pkt`;
+  return `${quizQuestionHeader(game,question,statusWithPoints)}<div class="quiz-options">${options}</div>
     ${revealed ? "" : lifelineButtons(game,currentUser)}`;
 }
 
@@ -478,8 +506,8 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   const fill = root.querySelector("[data-quiz-clock-fill]");
   const clock = fill.closest(".quiz-clock");
   const duration = game.phase === "question-reveal" ? casualRevealMs
-    : (casual ? Math.max(30,Math.min(180,Number(game.questionTime)||60))
-      : game.phase === "r2-answer" ? 10 : game.phase === "r3-answer" ? 20 : 30) * 1000;
+    : casual ? questionDurationMs(game.questionTime)
+    : (game.phase === "r2-answer" ? 10 : game.phase === "r3-answer" ? 20 : 30) * 1000;
   const updateClock = () => {
     const remaining = Math.max(0,expected.phaseEndsAt-Date.now());
     countdown.textContent = `${Math.ceil(remaining/1000)} s`;
@@ -490,6 +518,6 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   renderQuizGame.countdown = setInterval(updateClock,250);
   renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
 }
-export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
+export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label><label class="settings-toggle"><span><b>Alternatywne liczenie punktów</b><small>Więcej punktów za szybsze odpowiedzi. Od 1000 pkt za trafienie odejmuje się 10 pkt za każdy pełny 1% wykorzystanego czasu.</small></span><input type="checkbox" data-quiz-setting="alternativeScoring" ${s.alternativeScoring===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
 export function renderQuizSelect(root,actions){const board=Object.entries(JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}")).sort(([,a],[,b])=>b-a).slice(0,20).map(([nick,wins],index)=>`<li><span>${index+1}. ${escapeHtml(nick)}</span><b>${wins}</b></li>`).join("")||"<li>Ranking zaczyna się od pierwszego meczu.</li>";root.innerHTML=`<main class="page quiz-select-page enter"><section class="quiz-choice quiz-choice-casual"><p class="eyebrow">DLA KAŻDEGO</p><h1>CASUAL</h1><p>Spokojny quiz dla ekipy z własnymi ustawieniami hosta.</p><button class="primary" data-quiz-variant="casual">Graj w Casual</button></section><section class="quiz-choice quiz-choice-competitive"><p class="eyebrow">TELETURNIEJ</p><h1>RYWALIZACJA</h1><p>Szybkie mecze, zgłaszanie się i walka o miejsce w rankingu.</p><button class="primary" data-quiz-variant="competitive">Graj w Rywalizację</button><button class="quiz-leaderboard-trigger" type="button" data-quiz-leaderboard>🏆 <b>TOPKA</b><span>Wyniki rywalizacji</span></button><div class="quiz-leaderboard" data-quiz-leaderboard-panel hidden><b>TOP 20 RYWALIZACJI</b><ol>${board}</ol><small>Ranking obejmuje wyłącznie wygrane w wariancie Rywalizacja.</small></div></section></main>`;root.querySelectorAll("[data-quiz-variant]").forEach(button=>button.addEventListener("click",()=>actions.chooseQuizVariant(button.dataset.quizVariant)));root.querySelector("[data-quiz-leaderboard]")?.addEventListener("click",()=>{const panel=root.querySelector("[data-quiz-leaderboard-panel]");panel.hidden=!panel.hidden;});}
 export function stopQuizTimer(){window.clearTimeout(renderQuizGame.timer);window.clearInterval(renderQuizGame.countdown);}

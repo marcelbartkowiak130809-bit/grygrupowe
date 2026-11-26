@@ -218,3 +218,50 @@ test("lifelines are optional and excluded from competitive matches", () => {
     assert.equal(game.lifelines, undefined);
   }
 });
+
+test("alternative scoring drops ten points per full percent and uses the submission time", ({mock}) => {
+  let now = 100000;
+  mock.method(Date, "now", () => now);
+  const group = ["instant", "beforeStep", "onStep", "half", "late", "wrong"];
+  const game = createQuizGame(group, {alternativeScoring:true, questionTime:30});
+  const correct = current(game).answer;
+  const elapsed = [["instant",0], ["beforeStep",299], ["onStep",300], ["half",15000], ["late",29999]];
+  for (const [uid,elapsedMs] of elapsed) {
+    now = 100000 + elapsedMs;
+    QuizEngine.answer(game, uid, correct, group);
+    assert.equal(game.scores[uid],0);
+  }
+  QuizEngine.answer(game, "wrong", (correct+1)%4, group);
+  assert.equal(game.phase, "question-reveal");
+  assert.deepEqual(game.scores, {instant:1000,beforeStep:1000,onStep:990,half:500,late:10,wrong:0});
+  assert.deepEqual(game.correctCounts, {instant:1,beforeStep:1,onStep:1,half:1,late:1});
+  assert.equal(game.history[0].points.half,500);
+  expire(game);
+  assert.equal(game.answerValues,undefined);
+});
+
+test("timed double shot scores once using the final pick, or keeps the first pick's value on timeout", ({mock}) => {
+  let now = 100000;
+  mock.method(Date, "now", () => now);
+  const game = createQuizGame(players, {alternativeScoring:true, lifelinesEnabled:true, questionTime:60});
+  QuizEngine.useLifeline(game, "a", "double", players);
+  QuizEngine.useLifeline(game, "b", "double", players);
+  const correct = current(game).answer;
+  now += 6000;
+  QuizEngine.answer(game, "a", correct, players);
+  QuizEngine.answer(game, "b", correct, players);
+  now += 24000;
+  QuizEngine.answer(game, "a", (correct+1)%4, players);
+  expire(game);
+  assert.deepEqual(game.scores, {a:500,b:900});
+  assert.deepEqual(game.correctCounts, {a:1,b:1});
+  assert.equal(game.phase,"question-reveal");
+});
+
+test("alternative scoring is off unless the Casual host enables it", () => {
+  const game = createQuizGame(players, {});
+  assert.equal(game.alternativeScoring,false);
+  assert.equal(createQuizGame(players,{quizVariant:"competitive",alternativeScoring:true}).alternativeScoring,undefined);
+  assert.match(renderQuizLobbySettings({settings:{alternativeScoring:true}}, true), /data-quiz-setting="alternativeScoring" checked/);
+  assert.match(renderQuizLobbySettings({settings:{}}, false), /data-quiz-setting="alternativeScoring" {2}disabled/);
+});
