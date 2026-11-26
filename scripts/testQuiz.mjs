@@ -5,6 +5,10 @@ import { createQuizGame, questionById, quizQuestions, QuizEngine, renderQuizLobb
 
 const players = ["a", "b"];
 const current = game => questionById(game.questionIds[game.questionIndex]);
+const expire = game => {
+  game.phaseEndsAt = Date.now() - 1;
+  QuizEngine.timeout(game, players);
+};
 const canonical = value => value.toLocaleLowerCase("pl").replace(/[^\p{L}\p{N}]+/gu, "");
 
 test("every new quiz question is distinct and has four unique options with the intended answer", () => {
@@ -31,9 +35,60 @@ test("Casual draws unique questions at the selected difficulty and scores their 
       assert.equal(question.difficulty, difficulty);
       QuizEngine.answer(game, "a", question.answer, players);
       QuizEngine.answer(game, "b", (question.answer + 1) % 4, players);
+      assert.equal(game.phase, "question-reveal");
+      expire(game);
     }
     assert.deepEqual(game.scores, { a: 30, b: 0 });
   }
+});
+
+test("Casual holds answers until everyone votes, then shows the result before advancing", () => {
+  const game = createQuizGame(players, {});
+  const correct = current(game).answer;
+  assert.ok(QuizEngine.answer(game, "a", -1, players));
+  QuizEngine.answer(game, "a", correct, players);
+  assert.equal(game.phase, "question");
+  assert.equal(game.scores.a, 0);
+  assert.ok(QuizEngine.answer(game, "a", (correct + 1) % 4, players));
+  QuizEngine.timeout(game, players);
+  assert.equal(game.phase, "question");
+  QuizEngine.answer(game, "b", (correct + 1) % 4, players);
+  assert.equal(game.phase, "question-reveal");
+  assert.equal(game.questionIndex, 0);
+  assert.equal(game.scores.a, 1);
+  assert.equal(game.scores.b, 0);
+  assert.equal(game.history.length, 1);
+  expire(game);
+  assert.equal(game.phase, "question");
+  assert.equal(game.questionIndex, 1);
+  assert.deepEqual(game.answers, {});
+});
+
+test("Casual reveals on timeout and shows the last reveal before finishing", () => {
+  const game = createQuizGame(players, {});
+  game.questionIndex = game.questionIds.length - 1;
+  QuizEngine.answer(game, "a", current(game).answer, players);
+  game.phaseEndsAt = Date.now() - 1;
+  assert.ok(QuizEngine.answer(game, "b", current(game).answer, players));
+  QuizEngine.timeout(game, players);
+  assert.equal(game.phase, "question-reveal");
+  assert.equal(game.finished, undefined);
+  assert.deepEqual(game.scores, {a:1,b:0});
+  expire(game);
+  assert.equal(game.phase, "result");
+  assert.equal(game.finished, true);
+  assert.equal(game.history.length, 1);
+});
+
+test("Casual restores an in-progress legacy match without scoring submitted answers twice", () => {
+  const game = createQuizGame(players, {});
+  delete game.scoreOnReveal;
+  game.answers = {a:current(game).answer};
+  game.scores = {a:1,b:0};
+  QuizEngine.answer(game, "b", current(game).answer, players);
+  expire(game);
+  assert.deepEqual(game.scores, {a:1,b:1});
+  assert.equal(game.scoreOnReveal, true);
 });
 
 test("Quiz offers exactly three filters and old medium rooms use the full pool", () => {

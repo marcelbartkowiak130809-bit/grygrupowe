@@ -1,7 +1,7 @@
 import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261126-4";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
-export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", showOthersAnswers:true };
+export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all" };
 const quizDifficultyLabels = { all:"Wszystkie", easy:"Łatwe", hard:"Trudne" };
 const quizDifficulty = value => Object.hasOwn(quizDifficultyLabels, value) ? value : quizDefaults.difficulty;
 
@@ -47,6 +47,7 @@ export const quizQuestions = Object.entries(quizQuestionRows)
   .flatMap(([difficulty, rows]) => rows.map((row, index) => newQuestion(difficulty, row, index)));
 const questionsById = new Map([...quizQuestions, ...legacyQuestions].map(question => [question.id, question]));
 export const questionById = id => questionsById.get(id) || quizQuestions[0];
+const casualRevealMs = 6000;
 const phaseEnd = seconds => Date.now() + Math.max(30,Math.min(180,Number(seconds)||60))*1000;
 
 function shuffle(list) {
@@ -74,14 +75,46 @@ function ensureCompetitiveState(game, players) {
 export function createQuizGame(players, settings) {
   const variant=settings.quizVariant === "competitive" ? "competitive" : "casual";
   const scores=Object.fromEntries(players.map(uid=>[uid,0]));
-  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, playerCount:players.length, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, skipVotes:[], scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
+  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
   return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
 }
-function saveCasualHistory(game) { game.history=Array.isArray(game.history)?game.history:[];game.history.push({id:game.questionIds[game.questionIndex],answers:{...(game.answers||{})}}); }
-function nextCasualQuestion(game) { const next=game.questionIndex+1;if(next>=game.questionIds.length){game.phase="result";game.finished=true;return;}game.questionIndex=next;game.answers={};game.skipVotes=[];game.phaseEndsAt=phaseEnd(game.questionTime||60); }
-function completeCasualQuestion(game, players) { if (Object.keys(game.answers||{}).length < players.length) return; saveCasualHistory(game);nextCasualQuestion(game); }
-function casualAnswer(game, uid, option, players) { if(game.phase!=="question"||game.answers?.[uid]!=null)return "Odpowiedź została już wysłana.";game.answers=game.answers||{};game.answers[uid]=Number(option);const question=questionById(game.questionIds[game.questionIndex]);if(Number(option)===question.answer)game.scores[uid]+=1;completeCasualQuestion(game,players); }
-function casualSkip(game, uid, players) { game.skipVotes=Array.isArray(game.skipVotes)?game.skipVotes:[];if(!game.skipVotes.includes(uid))game.skipVotes.push(uid);if(game.skipVotes.length>=Math.ceil(players.length/2)){saveCasualHistory(game);nextCasualQuestion(game);} }
+function revealCasualAnswer(game) {
+  const question = questionById(game.questionIds[game.questionIndex]);
+  for (const [uid, option] of Object.entries(game.answers || {})) {
+    if (game.scoreOnReveal && option === question.answer) {
+      game.scores[uid] = (game.scores[uid] || 0) + 1;
+    }
+  }
+  game.history ||= [];
+  game.history.push({ id:question.id, answers:{...game.answers} });
+  game.phase = "question-reveal";
+  game.phaseEndsAt = Date.now() + casualRevealMs;
+}
+
+function nextCasualQuestion(game) {
+  if (game.questionIndex + 1 >= game.questionIds.length) {
+    game.phase = "result";
+    game.finished = true;
+    return;
+  }
+  game.questionIndex += 1;
+  game.phase = "question";
+  game.answers = {};
+  game.scoreOnReveal = true;
+  game.phaseEndsAt = phaseEnd(game.questionTime);
+}
+
+function casualAnswer(game, uid, option, players) {
+  if (game.phase !== "question" || Date.now() >= game.phaseEndsAt) return "Czas na odpowiedź minął.";
+  if (!Number.isInteger(option) || option < 0 || option > 3) return "Wybierz jedną z odpowiedzi.";
+  game.answers ||= {};
+  if (game.answers[uid] != null) return "Odpowiedź została już wysłana.";
+  game.answers[uid] = option;
+  // Rooms started before the reveal phase already award points when a vote arrives.
+  if (!game.scoreOnReveal && option === questionById(game.questionIds[game.questionIndex]).answer) game.scores[uid] += 1;
+  if (players.every(player => game.answers[player] != null)) revealCasualAnswer(game);
+}
+
 function nextCompetitiveQuestion(game) {
   if (game.questionIndex + 1 < game.questionIds.length) {
     game.questionIndex += 1;
@@ -147,10 +180,6 @@ export const QuizEngine = {
     if (game.variant === "casual") return casualAnswer(game, uid, option, players);
     return competitiveAnswer(game, uid, option, players);
   },
-  skip(game, uid, players) {
-    if (game.variant !== "casual") return "Skip jest dostępny tylko w Casual.";
-    casualSkip(game, uid, players);
-  },
   buzz(game, uid, players) {
     ensureCompetitiveState(game, players);
     if (!["r2-buzz","r3-buzz"].includes(game.phase) || game.responder) return "Ktoś już się zgłosił.";
@@ -172,8 +201,9 @@ export const QuizEngine = {
   },
   timeout(game, players) {
     if (game.variant === "casual") {
-      saveCasualHistory(game);
-      nextCasualQuestion(game);
+      if (Date.now() < game.phaseEndsAt) return;
+      if (game.phase === "question") revealCasualAnswer(game);
+      else if (game.phase === "question-reveal") nextCasualQuestion(game);
       return;
     }
     ensureCompetitiveState(game, players);
@@ -186,11 +216,65 @@ export const QuizEngine = {
   },
 };
 
-function answerAvatars(game, option, accounts) { return Object.entries(game.answers||{}).filter(([,value])=>Number(value)===option).map(([uid])=>`<span class="quiz-answer-avatar" data-tooltip="${escapeHtml(accounts[uid]?.nick||"Gracz")}">${avatarHtml(accounts[uid]||{nick:"Gracz"},"quiz-avatar")}</span>`).join(""); }
-function casualMarkup(game, accounts, currentUser, settings) { const question=questionById(game.questionIds[game.questionIndex]), chosen=game.answers?.[currentUser], showOthers=settings.showOthersAnswers!==false;return `<p class="eyebrow">QUIZ · CASUAL · PYTANIE ${game.questionIndex+1}/${game.questionIds.length}</p><h1>${escapeHtml(question.q)}</h1><div class="quiz-options">${question.options.map((option,index)=>`<button class="quiz-option ${chosen!=null&&index===question.answer?"is-correct":""} ${chosen!=null&&index===chosen&&chosen!==question.answer?"is-wrong":""}" data-quiz-answer="${index}" ${chosen!=null?"disabled":""}><span>${escapeHtml(option)}</span>${showOthers?answerAvatars(game,index,accounts):""}</button>`).join("")}</div><div class="quiz-bottom"><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span><button class="ghost" data-quiz-skip>Skip · ${game.skipVotes?.length||0}/${Math.ceil((game.playerCount||2)/2)}</button></div>`; }
+function answerVoters(game, option, accounts) {
+  const voters = Object.entries(game.answers || {}).filter(([,value]) => value === option);
+  if (!voters.length) return "";
+  return `<div class="quiz-voters">${voters.map(([uid]) => {
+    const player = accounts[uid] || {nick:"Gracz"};
+    return `<span class="quiz-voter">${avatarHtml(player,"quiz-avatar")}<span>${escapeHtml(player.nick || "Gracz")}</span></span>`;
+  }).join("")}</div>`;
+}
+
+function casualMarkup(game, accounts, currentUser) {
+  const question = questionById(game.questionIds[game.questionIndex]);
+  const chosen = game.answers?.[currentUser];
+  const revealed = game.phase === "question-reveal";
+  const lastQuestion = game.questionIndex + 1 === game.questionIds.length;
+  const options = question.options.map((option, index) => {
+    const state = revealed
+      ? index === question.answer ? "is-correct" : index === chosen ? "is-wrong" : ""
+      : index === chosen ? "is-chosen" : "";
+    const text = `<span class="quiz-option-label">${escapeHtml(option)}</span>`;
+    if (!revealed) {
+      return `<button class="quiz-option ${state}" data-quiz-answer="${index}" ${chosen != null ? "disabled" : ""} aria-pressed="${index === chosen}">${text}</button>`;
+    }
+    const label = state === "is-correct" ? "Poprawna odpowiedź" : state === "is-wrong" ? "Twoja błędna odpowiedź" : "";
+    return `<div class="quiz-option ${state}">${text}${label ? `<small>${label}</small>` : ""}${answerVoters(game,index,accounts)}</div>`;
+  }).join("");
+  const status = revealed ? (lastQuestion ? "Wyniki za" : "Następne pytanie za")
+    : chosen != null ? "Odpowiedź zapisana" : "Czas na odpowiedź";
+  return `<p class="eyebrow">QUIZ · PYTANIE ${game.questionIndex+1}/${game.questionIds.length}</p>
+    <h1>${escapeHtml(question.q)}</h1><div class="quiz-options">${options}</div>
+    <div class="quiz-bottom"><span class="quiz-casual-status" role="status">${status}</span><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span></div>`;
+}
+
 function competitiveMarkup(game, accounts, currentUser) { const q=questionById(game.questionIds[game.questionIndex]);const active=game.phase==="r1"?game.order[game.turnIndex]:game.responder;const choose=game.phase==="r3-choose"&&game.responder===currentUser;return `<p class="eyebrow">QUIZ · RYWALIZACJA · ${game.phase.toUpperCase()}</p><h1>${escapeHtml(q.q)}</h1><div class="quiz-stations">${game.order.map(uid=>`<div class="quiz-station ${uid===active?"is-active":""}">${avatarHtml(accounts[uid]||{nick:"Gracz"},"quiz-station-avatar")}<b>${escapeHtml(accounts[uid]?.nick||"Gracz")}</b><span>${game.scores[uid]||0} pkt · ${game.hearts?.[uid]??3} ♥</span></div>`).join("")}</div>${game.phase==="r2-buzz"||game.phase==="r3-buzz"?`<button class="primary quiz-buzz" data-quiz-buzz>Zgłaszam się!</button>`:""}${choose?`<div class="quiz-choose-player"><p>Wybierz, kto odpowie:</p>${game.order.filter(uid=>!game.eliminated?.includes(uid)).map(uid=>`<button class="ghost" data-quiz-choose="${uid}">${escapeHtml(accounts[uid]?.nick||"Gracz")}</button>`).join("")}</div>`:""}${game.phase!=="r3-choose"?`<div class="quiz-options">${q.options.map((option,index)=>`<button class="quiz-option" data-quiz-answer="${index}" ${active!==currentUser?"disabled":""}>${escapeHtml(option)}</button>`).join("")}</div>`:""}<div class="quiz-bottom"><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span></div>`; }
-function resultMarkup(game, accounts) { const ranking=Object.entries(game.scores||{}).sort(([,a],[,b])=>b-a),topScore=Math.max(0,...ranking.map(([,score])=>Number(score)||0)),rows=ranking.map(([uid,score],i)=>`<div class="quiz-result-row"><b>${i+1}.</b>${resultPlayerMiniHtml(accounts[uid],Number(score)===topScore&&topScore>0?"win":"lose")}<strong>${score} pkt</strong></div>`).join("");return `<section class="panel quiz-panel center"><p class="eyebrow">QUIZ · WYNIKI</p><h1>Podium</h1><div class="quiz-results">${rows}</div><button class="primary" id="quiz-lobby">Wróć do lobby</button></section>`; }
-export function renderQuizGame(root, {room,accounts,currentUser}, actions) { const game=room.game,settings=room.settings||quizDefaults;window.clearTimeout(renderQuizGame.timer);window.clearInterval(renderQuizGame.countdown);if(game.phase==="result"){root.innerHTML=`<main class="page quiz-page">${resultMarkup(game,accounts)}</main>`;root.querySelector("#quiz-lobby")?.addEventListener("click",actions.returnToRoom);return;}root.innerHTML=`<main class="page quiz-page enter"><section class="panel quiz-panel">${game.variant==="casual"?casualMarkup(game,accounts,currentUser,settings):competitiveMarkup(game,accounts,currentUser)}</section></main>`;const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt};root.querySelectorAll("[data-quiz-answer]").forEach(button=>button.addEventListener("click",()=>actions.quizAnswer(Number(button.dataset.quizAnswer),expected)));root.querySelector("[data-quiz-skip]")?.addEventListener("click",()=>actions.quizSkip(expected));root.querySelector("[data-quiz-buzz]")?.addEventListener("click",()=>actions.quizBuzz(expected));root.querySelectorAll("[data-quiz-choose]").forEach(button=>button.addEventListener("click",()=>actions.quizChoose(button.dataset.quizChoose,expected)));renderQuizGame.countdown=setInterval(()=>{const node=root.querySelector("[data-quiz-countdown]");if(node)node.textContent=`${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s`;},250);renderQuizGame.timer=setTimeout(()=>actions.quizTimeout(expected),Math.max(100,game.phaseEndsAt-Date.now()+50));}
-export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Pokazuj odpowiedzi innych graczy</b><small>W trakcie pytania widać, kto wybrał daną odpowiedź.</small></span><input data-quiz-setting="showOthersAnswers" type="checkbox" ${s.showOthersAnswers!==false?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
+function resultMarkup(game, accounts) { const ranking=Object.entries(game.scores||{}).sort(([,a],[,b])=>b-a),topScore=Math.max(0,...ranking.map(([,score])=>Number(score)||0)),rows=ranking.map(([uid,score],i)=>`<div class="quiz-result-row"><b>${i+1}.</b>${resultPlayerMiniHtml(accounts[uid],Number(score)===topScore&&topScore>0?"win":"lose")}<strong>${score} pkt</strong></div>`).join("");return `<section class="panel quiz-panel center"><p class="eyebrow">QUIZ · WYNIKI</p><h1>${game.variant==="casual"?"Wyniki":"Podium"}</h1><div class="quiz-results">${rows}</div><button class="primary" id="quiz-lobby">Wróć do lobby</button></section>`; }
+export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
+  stopQuizTimer();
+  const game = room.game;
+  if (game.phase === "result") {
+    root.innerHTML = `<main class="page quiz-page">${resultMarkup(game,accounts)}</main>`;
+    root.querySelector("#quiz-lobby")?.addEventListener("click",actions.returnToRoom);
+    return;
+  }
+  const casual = game.variant === "casual";
+  const markup = casual ? casualMarkup(game,accounts,currentUser) : competitiveMarkup(game,accounts,currentUser);
+  root.innerHTML = `<main class="page quiz-page ${casual?"quiz-casual":"enter"}"><section class="panel quiz-panel">${markup}</section></main>`;
+  const expected = {phase:game.phase, phaseEndsAt:game.phaseEndsAt, questionIndex:game.questionIndex};
+  root.querySelectorAll("[data-quiz-answer]").forEach(button => {
+    button.addEventListener("click", () => actions.quizAnswer(Number(button.dataset.quizAnswer),expected));
+  });
+  root.querySelector("[data-quiz-buzz]")?.addEventListener("click", () => actions.quizBuzz(expected));
+  root.querySelectorAll("[data-quiz-choose]").forEach(button => {
+    button.addEventListener("click", () => actions.quizChoose(button.dataset.quizChoose,expected));
+  });
+  const countdown = root.querySelector("[data-quiz-countdown]");
+  renderQuizGame.countdown = setInterval(() => {
+    if (countdown) countdown.textContent = `${Math.max(0,Math.ceil((expected.phaseEndsAt-Date.now())/1000))}s`;
+  },250);
+  renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
+}
+export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label></div>`;}
 export function renderQuizSelect(root,actions){const board=Object.entries(JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}")).sort(([,a],[,b])=>b-a).slice(0,20).map(([nick,wins],index)=>`<li><span>${index+1}. ${escapeHtml(nick)}</span><b>${wins}</b></li>`).join("")||"<li>Ranking zaczyna się od pierwszego meczu.</li>";root.innerHTML=`<main class="page quiz-select-page enter"><section class="quiz-choice quiz-choice-casual"><p class="eyebrow">DLA KAŻDEGO</p><h1>CASUAL</h1><p>Spokojny quiz dla ekipy z własnymi ustawieniami hosta.</p><button class="primary" data-quiz-variant="casual">Graj w Casual</button></section><section class="quiz-choice quiz-choice-competitive"><p class="eyebrow">TELETURNIEJ</p><h1>RYWALIZACJA</h1><p>Szybkie mecze, zgłaszanie się i walka o miejsce w rankingu.</p><button class="primary" data-quiz-variant="competitive">Graj w Rywalizację</button><button class="quiz-leaderboard-trigger" type="button" data-quiz-leaderboard>🏆 <b>TOPKA</b><span>Wyniki rywalizacji</span></button><div class="quiz-leaderboard" data-quiz-leaderboard-panel hidden><b>TOP 20 RYWALIZACJI</b><ol>${board}</ol><small>Ranking obejmuje wyłącznie wygrane w wariancie Rywalizacja.</small></div></section></main>`;root.querySelectorAll("[data-quiz-variant]").forEach(button=>button.addEventListener("click",()=>actions.chooseQuizVariant(button.dataset.quizVariant)));root.querySelector("[data-quiz-leaderboard]")?.addEventListener("click",()=>{const panel=root.querySelector("[data-quiz-leaderboard-panel]");panel.hidden=!panel.hidden;});}
 export function stopQuizTimer(){window.clearTimeout(renderQuizGame.timer);window.clearInterval(renderQuizGame.countdown);}
