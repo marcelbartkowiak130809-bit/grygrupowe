@@ -103,7 +103,7 @@ test("Quiz offers exactly three filters and old medium rooms use the full pool",
   assert.deepEqual(quizQuestions.reduce((counts, q) => {
     counts[q.difficulty] = (counts[q.difficulty] || 0) + 1;
     return counts;
-  }, {}), { easy:150, hard:150 });
+  }, {}), { easy:190, hard:190 });
 });
 
 test("competitive prompts advance across turns, round boundaries, assignments and timeouts", () => {

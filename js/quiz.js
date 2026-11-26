@@ -1,4 +1,4 @@
-import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261126-4";
+import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-1";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
 export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", lifelinesEnabled:false };
