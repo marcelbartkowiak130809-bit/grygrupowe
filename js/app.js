@@ -12,9 +12,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, upgradeGuestAuth, saveGuestUpgrade, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261124-2";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261126-5";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261126-6";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261126-5";
+import { gamesList, getGameMode } from "./games.js?v=20261126-6";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261126-1";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261124-2";
@@ -42,7 +42,7 @@ import { auctionCommandContext, clearAuctionCommand, readAuctionCommand, saveAuc
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-9";
 import { applyChartForecastAction, chartForecastMode, createChartForecastGame } from "./chartForecast.js?v=20261121-20";
 import { chartForecastSoloMode, renderChartForecastSolo, stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261124-2";
-import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261126-5";
+import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261126-6";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-8";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-8";
 import { markerActionMatches } from './markerDrawing.js?v=20261117-10';
@@ -69,13 +69,13 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261124-2";
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261126-5";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261126-5";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261126-6";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261126-6";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261126-5";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261126-6";
 import { Router } from "./router.js?v=20261124-6";
-import { playerMini, renderRoom } from "./room.js?v=20261126-5";
+import { playerMini, renderRoom } from "./room.js?v=20261126-6";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -83,7 +83,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261124-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261126-5";
+import { scheduleBot } from "./botController.js?v=20261126-6";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -3031,6 +3031,12 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   wavelengthTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="wavelength")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";WavelengthEngine.timeout(game,current.players,current.settings);},{sound:"roundEnd"});},
   wavelengthNext(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>WavelengthEngine.nextRound(game,current.players,current.settings),{sound:"turn"});},
   quizAnswer(option, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.questionIndex!==expected.questionIndex)return "Faza gry już się zmieniła.";return QuizEngine.answer(game,state.currentUser,option,room.players,room.settings);},{sound:"submit"});},
+  quizLifeline(type, expected) {
+    return mutateRoomGame((game, room) => {
+      if (room.gameMode !== "quiz" || game.phase !== expected.phase || game.phaseEndsAt !== expected.phaseEndsAt || game.questionIndex !== expected.questionIndex) return "To pytanie już się skończyło.";
+      return QuizEngine.useLifeline(game, state.currentUser, type, room.players);
+    }, {sound:"choice"});
+  },
   quizBuzz(expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return QuizEngine.buzz(game,state.currentUser,room.players);},{sound:"bid"});},
   quizChoose(target, expected={}){return mutateRoomGame((game,room)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt))return "Faza gry już się zmieniła.";return QuizEngine.choose(game,state.currentUser,target,room.players);},{sound:"choice"});},
   quizTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="quiz")return;return mutateRoomGame((game,current)=>{if(game.phase!==expected.phase||Number(game.phaseEndsAt)!==Number(expected.phaseEndsAt)||game.questionIndex!==expected.questionIndex)return "Faza gry już się zmieniła.";QuizEngine.timeout(game,current.players,current.settings);},{sound:"roundEnd",quietRejected:true});},

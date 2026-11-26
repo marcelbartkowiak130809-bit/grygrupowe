@@ -1,7 +1,7 @@
 import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261126-4";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
-export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all" };
+export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", lifelinesEnabled:false };
 const quizDifficultyLabels = { all:"Wszystkie", easy:"Łatwe", hard:"Trudne" };
 const quizDifficulty = value => Object.hasOwn(quizDifficultyLabels, value) ? value : quizDefaults.difficulty;
 
@@ -75,18 +75,75 @@ function ensureCompetitiveState(game, players) {
 export function createQuizGame(players, settings) {
   const variant=settings.quizVariant === "competitive" ? "competitive" : "casual";
   const scores=Object.fromEntries(players.map(uid=>[uid,0]));
-  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
+  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, lifelinesEnabled:settings.lifelinesEnabled===true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
   return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
 }
+const lifelineTypes = {
+  half: {
+    label:"50:50",
+    hint:"Ukryj dwie błędne odpowiedzi",
+    art:'<path d="M12 4a8 8 0 0 0 0 16V4Z" fill="currentColor" stroke="none"/><path d="M15 5a8 8 0 0 1 0 14"/><path d="M15 12h4"/>',
+  },
+  audience: {
+    label:"Głosy ekipy",
+    hint:"Podejrzyj anonimowo oddane już głosy",
+    art:'<path d="M4 19h16M6 15v-3m6 3V5m6 10V9"/><circle cx="6" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="5" r="1" fill="currentColor" stroke="none"/>',
+  },
+  double: {
+    label:"Drugi strzał",
+    hint:"Zaznacz dwie odpowiedzi. Wystarczy jedna trafiona",
+    art:'<path d="m4 7 3 3 5-6M12 15l3 3 5-6M4 19h4M16 5h4"/>',
+  },
+};
+
+function activeLifeline(game, uid, type) {
+  const use = game.lifelines?.[uid]?.[type];
+  return use?.questionIndex === game.questionIndex ? use : null;
+}
+
+function currentVotesForOption(game, option, players, excludedUid) {
+  return players.filter(uid => uid !== excludedUid && (
+    game.answers?.[uid] === option || game.bonusAnswers?.[uid] === option
+  ));
+}
+
+function useCasualLifeline(game, uid, type, players) {
+  if (game.variant !== "casual" || !game.lifelinesEnabled || !Object.hasOwn(lifelineTypes, type)) return "To koło ratunkowe jest niedostępne.";
+  if (game.phase !== "question" || Date.now() >= game.phaseEndsAt || game.answers?.[uid] != null) return "Koła użyj przed zapisaniem odpowiedzi.";
+  if (game.lifelines?.[uid]?.[type]) return "To koło zostało już wykorzystane.";
+
+  const question = questionById(game.questionIds[game.questionIndex]);
+  const use = {questionIndex:game.questionIndex};
+  if (type === "half") {
+    const first = activeLifeline(game,uid,"double")?.first;
+    const wrongOptions = [0,1,2,3].filter(option => option !== question.answer && option !== first);
+    use.removed = shuffle(wrongOptions).slice(0,2);
+  } else if (type === "audience") {
+    const counts = [0,1,2,3].map(option => currentVotesForOption(game,option,players,uid).length);
+    if (!counts.some(Boolean)) return "Nikt jeszcze nie oddał głosu. Koło jest nadal dostępne.";
+    use.counts = counts;
+  }
+  game.lifelines ||= {};
+  game.lifelines[uid] ||= {};
+  game.lifelines[uid][type] = use;
+}
+
 function revealCasualAnswer(game) {
   const question = questionById(game.questionIds[game.questionIndex]);
-  for (const [uid, option] of Object.entries(game.answers || {})) {
-    if (game.scoreOnReveal && option === question.answer) {
+  game.answers ||= {};
+  for (const uid of Object.keys(game.lifelines || {})) {
+    const first = activeLifeline(game,uid,"double")?.first;
+    if (first != null && game.answers[uid] == null) game.answers[uid] = first;
+  }
+  for (const [uid, option] of Object.entries(game.answers)) {
+    if (game.scoreOnReveal && (option === question.answer || game.bonusAnswers?.[uid] === question.answer)) {
       game.scores[uid] = (game.scores[uid] || 0) + 1;
     }
   }
   game.history ||= [];
-  game.history.push({ id:question.id, answers:{...game.answers} });
+  const record = {id:question.id, answers:{...game.answers}};
+  if (game.bonusAnswers) record.bonusAnswers = {...game.bonusAnswers};
+  game.history.push(record);
   game.phase = "question-reveal";
   game.phaseEndsAt = Date.now() + casualRevealMs;
 }
@@ -100,6 +157,7 @@ function nextCasualQuestion(game) {
   game.questionIndex += 1;
   game.phase = "question";
   game.answers = {};
+  delete game.bonusAnswers;
   game.scoreOnReveal = true;
   game.phaseEndsAt = phaseEnd(game.questionTime);
 }
@@ -109,7 +167,18 @@ function casualAnswer(game, uid, option, players) {
   if (!Number.isInteger(option) || option < 0 || option > 3) return "Wybierz jedną z odpowiedzi.";
   game.answers ||= {};
   if (game.answers[uid] != null) return "Odpowiedź została już wysłana.";
-  game.answers[uid] = option;
+  if (activeLifeline(game,uid,"half")?.removed?.includes(option)) return "Ta odpowiedź odpadła po użyciu 50:50.";
+  const double = activeLifeline(game,uid,"double");
+  if (double && double.first == null) {
+    double.first = option;
+    return;
+  }
+  if (double && option === double.first) return "Wybierz inną odpowiedź.";
+  game.answers[uid] = double ? double.first : option;
+  if (double) {
+    game.bonusAnswers ||= {};
+    game.bonusAnswers[uid] = option;
+  }
   // Rooms started before the reveal phase already award points when a vote arrives.
   if (!game.scoreOnReveal && option === questionById(game.questionIds[game.questionIndex]).answer) game.scores[uid] += 1;
   if (players.every(player => game.answers[player] != null)) revealCasualAnswer(game);
@@ -176,6 +245,7 @@ function competitiveAnswer(game, uid, option, players) {
 }
 
 export const QuizEngine = {
+  useLifeline: useCasualLifeline,
   answer(game, uid, option, players) {
     if (game.variant === "casual") return casualAnswer(game, uid, option, players);
     return competitiveAnswer(game, uid, option, players);
@@ -217,34 +287,60 @@ export const QuizEngine = {
 };
 
 function answerVoters(game, option, accounts) {
-  const voters = Object.entries(game.answers || {}).filter(([,value]) => value === option);
+  const voters = currentVotesForOption(game,option,Object.keys(game.answers || {}));
   if (!voters.length) return "";
-  return `<div class="quiz-voters">${voters.map(([uid]) => {
+  return `<div class="quiz-voters">${voters.map(uid => {
     const player = accounts[uid] || {nick:"Gracz"};
     return `<span class="quiz-voter">${avatarHtml(player,"quiz-avatar")}<span>${escapeHtml(player.nick || "Gracz")}</span></span>`;
   }).join("")}</div>`;
 }
 
+function lifelineButtons(game, uid) {
+  if (!game.lifelinesEnabled) return "";
+  const used = game.lifelines?.[uid] || {};
+  const hasAnswered = game.answers?.[uid] != null;
+  return `<div class="quiz-lifelines" role="group" aria-label="Koła ratunkowe">
+    ${Object.entries(lifelineTypes).map(([type, {label,hint,art}]) => `
+      <button type="button" class="quiz-lifeline ${used[type] ? "is-spent" : ""}" data-quiz-lifeline="${type}"
+        title="${hint}" aria-label="${label}: ${used[type] ? "wykorzystane" : hint}" ${used[type] || hasAnswered ? "disabled" : ""}>
+        <span class="quiz-lifeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${art}</svg></span>
+        <span>${label}</span>
+      </button>`).join("")}
+  </div>`;
+}
+
 function casualMarkup(game, accounts, currentUser) {
   const question = questionById(game.questionIds[game.questionIndex]);
-  const chosen = game.answers?.[currentUser];
+  const committed = game.answers?.[currentUser];
+  const double = activeLifeline(game,currentUser,"double");
+  const chosen = committed ?? double?.first;
+  const extra = game.bonusAnswers?.[currentUser];
+  const removed = activeLifeline(game,currentUser,"half")?.removed || [];
+  const peek = activeLifeline(game,currentUser,"audience")?.counts;
   const revealed = game.phase === "question-reveal";
   const lastQuestion = game.questionIndex + 1 === game.questionIds.length;
   const options = question.options.map((option, index) => {
+    const selected = index === chosen || index === extra;
     const state = revealed
-      ? index === question.answer ? "is-correct" : index === chosen ? "is-wrong" : ""
-      : index === chosen ? "is-chosen" : "";
+      ? index === question.answer ? "is-correct" : selected ? "is-wrong" : ""
+      : selected ? "is-chosen" : "";
     const text = `<span class="quiz-option-label">${escapeHtml(option)}</span>`;
     if (!revealed) {
-      return `<button class="quiz-option ${state}" data-quiz-answer="${index}" ${chosen != null ? "disabled" : ""} aria-pressed="${index === chosen}">${text}</button>`;
+      if (removed.includes(index)) return '<div class="quiz-option quiz-option-removed" aria-label="Opcja odrzucona przez 50:50">—</div>';
+      const votes = peek ? `<small class="quiz-peek-count">Głosy · ${peek[index]}</small>` : "";
+      const disabled = committed != null || selected;
+      return `<button type="button" class="quiz-option ${state}" data-quiz-answer="${index}" ${disabled ? "disabled" : ""} aria-pressed="${selected}">${text}${votes}</button>`;
     }
     const label = state === "is-correct" ? "Poprawna odpowiedź" : state === "is-wrong" ? "Twoja błędna odpowiedź" : "";
     return `<div class="quiz-option ${state}">${text}${label ? `<small>${label}</small>` : ""}${answerVoters(game,index,accounts)}</div>`;
   }).join("");
   const status = revealed ? (lastQuestion ? "Wyniki za" : "Następne pytanie za")
-    : chosen != null ? "Odpowiedź zapisana" : "Czas na odpowiedź";
+    : committed != null ? "Odpowiedź zapisana"
+    : double ? (chosen == null ? "Wybierz pierwszą odpowiedź" : "Wybierz drugą odpowiedź")
+    : "Czas na odpowiedź";
   return `<p class="eyebrow">QUIZ · PYTANIE ${game.questionIndex+1}/${game.questionIds.length}</p>
-    <h1>${escapeHtml(question.q)}</h1><div class="quiz-options">${options}</div>
+    <h1>${escapeHtml(question.q)}</h1>${revealed ? "" : lifelineButtons(game,currentUser)}
+    <div class="quiz-options">${options}</div>
     <div class="quiz-bottom"><span class="quiz-casual-status" role="status">${status}</span><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span></div>`;
 }
 
@@ -265,6 +361,9 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   root.querySelectorAll("[data-quiz-answer]").forEach(button => {
     button.addEventListener("click", () => actions.quizAnswer(Number(button.dataset.quizAnswer),expected));
   });
+  root.querySelectorAll("[data-quiz-lifeline]").forEach(button => {
+    button.addEventListener("click", () => actions.quizLifeline(button.dataset.quizLifeline,expected));
+  });
   root.querySelector("[data-quiz-buzz]")?.addEventListener("click", () => actions.quizBuzz(expected));
   root.querySelectorAll("[data-quiz-choose]").forEach(button => {
     button.addEventListener("click", () => actions.quizChoose(button.dataset.quizChoose,expected));
@@ -275,6 +374,6 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   },250);
   renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
 }
-export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label></div>`;}
+export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
 export function renderQuizSelect(root,actions){const board=Object.entries(JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}")).sort(([,a],[,b])=>b-a).slice(0,20).map(([nick,wins],index)=>`<li><span>${index+1}. ${escapeHtml(nick)}</span><b>${wins}</b></li>`).join("")||"<li>Ranking zaczyna się od pierwszego meczu.</li>";root.innerHTML=`<main class="page quiz-select-page enter"><section class="quiz-choice quiz-choice-casual"><p class="eyebrow">DLA KAŻDEGO</p><h1>CASUAL</h1><p>Spokojny quiz dla ekipy z własnymi ustawieniami hosta.</p><button class="primary" data-quiz-variant="casual">Graj w Casual</button></section><section class="quiz-choice quiz-choice-competitive"><p class="eyebrow">TELETURNIEJ</p><h1>RYWALIZACJA</h1><p>Szybkie mecze, zgłaszanie się i walka o miejsce w rankingu.</p><button class="primary" data-quiz-variant="competitive">Graj w Rywalizację</button><button class="quiz-leaderboard-trigger" type="button" data-quiz-leaderboard>🏆 <b>TOPKA</b><span>Wyniki rywalizacji</span></button><div class="quiz-leaderboard" data-quiz-leaderboard-panel hidden><b>TOP 20 RYWALIZACJI</b><ol>${board}</ol><small>Ranking obejmuje wyłącznie wygrane w wariancie Rywalizacja.</small></div></section></main>`;root.querySelectorAll("[data-quiz-variant]").forEach(button=>button.addEventListener("click",()=>actions.chooseQuizVariant(button.dataset.quizVariant)));root.querySelector("[data-quiz-leaderboard]")?.addEventListener("click",()=>{const panel=root.querySelector("[data-quiz-leaderboard-panel]");panel.hidden=!panel.hidden;});}
 export function stopQuizTimer(){window.clearTimeout(renderQuizGame.timer);window.clearInterval(renderQuizGame.countdown);}

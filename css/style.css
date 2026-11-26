@@ -2424,3 +2424,53 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
   min-width: 20px;
   font-size: .7rem;
 }
+
+.quiz-lifelines {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px clamp(8px, 3vw, 24px);
+}
+.quiz-lifeline {
+  display: inline-grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 78px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: #f9dd9d;
+  font-size: .73rem;
+  font-weight: 800;
+}
+.quiz-lifeline-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #d6ad61;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 32% 18%, #4a3625, #191d2d 75%);
+  box-shadow: inset 0 0 0 3px #191d2d, 0 3px 8px #0005;
+  transition: border-color .18s, box-shadow .18s;
+}
+.quiz-lifeline-icon svg { width: 23px; height: 23px; }
+.quiz-lifeline:hover:not(:disabled) .quiz-lifeline-icon,
+.quiz-lifeline:focus-visible .quiz-lifeline-icon {
+  border-color: #ffe5a7;
+  box-shadow: inset 0 0 0 3px #191d2d, 0 0 15px #eac37155;
+}
+.quiz-lifeline.is-spent .quiz-lifeline-icon { filter: grayscale(1); }
+.quiz-casual .quiz-option-removed {
+  justify-content: center;
+  opacity: .42;
+  border-style: dashed;
+}
+.quiz-casual .quiz-peek-count {
+  padding: 2px 7px;
+  border-radius: 9px;
+  background: #5f492e;
+  color: #fef0bb;
+}
+.light-theme .quiz-lifeline { color: #754912; }
+.light-theme .quiz-lifeline-icon { color: #ffe5a7; }

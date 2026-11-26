@@ -160,3 +160,61 @@ test("rooms with the old question IDs keep their original questions and answer i
   assert.equal(game.phase, "r3-buzz");
   assert.equal(current(game).id, "medium-10");
 });
+
+test("50:50 keeps the correct option, rejects hidden choices, and is spent only for its owner", () => {
+  const game = createQuizGame(players, { lifelinesEnabled:true });
+  const correct = current(game).answer;
+  QuizEngine.useLifeline(game, "a", "half", players);
+  const {removed} = game.lifelines.a.half;
+  assert.equal(new Set(removed).size, 2);
+  assert.ok(!removed.includes(correct));
+  assert.equal(game.lifelines.b, undefined);
+  assert.match(QuizEngine.answer(game, "a", removed[0], players), /50:50/);
+  assert.ok(QuizEngine.useLifeline(game, "a", "half", players));
+  QuizEngine.answer(game, "a", correct, players);
+  QuizEngine.answer(game, "b", removed[0], players);
+  expire(game);
+  assert.ok(QuizEngine.useLifeline(game, "a", "half", players));
+  assert.equal(QuizEngine.useLifeline(game, "b", "half", players), undefined);
+});
+
+test("audience snapshots votes without names and stays available when nobody has answered", () => {
+  const group = ["a", "b", "c"];
+  const game = createQuizGame(group, { lifelinesEnabled:true });
+  assert.ok(QuizEngine.useLifeline(game, "a", "audience", group));
+  assert.equal(game.lifelines, undefined);
+  QuizEngine.answer(game, "b", 0, group);
+  QuizEngine.useLifeline(game, "a", "audience", group);
+  assert.deepEqual(game.lifelines.a.audience, {questionIndex:0,counts:[1,0,0,0]});
+  QuizEngine.answer(game, "c", 1, group);
+  assert.deepEqual(game.lifelines.a.audience.counts, [1,0,0,0]);
+  assert.ok(QuizEngine.useLifeline(game, "a", "audience", group));
+});
+
+test("double shot takes two distinct picks and can use its first pick when time expires", () => {
+  const game = createQuizGame(players, { lifelinesEnabled:true });
+  const correct = current(game).answer, wrong = (correct+1)%4;
+  QuizEngine.useLifeline(game, "a", "double", players);
+  QuizEngine.answer(game, "a", wrong, players);
+  QuizEngine.answer(game, "b", correct, players);
+  assert.equal(game.phase, "question");
+  assert.ok(QuizEngine.answer(game, "a", wrong, players));
+  QuizEngine.answer(game, "a", correct, players);
+  assert.deepEqual(game.scores, {a:1,b:1});
+  assert.deepEqual(game.history[0].bonusAnswers, {a:correct});
+  expire(game);
+  assert.equal(game.bonusAnswers, undefined);
+  assert.ok(QuizEngine.useLifeline(game, "a", "double", players));
+  QuizEngine.useLifeline(game, "b", "double", players);
+  QuizEngine.answer(game, "b", current(game).answer, players);
+  expire(game);
+  assert.deepEqual(game.scores, {a:1,b:2});
+});
+
+test("lifelines are optional and excluded from competitive matches", () => {
+  for (const settings of [{}, {quizVariant:"competitive",lifelinesEnabled:true}]) {
+    const game = createQuizGame(players, settings);
+    assert.ok(QuizEngine.useLifeline(game, "a", "half", players));
+    assert.equal(game.lifelines, undefined);
+  }
+});
