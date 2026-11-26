@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.15.8";
+const CACHE_NAME = "grygrupowe-shell-v5.15.9";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {
@@ -14,7 +14,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
-    if (response.ok && (event.request.mode === "navigate" || /\.m?js$/.test(url.pathname) || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/") || /^\/assets\/fronts\/[^/]+\.webp$/.test(url.pathname) || url.pathname === "/assets/share/playlist-cup-base.svg")) {
+    if (response.ok && (event.request.mode === "navigate" || /\.m?js$/.test(url.pathname) || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/") || /^\/assets\/impostor\/[^/]+\.wav$/.test(url.pathname) || /^\/assets\/fronts\/[^/]+\.webp$/.test(url.pathname) || url.pathname === "/assets/share/playlist-cup-base.svg")) {
       const copy = response.clone();
       event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => {}));
     }

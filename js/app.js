@@ -12,11 +12,11 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, upgradeGuestAuth, saveGuestUpgrade, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261124-2";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261124-2";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261126-1";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261124-2";
+import { gamesList, getGameMode } from "./games.js?v=20261126-1";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
-import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261124-2";
+import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261126-1";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261124-2";
 import { pairFeedbackReasons, summarizeImpostorPairFeedback } from "./impostorPairFeedback.js?v=20261121-14";
 import { createIdentityGame, IdentityEngine, stopIdentityTimer, updateIdentityVoiceControls } from "./identity.js?v=20261121-11";
@@ -69,13 +69,13 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261124-2";
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261124-2";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261124-11";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261126-1";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261126-1";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261124-2";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261126-1";
 import { Router } from "./router.js?v=20261124-6";
-import { playerMini, renderRoom } from "./room.js?v=20261124-2";
+import { playerMini, renderRoom } from "./room.js?v=20261126-1";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -83,7 +83,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261124-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261124-2";
+import { scheduleBot } from "./botController.js?v=20261126-1";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -2047,7 +2047,7 @@ function announceRoomRoster(room) {
   roomRosterSnapshots.set(room.roomId,current);
 }
 function announceRoomPhase(room) {
-  if(!room?.game)return;
+  if(!room?.game || room.gameMode==="impostor")return;
   const phase=`${room.status}|${room.game.phase}|${room.game.round||0}|${room.game.turnIndex??""}`,previous=roomPhaseSnapshots.get(room.roomId);
   if(previous&&previous!==phase){
     if(room.game.phase==="voting"||room.game.phase==="continueDecision")Audio.play("vote");
@@ -2759,7 +2759,9 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if (mode.id === "tajna-zasada") room.game = createSecretRuleGame(room.players, room.settings);
     room.game.siteGameId = uid("GAME"); room.game.startedAt = serverNow();
     if(fee){room.game.entryFee=fee;room.game.betPot=fee*room.players.length;room.pendingEntryFees=Object.fromEntries(room.players.map(uid=>[uid,fee]));}
-    touchRoom(room); setRoomUrl(room); Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); Router.go("game");
+    touchRoom(room); setRoomUrl(room);
+    if (room.gameMode !== "impostor") { Audio.play("gameStart"); Effects.play("gameStart",`${room.roomId}:game-start`); }
+    Router.go("game");
   },
   clearTypeRaceHistory() {
     const room = activeRoom();
@@ -2848,10 +2850,10 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
   },
   impostorSubmitClue(text){return mutateRoomGame((game,room)=>ImpostorEngine.clue(game,state.currentUser,text,room.settings),{sound:"clue"});},
   impostorTimeout(expected={}){const room=activeRoom();if(!room||room.gameMode!=="impostor")return;const expectedEnd=Number(expected.phaseEndsAt||0);if(expectedEnd&&Date.now()+250<expectedEnd)return false;const guard={phase:room.game?.phase,phaseEndsAt:room.game?.phaseEndsAt||0,round:room.game?.round||0,turnIndex:room.game?.turnIndex??""};return mutateRoomGame((game,current)=>{if(expected.phase&&game.phase!==expected.phase)return"Faza gry juz sie zmienila.";if(expected.phaseEndsAt&&Number(game.phaseEndsAt||0)!==Number(expected.phaseEndsAt))return"Faza gry juz sie zmienila.";if(Number(game.phaseEndsAt||0)>Date.now()+250)return"Czas jeszcze nie minal.";if(expected.round&&Number(game.round||0)!==Number(expected.round))return"Faza gry juz sie zmienila.";if(String(game.turnIndex??"")!==String(expected.turnIndex??guard.turnIndex))return"Faza gry juz sie zmienila.";ImpostorEngine.timeout(game,current.settings);},{after:settleImpostorResult});},
-  impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:"vote"});},
-  impostorVote(target){return mutateRoomGame(game=>ImpostorEngine.vote(game,state.currentUser,target),{sound:"vote",after:settleImpostorResult});},
-  impostorFinalGuess(text){return mutateRoomGame(game=>ImpostorEngine.finalGuess(game,state.currentUser,text),{sound:"submit",after:settleImpostorResult});},
-  impostorFinalSurrender(){return mutateRoomGame(game=>ImpostorEngine.finalSurrender(game,state.currentUser),{sound:"choice",after:settleImpostorResult});},
+  impostorDecision(keepPlaying){return mutateRoomGame((game,room)=>ImpostorEngine.decide(game,state.currentUser,keepPlaying,room.settings),{sound:room=>{if(room.game.phase==="continueDecision") Audio.play("choice");}});},
+  impostorVote(target){return mutateRoomGame(game=>ImpostorEngine.vote(game,state.currentUser,target),{sound:room=>{if(room.game.phase==="voting") Audio.play("choice");},after:settleImpostorResult});},
+  impostorFinalGuess(text){return mutateRoomGame(game=>ImpostorEngine.finalGuess(game,state.currentUser,text),{after:settleImpostorResult});},
+  impostorFinalSurrender(){return mutateRoomGame(game=>ImpostorEngine.finalSurrender(game,state.currentUser),{after:settleImpostorResult});},
   impostorReact(text){return mutateRoomGame(game=>ImpostorEngine.react(game,state.currentUser,text)?null:"Reakcja odnawia się co 5 sekund.",{sound:"notification"});},
   impostorChat(text){const room=activeRoom();if(!room?.settings.chatEnabled)return;return mutateRoomGame(game=>ImpostorEngine.chat(game,state.currentUser,text),{sound:"chat"});},
   impostorPlayAgain(){const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;keepRoomCategoryUsage(room);room.status="lobby";room.game=null;touchRoom(room);Router.go("room");},
@@ -3702,7 +3704,7 @@ function renderNow(options = {}) {
       const repaired=repairGameStateForPlayers(room);
       if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}}
       settleAllResults(room); trackFinishedGame(room); recordCurrentUserGameHistory(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
-      const finalOutcome=finalGameOutcome(room); if (!activeAuctionLots && !popularityRoom) markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
+      const finalOutcome=mode.id==="impostor" ? "" : finalGameOutcome(room); if (mode.id!=="impostor" && !activeAuctionLots && !popularityRoom) markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}:${room.game.finishedAt||""}`);
       window.__gameFinalAudio=""; window.__lastFinalEffect=false;
@@ -3798,7 +3800,10 @@ function connectRooms(){
     announceRoomRoster(room);announceRoomPhase(room);
     if(claimPendingProgress(room))return render({preserveDrafts:true});
     if(room?.status==="lobby"&&room.gameMode==="quiz"&&room.settings?.quizVariant==="competitive"&&room.players.length>=2&&room.hostUid===state.currentUser)return actions.startGame();
-    if(room?.status==="playing"&&room.game&&Router.current==="room"){Effects.play("gameStart",`${room.roomId}:game-start`);return Router.go("game");}
+    if(room?.status==="playing"&&room.game&&Router.current==="room"){
+      if (room.gameMode !== "impostor") Effects.play("gameStart",`${room.roomId}:game-start`);
+      return Router.go("game");
+    }
     if(room?.status==="lobby"&&Router.current==="game")return Router.go("room");
     if(!restoredRoom&&room){restoredRoom=true;setRoomUrl(room);return Router.go(room.game?"game":"room");}
     if (Router.current === "platform") {

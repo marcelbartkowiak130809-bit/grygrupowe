@@ -2,7 +2,7 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20260824-2";
 import { normalizeAnswer } from "./utils.js?v=20261121-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20261124-2";
+import { ImpostorEngine } from "./impostor.js?v=20261126-1";
 import { IdentityEngine, identityBotResponse, identityBotTurn } from "./identity.js?v=20261121-11";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20261121-8";
 import { MostLikelyEngine } from "./mostLikely.js?v=20261121-8";
