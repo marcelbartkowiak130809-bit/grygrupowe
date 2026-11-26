@@ -1,4 +1,5 @@
 import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-1";
+import { Audio } from "./audio.js?v=20261123-7";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
 export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"all", lifelinesEnabled:false };
@@ -309,6 +310,32 @@ function lifelineButtons(game, uid) {
   </div>`;
 }
 
+const answerLetters = ["A", "B", "C", "D"];
+const quizPresentation = new Map();
+
+function answerLabel(option, index) {
+  return `<span class="quiz-option-key" aria-hidden="true">${answerLetters[index]}</span>
+    <span class="quiz-option-label">${escapeHtml(option)}</span>`;
+}
+
+function quizQuestionHeader(game, question, status) {
+  const casual = game.variant === "casual";
+  const reveal = game.phase === "question-reveal";
+  const progress = casual
+    ? `Pytanie ${game.questionIndex + 1} z ${game.questionIds.length}`
+    : `Runda ${game.phase[1]} · Pytanie ${game.questionIndex + 1}`;
+  return `<div class="quiz-question-header">
+    <div class="quiz-question-meta"><p class="eyebrow">${casual ? "Quiz Casual" : "Quiz Rywalizacja"}</p><span>${progress}</span></div>
+    <div class="quiz-clock"><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))} s</span>
+      <div class="quiz-clock-track" aria-hidden="true"><div data-quiz-clock-fill></div></div>
+    </div>
+  </div>
+  <div class="quiz-question-copy">
+    <p class="quiz-casual-status ${reveal ? "quiz-reveal-status" : ""}" role="status">${status}</p>
+    <h1>${escapeHtml(question.q)}</h1>
+  </div>`;
+}
+
 function casualMarkup(game, accounts, currentUser) {
   const question = questionById(game.questionIds[game.questionIndex]);
   const committed = game.answers?.[currentUser];
@@ -324,39 +351,118 @@ function casualMarkup(game, accounts, currentUser) {
     const state = revealed
       ? index === question.answer ? "is-correct" : selected ? "is-wrong" : ""
       : selected ? "is-chosen" : "";
-    const text = `<span class="quiz-option-label">${escapeHtml(option)}</span>`;
+    const text = answerLabel(option,index);
     if (!revealed) {
-      if (removed.includes(index)) return '<div class="quiz-option quiz-option-removed" aria-label="Opcja odrzucona przez 50:50">—</div>';
+      if (removed.includes(index)) return `<div class="quiz-option quiz-option-removed" aria-label="Opcja odrzucona przez 50:50"><span class="quiz-option-key" aria-hidden="true">${answerLetters[index]}</span><span class="quiz-option-label">—</span></div>`;
       const votes = peek ? `<small class="quiz-peek-count">Głosy · ${peek[index]}</small>` : "";
-      const disabled = committed != null || selected;
-      return `<button type="button" class="quiz-option ${state}" data-quiz-answer="${index}" ${disabled ? "disabled" : ""} aria-pressed="${selected}">${text}${votes}</button>`;
+      return `<button type="button" class="quiz-option ${state}" data-quiz-answer="${index}" ${committed != null || selected ? "disabled" : ""} aria-pressed="${selected}">${text}${votes}</button>`;
     }
     const label = state === "is-correct" ? "Poprawna odpowiedź" : state === "is-wrong" ? "Twoja błędna odpowiedź" : "";
-    return `<div class="quiz-option ${state}">${text}${label ? `<small>${label}</small>` : ""}${answerVoters(game,index,accounts)}</div>`;
+    return `<div class="quiz-option ${state}">${text}${label ? `<small class="quiz-answer-verdict">${label}</small>` : ""}${answerVoters(game,index,accounts)}</div>`;
   }).join("");
-  const status = revealed ? (lastQuestion ? "Wyniki za" : "Następne pytanie za")
+  const status = revealed ? (lastQuestion ? "Wyniki za chwilę" : "Odsłonięcie odpowiedzi")
     : committed != null ? "Odpowiedź zapisana"
     : double ? (chosen == null ? "Wybierz pierwszą odpowiedź" : "Wybierz drugą odpowiedź")
     : "Czas na odpowiedź";
-  return `<p class="eyebrow">QUIZ · PYTANIE ${game.questionIndex+1}/${game.questionIds.length}</p>
-    <h1>${escapeHtml(question.q)}</h1>${revealed ? "" : lifelineButtons(game,currentUser)}
-    <div class="quiz-options">${options}</div>
-    <div class="quiz-bottom"><span class="quiz-casual-status" role="status">${status}</span><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span></div>`;
+  return `${quizQuestionHeader(game,question,status)}<div class="quiz-options">${options}</div>
+    ${revealed ? "" : lifelineButtons(game,currentUser)}`;
 }
 
-function competitiveMarkup(game, accounts, currentUser) { const q=questionById(game.questionIds[game.questionIndex]);const active=game.phase==="r1"?game.order[game.turnIndex]:game.responder;const choose=game.phase==="r3-choose"&&game.responder===currentUser;return `<p class="eyebrow">QUIZ · RYWALIZACJA · ${game.phase.toUpperCase()}</p><h1>${escapeHtml(q.q)}</h1><div class="quiz-stations">${game.order.map(uid=>`<div class="quiz-station ${uid===active?"is-active":""}">${avatarHtml(accounts[uid]||{nick:"Gracz"},"quiz-station-avatar")}<b>${escapeHtml(accounts[uid]?.nick||"Gracz")}</b><span>${game.scores[uid]||0} pkt · ${game.hearts?.[uid]??3} ♥</span></div>`).join("")}</div>${game.phase==="r2-buzz"||game.phase==="r3-buzz"?`<button class="primary quiz-buzz" data-quiz-buzz>Zgłaszam się!</button>`:""}${choose?`<div class="quiz-choose-player"><p>Wybierz, kto odpowie:</p>${game.order.filter(uid=>!game.eliminated?.includes(uid)).map(uid=>`<button class="ghost" data-quiz-choose="${uid}">${escapeHtml(accounts[uid]?.nick||"Gracz")}</button>`).join("")}</div>`:""}${game.phase!=="r3-choose"?`<div class="quiz-options">${q.options.map((option,index)=>`<button class="quiz-option" data-quiz-answer="${index}" ${active!==currentUser?"disabled":""}>${escapeHtml(option)}</button>`).join("")}</div>`:""}<div class="quiz-bottom"><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span></div>`; }
-function resultMarkup(game, accounts) { const ranking=Object.entries(game.scores||{}).sort(([,a],[,b])=>b-a),topScore=Math.max(0,...ranking.map(([,score])=>Number(score)||0)),rows=ranking.map(([uid,score],i)=>`<div class="quiz-result-row"><b>${i+1}.</b>${resultPlayerMiniHtml(accounts[uid],Number(score)===topScore&&topScore>0?"win":"lose")}<strong>${score} pkt</strong></div>`).join("");return `<section class="panel quiz-panel center"><p class="eyebrow">QUIZ · WYNIKI</p><h1>${game.variant==="casual"?"Wyniki":"Podium"}</h1><div class="quiz-results">${rows}</div><button class="primary" id="quiz-lobby">Wróć do lobby</button></section>`; }
+function competitiveMarkup(game, accounts, currentUser) {
+  const question = questionById(game.questionIds[game.questionIndex]);
+  const active = game.phase === "r1" ? game.order[game.turnIndex] : game.responder;
+  const canBuzz = game.phase.endsWith("-buzz");
+  const choosing = game.phase === "r3-choose";
+  const status = choosing ? "Wybór odpowiadającego gracza" : canBuzz ? "Zgłoś się do odpowiedzi" : "Czas na odpowiedź";
+  const stations = game.order.map(uid => `<div class="quiz-station ${uid===active?"is-active":""}">
+    ${avatarHtml(accounts[uid]||{nick:"Gracz"},"quiz-station-avatar")}<b>${escapeHtml(accounts[uid]?.nick||"Gracz")}</b>
+    <span>${game.scores[uid]||0} pkt · ${game.hearts?.[uid]??3} ♥</span></div>`).join("");
+  const choices = choosing && game.responder === currentUser
+    ? `<div class="quiz-choose-player">${game.order.filter(uid=>!game.eliminated?.includes(uid)).map(uid=>`<button class="ghost" data-quiz-choose="${uid}">${escapeHtml(accounts[uid]?.nick||"Gracz")}</button>`).join("")}</div>` : "";
+  const answers = choosing ? "" : `<div class="quiz-options">${question.options.map((option,index)=>`<button class="quiz-option" data-quiz-answer="${index}" ${active!==currentUser?"disabled":""}>${answerLabel(option,index)}</button>`).join("")}</div>`;
+  return `${quizQuestionHeader(game,question,status)}${answers}
+    ${canBuzz ? '<button class="primary quiz-buzz" data-quiz-buzz>Zgłaszam się!</button>' : ""}${choices}
+    <div class="quiz-stations">${stations}</div>`;
+}
+
+function resultMarkup(game, accounts, currentUser) {
+  const ranking = Object.entries(game.scores || {}).sort(([,a],[,b])=>b-a);
+  const topScore = Number(ranking[0]?.[1] || 0);
+  let place = 1;
+  const rows = ranking.map(([uid, score], index) => {
+    if (index > 0 && score !== ranking[index-1][1]) place = index + 1;
+    return `<article class="quiz-result-row ${uid===currentUser?"is-self":""}"><b>${place}.</b>
+      ${resultPlayerMiniHtml(accounts[uid],Number(score)===topScore&&topScore>0?"win":"lose")}<strong>${score} pkt</strong>
+    </article>`;
+  }).join("");
+  return `<p class="eyebrow">Quiz · Wyniki końcowe</p><h1>${game.variant==="casual"?"Wyniki":"Podium"}</h1>
+    <div class="quiz-results">${rows}</div><button class="primary" id="quiz-lobby">Wróć do lobby</button>`;
+}
+
+function quizPresentationState(view, room, currentUser) {
+  const game = room.game;
+  const match = game.siteGameId || game.startedAt || game.questionIds.join(",");
+  const session = JSON.stringify([room.roomId,match,currentUser]);
+  if (!quizPresentation.has(session)) {
+    if (quizPresentation.size >= 12) quizPresentation.delete(quizPresentation.keys().next().value);
+    quizPresentation.set(session, {heard:new Set()});
+  }
+  const state = quizPresentation.get(session);
+  const soundStage = game.phase === "result" ? "result" : `${game.questionIndex}:${game.phase}`;
+  const stageChanged = state.stage !== soundStage;
+  if (stageChanged) {
+    state.stage = soundStage;
+    state.startedAt = performance.now();
+    state.heard.clear();
+  }
+  const panel = view.querySelector(".quiz-panel");
+  const elapsed = performance.now() - state.startedAt;
+  if (elapsed < 340) {
+    panel.style.setProperty("--quiz-enter-delay", `${-elapsed}ms`);
+    panel.classList.add("quiz-stage-enter");
+  }
+
+  let cue = stageChanged ? "question" : "";
+  let key = soundStage;
+  if (game.phase === "result") cue = "result";
+  else if (game.phase === "question-reveal") {
+    const answer = questionById(game.questionIds[game.questionIndex]).answer;
+    const first = game.answers?.[currentUser];
+    cue = first == null ? "reveal" : first === answer || game.bonusAnswers?.[currentUser] === answer ? "correct" : "miss";
+  } else if (game.variant === "casual") {
+    const used = Object.keys(lifelineTypes).filter(type => activeLifeline(game,currentUser,type)).length;
+    if (game.answers?.[currentUser] != null || activeLifeline(game,currentUser,"double")?.first != null) {
+      cue = "lock";
+      key += game.answers?.[currentUser] != null ? ":locked" : ":first";
+    } else if (used) {
+      cue = "lifeline";
+      key += `:lifeline:${used}`;
+    }
+  } else if (!["r1","r2-buzz","r3-buzz"].includes(game.phase)) cue = "";
+
+  const playerStage = JSON.stringify([session,key]);
+  panel.dataset.quizCue = playerStage;
+  if (!cue || state.heard.has(key)) return;
+  state.heard.add(key);
+  const screen = view.parentElement || view;
+  const isCurrent = () => screen.isConnected && screen.querySelector(".quiz-panel")?.dataset.quizCue === playerStage;
+  void Audio.playSfxSample(new URL(`../assets/quiz/${cue}.wav`,import.meta.url).href,isCurrent).catch(()=>{});
+}
+
 export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   stopQuizTimer();
   const game = room.game;
-  if (game.phase === "result") {
-    root.innerHTML = `<main class="page quiz-page">${resultMarkup(game,accounts)}</main>`;
+  const casual = game.variant === "casual";
+  const finished = game.phase === "result";
+  const phaseClass = finished ? "quiz-finished" : game.phase === "question-reveal" ? "quiz-reveal" : "";
+  const markup = finished ? resultMarkup(game,accounts,currentUser) : casual
+    ? casualMarkup(game,accounts,currentUser) : competitiveMarkup(game,accounts,currentUser);
+  root.innerHTML = `<main class="page quiz-page ${casual?"quiz-casual":"quiz-competitive"} ${phaseClass}"><section class="panel quiz-panel">${markup}</section></main>`;
+  quizPresentationState(root,room,currentUser);
+  if (finished) {
     root.querySelector("#quiz-lobby")?.addEventListener("click",actions.returnToRoom);
     return;
   }
-  const casual = game.variant === "casual";
-  const markup = casual ? casualMarkup(game,accounts,currentUser) : competitiveMarkup(game,accounts,currentUser);
-  root.innerHTML = `<main class="page quiz-page ${casual?"quiz-casual":"enter"}"><section class="panel quiz-panel">${markup}</section></main>`;
   const expected = {phase:game.phase, phaseEndsAt:game.phaseEndsAt, questionIndex:game.questionIndex};
   root.querySelectorAll("[data-quiz-answer]").forEach(button => {
     button.addEventListener("click", () => actions.quizAnswer(Number(button.dataset.quizAnswer),expected));
@@ -369,9 +475,19 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
     button.addEventListener("click", () => actions.quizChoose(button.dataset.quizChoose,expected));
   });
   const countdown = root.querySelector("[data-quiz-countdown]");
-  renderQuizGame.countdown = setInterval(() => {
-    if (countdown) countdown.textContent = `${Math.max(0,Math.ceil((expected.phaseEndsAt-Date.now())/1000))}s`;
-  },250);
+  const fill = root.querySelector("[data-quiz-clock-fill]");
+  const clock = fill.closest(".quiz-clock");
+  const duration = game.phase === "question-reveal" ? casualRevealMs
+    : (casual ? Math.max(30,Math.min(180,Number(game.questionTime)||60))
+      : game.phase === "r2-answer" ? 10 : game.phase === "r3-answer" ? 20 : 30) * 1000;
+  const updateClock = () => {
+    const remaining = Math.max(0,expected.phaseEndsAt-Date.now());
+    countdown.textContent = `${Math.ceil(remaining/1000)} s`;
+    clock.classList.toggle("is-urgent", remaining <= 5000 && game.phase !== "question-reveal");
+    fill.style.transform = `scaleX(${Math.min(1,remaining/duration)})`;
+  };
+  updateClock();
+  renderQuizGame.countdown = setInterval(updateClock,250);
   renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
 }
 export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
