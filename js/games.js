@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261127-3";
+import { renderGame } from "./game.js?v=20261127-4";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261126-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
@@ -19,7 +19,7 @@ import { pokemonDefaults, renderPokemonGame } from "./pokemon.js?v=20261124-2";
 import { wavelengthDefaults, renderWavelengthGame } from "./wavelength.js?v=20261121-9";
 import { chartForecastDefaults, chartForecastMode } from "./chartForecast.js?v=20261121-20";
 import { chartForecastSoloMode, renderChartForecastGame } from "./chartForecastView.js?v=20261124-2";
-import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261127-3";
+import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261127-4";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-8";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20261121-8";
