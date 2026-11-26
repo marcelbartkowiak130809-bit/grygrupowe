@@ -22,7 +22,7 @@ import { auctionBattleBotAction, battleTeam } from "./pokemonAuctionBattle.js?v=
 import { auctionDuelNeedsBot } from "./pokemonAuctionDuel.js?v=20261123-10";
 import { auctionBotBidLimit } from "./pokemonAuctionBot.js?v=20261123-16";
 import { WavelengthEngine } from "./wavelength.js?v=20261121-9";
-import { QuizEngine, quizQuestions } from "./quiz.js?v=20261121-8";
+import { QuizEngine, questionById } from "./quiz.js?v=20261126-2";
 import { MathematicsEngine } from "./mathematics.js?v=20261121-8";
 import { MarkerEngine } from "./marker.js?v=20261121-8";
 import { SequenceEngine, markSequenceReady, timeoutSequenceCreation } from "./sequence.js?v=20261121-8";
@@ -217,9 +217,8 @@ function proveAnswer(game) {
   return task?.answers?.find(answer => answer && !used.has(String(answer).trim().toLowerCase())) || "";
 }
 
-const quizById = new Map(quizQuestions.map(question => [question.id, question]));
 function quizBotOption(game, knowsAnswer) {
-  const question = quizById.get(game.questionIds?.[game.questionIndex]) || quizQuestions[0];
+  const question = questionById(game.questionIds?.[game.questionIndex]);
   return knowsAnswer ? question.answer : randomBotChoice(question.options.map((_, i) => i).filter(i => i !== question.answer));
 }
 

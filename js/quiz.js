@@ -1,3 +1,4 @@
+import { quizQuestionRows } from "../content/quiz/questions.js?v=20261126-2";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
 export const quizDefaults = { quizVariant:"casual", questionCount:10, questionTime:60, difficulty:"medium", showOthersAnswers:true };
@@ -8,9 +9,7 @@ const capitalQuestions = capitals.map(([country,answer]) => makeQuestion(`Stolic
 const facts = [
   ["Ile dni ma rok przestępny?","366",["364","365","367"]],["Ile boków ma sześciokąt?","6",["5","7","8"]],["Jaki ocean jest największy?","Spokojny",["Atlantycki","Indyjski","Arktyczny"]],["Która planeta jest najbliżej Słońca?","Merkury",["Wenus","Mars","Jowisz"]],["Jak nazywa się naturalny satelita Ziemi?","Księżyc",["Europa","Tytan","Fobos"]],["Ile kolorów ma tęcza?","7",["5","6","8"]],["Jaki gaz jest potrzebny do oddychania?","Tlen",["Azot","Wodór","Hel"]],["Który metal ma symbol Fe?","Żelazo",["Miedź","Srebro","Cyna"]],["Ile minut ma godzina?","60",["30","90","100"]],["Który kontynent jest najmniejszy?","Australia",["Europa","Antarktyda","Ameryka Południowa"]],["Jak nazywa się proces, w którym rośliny tworzą pokarm?","Fotosynteza",["Fermentacja","Grawitacja","Erozja"]],["Który sport rozgrywa się na korcie?","Tenis",["Hokej","Golf","Boks"]],["Ile strun ma standardowa gitara?","6",["4","5","8"]],["Jaki język ma najwięcej rodzimych użytkowników?","Chiński",["Angielski","Hiszpański","Arabski"]],["Które zwierzę jest ssakiem?","Delfin",["Rekin","Żaba","Pstrąg"]],["Jaki jest wynik 9 × 9?","81",["72","90","99"]],["Która pora roku następuje po lecie?","Jesień",["Wiosna","Zima","Przedwiośnie"]],["Jak nazywa się nauka o gwiazdach?","Astronomia",["Geologia","Biologia","Meteorologia"]],["Który instrument ma klawisze?","Fortepian",["Skrzypce","Flet","Perkusja"]],["Ile planet ma Układ Słoneczny?","8",["7","9","10"]]
 ].map(([q,a,o])=>makeQuestion(q,a,o));
-const mathQuestions = Array.from({length:70},(_,index)=>{const a=2+(index%9),b=3+((index*3)%9),answer=a*b;return makeQuestion(`Ile to ${a} × ${b}?`,String(answer),[String(answer+1),String(answer-2),String(answer+9)]);});
-const squareQuestions = Array.from({length:40},(_,index)=>{const n=2+(index%19),answer=n*n;return makeQuestion(`Ile wynosi ${n}²?`,String(answer),[String(answer-1),String(answer+2),String(answer+10)]);});
-const percentageQuestions = Array.from({length:60},(_,index)=>{const base=20+(index%10)*10, percent=10+((index*10)%6)*5, answer=base*percent/100;return makeQuestion(`Ile wynosi ${percent}% z ${base}?`,String(answer),[String(answer+base/10),String(answer+5),String(answer+10)]);});
+// Keep the original IDs and correct answer index for games started before the catalog update.
 const nonMathSeeds = [...capitalQuestions,...facts];
 const difficultyTemplates = {
   easy:["Odpowiedz: %Q","Szybkie pytanie — %Q","Która odpowiedź pasuje do pytania: %Q","Sprawdź podstawową wiedzę: %Q","Wybierz poprawną odpowiedź. %Q","Quiz dla każdego: %Q","Znasz odpowiedź? %Q","Rozgrzewka: %Q","Jedno proste pytanie: %Q","Wiedza ogólna: %Q"],
@@ -21,10 +20,37 @@ function buildDifficultyPool(difficulty) {
   const templates=difficultyTemplates[difficulty];
   return Array.from({length:300},(_,index)=>{const seed=nonMathSeeds[index%nonMathSeeds.length],template=templates[index%templates.length];return {...seed,id:`${difficulty}-${index}`,difficulty,q:template.replace("%Q",seed.q)};});
 }
-export const quizQuestions = ["easy","medium","hard"].flatMap(buildDifficultyPool);
-const questionById = id => quizQuestions.find(item=>item.id===id) || quizQuestions[0];
+const legacyQuestions = Object.keys(quizQuestionRows).flatMap(buildDifficultyPool);
+
+function newQuestion(difficulty, row, index) {
+  const [q, correct, ...wrong] = row;
+  const id = `v2-${difficulty}-${index}`;
+  // The ID is stored in the room. Derive the same answer order on every device.
+  let seed = 2166136261;
+  for (const char of id) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
+  const options = [correct, ...wrong];
+  for (let i = options.length - 1; i > 0; i--) {
+    seed = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b);
+    const j = (seed >>> 0) % (i + 1);
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  return { id, difficulty, q, options, answer:options.indexOf(correct) };
+}
+
+export const quizQuestions = Object.entries(quizQuestionRows)
+  .flatMap(([difficulty, rows]) => rows.map((row, index) => newQuestion(difficulty, row, index)));
+const questionsById = new Map([...quizQuestions, ...legacyQuestions].map(question => [question.id, question]));
+export const questionById = id => questionsById.get(id) || quizQuestions[0];
 const phaseEnd = seconds => Date.now() + Math.max(30,Math.min(180,Number(seconds)||60))*1000;
-const shuffle = list => [...list].sort(()=>Math.random()-.5);
+
+function shuffle(list) {
+  const result = [...list];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
 
 function ensureCompetitiveState(game, players) {
   const ids = Array.isArray(players) ? players : [];
@@ -43,16 +69,116 @@ export function createQuizGame(players, settings) {
   const variant=settings.quizVariant === "competitive" ? "competitive" : "casual";
   const scores=Object.fromEntries(players.map(uid=>[uid,0]));
   if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=["easy","medium","hard"].includes(settings.difficulty)?settings.difficulty:"medium",pool=quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, playerCount:players.length, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, skipVotes:[], scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
-  return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).slice(0,30).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
+  return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
 }
 function saveCasualHistory(game) { game.history=Array.isArray(game.history)?game.history:[];game.history.push({id:game.questionIds[game.questionIndex],answers:{...(game.answers||{})}}); }
 function nextCasualQuestion(game) { const next=game.questionIndex+1;if(next>=game.questionIds.length){game.phase="result";game.finished=true;return;}game.questionIndex=next;game.answers={};game.skipVotes=[];game.phaseEndsAt=phaseEnd(game.questionTime||60); }
 function completeCasualQuestion(game, players) { if (Object.keys(game.answers||{}).length < players.length) return; saveCasualHistory(game);nextCasualQuestion(game); }
 function casualAnswer(game, uid, option, players) { if(game.phase!=="question"||game.answers?.[uid]!=null)return "Odpowiedź została już wysłana.";game.answers=game.answers||{};game.answers[uid]=Number(option);const question=questionById(game.questionIds[game.questionIndex]);if(Number(option)===question.answer)game.scores[uid]+=1;completeCasualQuestion(game,players); }
 function casualSkip(game, uid, players) { game.skipVotes=Array.isArray(game.skipVotes)?game.skipVotes:[];if(!game.skipVotes.includes(uid))game.skipVotes.push(uid);if(game.skipVotes.length>=Math.ceil(players.length/2)){saveCasualHistory(game);nextCasualQuestion(game);} }
-function competitiveAdvance(game, players, settings) { ensureCompetitiveState(game,players); game.turnIndex=(game.turnIndex+1)%game.order.length;game.r1Turns+=1;if(game.r1Turns>=players.length*3){game.phase="r2-buzz";game.questionIndex=0;game.responder="";game.phaseEndsAt=phaseEnd(10);}else game.phaseEndsAt=phaseEnd(20); }
-function competitiveAnswer(game, uid, option, players, settings) { ensureCompetitiveState(game,players); const q=questionById(game.questionIds[game.questionIndex]), correct=Number(option)===q.answer;if(game.phase==="r1"&&game.order[game.turnIndex]===uid){if(correct){game.scores[uid]+=1;if(Date.now()<game.phaseEndsAt-(20*750))game.scores[uid]+=2;}competitiveAdvance(game,players,settings);return;}if((game.phase==="r2-answer"||game.phase==="r3-answer")&&game.responder===uid){if(correct){game.scores[uid]+=1;if(Date.now()<game.answerStartedAt+2500)game.scores[uid]+=2;}else if(game.phase==="r2-answer")game.scores[uid]=Math.max(0,game.scores[uid]-1);else{game.hearts[uid]=Math.max(0,(game.hearts[uid]||0)-1);if(game.hearts[uid]===0&&!game.eliminated.includes(uid))game.eliminated.push(uid);}if(game.phase==="r2-answer"){game.questionIndex+=1;if(game.questionIndex>=10){game.phase="r3-buzz";game.questionIndex=0;}else game.phase="r2-buzz";game.responder="";game.phaseEndsAt=phaseEnd(10);}else if(correct){game.phase="r3-choose";game.phaseEndsAt=phaseEnd(20);}else{game.responder="";game.phase=game.eliminated.includes(uid)&&players.filter(player=>!game.eliminated.includes(player)).length<=1?"result":"r3-buzz";game.finished=game.phase==="result";game.phaseEndsAt=phaseEnd(20);}} }
-export const QuizEngine = { answer(game,uid,option,players,settings){if(game.variant==="casual")return casualAnswer(game,uid,option,players);return competitiveAnswer(game,uid,option,players,settings);}, skip(game,uid,players){if(game.variant!=="casual")return "Skip jest dostępny tylko w Casual.";casualSkip(game,uid,players);}, buzz(game,uid,players){ensureCompetitiveState(game,players);if(!["r2-buzz","r3-buzz"].includes(game.phase)||game.responder)return "Ktoś już się zgłosił.";if(game.phase==="r3-buzz"&&game.eliminated.includes(uid))return "Ten gracz odpadł.";game.responder=uid;game.answerStartedAt=Date.now();game.phase=game.phase==="r2-buzz"?"r2-answer":"r3-answer";game.phaseEndsAt=Date.now()+(game.phase==="r2-answer"?10000:20000);}, choose(game,uid,target,players){ensureCompetitiveState(game,players);if(game.phase!=="r3-choose"||game.responder!==uid)return "To nie jest Twoja kolej.";if(players.includes(target)&&!game.eliminated.includes(target)){game.selectedUid=target;game.responder=target;game.phase="r3-answer";game.answerStartedAt=Date.now();game.phaseEndsAt=Date.now()+20000;}}, timeout(game,players,settings){if(game.variant==="casual"){saveCasualHistory(game);nextCasualQuestion(game);return;}ensureCompetitiveState(game,players);if(game.phase==="r1"){competitiveAdvance(game,players,settings);return;}if(game.phase==="r2-buzz"){game.questionIndex+=1;if(game.questionIndex>=10){game.questionIndex=0;game.phase="r3-buzz";}game.phaseEndsAt=phaseEnd(10);return;}if(game.phase==="r2-answer"){game.questionIndex+=1;game.responder="";game.phase=game.questionIndex>=10?"r3-buzz":"r2-buzz";game.phaseEndsAt=phaseEnd(10);return;}if(game.phase==="r3-choose"){game.responder="";game.phase="r3-buzz";game.phaseEndsAt=phaseEnd(20);return;}if(game.phase==="r3-buzz"){game.phaseEndsAt=phaseEnd(20);return;}if(game.phase==="r3-answer"){game.hearts[game.responder]=Math.max(0,(game.hearts[game.responder]||0)-1);if(game.hearts[game.responder]===0&&!game.eliminated.includes(game.responder))game.eliminated.push(game.responder);game.responder="";if(players.filter(uid=>!game.eliminated.includes(uid)).length<=1){game.phase="result";game.finished=true;}else{game.phase="r3-buzz";game.phaseEndsAt=phaseEnd(20);}}}, next(game,players,settings){if(game.phase!=="result")return "Gra jeszcze trwa.";return;}}
+function nextCompetitiveQuestion(game) {
+  if (game.questionIndex + 1 < game.questionIds.length) {
+    game.questionIndex += 1;
+    return true;
+  }
+  game.phase = "result";
+  game.finished = true;
+  return false;
+}
+
+function competitiveAdvance(game, players) {
+  game.turnIndex = (game.turnIndex + 1) % game.order.length;
+  game.r1Turns += 1;
+  if (!nextCompetitiveQuestion(game)) return;
+  if (game.r1Turns >= players.length * 3) {
+    game.phase = "r2-buzz";
+    game.r2Turns = 0;
+    game.responder = "";
+    game.phaseEndsAt = phaseEnd(10);
+  } else game.phaseEndsAt = phaseEnd(20);
+}
+
+function advanceBuzzer(game) {
+  const inRoundTwo = game.phase.startsWith("r2-");
+  // Saved games from before r2Turns used questionIndex to count this round.
+  if (inRoundTwo) game.r2Turns = (game.r2Turns ?? game.questionIndex) + 1;
+  if (!nextCompetitiveQuestion(game)) return;
+  game.responder = "";
+  game.phase = inRoundTwo && game.r2Turns < 10 ? "r2-buzz" : "r3-buzz";
+  game.phaseEndsAt = phaseEnd(game.phase === "r2-buzz" ? 10 : 20);
+}
+
+function loseCompetitiveHeart(game, uid, players) {
+  game.hearts[uid] = Math.max(0, (game.hearts[uid] || 0) - 1);
+  if (game.hearts[uid] === 0 && !game.eliminated.includes(uid)) game.eliminated.push(uid);
+  if (players.filter(player => !game.eliminated.includes(player)).length <= 1) {
+    game.phase = "result";
+    game.finished = true;
+  } else advanceBuzzer(game);
+}
+
+function competitiveAnswer(game, uid, option, players) {
+  ensureCompetitiveState(game, players);
+  const correct = Number(option) === questionById(game.questionIds[game.questionIndex]).answer;
+  if (game.phase === "r1" && game.order[game.turnIndex] === uid) {
+    if (correct) game.scores[uid] += Date.now() < game.phaseEndsAt - 15000 ? 3 : 1;
+    competitiveAdvance(game, players);
+  } else if (game.phase === "r2-answer" && game.responder === uid) {
+    if (correct) game.scores[uid] += Date.now() < game.answerStartedAt + 2500 ? 3 : 1;
+    else game.scores[uid] = Math.max(0, game.scores[uid] - 1);
+    advanceBuzzer(game);
+  } else if (game.phase === "r3-answer" && game.responder === uid) {
+    if (correct) {
+      game.scores[uid] += Date.now() < game.answerStartedAt + 2500 ? 3 : 1;
+      game.phase = "r3-choose";
+      game.phaseEndsAt = phaseEnd(20);
+    } else loseCompetitiveHeart(game, uid, players);
+  }
+}
+
+export const QuizEngine = {
+  answer(game, uid, option, players) {
+    if (game.variant === "casual") return casualAnswer(game, uid, option, players);
+    return competitiveAnswer(game, uid, option, players);
+  },
+  skip(game, uid, players) {
+    if (game.variant !== "casual") return "Skip jest dostępny tylko w Casual.";
+    casualSkip(game, uid, players);
+  },
+  buzz(game, uid, players) {
+    ensureCompetitiveState(game, players);
+    if (!["r2-buzz","r3-buzz"].includes(game.phase) || game.responder) return "Ktoś już się zgłosił.";
+    if (game.phase === "r3-buzz" && game.eliminated.includes(uid)) return "Ten gracz odpadł.";
+    game.responder = uid;
+    game.answerStartedAt = Date.now();
+    game.phase = game.phase === "r2-buzz" ? "r2-answer" : "r3-answer";
+    game.phaseEndsAt = Date.now() + (game.phase === "r2-answer" ? 10000 : 20000);
+  },
+  choose(game, uid, target, players) {
+    ensureCompetitiveState(game, players);
+    if (game.phase !== "r3-choose" || game.responder !== uid) return "To nie jest Twoja kolej.";
+    if (!players.includes(target) || game.eliminated.includes(target) || !nextCompetitiveQuestion(game)) return;
+    game.selectedUid = target;
+    game.responder = target;
+    game.phase = "r3-answer";
+    game.answerStartedAt = Date.now();
+    game.phaseEndsAt = Date.now() + 20000;
+  },
+  timeout(game, players) {
+    if (game.variant === "casual") {
+      saveCasualHistory(game);
+      nextCasualQuestion(game);
+      return;
+    }
+    ensureCompetitiveState(game, players);
+    if (game.phase === "r1") competitiveAdvance(game, players);
+    else if (game.phase === "r3-answer") loseCompetitiveHeart(game, game.responder, players);
+    else if (["r2-buzz", "r2-answer", "r3-choose", "r3-buzz"].includes(game.phase)) advanceBuzzer(game);
+  },
+  next(game) {
+    if (game.phase !== "result") return "Gra jeszcze trwa.";
+  },
+};
 
 function answerAvatars(game, option, accounts) { return Object.entries(game.answers||{}).filter(([,value])=>Number(value)===option).map(([uid])=>`<span class="quiz-answer-avatar" data-tooltip="${escapeHtml(accounts[uid]?.nick||"Gracz")}">${avatarHtml(accounts[uid]||{nick:"Gracz"},"quiz-avatar")}</span>`).join(""); }
 function casualMarkup(game, accounts, currentUser, settings) { const question=questionById(game.questionIds[game.questionIndex]), chosen=game.answers?.[currentUser], showOthers=settings.showOthersAnswers!==false;return `<p class="eyebrow">QUIZ · CASUAL · PYTANIE ${game.questionIndex+1}/${game.questionIds.length}</p><h1>${escapeHtml(question.q)}</h1><div class="quiz-options">${question.options.map((option,index)=>`<button class="quiz-option ${chosen!=null&&index===question.answer?"is-correct":""} ${chosen!=null&&index===chosen&&chosen!==question.answer?"is-wrong":""}" data-quiz-answer="${index}" ${chosen!=null?"disabled":""}><span>${escapeHtml(option)}</span>${showOthers?answerAvatars(game,index,accounts):""}</button>`).join("")}</div><div class="quiz-bottom"><span data-quiz-countdown>${Math.max(0,Math.ceil((game.phaseEndsAt-Date.now())/1000))}s</span><button class="ghost" data-quiz-skip>Skip · ${game.skipVotes?.length||0}/${Math.ceil((game.playerCount||2)/2)}</button></div>`; }
