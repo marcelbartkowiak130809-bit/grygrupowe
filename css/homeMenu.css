@@ -548,3 +548,15 @@ body:has(.home-menu-page,.route-three-fronts) {
     animation:none !important;
   }
 }
+.home-menu-page .platform-share-panel:has(.share-qr) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.share-qr { display: block; justify-self: start; border-radius: 10px; }
+.share-qr img { display: block; border-radius: inherit; image-rendering: pixelated; }
+.share-qr:focus-visible { outline: 2px solid #22d3ee; outline-offset: 4px; }
+@media (max-width: 600px) {
+  .home-menu-page .platform-share-panel:has(.share-qr) { gap: 12px; padding: 12px; }
+  .home-menu-page .share-copy h2 { font-size: 1.1rem; }
+  .home-menu-page .share-copy .share-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .home-menu-page .share-copy .share-actions button { width: auto; padding-inline: 9px; }
+}

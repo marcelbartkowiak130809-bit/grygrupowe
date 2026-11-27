@@ -318,12 +318,15 @@ function pollPanelHtml(context = {}, stateOverride = null) {
 
 function sharePanelHtml() {
   return `<section class="platform-share-panel">
+    <a class="share-qr" href="/assets/icons/gry-grupowe-qr.png" target="_blank" rel="noopener" aria-label="Otwórz większy kod QR do strony głównej">
+      <img src="/assets/icons/gry-grupowe-qr.png" width="123" height="123" loading="lazy" alt="Kod QR do Gry Grupowe z logo strony">
+    </a>
     <div class="share-copy">
-      <p class="eyebrow">UDOSTEPNIJ STRONE</p>
-      <h2>Zapros ekipę do gry</h2>
-      <p class="muted">Udostepnij link znajomym albo skopiuj go i wyslij tam, gdzie umawiacie gre.</p>
+      <p class="eyebrow">UDOSTĘPNIJ STRONĘ</p>
+      <h2>Zaproś ekipę do gry</h2>
+      <p class="muted">Zeskanuj kod QR albo wyślij znajomym link.</p>
       <div class="share-actions">
-        <button class="primary" type="button" id="share-site-link">${icon("share", 17)} Udostepnij</button>
+        <button class="primary" type="button" id="share-site-link">${icon("share", 17)} Udostępnij</button>
         <button class="ghost" type="button" id="copy-site-link">${icon("copy", 17)} Kopiuj link</button>
       </div>
     </div>

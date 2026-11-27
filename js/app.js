@@ -70,7 +70,7 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261127-14";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-15";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-16";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
 import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-15";
