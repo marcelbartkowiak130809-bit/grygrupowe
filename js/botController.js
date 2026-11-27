@@ -1,5 +1,5 @@
 import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./bots.js?v=20261121-8";
-import { categories } from "./categories.js?v=20260824-2";
+import { categories } from "./categories.js?v=20261127-10";
 import { normalizeAnswer } from "./utils.js?v=20261121-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { ImpostorEngine } from "./impostor.js?v=20261126-1";

@@ -1,1 +1,1 @@
-export { categories } from "../content/udowodnij/categories.js?v=20260824-2";
+export { categories } from "../content/udowodnij/categories.js?v=20261127-10";

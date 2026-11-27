@@ -1,13 +1,13 @@
-import { categories } from "./categories.js?v=20260824-2";
-import { $, escapeHtml, icon, normalizeAnswer, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
-import { playerMini } from "./room.js?v=20261127-9";
-import { Audio } from "./audio.js";
-import { Effects } from "./effects.js";
+import { categories } from "./categories.js?v=20261127-10";
+import { escapeHtml, icon, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
+import { Audio } from "./audio.js?v=20261123-7";
 import { canonicalAnswerKey } from "../content/udowodnij/expandedPools.js?v=20260604-8";
 import { serverNow } from "./firebase.js?v=20261124-2";
 
 let timerId;
 let lastCountdown;
+const presentation = new Map();
+export const proveSummaryMs = 5000;
 
 export function answerList(value) {
   return Array.isArray(value) ? value : Object.values(value || {});
@@ -22,12 +22,17 @@ export function provePhaseEnd(seconds) {
   return serverNow() + Number(seconds || 0) * 1000;
 }
 
-export function createNewRound(players, answerTime, round = 1, totalRounds = 5) {
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  const task = category.tasks[Math.floor(Math.random() * category.tasks.length)];
+export function createNewRound(players, answerTime, round = 1, totalRounds = 5, recentTaskIds = []) {
+  const seen = new Set(answerList(recentTaskIds));
+  const available = categories.filter(category => category.tasks.some(task => !seen.has(task.id)));
+  const pool = available.length ? available : categories;
+  const category = pool[Math.floor(Math.random() * pool.length)];
+  const tasks = available.length ? category.tasks.filter(task => !seen.has(task.id)) : category.tasks;
+  const task = tasks[Math.floor(Math.random() * tasks.length)];
   const starter = players[Math.floor(Math.random() * players.length)];
   return {
-    phase: "initialBid", categoryId: category.id, taskId: task.id, starter,
+    phase: "initialBid", categoryId: category.id, taskId: task.id,
+    usedTaskIds: [...seen,task.id], starter,
     currentBid: 1, currentBidder: starter,
     decisionPlayer: nextProvePlayer(players, starter),
     answers: [], validCount: 0, requiredCount: 1, result: null,
@@ -38,7 +43,7 @@ export function createNewRound(players, answerTime, round = 1, totalRounds = 5) 
 export function stopGameTimer() {
   clearInterval(timerId);
   timerId = null;
-  lastCountdown = null;
+
 }
 
 export function evaluateAnswer(value, validAnswers, previousAnswers = []) {
@@ -55,104 +60,168 @@ export function evaluateAnswer(value, validAnswers, previousAnswers = []) {
   };
 }
 
-function gameContent(room, accounts, currentUser) {
-  const game = room.game;
-  const roundLabel = `<p class="eyebrow">RUNDA ${Number(game.round) || 1}/${Number(game.totalRounds) || Number(room.settings?.rounds) || 5}</p>`;
-  if (game.phase === "gameSummary") {
-    const ranking = Object.entries(game.roundWins || {}).sort(([,a],[,b]) => Number(b) - Number(a));
-    const topScore = Math.max(0, ...ranking.map(([, score]) => Number(score) || 0));
-    return `<section class="panel center result-card prove-turn-card"><p class="eyebrow">KONIEC GRY</p><h1>Wyniki końcowe</h1><p class="muted">Rozegrano ${Number(game.totalRounds) || 5} rund.</p><div class="prove-final-ranking">${ranking.map(([uid, score], index) => `<div><b>${index + 1}.</b>${resultPlayerMiniHtml(accounts[uid], Number(score) === topScore && topScore > 0 ? "win" : "lose")}<span>${Number(score) || 0} pkt</span></div>`).join("") || '<p class="muted">Brak wyników.</p>'}</div><button class="primary" id="return-to-room">Wróć do lobby</button></section>`;
+const playerName = (accounts, uid) => escapeHtml(accounts[uid]?.nick || "Gracz");
+const stageLabels = { initialBid:"Deklaracja", bidding:"Licytacja", answering:"Odpowiedzi", result:"Wynik rundy" };
+
+function scoreRows(game, players, accounts, activeUid) {
+  return players.map(uid=>`<article class="prove-player ${uid===activeUid?"is-active":""}">
+    ${playerMiniHtml(accounts[uid]||{nick:"Gracz"})}<b>${Number(game.roundWins?.[uid])||0} pkt</b>
+  </article>`).join("");
+}
+
+function answerFeed(game) {
+  const answers = answerList(game.answers);
+  return `<section class="prove-feed"><h3>Odpowiedzi <span>${answers.length}</span></h3>
+    <ul>${answers.map((answer,index)=>`<li class="${answer.valid?"is-valid":"is-invalid"}" data-prove-answer="${index}">
+      <span aria-label="${answer.valid?"Poprawna":"Błędna"}">${answer.valid?"✓":"×"}</span>${escapeHtml(answer.raw)}
+    </li>`).join("") || '<li class="muted">Jeszcze brak odpowiedzi</li>'}</ul>
+  </section>`;
+}
+
+function roundContent(game, accounts, currentUser, hostUid, totalRounds) {
+  if (game.phase === "initialBid") return `<div class="prove-focus">
+    <h2>${game.starter===currentUser?"Ile odpowiedzi podasz?":playerName(accounts,game.starter)+" zaczyna"}</h2>
+    ${game.starter===currentUser
+      ? `<form class="prove-form" id="bid-form"><input id="bid-input" type="number" aria-label="Liczba odpowiedzi" min="1" max="50" required value="${Number(game.currentBid)||1}" inputmode="numeric"><button class="primary">Deklaruję</button></form>`
+      : '<p class="muted">Czekamy na pierwszą deklarację.</p>'}
+  </div>`;
+  if (game.phase === "bidding") return `<div class="prove-focus">
+    <div class="prove-bid" data-prove-bid><strong>${Number(game.currentBid)||1}</strong><span>Deklaracja gracza ${playerName(accounts,game.currentBidder)}</span></div>
+    <h2>${game.decisionPlayer===currentUser?"Przebijasz czy sprawdzasz?":"Decyduje: "+playerName(accounts,game.decisionPlayer)}</h2>
+    ${game.decisionPlayer===currentUser ? `<div class="prove-actions"><button class="primary" id="plus-one">${icon("plus",18)} Podbij do ${Number(game.currentBid)+1}</button><button class="danger" id="challenge">${icon("shield",18)} Udowodnij!</button></div>`:""}
+  </div>`;
+  if (game.phase === "answering") {
+    const count = Number(game.validCount)||0, target = Math.max(1,Number(game.requiredCount)||1);
+    return `<div class="prove-play-grid">
+      <div class="prove-focus">
+        <h2>${game.currentBidder===currentUser?"Twoja kolej":"Odpowiada: "+playerName(accounts,game.currentBidder)}</h2>
+        <div class="prove-answer-count"><strong>${count}</strong><span>/ ${target}</span></div>
+        <div class="prove-progress" role="progressbar" aria-label="Poprawne odpowiedzi" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${count}"><div style="transform:scaleX(${Math.min(1,count/target)})"></div></div>
+        ${game.lastChance ? '<p class="prove-last-chance">Ostatnia szansa · dodatkowe 8 sekund</p>' : ""}
+        ${game.currentBidder===currentUser ? '<form class="prove-form" id="answer-form"><input id="answer-input" aria-label="Odpowiedź" placeholder="Wpisz odpowiedź…" autocomplete="off" enterkeyhint="send" required><button class="primary">Dodaj</button></form><button class="ghost prove-surrender" id="surrender-round" type="button">Poddaję się</button>' : ""}
+      </div>${answerFeed(game)}</div>`;
   }
-  if (game.phase === "initialBid") return `<section class="panel center prove-turn-card">${roundLabel}
-    <h2>Startuje: ${accounts[game.starter]?.nick}</h2>
-    ${game.starter === currentUser ? `<p>Ile dasz radę wymienić?</p><form class="bid-entry" id="bid-form"><input id="bid-input" class="number-input" type="number" min="1" max="50" value="${game.currentBid || 1}" inputmode="numeric"><button class="primary" type="submit">Deklaruję</button></form>` : '<p class="muted">Czekamy aż gracz poda pierwszą liczbę.</p>'}
-  </section>`;
-  if (game.phase === "bidding") return `<section class="panel center prove-turn-card">${roundLabel}
-    <p class="eyebrow">LICYTACJA</p><h2>Aktualna deklaracja: <span class="bid">${game.currentBid}</span></h2>
-    <p>Licytuje: <b>${accounts[game.currentBidder]?.nick}</b></p><p>Decyduje teraz: <b>${accounts[game.decisionPlayer]?.nick}</b></p>
-    ${game.decisionPlayer === currentUser ? `<div class="choice-row"><button class="primary" id="plus-one">${icon("plus", 18)} +1</button><button class="danger big" id="challenge">${icon("shield", 18)} Udowodnij!</button></div>` : '<p class="muted">Czekamy na decyzję innego gracza.</p>'}
-  </section>`;
-  if (game.phase === "answering") return `<section class="panel center prove-turn-card">${roundLabel}
-    <p class="eyebrow">UDOWODNIJ</p><h2>${accounts[game.currentBidder]?.nick} musi udowodnić: <span class="bid">${game.validCount}/${game.requiredCount}</span></h2>
-    ${game.lastChance ? '<p class="warning">⏳ Ostatnia szansa aktywna — masz jeszcze 8 sekund na odpowiedź.</p>' : ""}<div class="answering-layout">
-      <div>${game.currentBidder === currentUser ? '<form class="answer-form" id="answer-form"><input id="answer-input" placeholder="wpisz odpowiedź..." autocomplete="off" autofocus><button class="primary" type="submit">Dodaj</button></form><button class="danger full" id="surrender-round" type="button">Poddaję się</button>' : '<p class="muted">Czekamy na odpowiedzi gracza.</p>'}</div>
-      <aside class="answer-list"><p class="eyebrow">WPISANE ODPOWIEDZI</p><div class="answers">${answerList(game.answers).map(answer => `<span class="answer ${answer.valid ? "valid" : "invalid"}">${escapeHtml(answer.raw)}</span>`).join("") || '<span class="muted">Jeszcze brak odpowiedzi.</span>'}</div></aside>
-    </div>
-  </section>`;
-  return `<section class="panel center result-card prove-turn-card">${roundLabel}
-    <h1>${game.result?.success ? "Dał radę!" : "Nie dał rady!"}</h1><div class="result-focus-player">${resultPlayerMiniHtml(accounts[game.currentBidder], game.result?.success ? "win" : "lose")}</div><p>${game.result?.text}</p>
-    ${game.result?.leftRoom ? '<p class="muted">Gracz został usunięty z kolejnych rund. Ta runda nie przyznaje coinów.</p>' : game.result?.success ? '<p class="money-pop">Udowadniający gracz dostał +100$</p>' : '<p class="money-pop">Pozostali gracze dostali +100$</p>'}
-    <div class="answer-list result-answer-list"><p class="eyebrow">ODPOWIEDZI W TEJ RUNDZIE</p><div class="answers">${answerList(game.answers).map(answer => `<span class="answer ${answer.valid ? "valid" : "invalid"}">${escapeHtml(answer.raw)}</span>`).join("") || '<span class="muted">Brak wpisanych odpowiedzi.</span>'}</div></div>
-    <button class="primary" id="next-round">${Number(game.round) >= Number(game.totalRounds || room.settings?.rounds || 5) ? "Pokaż wyniki" : "Następna runda"}</button>
+  const winner = game.result?.success, left = game.result?.leftRoom;
+  const title = left ? "Runda przerwana" : winner ? "Dał radę!" : "Nie dał rady!";
+  const final = Number(game.round)>=totalRounds;
+  const rewards = left ? "" : `<small>${winner?"Odpowiadający":"Pozostali gracze"} · +100$</small>`;
+  return `<div class="prove-play-grid">
+    <div class="prove-focus prove-round-result ${winner?"is-win":left?"":"is-loss"}" data-prove-result>
+      <h2>${title}</h2><p>${escapeHtml(game.result?.text||"")}</p>${rewards}
+      <div class="prove-round-clock" data-prove-round-clock>
+        <span>${final?"Wyniki końcowe":"Następna runda"} za <b data-round-advance-countdown>5 s</b></span>
+        <div class="prove-progress" aria-hidden="true"><div data-prove-advance-fill></div></div>
+      </div>
+      <button class="ghost" id="next-round" ${hostUid!==currentUser?"hidden":""}>${final?"Pokaż wyniki":"Przejdź dalej"}</button>
+    </div>${answerFeed(game)}</div>`;
+}
+
+function finalContent(game, accounts, currentUser) {
+  const rank = Object.entries(game.roundWins||{}).sort(([,a],[,b])=>Number(b)-Number(a));
+  const top = Number(rank[0]?.[1])||0;
+  return `<section class="prove-surface prove-final" data-prove-result>
+    <h1>Wyniki końcowe</h1><div class="prove-final-ranking">${rank.map(([uid,score],index)=>`<div class="${uid===currentUser?"is-self":""}">
+    <b>${index+1}.</b>${resultPlayerMiniHtml(accounts[uid],top>0&&Number(score)===top?"win":"lose")}<span>${Number(score)||0} pkt</span></div>`).join("")}</div>
+    <button class="primary" id="return-to-room">Wróć do lobby</button>
   </section>`;
 }
 
-export function renderGame(root, { room, accounts, currentUser }, actions) {
+function presentUpdate(root,room) {
   const game = room.game;
-  const activeUid = game.phase === "initialBid" ? game.starter : game.phase === "bidding" ? game.decisionPlayer : game.phase === "answering" ? game.currentBidder : "";
-  const category = categories.find(item => item.id === game.categoryId) || categories[0];
-  const task = category.tasks.find(item => item.id === game.taskId) || category.tasks[0];
-  const timeLeft = Math.max(0, Math.ceil((game.phaseEndsAt - serverNow()) / 1000));
-  const roundNumber = Number(game.round) || 1, totalRounds = Number(game.totalRounds) || Number(room.settings?.rounds) || 5;
-  const summary = game.phase === "gameSummary";
-  root.innerHTML = `<main class="page enter board-shell prove-page">
-    <section class="panel game-top prove-board-head">
-      <div><p class="eyebrow">RUNDA ${roundNumber}/${totalRounds} · KATEGORIA</p><h1>${game.phase === "gameSummary" ? "Podsumowanie" : category.name}</h1><h2>${game.phase === "gameSummary" ? "Zakończona rozgrywka" : task.prompt}</h2></div>
-      <div class="timer-box ${!summary && timeLeft <= 5 ? "timer-urgent" : ""}">${icon("timer", 24)}<b id="timer">${summary ? "Koniec" : `${timeLeft}s`}</b></div>
-    </section>
-    <section class="prove-table"><i></i><i></i><i></i><i></i>${gameContent(room, accounts, currentUser)}</section>
-    <section class="player-grid board-game-players">${room.players.map(uid => `<article class="player-card ${uid === activeUid ? "active-board-player" : ""}">${playerMini(accounts[uid])}<p class="muted">$${accounts[uid]?.nickOnly ? accounts[uid]?.sessionMoney || 0 : accounts[uid]?.money || 0}</p></article>`).join("")}</section>
-    <button class="ghost leave-game" id="leave-room">Wyjdź z pokoju</button>
-  </main>`;
-  if(game.phase==="result")Effects.play(game.result?.success?"roundWin":"roundFail",`${room.roomId}:udowodnij:${game.result?.success}:${game.phaseEndsAt}`);
-  $("#leave-room").addEventListener("click", actions.leaveRoom);
-  $("#bid-form")?.addEventListener("submit", event => { event.preventDefault(); actions.submitInitialBid($("#bid-input").value); });
-  $("#plus-one")?.addEventListener("click", actions.plusOne);
-  $("#challenge")?.addEventListener("click", actions.challenge);
-  $("#next-round")?.addEventListener("click", actions.nextRound);
-  $("#return-to-room")?.addEventListener("click", actions.returnToRoom);
-  const submitCurrentAnswer = async () => {
-    const input = $("#answer-input");
-    if (!input) return;
-    const accepted = await actions.submitAnswer(input.value, task.answers);
-    const freshInput = $("#answer-input");
-    if (accepted && freshInput) {
-      freshInput.value = "";
-      freshInput.focus();
-    }
+  const match = JSON.stringify([room.roomId,game.siteGameId||game.startedAt||"",game.round]);
+  const answers = answerList(game.answers);
+  const key = JSON.stringify([match,game.phase,game.currentBid,answers.length,game.lastChance]);
+  const previous = presentation.get(room.roomId);
+  if (previous?.key === key) return;
+  if (!previous && presentation.size >= 24) presentation.delete(presentation.keys().next().value);
+  presentation.set(room.roomId,{key,match,phase:game.phase});
+  const stageChanged = previous?.match!==match || previous?.phase!==game.phase;
+  const animate = (node,frames)=>{
+    if (node?.animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) node.animate(frames,{duration:300,easing:"ease-out"});
   };
-  $("#answer-form")?.addEventListener("submit", event => {
-    event.preventDefault();
-    submitCurrentAnswer();
-  });
-  $("#surrender-round")?.addEventListener("click", actions.surrenderRound);
-  $("#answer-input")?.addEventListener("keydown", event => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    submitCurrentAnswer();
-  });
-  $("#answer-input")?.focus();
-  startTimer(room, accounts, currentUser, actions);
+  if (stageChanged) {
+    animate(root.querySelector(".prove-surface:last-of-type"),[{opacity:.65,translate:"0 5px"},{opacity:1,translate:"0 0"}]);
+    if (game.phase==="result") Audio.play(game.result?.success?"success":"roundEnd");
+  } else if (game.phase==="bidding") {
+    animate(root.querySelector("[data-prove-bid] strong"),[{scale:1.14},{scale:1}]);
+  } else if (game.phase==="answering" && answers.length) {
+    animate(root.querySelector(`[data-prove-answer="${answers.length-1}"]`),[{opacity:.4,translate:"-9px 0"},{opacity:1,translate:"0 0"}]);
+    Audio.play(answers.at(-1).valid?"success":"error");
+  }
 }
 
-function startTimer(room, accounts, currentUser, actions) {
-  stopGameTimer();
+export function renderGame(root, {room, accounts, currentUser}, actions) {
   const game = room.game;
-  timerId = setInterval(() => {
-    const timeLeft = Math.max(0, Math.ceil((game.phaseEndsAt - serverNow()) / 1000));
-    const timer = $("#timer");
-    if (timer) {
-      timer.textContent = `${timeLeft}s`;
-      timer.parentElement.classList.toggle("timer-urgent", timeLeft <= 5);
+  const activeUid = game.phase==="initialBid" ? game.starter : game.phase==="bidding" ? game.decisionPlayer : game.phase==="answering" ? game.currentBidder : "";
+  const category = categories.find(item=>item.id===game.categoryId)||categories[0];
+  const task = category.tasks.find(item=>item.id===game.taskId)||category.tasks[0];
+  const total = Number(game.totalRounds)||Number(room.settings?.rounds)||5;
+  const final = game.phase==="gameSummary";
+  root.innerHTML = `<main class="page prove-page prove-redesign">
+    ${final ? finalContent(game,accounts,currentUser) : `
+      <header class="prove-surface prove-header"><div class="prove-heading">
+        <p class="eyebrow">Udowodnij! · Runda ${Number(game.round)||1}/${total}</p><p class="prove-category">${escapeHtml(category.name)}</p>
+        <h1>${escapeHtml(task.prompt)}</h1>
+      </div>${activeUid ? '<div class="prove-clock"><b id="timer"></b><div class="prove-progress" aria-hidden="true"><div data-prove-timer-fill></div></div></div>' : ""}</header>
+      <section class="prove-surface prove-stage"><p class="eyebrow">${stageLabels[game.phase]||"Udowodnij!"}</p>
+        ${roundContent(game,accounts,currentUser,room.hostUid,total)}
+      </section>`}
+    ${final ? "" : `<div class="prove-player-grid">${scoreRows(game,room.players,accounts,activeUid)}</div>`}
+    <button class="ghost prove-leave" id="leave-room">Wyjdź z pokoju</button>
+  </main>`;
+  const on = (id,event,handler)=>root.querySelector(id)?.addEventListener(event,handler);
+  on("#leave-room","click",actions.leaveRoom);
+  on("#bid-form","submit",event=>{event.preventDefault();actions.submitInitialBid(root.querySelector("#bid-input").value);});
+  on("#plus-one","click",actions.plusOne);
+  on("#challenge","click",actions.challenge);
+  on("#next-round","click",actions.nextRound);
+  on("#return-to-room","click",actions.returnToRoom);
+  on("#surrender-round","click",actions.surrenderRound);
+  on("#answer-form","submit",async event=>{
+    event.preventDefault();
+    const input = root.querySelector("#answer-input");
+    const value = input.value;
+    if (input.dataset.sending) return;
+    input.dataset.sending = "true";
+    // Clearing before the transaction prevents the old answer entering the next draft.
+    input.value = "";
+    try {
+      if (!await actions.submitAnswer(value,task.answers) && input.isConnected && !input.value) input.value = value;
+    } finally {
+      delete input.dataset.sending;
     }
-    if (timeLeft > 0 && timeLeft <= 3 && lastCountdown !== timeLeft) {
-      lastCountdown = timeLeft;
+  });
+  presentUpdate(root,room);
+  startTimer(root,room,accounts,currentUser,actions);
+}
+
+function startTimer(root,room,accounts,currentUser,actions) {
+  stopGameTimer();
+  const timer = root.querySelector("#timer");
+  if (!timer) return;
+  const game = room.game;
+  const fill = root.querySelector("[data-prove-timer-fill]");
+  const duration = 1000*(game.lastChance ? 8 : game.phase==="bidding"
+    ? Math.round((Number(room.settings?.answerTime)||20)/2) : Number(game.answerTime)||20);
+  const phase = JSON.stringify([room.roomId,game.round,game.phase,game.phaseEndsAt]);
+  timerId = setInterval(tick,125);
+  tick();
+  function tick() {
+    if (!timer.isConnected) return stopGameTimer();
+    const remaining = Math.max(0,game.phaseEndsAt-serverNow());
+    const timeLeft = Math.ceil(remaining/1000);
+    const label = `${timeLeft} s`;
+    if (timer.textContent!==label) timer.textContent = label;
+    timer.parentElement.classList.toggle("is-urgent",timeLeft<=5);
+    fill.style.transform = `scaleX(${Math.min(1,remaining/duration)})`;
+    if (timeLeft===3 && lastCountdown!==phase) {
+      lastCountdown = phase;
       Audio.play("countdown");
     }
-    if (timeLeft !== 0) return;
+    if (remaining) return;
     stopGameTimer();
-    if (game.phase === "initialBid" && game.starter === currentUser) actions.submitInitialBid(game.currentBid || 1);
-    if (game.phase === "answering" && !game.result && game.currentBidder === currentUser) actions.failRound(game.currentBidder, `${accounts[game.currentBidder]?.nick} nie dał rady.`);
-    if (game.phase === "bidding" && game.decisionPlayer === currentUser) actions.challenge();
-  }, 250);
+    if (game.phase==="initialBid" && game.starter===currentUser) actions.submitInitialBid(game.currentBid||1);
+    if (game.phase==="answering" && !game.result && game.currentBidder===currentUser) actions.failRound(game.currentBidder,`${accounts[game.currentBidder]?.nick||"Gracz"} nie dał rady zdobyć wymaganych odpowiedzi.`);
+    if (game.phase==="bidding" && game.decisionPlayer===currentUser) actions.challenge();
+  }
 }

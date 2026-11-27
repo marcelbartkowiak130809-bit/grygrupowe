@@ -1,0 +1,112 @@
+.prove-redesign {
+  --prove-bg: #141b2d;
+  --prove-raised: #1c263c;
+  --prove-line: #344361;
+  --prove-ink: #f5f7ff;
+  --prove-detail: #b8c6dd;
+  --prove-gold: #ffcf81;
+  --prove-blue: #81cfff;
+  --prove-mint: #81e5bb;
+  --prove-red: #ffa7ae;
+  display: grid;
+  gap: 12px;
+  width: min(100%, 1024px);
+  margin-inline: auto;
+  color: var(--prove-ink);
+}
+
+.light-theme .prove-redesign {
+  --prove-bg: #fffdf9;
+  --prove-raised: #f0f3fb;
+  --prove-line: #c0cde0;
+  --prove-ink: #1f2b42;
+  --prove-detail: #465773;
+  --prove-gold: #824b12;
+  --prove-blue: #155d96;
+  --prove-mint: #126847;
+  --prove-red: #a42b4b;
+}
+
+.prove-surface {
+  padding: clamp(14px, 3.4vw, 28px);
+  border: 1px solid var(--prove-line);
+  border-radius: clamp(15px, 3vw, 24px);
+  background: var(--prove-bg);
+  box-shadow: 0 12px 34px #04081a27;
+  min-width: 0;
+}
+.prove-redesign .prove-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(10px, 3vw, 24px);
+  background:
+    radial-gradient(ellipse at 92% 2%, color-mix(in srgb, var(--prove-blue) 16%, transparent), transparent 65%),
+    var(--prove-bg);
+}
+.prove-heading { min-width: 0; }
+.prove-redesign .eyebrow { color: var(--prove-gold); margin: 0 0 7px; }
+.prove-category { color: var(--prove-detail); margin: 0 0 4px; font-size: .83rem; font-weight: 700; }
+.prove-redesign :is(h1,h2,h3) { color: var(--prove-ink); margin: 0; overflow-wrap: anywhere; }
+.prove-redesign h1 { font-size: clamp(1.24rem, 4vw, 2.25rem); line-height: 1.18; text-wrap: balance; }
+.prove-redesign h2 { font-size: clamp(1.12rem, 3.4vw, 1.65rem); }
+.prove-redesign .muted { color: var(--prove-detail); }
+.prove-clock { width: clamp(54px, 15vw, 95px); flex-shrink: 0; display: grid; gap: 5px; color: var(--prove-blue); text-align: right; }
+.prove-clock b { color: inherit; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 4vw, 1.45rem); white-space: nowrap; }
+.prove-clock.is-urgent { color: var(--prove-red); }
+.prove-progress { height: 5px; background: var(--prove-line); border-radius: 5px; overflow: hidden; }
+.prove-progress > div { width: 100%; height: 100%; background: currentColor; transform-origin: left; }
+.prove-stage > .eyebrow { margin-bottom: 12px; }
+.prove-focus { display: grid; align-content: center; gap: 12px; min-width: 0; }
+.prove-focus p { margin: 0; overflow-wrap: anywhere; }
+.prove-stage > .prove-focus { max-width: 480px; margin-inline: auto; justify-items: center; text-align: center; }
+.prove-bid, .prove-answer-count { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.prove-bid { display: grid; justify-items: center; line-height: 1; }
+.prove-bid strong, .prove-answer-count strong {
+  color: var(--prove-gold);
+  font-size: clamp(2.5rem, 9vw, 4.5rem);
+  line-height: .95;
+  font-variant-numeric: tabular-nums;
+}
+.prove-bid span, .prove-answer-count span { color: var(--prove-detail); }
+.prove-answer-count + .prove-progress { color: var(--prove-mint); }
+.prove-actions, .prove-form { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.prove-actions button { flex: 1 1 140px; }
+.prove-redesign button { min-height: 44px; }
+.prove-redesign button:focus-visible { outline: 2px solid var(--prove-blue); outline-offset: 2px; }
+.prove-form input { flex: 1 1 115px; min-width: 0; min-height: 44px; font-size: 16px; }
+.prove-form #bid-input { flex-basis: 70px; text-align: center; }
+.prove-surrender { justify-self: start; }
+.prove-last-chance { color: var(--prove-gold); font-weight: 800; font-size: .85rem; }
+.prove-play-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0, .9fr); gap: clamp(12px, 3vw, 24px); align-items: start; }
+.prove-feed { border: 1px solid var(--prove-line); border-radius: 13px; padding: 11px; background: var(--prove-raised); min-width: 0; }
+.prove-feed h3 { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 8px; font-size: .9rem; }
+.prove-feed h3 span { color: var(--prove-detail); }
+.prove-feed ul { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; max-height: 190px; overflow: auto; }
+.prove-feed li { max-width: 100%; overflow-wrap: anywhere; border-radius: 8px; padding: 5px 8px; font-size: .82rem; background: var(--prove-bg); }
+.prove-feed li > span { margin-right: 4px; font-weight: 900; }
+.prove-feed .is-valid, .prove-round-result.is-win h2 { color: var(--prove-mint); }
+.prove-feed .is-invalid, .prove-round-result.is-loss h2 { color: var(--prove-red); }
+.prove-round-result small { color: var(--prove-detail); }
+.prove-round-result button { justify-self: start; }
+.prove-round-clock { display: grid; gap: 5px; color: var(--prove-blue); font-size: .85rem; }
+.prove-round-clock b { color: inherit; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prove-player-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(160px,100%),1fr)); gap: 7px; }
+.prove-player { display: flex; min-width: 0; align-items: center; gap: 6px; padding: 7px 9px; background: var(--prove-raised); border: 1px solid var(--prove-line); border-radius: 11px; }
+.prove-player.is-active { border-color: var(--prove-blue); box-shadow: inset 3px 0 var(--prove-blue); }
+.prove-redesign .mini-player { flex: 1; min-width: 0; gap: 5px; }
+.prove-redesign .mini-player .avatar { width: 28px; height: 28px; flex: none; }
+.prove-redesign .mini-player .nick { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+.prove-player > b, .prove-final-ranking > div > span { color: var(--prove-gold); font-size: .73rem; white-space: nowrap; }
+.prove-final { text-align: center; }
+.prove-final-ranking > div { align-items: center; background: var(--prove-raised); border-color: var(--prove-line); }
+.prove-final-ranking > .is-self { border-color: var(--prove-blue); }
+.prove-redesign .prove-leave { justify-self: start; color: var(--prove-ink); background: var(--prove-bg); border-color: var(--prove-line); }
+.prove-redesign [hidden] { display: none; }
+
+@media (max-width: 600px) {
+  .prove-redesign { padding-inline: 10px; gap: 9px; }
+  .prove-play-grid { grid-template-columns: 1fr; }
+  .prove-feed ul { max-height: 118px; }
+  .prove-player-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

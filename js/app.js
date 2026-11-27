@@ -12,9 +12,9 @@ import { gameMomentKey, roundAdvanceDeadline } from "./roomLifecycle.js";
 import { GUESS_PEOPLE_MODE, reconcileGuessPeople } from "./guessPeople.js?v=20261121-8";
 import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, upgradeGuestAuth, saveGuestUpgrade, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261124-2";
-import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, stopGameTimer } from "./game.js?v=20261127-9";
+import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, proveSummaryMs, stopGameTimer } from "./game.js?v=20261127-10";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261127-9";
+import { gamesList, getGameMode } from "./games.js?v=20261127-10";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261126-1";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261124-2";
@@ -69,13 +69,13 @@ let renderedTopBar = "";
 import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings, sanitizeBoardSettings, stopBoardGameTimer } from "./boardGames.js?v=20261124-2";
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
-import { createRoomModal, renderLobby } from "./lobby.js?v=20261127-9";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-9";
+import { createRoomModal, renderLobby } from "./lobby.js?v=20261127-10";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-10";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-9";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-10";
 import { Router } from "./router.js?v=20261124-6";
-import { playerMini, renderRoom } from "./room.js?v=20261127-9";
+import { playerMini, renderRoom } from "./room.js?v=20261127-10";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -83,7 +83,7 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261124-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261127-9";
+import { scheduleBot } from "./botController.js?v=20261127-10";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
@@ -853,12 +853,13 @@ function claimPendingProgress(room) {
 }
 function settleProveResult(room) {
   if(!room?.game||room.gameMode!=="udowodnij"||room.game.phase!=="result"||!room.game.result||room.game.result.rewarded||room.game.result.leftRoom)return;
+  room.game.result.revealEndsAt ||= serverNow()+proveSummaryMs;
   const winners = room.game.result.success ? [room.game.currentBidder] : room.players.filter(uid=>uid!==room.game.result.loser);
   if(room.game.result.success)addPlayerMoney(room.game.currentBidder,100);
   else winners.forEach(uid=>addPlayerMoney(uid,100));
   room.game.roundWins={...(room.game.roundWins||{})}; winners.forEach(uid=>{room.game.roundWins[uid]=(Number(room.game.roundWins[uid])||0)+1;});
-  rewardRoomXp(room,18,winners);playCurrentUserResultSound(winners);
-  room.game.result.rewarded=true;saveAccounts(state.accounts);Audio.play(room.game.result.success?"success":"roundEnd");
+  rewardRoomXp(room,18,winners);
+  room.game.result.rewarded=true;saveAccounts(state.accounts);
 }
 function settleImpostorResult(room) {
   if (!room?.game || room.game.phase !== "results" || !room.game.result || room.game.result.rewarded) return;
@@ -1397,7 +1398,7 @@ function requiredProvePlayers(room) {
 function interruptProveRoundForDeparture(room, leavingPlayerId) {
   if(!requiredProvePlayers(room).includes(leavingPlayerId))return false;
   const nick=state.accounts[leavingPlayerId]?.nick||room.playerProfiles?.[leavingPlayerId]?.nick||"Gracz";
-  room.game={...room.game,phase:"result",phaseEndsAt:Date.now(),result:{success:false,loser:leavingPlayerId,leftRoom:true,text:`${nick} opuścił pokój. Runda została przerwana.`}};
+  room.game={...room.game,phase:"result",phaseEndsAt:Date.now(),result:{success:false,loser:leavingPlayerId,leftRoom:true,revealEndsAt:serverNow()+proveSummaryMs,text:`${nick} opuścił pokój. Runda została przerwana.`}};
   return true;
 }
 function interruptProveRoundWithMissingPlayer(room) {
@@ -2794,7 +2795,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     },{sound:action==="submit"?"submit":"turn",quietRejected:action!=="submit"});
   },
   submitInitialBid(value) {
-    const amount=Math.max(1,Math.min(50,parseInt(value||"1",10)));
+    const amount=Math.max(1,Math.min(50,parseInt(value||"1",10)||1));
     return mutateRoomGame((game,room)=>{if(game.phase!=="initialBid"||game.starter!==state.currentUser)return"Pierwszą deklarację podaje teraz inny gracz.";game.phase="bidding";game.currentBid=amount;game.currentBidder=state.currentUser;game.decisionPlayer=nextProvePlayer(room.players,state.currentUser);game.phaseEndsAt=provePhaseEnd(Math.round(room.settings.answerTime/2));},{sound:"bid"});
   },
   plusOne() {
@@ -2804,10 +2805,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     return mutateRoomGame((game,room)=>{if(game.phase!=="bidding"||game.decisionPlayer!==state.currentUser)return"Decyzję podejmuje teraz inny gracz.";game.phase="answering";game.requiredCount=game.currentBid;game.answers=[];game.validCount=0;game.phaseEndsAt=provePhaseEnd(room.settings.answerTime);},{sound:"challenge"});
   },
   async submitAnswer(answer, validAnswers) {
-    let submittedAnswer;
-    const accepted=await mutateRoomGame(game=>{if(game.phase!=="answering"||game.currentBidder!==state.currentUser)return"Teraz odpowiada inny gracz.";const previousAnswers=answerList(game.answers),result=evaluateAnswer(answer,validAnswers,previousAnswers);if(result.error)return result.error;submittedAnswer=result.answer;game.answers=[...previousAnswers,result.answer];game.validCount=game.answers.filter(item=>item.valid).length;if(game.validCount>=game.requiredCount){game.phase="result";game.result={success:true,loser:null,text:`${state.accounts[game.currentBidder]?.nick} udowodnił!`};}},{after:settleProveResult});
-    if(accepted&&submittedAnswer)Effects.hit(submittedAnswer.valid);
-    return accepted;
+    return mutateRoomGame(game=>{if(game.phase!=="answering"||game.currentBidder!==state.currentUser)return"Teraz odpowiada inny gracz.";const previousAnswers=answerList(game.answers),result=evaluateAnswer(answer,validAnswers,previousAnswers);if(result.error)return result.error;game.answers=[...previousAnswers,result.answer];game.validCount=game.answers.filter(item=>item.valid).length;if(game.validCount>=game.requiredCount){game.phase="result";game.result={success:true,loser:null,text:`${state.accounts[game.currentBidder]?.nick} udowodnił!`};}},{after:settleProveResult});
   },
   failRound(loser, text, options={}) {
     return mutateRoomGame((game,room)=>{if(game.phase!=="answering"||game.result||game.currentBidder!==loser)return"Runda odpowiedzi została już zakończona.";const canUse=options.allowPass!==false&&hasGamePass(profile(),"proof-last-chance")&&!game.passUses?.[loser]?.["proof-last-chance"]&&!game.lastChance;if(canUse){game.passUses=game.passUses||{};game.passUses[loser]={...(game.passUses[loser]||{}),"proof-last-chance":true};game.lastChance=true;game.phaseEndsAt=provePhaseEnd(8);return;}game.lastChance=false;game.phase="result";game.result={success:false,loser,text};},{after:settleProveResult});
@@ -2817,7 +2815,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     if(!room?.game||room.game.phase!=="answering"||room.game.currentBidder!==state.currentUser)return;
     return actions.failRound(state.currentUser,`${state.accounts[state.currentUser]?.nick || "Gracz"} poddał się.`,{allowPass:false});
   },
-  nextRound() { const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="result")return"Ta runda jeszcze się nie zakończyła.";const total=Math.max(1,Number(game.totalRounds||current.settings?.rounds)||5);if(Number(game.round||1)>=total){game.phase="gameSummary";game.finished=true;game.summary=game.roundWins||{};current.status="results";return;}const wins=game.roundWins||{}, passUses=game.passUses||{};Object.assign(game,createNewRound(current.players,current.settings.answerTime,Number(game.round||1)+1,total));game.roundWins=wins;game.passUses=passUses;},{sound:"turn"}); },
+  nextRound() { const room=activeRoom();if(closeLonelyFinishedRoom(room,{notify:true}))return;return mutateRoomGame((game,current)=>{if(game.phase!=="result")return"Ta runda jeszcze się nie zakończyła.";const total=Math.max(1,Number(game.totalRounds||current.settings?.rounds)||5);if(Number(game.round||1)>=total){game.phase="gameSummary";game.finished=true;game.summary=game.roundWins||{};current.status="results";return;}const wins=game.roundWins||{}, passUses=game.passUses||{};Object.assign(game,createNewRound(current.players,current.settings.answerTime,Number(game.round||1)+1,total,game.usedTaskIds||[game.taskId]));game.roundWins=wins;game.passUses=passUses;},{sound:"turn"}); },
   async impostorAcknowledgeRole(){
     const room=activeRoom();if(!room?.game||room.gameMode!=="impostor"||room.game.phase!=="roleReveal")return;
     if(room.game.acknowledged?.[state.currentUser])return;
@@ -3457,7 +3455,7 @@ function addHonorPrompt(view, room) {
 const renderHappyHourBanner = createHappyHourBanner(root, serverNow, event => message(`${event.icon} Happy Hour: ${event.label}`, "info"));
 
 const roundAdvanceControls = {
-  udowodnij: { selector: "#next-round", action: "nextRound", delay: 3000 },
+  udowodnij: { selector: "#next-round", action: "nextRound", delay: proveSummaryMs },
   "inne-pytanie": { selector: "#other-next", action: "otherNext" },
   "kto-najpredzej": { selector: "#most-next", action: "mostLikelyNext" },
   bomba: { selector: "#bomb-next-round", action: "bombNextRound" },
@@ -3500,27 +3498,35 @@ function setupRoundAdvance(view, room, actions) {
   const key = `${room.roomId}:${room.gameMode}:${moment}:${resultIdentity}`;
   const delay = Number(config.delay) || 10000;
   const storedDeadline = Number(roundAdvanceDeadlines.get(key) || 0);
-  const deadline = roundAdvanceDeadline(room.gameMode === "popularnosc-hitow" ? game : {}, storedDeadline, delay);
+  const isProve = room.gameMode === "udowodnij";
+  const now = isProve ? serverNow : Date.now;
+  const sharedDeadline = isProve ? game.result?.revealEndsAt : null;
+  const deadline = sharedDeadline || roundAdvanceDeadline(room.gameMode === "popularnosc-hitow" ? game : {}, storedDeadline, delay, now());
   roundAdvanceDeadlines.set(key, deadline);
-  const finalReveal=(room.gameMode === "zegar" && game.result?.gameOver) || (room.gameMode === "udowodnij" && Number(game.round || 1) >= Number(game.totalRounds || room.settings?.rounds || 5));
-  const notice = document.createElement("p");
-  notice.className = "round-advance-notice";
-  const autoLabel=finalReveal ? "Podsumowanie pokaże się automatycznie za" : "Kolejna runda rozpocznie się automatycznie za";
-  notice.innerHTML = isHost ? `${autoLabel} <b data-round-advance-countdown></b>.` : `Czekamy na hosta. ${autoLabel} <b data-round-advance-countdown></b>.`;
-  button.insertAdjacentElement("afterend", notice);
+  let notice = view.querySelector("[data-prove-round-clock]");
+  if (!notice) {
+    notice = document.createElement("p");
+    notice.className = "round-advance-notice";
+    const finalReveal = room.gameMode === "zegar" && game.result?.gameOver;
+    const autoLabel = finalReveal ? "Podsumowanie pokaże się automatycznie za" : "Kolejna runda rozpocznie się automatycznie za";
+    notice.innerHTML = isHost ? `${autoLabel} <b data-round-advance-countdown></b>.` : `Czekamy na hosta. ${autoLabel} <b data-round-advance-countdown></b>.`;
+    button.insertAdjacentElement("afterend", notice);
+  }
+  const countdown = notice.querySelector("[data-round-advance-countdown]");
+  const fill = notice.querySelector("[data-prove-advance-fill]");
   const update = () => {
-    const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-    const countdown = notice.querySelector("[data-round-advance-countdown]");
-    if (countdown) countdown.textContent = `${left}s`;
-    return left;
+    const remaining = Math.max(0,deadline-now());
+    const label = `${Math.ceil(remaining/1000)}${isProve?" ":""}s`;
+    if (countdown && countdown.textContent!==label) countdown.textContent = label;
+    if (fill) fill.style.transform = `scaleX(${Math.min(1,remaining/delay)})`;
   };
   update();
-  roundAdvanceInterval = window.setInterval(update, 1000);
+  roundAdvanceInterval = window.setInterval(update, fill ? 125 : 1000);
   roundAdvanceTimer = window.setTimeout(() => {
     window.clearInterval(roundAdvanceInterval);
     const current = activeRoom();
     if (current?.roomId === room.roomId && current.hostUid === state.currentUser && current.gameMode === room.gameMode && gameMomentKey(current.game) === moment) actions[config.action]();
-  }, Math.max(100, deadline - Date.now() + 50));
+  }, Math.max(100, deadline - now() + 50));
 }
 
 function syncAppShell() {
@@ -3710,7 +3716,7 @@ function renderNow(options = {}) {
       const repaired=repairGameStateForPlayers(room);
       if(repaired&&hasOnlineBackend()&&room.players.includes(state.currentUser)){const repairSignature=stableStringify({players:room.players,settings:room.settings,game:room.game});if(repairedRoomSignatures.get(room.roomId)!==repairSignature){repairedRoomSignatures.set(room.roomId,repairSignature);touchRoom(room);}}
       settleAllResults(room); trackFinishedGame(room); recordCurrentUserGameHistory(room); scheduleRoomBot(room); lastRenderedScreenSignature=currentScreenSignature();
-      const customPhaseFeedback=["impostor","quiz"].includes(mode.id);
+      const customPhaseFeedback=["impostor","quiz","udowodnij"].includes(mode.id);
       const finalOutcome=customPhaseFeedback ? "" : finalGameOutcome(room); if (!customPhaseFeedback && !activeAuctionLots && !popularityRoom) markGamePhaseTransition(view,room); window.__gameFinalAudio=finalOutcome; window.__lastFinalEffect=false;
       const rendered=mode.render(view,{room,accounts:state.accounts,currentUser:state.currentUser,mode},actions);
       if(finalOutcome&&!window.__lastFinalEffect) Effects.play(finalOutcome,`${room.roomId}:final:${room.game.phase||""}:${room.game.round||0}:${room.game.finishedAt||""}`);

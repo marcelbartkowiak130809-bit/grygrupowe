@@ -358,3 +358,51 @@ for (const [id, answers] of Object.entries(additionalAnswers)) {
   const target = Object.values(specificTasks).flat().find(([taskId]) => taskId === id);
   if (target) target[2].push(...list(answers));
 }
+
+// Wyzwania tematyczne z osobnymi listami odpowiedzi.
+addSpecificTasks("animals", [
+  task("animals_cat_family", "Wymień gatunki kotowatych", "lew|tygrys|jaguar|lampart|gepard|puma|karakal|serwal|ocelot|manul|żbik|irbis|ryś euroazjatycki|ryś rudy|ryś kanadyjski|ryś iberyjski"),
+  task("animals_marine_mammals", "Wymień ssaki morskie", "płetwal błękitny|kaszalot|humbak|orka|narwal|białucha|morświn|delfin|foka szara|foka pospolita|mors|słoń morski|uchatka|manat|diugoń|wydra morska|wal grenlandzki"),
+  task("animals_venomous_snakes", "Wymień jadowite węże", "kobra królewska|kobra indyjska|żmija zygzakowata|żmija gabońska|mamba czarna|tajpan pustynny|tajpan australijski|grzechotnik diamentowy|grzechotnik teksaski|mokasyn miedziogłowiec|mokasyn błotny|wąż koralowy|żmija rogata|kobra egipska"),
+]);
+
+addSpecificTasks("food", [
+  task("food_polish_soups", "Wymień zupy spotykane w polskiej kuchni", "rosół|żurek|żur|barszcz czerwony|barszcz biały|pomidorowa|ogórkowa|krupnik|kapuśniak|kwaśnica|grochówka|flaki|botwinka|chłodnik|grzybowa|zupa grzybowa|zupa koperkowa|czernina|zupa szczawiowa|zupa jarzynowa|zupa kalafiorowa|zalewajka|zupa fasolowa"),
+  task("food_potato_dishes", "Wymień dania, w których ziemniaki są jednym z głównych składników", "frytki|placki ziemniaczane|kopytka|kluski śląskie|babka ziemniaczana|kiszka ziemniaczana|pyzy|kartacze|puree ziemniaczane|gnocchi|tortilla de patatas|rösti|poutine|ziemniaki pieczone|krokiety ziemniaczane|sałatka ziemniaczana|gratin dauphinois|pierogi ruskie|prażoki"),
+  task("food_dumplings_world", "Wymień potrawy z ciasta z nadzieniem z różnych kuchni świata", "pierogi|pielmieni|wareniki|chinkali|manti|gyoza|jiaozi|wonton|baozi|ravioli|tortellini|empanada|samosa|momo|siomai|uszka|calzone|börek"),
+]);
+
+addSpecificTasks("games", [
+  task("games_nintendo_series", "Wymień serie gier wydawane przez Nintendo", "super mario|mario kart|the legend of zelda|zelda|animal crossing|kirby|metroid|pikmin|splatoon|donkey kong|fire emblem|super smash bros|star fox|f zero|paper mario|xenoblade chronicles|luigis mansion|mario party|wario ware|advance wars|punch out"),
+  task("games_btd6_towers", "Wymień podstawowe wieże w Bloons TD 6", "dart monkey|boomerang monkey|bomb shooter|tack shooter|ice monkey|glue gunner|sniper monkey|monkey sub|monkey buccaneer|monkey ace|heli pilot|mortar monkey|dartling gunner|wizard monkey|super monkey|ninja monkey|alchemist|druid|banana farm|spike factory|monkey village|engineer monkey|beast handler|mermonkey|desperado"),
+  task("games_btd6_heroes", "Wymień bohaterów w Bloons TD 6", "quincy|gwendolin|striker jones|obyn greenfoot|captain churchill|benjamin|ezili|pat fusty|adora|admiral brickell|etienne|sauda|psi|geraldo|corvus|rosalia|silas"),
+]);
+
+addSpecificTasks("minecraft", [
+  task("minecraft_music_discs", "Wymień płyty muzyczne z Minecrafta po nazwie", "13|cat|blocks|chirp|far|mall|mellohi|stal|strad|ward|11|wait|pigstep|otherside|5|relic|precipice|creator|creator music box|tears|lava chicken"),
+  task("minecraft_armour_trims", "Wymień angielskie nazwy wzorów zdobienia zbroi w Minecrafcie", "sentry|dune|coast|wild|ward|eye|vex|tide|snout|rib|spire|wayfinder|shaper|silence|raiser|host|flow|bolt"),
+  task("minecraft_nether_mobs", "Wymień po angielsku moby naturalnie pojawiające się w Netherze", "ghast|zombified piglin|piglin|piglin brute|hoglin|strider|blaze|wither skeleton|magma cube|enderman|skeleton"),
+]);
+
+addSpecificTasks("music", [
+  task("music_wind_instruments", "Wymień instrumenty dęte", "flet|flet prosty|flet poprzeczny|pikkolo|klarnet|obój|rożek angielski|fagot|kontrafagot|saksofon|trąbka|puzon|waltornia|tuba|kornet|eufonium|suzafon|okaryna|harmonijka ustna|dudy|fletnia pana|didgeridoo"),
+  task("music_string_bowed", "Wymień instrumenty smyczkowe", "skrzypce|altówka|wiolonczela|kontrabas|viola da gamba|viola da braccio|rebab|erhu|nyckelharpa|morin khuur|sarangi|kemençe|fidele|gadulka|suka biłgorajska"),
+  task("music_artists_rap_us", "Wymień raperów i raperki z USA", "eminem|kendrick lamar|nas|jay z|2pac|snoop dogg|dr dre|kanye west|lil uzi vert|yeat|asap rocky|asap ferg|lil wayne|future|travis scott|tyler the creator|j cole|cardi b|megan thee stallion|missy elliott|lil kim|ice cube|50 cent|polo g|lil yachty|playboi carti|denzel curry|vince staples|jid|mac miller|notorious big|ludacris|kid cudi|doja cat|schoolboy q"),
+]);
+
+addSpecificTasks("countries", [
+  task("countries_med_sea", "Wymień państwa z wybrzeżem nad Morzem Śródziemnym lub jego morzami przybrzeżnymi", "hiszpania|francja|monako|włochy|malta|słowenia|chorwacja|bośnia i hercegowina|czarnogóra|albania|grecja|turcja|cypr|syria|liban|izrael|egipt|libia|tunezja|algieria|maroko"),
+  task("countries_south_america", "Wymień niepodległe państwa w Ameryce Południowej", "argentyna|boliwia|brazylia|chile|ekwador|gujana|kolumbia|paragwaj|peru|surinam|urugwaj|wenezuela"),
+]);
+
+addSpecificTasks("nature", [
+  task("nature_national_parks_pl", "Wymień parki narodowe w Polsce", "babiogórski|białowieski|biebrzański|bieszczadzki|bory tucholskie|drawieński|gorczański|gór stołowych|kampinoski|karkonoski|magurski|narwiański|ojcowski|pieniński|poleski|roztoczański|słowiński|świętokrzyski|tatrzański|ujście warty|wielkopolski|wigierski|woliński"),
+  task("nature_clouds", "Wymień łacińskie nazwy podstawowych rodzajów chmur", "cirrus|cirrocumulus|cirrostratus|altocumulus|altostratus|nimbostratus|stratocumulus|stratus|cumulus|cumulonimbus"),
+  task("nature_deciduous_trees", "Wymień drzewa liściaste rosnące w Polsce", "dąb|buk|grab|klon|lipa|brzoza|olcha|jesion|wiąz|topola|wierzba|osika|jarząb|kasztanowiec|robinia|jawor|platan|miłorząb|orzech|jabłoń|grusza|czereśnia|śliwa|głóg"),
+]);
+
+addSpecificTasks("tech", [
+  task("tech_connectors", "Wymień złącza lub standardy przewodowego łączenia urządzeń", "usb|usb a|usb b|usb c|micro usb|mini usb|hdmi|mini hdmi|micro hdmi|displayport|mini displayport|thunderbolt|lightning|vga|dvi|rj45|ethernet|jack|mini jack|xlr|rca|scart|midi|sata|esata|toslink|spdif"),
+  task("tech_image_formats", "Wymień formaty plików graficznych", "jpeg|png|gif|webp|avif|heic|heif|tiff|bmp|svg|ico|psd|xcf|tga|dds|exr|dng|apng|jxl"),
+  task("tech_keyboard_keys", "Wymień klawisze na typowej klawiaturze poza literami i cyframi", "enter|spacja|shift|ctrl|alt|altgr|tab|backspace|delete|insert|home|end|page up|page down|esc|caps lock|num lock|scroll lock|print screen|pause|f1|f2|f3|f4|f5|f6|f7|f8|f9|f10|f11|f12|strzałka w górę|strzałka w dół|strzałka w lewo|strzałka w prawo"),
+]);
