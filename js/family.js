@@ -1,4 +1,4 @@
-import { escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
+import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
 export const familyDefaults={rounds:5,answerTime:30,turnMode:"afterAnswer",topSize:10,scoring:"one"};
 const baseQuestionBank=[
@@ -39,44 +39,231 @@ const topQuestions=[
 ].map(([prompt,names])=>rankedQuestion(prompt,names.split(",")));
 const questionBank=[...baseQuestionBank,...topQuestions];
 const normalize=text=>String(text||"").toLocaleLowerCase("pl-PL").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[ąćęłńóśźż]/g,c=>({ą:"a",ć:"c",ę:"e",ł:"l",ń:"n",ó:"o",ś:"s",ź:"z",ż:"z"}[c]||c)).replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
-const phaseEnd=seconds=>Date.now()+Math.max(10,Number(seconds)||30)*1000;
-export function createFamilyGame(players,settings={}){const rounds=Math.max(1,Math.min(20,Number(settings.rounds)||5)),topSize=Math.max(5,Math.min(30,Number(settings.topSize)||10)),order=[...players],pool=questionBank.filter(question=>question.answers.length>=topSize);return {mode:"family",phase:"wheel",round:1,rounds,topSize,scoring:settings.scoring==="higher"||settings.scoring==="lower"?settings.scoring:"one",answerTime:Number(settings.answerTime)||30,turnMode:settings.turnMode==="untilWrong"?"untilWrong":"afterAnswer",players:order,questions:[...(pool.length?pool:questionBank)].sort(()=>Math.random()-.5).slice(0,rounds).map(question=>({...question,answers:question.answers.slice(0,topSize)})),currentUid:order[Math.floor(Math.random()*order.length)],revealed:[],scores:Object.fromEntries(order.map(uid=>[uid,0])),answers:[],wrong:false,phaseEndsAt:Date.now()+2200};}
-function nextPlayer(game){const index=game.players.indexOf(game.currentUid);game.currentUid=game.players[(index+1)%game.players.length];}
-function startRound(game){game.round+=1;game.questions[game.round-1]=game.questions[game.round-1]||questionBank[Math.floor(Math.random()*questionBank.length)];game.revealed=[];game.answers=[];game.wrong=false;game.currentUid=game.players[Math.floor(Math.random()*game.players.length)];game.phase="wheel";game.phaseEndsAt=Date.now()+2200;}
-function nextRound(game){if(game.round>=game.rounds){game.phase="result";game.finished=true;return;}startRound(game);}
-export const FamilyEngine={answer(game,uid,text){if(game.phase!=="answer"||game.currentUid!==uid)return "To nie jest Twoja kolej.";const value=normalize(text);if(!value)return "Wpisz odpowiedź.";const question=game.questions[game.round-1],hit=question.answers.findIndex(([answer])=>normalize(answer)===value);game.answers.push({uid,text:value,hit});if(hit>=0&&!game.revealed.includes(hit)){game.revealed.push(hit);const points=game.scoring==="one"?1:game.scoring==="higher"?question.answers[hit][1]:game.topSize-hit;game.scores[uid]=(game.scores[uid]||0)+points;if(game.revealed.length>=question.answers.length){nextRound(game);return;}if(game.turnMode==="afterAnswer")nextPlayer(game);game.wrong=false;}else{game.wrong=true;nextPlayer(game);} },timeout(game){if(game.phase==="wheel"){game.phase="answer";game.phaseEndsAt=phaseEnd(game.answerTime);return;}if(game.phase!=="answer")return;game.wrong=true;nextPlayer(game);game.phaseEndsAt=phaseEnd(game.answerTime);},next(game){startRound(game);}};
-function answerRows(game,question){return question.answers.map(([answer,points],index)=>`<div class="family-answer-row ${game.revealed.includes(index)?"is-revealed":""}"><b>${index+1}.</b><span>${game.revealed.includes(index)?escapeHtml(answer):"???"}</span><strong>${game.revealed.includes(index)?points:""}</strong></div>`).join("");}
-export function renderFamilyGame(root,{room,accounts,currentUser},actions){const game=room.game;if(game.phase==="result"){const ranking=Object.entries(game.scores||{}).sort(([,a],[,b])=>b-a).map(([uid,score],i)=>`<div class="family-rank-row"><b>${i+1}. ${escapeHtml(accounts[uid]?.nick||"Gracz")}</b><strong>${score} pkt</strong></div>`).join("");root.innerHTML=`<main class="page family-page"><section class="panel family-panel center"><p class="eyebrow">FAMILIADA · PODIUM</p><h1>Wyniki końcowe</h1><div class="family-ranking">${ranking}</div><button class="primary" id="family-room">Wróć do lobby</button></section></main>`;root.querySelector("#family-room").addEventListener("click",actions.returnToRoom);return;}const q=game.questions?.[Math.max(0,Number(game.round||1)-1)];if(!q||!Array.isArray(q.answers)){root.innerHTML=`<main class="page family-page"><section class="panel family-panel center"><p class="eyebrow">FAMILIADA</p><h1>Nie udało się odczytać pytania</h1><p class="muted">Pokój otrzymał niepełny stan. Host może wrócić do lobby i uruchomić rundę ponownie.</p><button class="primary" id="family-room">Wróć do lobby</button></section></main>`;root.querySelector("#family-room").addEventListener("click",actions.returnToRoom);return;}const expected={phase:game.phase,phaseEndsAt:game.phaseEndsAt};if(game.phase==="wheel"){root.innerHTML=`<main class="page family-page enter"><section class="panel family-panel center"><p class="eyebrow">FAMILIADA · RUNDA ${game.round}/${game.rounds}</p><div class="family-wheel"><span>?</span></div><h1>Losujemy gracza...</h1><p class="muted">Koło fortuny wybiera pierwszą osobę.</p></section></main>`;}else{root.innerHTML=`<main class="page family-page enter"><section class="panel family-panel"><p class="eyebrow">FAMILIADA · RUNDA ${game.round}/${game.rounds}</p><h1>${escapeHtml(q.prompt)}</h1><div class="family-board">${answerRows(game,q)}</div><p class="family-turn">${game.currentUid===currentUser?"Twoja kolej":"Kolej: "+escapeHtml(accounts[game.currentUid]?.nick||"Gracz")}</p>${game.wrong?'<div class="family-miss">X · Nie ma tego na tablicy</div>':""}<form id="family-answer" class="family-form"><input id="family-input" placeholder="Wpisz odpowiedź" autocomplete="off" ${game.currentUid===currentUser?"":"disabled"}><button class="primary" ${game.currentUid===currentUser?"":"disabled"}>Odpowiedz</button></form><div class="family-scores">${Object.entries(game.scores||{}).map(([uid,score])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")}: <b>${score}</b></span>`).join("")}</div></section></main>`;root.querySelector("#family-answer")?.addEventListener("submit",event=>{event.preventDefault();actions.familyAnswer(root.querySelector("#family-input").value,expected);});}if(game.phase!=="result"){renderFamilyGame.countdown=setTimeout(()=>actions.familyTimeout(expected),Math.max(100,game.phaseEndsAt-Date.now()+50));}}
-export function renderFamilyLobbySettings(room,isHost){const s=room.settings||familyDefaults;return `<div class="family-settings"><label>Liczba rund <input data-family-setting="rounds" type="number" min="1" max="20" value="${s.rounds||5}" ${isHost?"":"disabled"}></label><label>Czas odpowiedzi <input data-family-setting="answerTime" type="number" min="10" max="180" value="${s.answerTime||30}" ${isHost?"":"disabled"}> s</label><label>Sposób zmiany gracza <select data-family-setting="turnMode" ${isHost?"":"disabled"}><option value="afterAnswer" ${s.turnMode!=="untilWrong"?"selected":""}>Po każdej odpowiedzi</option><option value="untilWrong" ${s.turnMode==="untilWrong"?"selected":""}>Dopóki się nie pomyli</option></select></label></div>`;}
-export function stopFamilyTimer(){clearTimeout(renderFamilyGame.countdown);}
+const wheelMs = 2200;
+const summaryMs = 5000;
+const wheelColors = ["#2857a5","#913c77","#136f65","#974c2c","#5541a2","#406b2c","#9b3e53","#2b667b"];
+const turnDeadline = game => Date.now() + Math.max(10, Number(game.answerTime) || 30) * 1000;
+
+function drawQuestions(topSize, rounds) {
+  const eligible = questionBank.map(({prompt,answers}) => {
+    const distinct = new Map();
+    for (const row of answers) {
+      const key = normalize(row[0]);
+      if (key && !distinct.has(key)) distinct.set(key,row);
+    }
+    return {prompt,answers:[...distinct.values()].slice(0,topSize)};
+  });
+  const full = eligible.filter(question => question.answers.length === topSize);
+  const pool = full.length ? full : eligible;
+  const questions = [];
+  while (questions.length < rounds) {
+    const batch = [...pool];
+    for (let i = batch.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [batch[i],batch[j]] = [batch[j],batch[i]];
+    }
+    questions.push(...batch.slice(0,rounds - questions.length));
+  }
+  return questions;
+}
+
+export function createFamilyGame(players, settings = {}) {
+  const rounds = Math.max(1,Math.min(20,Number(settings.rounds)||5));
+  const topSize = Math.max(5,Math.min(30,Number(settings.topSize)||10));
+  return {
+    mode:"family", phase:"wheel", round:1, rounds, topSize,
+    scoring:settings.scoring==="higher"||settings.scoring==="lower" ? settings.scoring : "one",
+    answerTime:Number(settings.answerTime)||30,
+    turnMode:settings.turnMode==="untilWrong" ? "untilWrong" : "afterAnswer",
+    players:[...players], questions:drawQuestions(topSize,rounds),
+    currentUid:players[Math.floor(Math.random()*players.length)], revealed:[],
+    scores:Object.fromEntries(players.map(uid=>[uid,0])), answers:[], wrong:false,
+    phaseEndsAt:Date.now()+wheelMs,
+  };
+}
 
 function ensureFamilyRoundState(game) {
-  if (!game || typeof game !== "object") return game;
   if (!Array.isArray(game.revealed)) game.revealed = [];
   if (!Array.isArray(game.answers)) game.answers = [];
   if (!game.scores || typeof game.scores !== "object" || Array.isArray(game.scores)) game.scores = {};
-  return game;
 }
 
-const familyAnswer = FamilyEngine.answer;
-FamilyEngine.answer = (game, uid, text) => familyAnswer(ensureFamilyRoundState(game), uid, text);
-const familyTimeout = FamilyEngine.timeout;
-FamilyEngine.timeout = game => familyTimeout(ensureFamilyRoundState(game));
-const familyNext = FamilyEngine.next;
-FamilyEngine.next = game => familyNext(ensureFamilyRoundState(game));
-const renderFamilyGameBase = renderFamilyGame;
-renderFamilyGame = (root, context, actions) => {
-  ensureFamilyRoundState(context?.room?.game);
-  const output = renderFamilyGameBase(root, context, actions);
-  if (context?.room?.game?.phase === "result") {
-    const ranking = Object.entries(context.room.game.scores || {}).sort(([,a],[,b]) => Number(b) - Number(a));
-    const topScore = Math.max(0, ...ranking.map(([, score]) => Number(score) || 0));
-    root.querySelectorAll(".family-rank-row").forEach((row, index) => {
-      const [uid, score] = ranking[index] || [];
-      if (!uid) return;
-      row.innerHTML = `<b>${index + 1}.</b>${resultPlayerMiniHtml(context.accounts?.[uid], Number(score) === topScore && topScore > 0 ? "win" : "lose")}<strong>${score} pkt</strong>`;
-    });
+function nextPlayer(game) {
+  const index = game.players.indexOf(game.currentUid);
+  game.currentUid = game.players[(index+1)%game.players.length];
+}
+
+function nextRound(game) {
+  if (game.round >= game.rounds) {
+    game.phase = "result";
+    game.finished = true;
+    return;
   }
-  return output;
+  game.round += 1;
+  game.questions[game.round-1] ||= drawQuestions(game.topSize,1)[0];
+  game.revealed = [];
+  game.answers = [];
+  game.wrong = false;
+  game.currentUid = game.players[Math.floor(Math.random()*game.players.length)];
+  game.phase = "wheel";
+  game.phaseEndsAt = Date.now()+wheelMs;
+}
+
+export const FamilyEngine = {
+  answer(game,uid,text) {
+    if (game.phase !== "answer" || game.currentUid !== uid) return "To nie jest Twoja kolej.";
+    if (Date.now() >= game.phaseEndsAt) return "Czas na odpowiedź minął.";
+    const value = normalize(text);
+    if (!value) return "Wpisz odpowiedź.";
+    ensureFamilyRoundState(game);
+    const question = game.questions[game.round-1];
+    const hit = question.answers.findIndex(([answer])=>normalize(answer)===value);
+    const revealedNames = new Set(game.revealed.map(index=>normalize(question.answers[index]?.[0])));
+    const correct = hit>=0 && !revealedNames.has(value);
+    const points = correct ? game.scoring==="one" ? 1 : game.scoring==="higher" ? question.answers[hit][1] : game.topSize-hit : 0;
+    game.answers.push({uid,text:value,hit,points});
+    if (correct) {
+      // Older games can contain duplicate labels. One guess uncovers every copy.
+      question.answers.forEach(([answer],index)=>{
+        if (normalize(answer)===value) game.revealed.push(index);
+      });
+      revealedNames.add(value);
+      game.scores[uid] = (game.scores[uid]||0)+points;
+    }
+    game.wrong = !correct;
+    if (question.answers.every(([answer])=>revealedNames.has(normalize(answer)))) {
+      game.phase = "summary";
+      game.phaseEndsAt = Date.now()+summaryMs;
+    } else {
+      if (!correct || game.turnMode==="afterAnswer") nextPlayer(game);
+      game.phaseEndsAt = turnDeadline(game);
+    }
+  },
+  timeout(game) {
+    if (Date.now() < game.phaseEndsAt) return;
+    if (game.phase === "wheel") {
+      game.phase = "answer";
+      game.phaseEndsAt = turnDeadline(game);
+    } else if (game.phase === "summary") nextRound(game);
+    else if (game.phase === "answer") {
+      game.wrong = true;
+      nextPlayer(game);
+      game.phaseEndsAt = turnDeadline(game);
+    }
+  },
+  next(game) {
+    if (game.phase !== "summary" || Date.now() < game.phaseEndsAt) return "Runda jeszcze trwa.";
+    nextRound(game);
+  },
 };
+
+function answerRows(game,question) {
+  return question.answers.map(([answer,points],index)=>{
+    const revealed = game.revealed.includes(index) || (game.phase==="summary" &&
+      game.revealed.some(slot=>normalize(question.answers[slot]?.[0])===normalize(answer)));
+    return `<div class="family-answer-row ${revealed?"is-revealed":""}"><b>${index+1}.</b><span>${revealed?escapeHtml(answer):"???"}</span><strong>${revealed?points:""}</strong></div>`;
+  }).join("");
+}
+
+function wheelMarkup(game, accounts) {
+  const step = 360 / game.players.length;
+  const slices = game.players.map((_,index)=>`${wheelColors[index%wheelColors.length]} ${index*step}deg ${(index+1)*step}deg`);
+  return `<div class="family-wheel-wrap">
+    <span class="family-wheel-pointer" aria-hidden="true"></span>
+    <div class="family-player-wheel" style="background:conic-gradient(from ${-step/2}deg,${slices.join(",")})" role="group" aria-label="Koło losujące pierwszego gracza">
+      ${game.players.map((uid,index)=>{
+        const angle = index*step*Math.PI/180;
+        const profile = accounts[uid] || {nick:"Gracz"};
+        return `<div class="family-wheel-seat" style="--x:${50+34*Math.sin(angle)}%;--y:${50-34*Math.cos(angle)}%">
+          <div class="family-wheel-profile">${avatarHtml(profile,"family-wheel-avatar",{disableIdle:true})}<span>${escapeHtml(profile.nick||"Gracz")}</span></div>
+        </div>`;
+      }).join("")}
+    </div>
+  </div><h1>Kto zaczyna?</h1>`;
+}
+
+function spinWheel(root, game) {
+  const wheel = root.querySelector(".family-player-wheel");
+  if (!wheel) return;
+  const winner = Math.max(0,game.players.indexOf(game.currentUid));
+  const rotation = 1080 - winner*360/game.players.length;
+  const elapsed = Math.max(0,Math.min(wheelMs,wheelMs-(game.phaseEndsAt-Date.now())));
+  const spin = (node,angle)=>{
+    if (!node.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches || elapsed >= wheelMs) {
+      node.style.rotate = `${angle}deg`;
+      return;
+    }
+    const animation = node.animate([{rotate:"0deg"},{rotate:`${angle}deg`}],{duration:wheelMs,easing:"cubic-bezier(.14,.6,.19,1)",fill:"both"});
+    animation.currentTime = elapsed;
+  };
+  spin(wheel,rotation);
+  wheel.querySelectorAll(".family-wheel-profile").forEach(profile=>spin(profile,-rotation));
+}
+
+function roundSummary(game,accounts) {
+  const points = {};
+  const seen = new Set();
+  for (const {uid,hit,points:awarded} of game.answers) {
+    if (hit < 0 || seen.has(hit)) continue;
+    seen.add(hit);
+    const boardPoints = game.questions[game.round-1].answers[hit]?.[1];
+    const value = awarded ?? (game.scoring==="one" ? 1 : game.scoring==="higher" ? boardPoints : game.topSize-hit);
+    if (value > 0) points[uid] = (points[uid]||0)+value;
+  }
+  return `<div class="family-summary">
+    <div class="family-summary-header"><div><b>Tablica wypełniona</b><small>${game.round>=game.rounds?"Wyniki za":"Następna runda za"}</small></div><strong data-family-summary-time aria-label="Pozostałe sekundy"></strong></div>
+    <div class="family-summary-track" aria-hidden="true"><div data-family-summary-fill></div></div>
+    ${Object.keys(points).length ? `<div class="family-summary-points">${Object.entries(points).sort(([,a],[,b])=>b-a).map(([uid,value])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")} <b>+${value} pkt</b></span>`).join("")}</div>` : ""}
+  </div>`;
+}
+
+export function renderFamilyGame(root,{room,accounts,currentUser},actions) {
+  stopFamilyTimer();
+  const game = room.game;
+  ensureFamilyRoundState(game);
+  const question = game.questions?.[game.round-1];
+  const heading = `<p class="eyebrow">FAMILIADA · RUNDA ${game.round}/${game.rounds}</p>`;
+  if (game.phase==="result" || !Array.isArray(question?.answers)) {
+    const scores = Object.entries(game.scores).sort(([,a],[,b])=>b-a);
+    const ranking = scores.map(([uid,score],index)=>`<div class="family-rank-row"><b>${index+1}.</b>${resultPlayerMiniHtml(accounts[uid],score>0&&score===scores[0][1]?"win":"lose")}<strong>${score} pkt</strong></div>`).join("");
+    root.innerHTML = `<main class="page family-page"><section class="panel family-panel center"><p class="eyebrow">FAMILIADA</p><h1>${game.phase==="result"?"Wyniki końcowe":"Nie udało się odczytać pytania"}</h1>${game.phase==="result"?`<div class="family-ranking">${ranking}</div>`:""}<button class="primary" id="family-room">Wróć do lobby</button></section></main>`;
+    root.querySelector("#family-room").addEventListener("click",actions.returnToRoom);
+    return;
+  }
+
+  const expected = {phase:game.phase,phaseEndsAt:game.phaseEndsAt,round:game.round};
+  const isTurn = game.currentUid===currentUser;
+  const turn = isTurn ? "Twoja kolej" : "Kolej: "+escapeHtml(accounts[game.currentUid]?.nick||"Gracz");
+  const content = game.phase==="wheel" ? wheelMarkup(game,accounts)
+    : `<h1>${escapeHtml(question.prompt)}</h1>
+      ${game.phase==="summary" ? roundSummary(game,accounts) : `<p class="family-turn">${turn}</p>${game.wrong?'<div class="family-miss">X · Nie ma tego na tablicy</div>':""}
+      <form id="family-answer" class="family-form"><input id="family-input" placeholder="Wpisz odpowiedź" autocomplete="off" ${isTurn?"":"disabled"}><button class="primary" ${isTurn?"":"disabled"}>Odpowiedz</button></form>`}
+      <div class="family-board">${answerRows(game,question)}</div>
+      ${game.phase==="summary" ? "" : `<div class="family-scores">${Object.entries(game.scores).map(([uid,score])=>`<span>${escapeHtml(accounts[uid]?.nick||"Gracz")}: <b>${score}</b></span>`).join("")}</div>`}`;
+  root.innerHTML = `<main class="page family-page"><section class="panel family-panel ${game.phase==="wheel"?"center":""}">${heading}${content}</section></main>`;
+  root.querySelector("#family-answer")?.addEventListener("submit",event=>{
+    event.preventDefault();
+    actions.familyAnswer(root.querySelector("#family-input").value,expected);
+  });
+  spinWheel(root,game);
+  const time = root.querySelector("[data-family-summary-time]");
+  if (time) {
+    const fill = root.querySelector("[data-family-summary-fill]");
+    const tick = ()=>{
+      const remaining = Math.max(0,expected.phaseEndsAt-Date.now());
+      const label = `${Math.ceil(remaining/1000)} s`;
+      if (time.textContent !== label) time.textContent = label;
+      fill.style.transform = `scaleX(${Math.min(1,remaining/summaryMs)})`;
+    };
+    tick();
+    renderFamilyGame.summaryTimer = setInterval(tick,100);
+  }
+  renderFamilyGame.countdown = setTimeout(()=>actions.familyTimeout(expected),Math.max(100,game.phaseEndsAt-Date.now()+50));
+}
+
+export function stopFamilyTimer() {
+  clearTimeout(renderFamilyGame.countdown);
+  clearInterval(renderFamilyGame.summaryTimer);
+}
+
 export function renderFamilyLobbySettingsV2(room,isHost){const s=room.settings||familyDefaults;const sizes=[5,10,15,20,25,30];return `<div class="family-settings"><label>Liczba rund <input data-family-setting="rounds" type="number" min="1" max="20" value="${s.rounds||5}" ${isHost?"":"disabled"}></label><label>Czas odpowiedzi <input data-family-setting="answerTime" type="number" min="10" max="180" value="${s.answerTime||30}" ${isHost?"":"disabled"}> s</label><label>Ranking <select data-family-setting="topSize" ${isHost?"":"disabled"}>${sizes.map(value=>`<option value="${value}" ${Number(s.topSize||10)===value?"selected":""}>Top ${value}</option>`).join("")}</select></label><label>Punktacja <select data-family-setting="scoring" ${isHost?"":"disabled"}><option value="one" ${s.scoring!=="higher"&&s.scoring!=="lower"?"selected":""}>Każda poprawna = 1</option><option value="higher" ${s.scoring==="higher"?"selected":""}>Wyżej = więcej punktów</option><option value="lower" ${s.scoring==="lower"?"selected":""}>Niżej = więcej punktów</option></select></label><label>Sposób zmiany gracza <select data-family-setting="turnMode" ${isHost?"":"disabled"}><option value="afterAnswer" ${s.turnMode!=="untilWrong"?"selected":""}>Po każdej odpowiedzi</option><option value="untilWrong" ${s.turnMode==="untilWrong"?"selected":""}>Dopóki się nie pomyli</option></select></label><p class="tiny">Zbyt długie rankingi są automatycznie pomijane, jeśli pytanie nie ma tylu sensownych odpowiedzi.</p></div>`;}

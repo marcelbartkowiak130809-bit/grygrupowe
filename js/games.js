@@ -1,4 +1,4 @@
-import { renderGame } from "./game.js?v=20261127-8";
+import { renderGame } from "./game.js?v=20261127-9";
 import { impostorDefaults, renderImpostorGameStable as renderImpostorGame } from "./impostor.js?v=20261126-1";
 import { identityDefaults, renderIdentityGame } from "./identity.js?v=20261121-11";
 import { otherQuestionDefaults, renderOtherQuestionGame } from "./otherQuestion.js?v=20261121-8";
@@ -23,7 +23,7 @@ import { quizDefaults, renderQuizGame } from "./quiz.js?v=20261127-8";
 import { mathematicsDefaults, renderMathematicsGame } from "./mathematics.js?v=20261121-8";
 import { markerDefaults, renderMarkerGame } from "./marker.js?v=20261121-8";
 import { sequenceDefaults, renderSequenceGame } from "./sequence.js?v=20261121-8";
-import { familyDefaults, renderFamilyGame } from "./family.js?v=20261121-8";
+import { familyDefaults, renderFamilyGame } from "./family.js?v=20261127-9";
 import { wordChainDefaults, renderWordChainGame } from "./wordChain.js?v=20261121-8";
 import { numberMysteryDefaults, renderNumberMysteryGame } from "./numberMystery.js?v=20261121-9";
 import { uniqueAnswerDefaults, renderUniqueAnswerGame } from "./uniqueAnswer.js?v=20261121-8";
