@@ -7,10 +7,10 @@ let adsenseLoadTimer = 0;
 let adsenseLoadTimerType = "";
 const publicLinks = [
   ["/o-grze", "O grze"],
-  ["/jak-grac", "Jak grac"],
+  ["/jak-grac", "Jak grać"],
   ["/tryby-gry", "Tryby gry"],
   ["/regulamin", "Regulamin"],
-  ["/polityka-prywatnosci", "Polityka prywatnosci"],
+  ["/polityka-prywatnosci", "Polityka prywatności"],
   ["/kontakt", "Kontakt"],
 ];
 
@@ -55,9 +55,13 @@ export function deactivatePublicAds() {
   document.querySelector("script[data-adsense-public-script]")?.remove();
 }
 
+function publicNavHtml() {
+  return `<nav aria-label="Linki na dole strony">${publicLinks.map(([href, label]) => `<a href="${href}" data-public-link="${href}">${label}</a>`).join("")}</nav>`;
+}
+
 export function publicFooterHtml() {
   return `<footer class="public-footer">
-    <nav>${publicLinks.map(([href, label]) => `<a href="${href}" data-public-link="${href}">${label}</a>`).join("")}</nav>
+    ${publicNavHtml()}
     <p>Gry dla znajomych online. Prywatne pokoje, linki zaproszen i rozgrywka w przegladarce.</p>
   </footer>`;
 }
@@ -70,31 +74,32 @@ export function bindPublicLinks(root, actions) {
 }
 
 export function homeInfoHtml() {
-  return `<details class="public-home-info">
-    <summary>Informacje o stronie i FAQ <span aria-hidden="true"></span></summary>
-    <div class="public-home-info-body">
-      <div class="public-copy">
-        <p class="eyebrow">INFORMACJE O STRONIE</p>
-        <h1>Gry dla znajomych online</h1>
-        <p>To strona z prostymi grami imprezowymi online dla znajomych, klas, ekip z Discorda i malych grup, ktore chca szybko zaczac wspolna rozgrywke bez instalowania aplikacji.</p>
-        <p>Wystarczy wybrac tryb, stworzyc prywatny pokoj i wyslac znajomym kod albo link zaproszenia. Gra dziala w przegladarce na komputerze i telefonie.</p>
+  return `<footer class="public-footer home-footer">
+    ${publicNavHtml()}
+    <details class="public-home-info">
+      <summary>Informacje o stronie i FAQ <span aria-hidden="true"></span></summary>
+      <div class="public-home-info-body">
+        <div class="public-copy">
+          <h1>Gry dla znajomych online</h1>
+          <p>To strona z prostymi grami imprezowymi online dla znajomych, klas, ekip z Discorda i malych grup, ktore chca szybko zaczac wspolna rozgrywke bez instalowania aplikacji.</p>
+          <p>Wystarczy wybrac tryb, stworzyc prywatny pokoj i wyslac znajomym kod albo link zaproszenia. Gra dziala w przegladarce na komputerze i telefonie.</p>
+        </div>
+        <div class="public-info-grid">
+          <article><h2>Prywatne pokoje</h2><p>Host tworzy pokoj, wybiera ustawienia i wysyla link. Osoby z linkiem moga dolaczyc bez przepisywania kodu, ale zabezpieczenia pokoju nadal obowiazuja.</p></article>
+          <article><h2>Bez instalacji</h2><p>Nie trzeba pobierac programu ani zakladac serwera. Wystarczy przegladarka i wspolna rozmowa na zywo albo wbudowane opcje danego trybu.</p></article>
+          <article><h2>Rozne tryby</h2><p>Sa tryby blefu, zgadywania, glosowania, pytan i szybkich rund dla ekip, ktore sie znaja albo dopiero chca sie rozkrecic.</p></article>
+        </div>
+        <div class="public-faq">
+          <h2>FAQ</h2>
+          <details open><summary>Czy trzeba cos instalowac?</summary><p>Nie. Gra dziala bezposrednio w przegladarce.</p></details>
+          <details><summary>Czy pokoj jest publiczny?</summary><p>Pokoj moze byc prywatny. Znajomi dolaczaja kodem albo linkiem zaproszenia.</p></details>
+          <details><summary>Czy da sie grac na telefonie?</summary><p>Tak. Strona jest przygotowana pod pionowy ekran telefonu, a host moze dobrac czas rund do tempa grupy.</p></details>
+          <details><summary>Ktory tryb wybrac na start?</summary><p>Na szybka gre sprawdza sie Udowodnij albo Impostor. Do gadania w ekipie dobry jest tryb Kim jestem?.</p></details>
+        </div>
+        ${adSenseBlock()}
       </div>
-      <div class="public-info-grid">
-        <article><h2>Prywatne pokoje</h2><p>Host tworzy pokoj, wybiera ustawienia i wysyla link. Osoby z linkiem moga dolaczyc bez przepisywania kodu, ale zabezpieczenia pokoju nadal obowiazuja.</p></article>
-        <article><h2>Bez instalacji</h2><p>Nie trzeba pobierac programu ani zakladac serwera. Wystarczy przegladarka i wspolna rozmowa na zywo albo wbudowane opcje danego trybu.</p></article>
-        <article><h2>Rozne tryby</h2><p>Sa tryby blefu, zgadywania, glosowania, pytan i szybkich rund dla ekip, ktore sie znaja albo dopiero chca sie rozkrecic.</p></article>
-      </div>
-      <div class="public-faq">
-        <h2>FAQ</h2>
-        <details open><summary>Czy trzeba cos instalowac?</summary><p>Nie. Gra dziala bezposrednio w przegladarce.</p></details>
-        <details><summary>Czy pokoj jest publiczny?</summary><p>Pokoj moze byc prywatny. Znajomi dolaczaja kodem albo linkiem zaproszenia.</p></details>
-        <details><summary>Czy da sie grac na telefonie?</summary><p>Tak. Strona jest przygotowana pod pionowy ekran telefonu, a host moze dobrac czas rund do tempa grupy.</p></details>
-        <details><summary>Ktory tryb wybrac na start?</summary><p>Na szybka gre sprawdza sie Udowodnij albo Impostor. Do gadania w ekipie dobry jest tryb Kim jestem?.</p></details>
-      </div>
-      ${adSenseBlock()}
-    </div>
-  </details>
-  ${publicFooterHtml()}`;
+    </details>
+  </footer>`;
 }
 
 const modeLongDescription = {

@@ -70,12 +70,12 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261127-14";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-16";
+import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-17";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-15";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-17";
 import { Router } from "./router.js?v=20261124-6";
-import { playerMini, renderRoom } from "./room.js?v=20261127-15";
+import { playerMini, renderRoom } from "./room.js?v=20261127-17";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
