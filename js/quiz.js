@@ -519,5 +519,45 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
 }
 export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label><label class="settings-toggle"><span><b>Alternatywne liczenie punktów</b><small>Więcej punktów za szybsze odpowiedzi. Od 1000 pkt za trafienie odejmuje się 10 pkt za każdy pełny 1% wykorzystanego czasu.</small></span><input type="checkbox" data-quiz-setting="alternativeScoring" ${s.alternativeScoring===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
-export function renderQuizSelect(root,actions){const board=Object.entries(JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")||"{}")).sort(([,a],[,b])=>b-a).slice(0,20).map(([nick,wins],index)=>`<li><span>${index+1}. ${escapeHtml(nick)}</span><b>${wins}</b></li>`).join("")||"<li>Ranking zaczyna się od pierwszego meczu.</li>";root.innerHTML=`<main class="page quiz-select-page enter"><section class="quiz-choice quiz-choice-casual"><p class="eyebrow">DLA KAŻDEGO</p><h1>CASUAL</h1><p>Spokojny quiz dla ekipy z własnymi ustawieniami hosta.</p><button class="primary" data-quiz-variant="casual">Graj w Casual</button></section><section class="quiz-choice quiz-choice-competitive"><p class="eyebrow">TELETURNIEJ</p><h1>RYWALIZACJA</h1><p>Szybkie mecze, zgłaszanie się i walka o miejsce w rankingu.</p><button class="primary" data-quiz-variant="competitive">Graj w Rywalizację</button><button class="quiz-leaderboard-trigger" type="button" data-quiz-leaderboard>🏆 <b>TOPKA</b><span>Wyniki rywalizacji</span></button><div class="quiz-leaderboard" data-quiz-leaderboard-panel hidden><b>TOP 20 RYWALIZACJI</b><ol>${board}</ol><small>Ranking obejmuje wyłącznie wygrane w wariancie Rywalizacja.</small></div></section></main>`;root.querySelectorAll("[data-quiz-variant]").forEach(button=>button.addEventListener("click",()=>actions.chooseQuizVariant(button.dataset.quizVariant)));root.querySelector("[data-quiz-leaderboard]")?.addEventListener("click",()=>{const panel=root.querySelector("[data-quiz-leaderboard-panel]");panel.hidden=!panel.hidden;});}
+export function renderQuizSelect(root, actions) {
+  root.innerHTML = `<main class="page quiz-select-page enter">
+    <section class="quiz-choice quiz-choice-casual">
+      <p class="eyebrow">DLA KAŻDEGO</p><h1>CASUAL</h1>
+      <p>Spokojny quiz dla ekipy z własnymi ustawieniami hosta.</p>
+      <button class="primary" data-quiz-variant="casual">Graj w Casual</button>
+    </section>
+    <section class="quiz-choice quiz-choice-competitive">
+      <p class="eyebrow">TELETURNIEJ</p><h1>RYWALIZACJA</h1>
+      <p>Szybkie mecze, zgłaszanie się i walka o miejsce w rankingu.</p>
+      <button class="primary" data-quiz-variant="competitive">Graj w Rywalizację</button>
+      <button class="quiz-leaderboard-trigger" type="button" data-quiz-leaderboard aria-haspopup="dialog" aria-controls="quiz-leaderboard-dialog">🏆 <b>TOPKA</b><span>Wyniki rywalizacji</span></button>
+    </section>
+  </main>
+  <dialog class="quiz-leaderboard-dialog" id="quiz-leaderboard-dialog" aria-labelledby="quiz-leaderboard-title">
+    <div class="quiz-leaderboard-content">
+      <header><h2 id="quiz-leaderboard-title">Top 20 Rywalizacji</h2><form method="dialog"><button class="ghost" aria-label="Zamknij ranking" autofocus>✕</button></form></header>
+      <div class="quiz-leaderboard-results" role="region" aria-label="Wyniki rankingu" tabindex="0"></div>
+      <p>Ranking obejmuje wygrane w wariancie Rywalizacja.</p>
+    </div>
+  </dialog>`;
+
+  root.querySelectorAll("[data-quiz-variant]").forEach(button =>
+    button.addEventListener("click", () => actions.chooseQuizVariant(button.dataset.quizVariant)));
+  const dialog = root.querySelector(".quiz-leaderboard-dialog");
+  const results = dialog.querySelector(".quiz-leaderboard-results");
+  root.querySelector("[data-quiz-leaderboard]").addEventListener("click", () => {
+    let entries = [];
+    try {
+      entries = Object.entries(JSON.parse(localStorage.getItem("quizCompetitiveLeaderboard")) || {});
+    } catch {}
+    const rows = entries.sort(([,a],[,b]) => b - a).slice(0,20)
+      .map(([nick,wins],index) => `<li><span>${index+1}. ${escapeHtml(nick)}</span><b>${Number(wins)||0}</b></li>`).join("");
+    results.innerHTML = rows ? `<ol>${rows}</ol>` : "<p>Ranking zaczyna się od pierwszego meczu.</p>";
+    results.scrollTop = 0;
+    dialog.showModal();
+  });
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) dialog.close();
+  });
+}
 export function stopQuizTimer(){window.clearTimeout(renderQuizGame.timer);window.clearInterval(renderQuizGame.countdown);}
