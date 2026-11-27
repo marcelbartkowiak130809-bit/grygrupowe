@@ -16,29 +16,16 @@ export const QUICK_REACTIONS = [
 const reactionById = id => QUICK_REACTIONS.find(item => item.id === id);
 const reactionCooldowns = new Map();
 const sideReactions = new WeakMap();
+const quickReactionViews = new WeakMap();
 
 function reactionBubble(uid, item, room, accounts) {
   const reaction = reactionById(item.id) || { text:String(item.text || "") };
   const bubble = document.createElement("div");
   bubble.className = "quick-reaction-bubble";
   bubble.dataset.reactionUid = uid;
+  bubble.dataset.expiresAt = String(item.expiresAt || 0);
   bubble.innerHTML = `<span>${escapeHtml(reaction.text)}</span><small>${escapeHtml(accounts?.[uid]?.nick || room?.playerProfiles?.[uid]?.nick || "Gracz")}</small>`;
   return bubble;
-}
-
-function addBubbles(view, room, accounts) {
-  const reactions = room?.game?.quickReactions || {};
-  const active = Object.entries(reactions).filter(([, item]) => item?.expiresAt > Date.now());
-  if (!active.length) return;
-  const layer = document.createElement("div");
-  layer.className = "quick-reaction-bubble-layer";
-  active.forEach(([uid, item]) => {
-    const bubble = reactionBubble(uid, item, room, accounts);
-    const player = [...view.querySelectorAll("[data-player-uid]")].find(item => item.dataset.playerUid === uid);
-    if (player) player.append(bubble);
-    else { bubble.classList.add("quick-reaction-floating"); layer.append(bubble); }
-  });
-  view.append(layer);
 }
 
 function createReactionPicker(view, room, actions, collapsible) {
@@ -74,9 +61,41 @@ function createReactionPicker(view, room, actions, collapsible) {
 }
 
 export function renderQuickReactions(view, room, accounts, actions) {
-  const panel = createReactionPicker(view, room, actions, false);
-  view.append(panel);
-  if (!view.querySelector(".chat-messages")) addBubbles(view, room, accounts);
+  const key = JSON.stringify([room.roomId,room.game?.siteGameId || room.game?.startedAt || room.game?.createdAt || ""]);
+  let current = quickReactionViews.get(view);
+  if (current?.key !== key || !current.panel.isConnected) {
+    current?.panel.remove();
+    current?.layer.remove();
+    view.querySelectorAll(".quick-reaction-bubble").forEach(node => node.remove());
+    const panel = createReactionPicker(view,room,actions,false);
+    const layer = document.createElement("div");
+    layer.className = "quick-reaction-bubble-layer";
+    view.append(panel,layer);
+    current = {key,panel,layer};
+    quickReactionViews.set(view,current);
+  }
+
+  const existing = new Map([...view.querySelectorAll(".quick-reaction-bubble[data-reaction-uid]")].map(node => [node.dataset.reactionUid,node]));
+  const now = Date.now();
+  const canShowBubbles = !view.querySelector(".chat-messages");
+  for (const [uid,item] of Object.entries(room.game?.quickReactions || {})) {
+    if (!canShowBubbles || !(item?.expiresAt > now)) continue;
+    const previous = existing.get(uid);
+    existing.delete(uid);
+    if (previous?.dataset.expiresAt === String(item.expiresAt)) continue;
+    const bubble = reactionBubble(uid,item,room,accounts);
+    const player = [...view.querySelectorAll("[data-player-uid]")].find(node => node.dataset.playerUid === uid);
+    if (player) player.append(bubble);
+    else {
+      bubble.classList.add("quick-reaction-floating");
+      current.layer.append(bubble);
+    }
+    const expiresAt = Number(item.expiresAt);
+    window.setTimeout(() => {
+      if (bubble.isConnected && bubble.dataset.expiresAt === String(expiresAt) && Date.now() >= expiresAt) bubble.remove();
+    },Math.max(0,expiresAt-now)+30);
+  }
+  existing.forEach(node => node.remove());
 }
 
 export function clearSideReactions(root) {

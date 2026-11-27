@@ -5,11 +5,12 @@ import {frontsTileHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { activePoll, countdownText, formatPollTime, latestPoll, pollState, pollStateOnline, votePoll } from "./polls.js?v=20261124-2";
 import { weeklyUnlockSnapshot } from "./weeklyUnlocks.js?v=20261122-7";
-import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261127-19";
+import { activatePublicAds, bindPublicLinks, homeInfoHtml } from "./publicPages.js?v=20261127-20";
 import { escapeHtml, icon } from "./utils.js?v=20261121-8";
 import { formatUnlockDate, formatUnlockTime, isModeLocked, isUnlockDay, modeUnlockInfo } from "./upcomingModes.js?v=20261122-7";
 import { animateGlobalStats, globalStatsHtml } from "./globalStats.js?v=20261127-19";
 import { minecraftModeIcons } from "./minecraft.js?v=20261121-12";
+import { categorySeoMetadata } from "./seoMetadata.js?v=20261127-1";
 
 const filters = [
   ["main", "KATEGORIE"],
@@ -43,14 +44,57 @@ function bindModePlayActions(root, actions) {
 }
 
 export const categoryDescriptions = {
-  music: "Zgaduj utwory, porównuj popularność hitów i wybieraj zwycięzców muzycznych pojedynków.",
+  music: categorySeoMetadata.music.description,
   tiktok: "Zagraj w popularne wyzwania z TikToka, od Impostora po Połącz nas.",
   minecraft: "Buduj, rozwiązuj łamigłówki i wyrusz na poszukiwanie Alex.",
-  board: "Zagraj w klasyczne planszówki, gry słowne i kalambury.",
-  pokemon: "Sprawdź znajomość Pokémonów lub wylicytuj własną drużynę.",
-  knowledge: "Sprawdź się w quizach, licytuj odpowiedzi i podawaj własne szacunki.",
-  other: "Wybieraj między dwiema opcjami albo sprawdź, jak dobrze znasz swoją ekipę.",
+  board: categorySeoMetadata.board.description,
+  pokemon: categorySeoMetadata.pokemon.description,
+  knowledge: categorySeoMetadata.knowledge.description,
+  other: categorySeoMetadata.other.description,
 };
+
+export function homeSeoMarkup() {
+  return `<main class="page platform-page home-menu-page enter">
+    ${homeMusicFeatureHtml()}
+    <section class="games-section home-seo-content" aria-labelledby="home-seo-heading">
+      <div class="section-intro"><h2 id="home-seo-heading">Gry online dla znajomych</h2></div>
+      <p>Wybierz kategorię, znajdź grę dla swojej ekipy i rozpocznij wspólną rozgrywkę w przeglądarce. Możecie spotkać się w prywatnym pokoju i zaprosić pozostałych graczy kodem.</p>
+      <nav class="library-category-grid" aria-label="Kategorie gier">${categoryTilesHtml(gamesList)}</nav>
+      <div class="seo-category-links">${libraryCategories.map(category => `<article><h3><a href="${category.path}">${escapeHtml(category.name)} online</a></h3><p>${escapeHtml(categoryDescriptions[category.id])}</p></article>`).join("")}</div>
+      <p><a href="/tryby-gry">Zobacz pełną listę gier i trybów →</a></p>
+    </section>
+    ${homeInfoHtml()}
+  </main>`;
+}
+
+export function collectionSeoMarkup(categoryId) {
+  const category = libraryCategories.find(entry => entry.id === categoryId);
+  if (!category) return homeSeoMarkup();
+  const modes = libraryModesFor(gamesList, category.id);
+  const descriptions = modes.map(mode => {
+    const anchor = String(mode.id).replace(/[^a-z0-9_-]/gi, "-");
+    return `<article class="seo-mode-card" id="mode-${anchor}">
+      <p class="eyebrow">${escapeHtml(category.name)}</p>
+      <h2><a href="/tryby-gry#mode-${anchor}">${escapeHtml(mode.name)}</a></h2>
+      <p>${escapeHtml(mode.description || "Graj online ze znajomymi w prywatnym pokoju.")}</p>
+      ${mode.players ? `<small>${escapeHtml(mode.players)}</small>` : ""}
+    </article>`;
+  }).join("");
+  const categoryLinks = libraryCategories.filter(item => item.id !== category.id)
+    .map(item => `<a href="${item.path}">${escapeHtml(item.name)}</a>`).join("");
+  return `<main class="page platform-page collection-selection-page ${category.id}-selection-page enter">
+    <header class="collection-selection-hero library-category-${category.id}">
+      <a class="collection-seo-back" href="/">← Wróć do wszystkich trybów</a>
+      <div class="collection-hero-copy"><h1>${escapeHtml(category.name)}</h1><p>${escapeHtml(categoryDescriptions[category.id])}</p></div>
+      <div class="collection-hero-symbol" aria-hidden="true">${escapeHtml(category.symbol)}</div>
+    </header>
+    <section class="games-section collection-seo-games" aria-label="Gry w kategorii ${escapeHtml(category.name)}">
+      <div class="seo-mode-grid">${descriptions}</div>
+    </section>
+    <nav class="seo-category-nav" aria-label="Pozostałe kategorie gier"><b>Więcej gier:</b>${categoryLinks}</nav>
+    <p class="seo-all-modes"><a href="/tryby-gry">Zobacz wszystkie tryby gry →</a></p>
+  </main>`;
+}
 
 function categoryArtwork(id, symbol) {
   if (id === "pokemon") {

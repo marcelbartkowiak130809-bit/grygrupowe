@@ -1,5 +1,6 @@
 import { gamesList } from "./games.js?v=20261127-19";
 import { escapeHtml } from "./utils.js?v=20261121-8";
+import { libraryModeCategory } from "./gameCategories.js?v=20261118-30";
 
 const ADSENSE_CLIENT = "ca-pub-4038439845706886";
 const adPages = new Set(["public:o-grze", "public:jak-grac", "public:tryby-gry"]);
@@ -80,7 +81,7 @@ export function homeInfoHtml() {
       <summary>Informacje o stronie i FAQ <span aria-hidden="true"></span></summary>
       <div class="public-home-info-body">
         <div class="public-copy">
-          <h1>Gry dla znajomych online</h1>
+          <h2>Gry dla znajomych online</h2>
           <p>To strona z prostymi grami imprezowymi online dla znajomych, klas, ekip z Discorda i malych grup, ktore chca szybko zaczac wspolna rozgrywke bez instalowania aplikacji.</p>
           <p>Wystarczy wybrac tryb, stworzyc prywatny pokoj i wyslac znajomym kod albo link zaproszenia. Gra dziala w przegladarce na komputerze i telefonie.</p>
         </div>
@@ -102,7 +103,7 @@ export function homeInfoHtml() {
   </footer>`;
 }
 
-const modeLongDescription = {
+export const modeLongDescription = {
   udowodnij:"Udowodnij! polega na deklarowaniu, ile odpowiedzi umiesz podac na dany temat. Kolejni gracze moga przebic stawke albo sprawdzic blef. Tryb jest szybki, dynamiczny i dobrze dziala nawet wtedy, gdy gracze nie znaja sie bardzo dobrze.",
   impostor:"Impostor rozdaje role i hasla tak, ze jedna osoba musi ukryc, ze ma inne informacje. Gracze podaja wskazowki, obserwuja odpowiedzi innych i glosuja, kto zachowuje sie podejrzanie. To tryb rozmowy, blefu i ostroznego zdradzania szczegolow.",
   "kim-jestem":"W trybie Kim jestem? kazdy widzi hasla innych, ale nie swoje. Gracz zadaje pytania, zbiera odpowiedzi i probuje odgadnac, kim jest. Tryb nadaje sie do spokojniejszej gry, rozmowy glosowej i dluzej rozgrywki.",
@@ -163,10 +164,14 @@ const pages = {
   },
 };
 
-export function renderPublicPage(root, screen, actions) {
-const page = pages[screen] || pages["public:o-grze"];
-const body = screen === "public:tryby-gry" ? `<div class="public-mode-list">${gamesList.map(mode => `<article><h2>${escapeHtml(mode.name)}</h2><p>${escapeHtml(modeLongDescription[mode.id] || mode.description)}</p><small>${escapeHtml(mode.players || "")}</small></article>`).join("")}</div>` : page.body;
-root.innerHTML = `<main class="page public-page enter">
+export function publicPageMarkup(screen) {
+  const page = pages[screen] || pages["public:o-grze"];
+  const body = screen === "public:tryby-gry" ? `<div class="public-mode-list">${gamesList.map(mode => {
+    const category = libraryModeCategory(mode);
+    const anchor = String(mode.id).replace(/[^a-z0-9_-]/gi, "-");
+    return `<article id="mode-${anchor}"><p class="eyebrow">${escapeHtml(category?.name || "Gry grupowe")}</p><h2>${escapeHtml(mode.name)}</h2><p>${escapeHtml(modeLongDescription[mode.id] || mode.description)}</p><small>${escapeHtml(mode.players || "")}</small>${category ? `<p><a href="${category.path}">Więcej gier: ${escapeHtml(category.name)} →</a></p>` : ""}</article>`;
+  }).join("")}</div>` : page.body;
+  return `<main class="page public-page enter">
     <section class="public-article">
       <p class="eyebrow">${page.eyebrow}</p>
       <h1>${page.title}</h1>
@@ -175,6 +180,10 @@ root.innerHTML = `<main class="page public-page enter">
     </section>
     ${publicFooterHtml()}
   </main>`;
+}
+
+export function renderPublicPage(root, screen, actions) {
+  root.innerHTML = publicPageMarkup(screen);
   bindPublicLinks(root, actions);
   activatePublicAds(root, screen);
 }

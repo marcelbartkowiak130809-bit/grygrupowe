@@ -1,4 +1,4 @@
-const CACHE_NAME = "grygrupowe-shell-v5.15.34";
+const CACHE_NAME = "grygrupowe-shell-v5.15.38";
 const SHELL = ["/", "/index.html", "/assets/icons/game-icon-512.png", "/assets/icons/game-icon-180.png", "/assets/share/playlist-cup-base.svg?v=20261013-1"];
 
 self.addEventListener("install", event => {
@@ -14,6 +14,12 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
+    const contentType = response.headers.get("content-type") || "";
+    const isScript = /\.m?js$/.test(url.pathname);
+    const isStylesheet = url.pathname.endsWith(".css");
+    if (response.ok && ((isScript && !/(?:java|ecma)script/i.test(contentType)) || (isStylesheet && !/text\/css/i.test(contentType)))) {
+      return new Response("Missing or invalid static resource", { status:404, headers:{"content-type":"text/plain; charset=utf-8"} });
+    }
     if (response.ok && (event.request.mode === "navigate" || /\.m?js$/.test(url.pathname) || url.pathname.endsWith(".css") || url.pathname.startsWith("/assets/icons/") || /^\/assets\/(?:impostor|quiz)\/[^/]+\.wav$/.test(url.pathname) || /^\/assets\/fronts\/[^/]+\.webp$/.test(url.pathname) || url.pathname === "/assets/share/playlist-cup-base.svg")) {
       const copy = response.clone();
       event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(() => {}));

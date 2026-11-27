@@ -1,4 +1,4 @@
-import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-8";
+import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-10";
 import { Audio } from "./audio.js?v=20261123-7";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
@@ -46,6 +46,16 @@ function newQuestion(originalDifficulty, row, index) {
 
 export const quizQuestions = Object.entries(quizQuestionRows)
   .flatMap(([difficulty, rows]) => rows.map((row, index) => newQuestion(difficulty, row, index)));
+// Ograniczamy najbardziej niszowe ciekawostki o autorach. Pytania pozostają
+// dostępne po ID, aby nie zepsuć trwających ani zapisanych rozgrywek.
+const lessPopularWriterQuestionIds = new Set([
+  "v2-medium-24", // autor Misia Uszatka
+  "v2-hard-4",    // język Boskiej komedii
+  "v2-hard-15",   // autor Metamorfoz
+  "v2-hard-134",  // twórca Ankh-Morpork
+  "v2-hard-176",  // autor Ziemi jałowej
+]);
+const playableQuizQuestions = quizQuestions.filter(question => !lessPopularWriterQuestionIds.has(question.id));
 const questionsById = new Map([...quizQuestions, ...legacyQuestions].map(question => [question.id, question]));
 export const questionById = id => questionsById.get(id) || quizQuestions[0];
 const casualRevealMs = 6000;
@@ -68,6 +78,20 @@ function shuffle(list) {
   return result;
 }
 
+function weightedQuestionSample(pool, count, usage = {}) {
+  const remaining = [...pool];
+  const selected = [];
+  while (remaining.length && selected.length < count) {
+    const weights = remaining.map(question => 1 / (1 + Math.max(0,Number(usage?.[question.id]) || 0)));
+    const total = weights.reduce((sum,weight) => sum + weight,0);
+    let pick = Math.random() * total;
+    let index = weights.findIndex(weight => (pick -= weight) < 0);
+    if (index < 0) index = remaining.length - 1;
+    selected.push(remaining.splice(index,1)[0]);
+  }
+  return selected.map(question => question.id);
+}
+
 function ensureCompetitiveState(game, players) {
   const ids = Array.isArray(players) ? players : [];
   game.order = Array.isArray(game.order) && game.order.length ? game.order : [...ids];
@@ -81,11 +105,11 @@ function ensureCompetitiveState(game, players) {
   return game;
 }
 
-export function createQuizGame(players, settings) {
+export function createQuizGame(players, settings, questionUsage = {}) {
   const variant=settings.quizVariant === "competitive" ? "competitive" : "casual";
   const scores=Object.fromEntries(players.map(uid=>[uid,0]));
-  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?quizQuestions:quizQuestions.filter(item=>item.difficulty===difficulty); return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, alternativeScoring:settings.alternativeScoring===true, lifelinesEnabled:settings.lifelinesEnabled===true, phase:"question", questionIndex:0, questionIds:shuffle(pool).slice(0,count).map(item=>item.id), answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
-  return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(quizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
+  if (variant === "casual") { const count=Math.max(5,Math.min(30,Number(settings.questionCount)||10)),difficulty=quizDifficulty(settings.difficulty),pool=difficulty==="all"?playableQuizQuestions:playableQuizQuestions.filter(item=>item.difficulty===difficulty),usage=questionUsage&&typeof questionUsage==="object"&&!Array.isArray(questionUsage)?{...questionUsage}:{}; return { mode:"quiz", variant, difficulty, questionTime:Number(settings.questionTime)||60, scoreOnReveal:true, alternativeScoring:settings.alternativeScoring===true, lifelinesEnabled:settings.lifelinesEnabled===true, phase:"question", questionIndex:0, questionIds:weightedQuestionSample(pool,count,usage), questionUsage:usage, answers:{}, scores, phaseEndsAt:phaseEnd(settings.questionTime) }; }
+  return { mode:"quiz", variant, phase:"r1", round:1, questionIndex:0, questionIds:shuffle(playableQuizQuestions).map(item=>item.id), order:shuffle(players), turnIndex:0, r1Turns:0, responder:"", selectedUid:"", answers:{}, eliminated:[], hearts:Object.fromEntries(players.map(uid=>[uid,3])), scores, phaseEndsAt:phaseEnd(20) };
 }
 const lifelineTypes = {
   half: {
@@ -164,6 +188,8 @@ function revealCasualAnswer(game) {
     }
   }
   game.history.push(record);
+  game.questionUsage = game.questionUsage && typeof game.questionUsage === "object" && !Array.isArray(game.questionUsage) ? game.questionUsage : {};
+  game.questionUsage[question.id] = (Number(game.questionUsage[question.id]) || 0) + 1;
   game.phase = "question-reveal";
   game.phaseEndsAt = Date.now() + casualRevealMs;
 }
@@ -339,6 +365,12 @@ function lifelineButtons(game, uid) {
 const answerLetters = ["A", "B", "C", "D"];
 const quizPresentation = new Map();
 
+export function quizCasualStageKey(room) {
+  const game = room?.game;
+  if (game?.variant !== "casual") return "";
+  return [room?.roomId || "", game.siteGameId || game.startedAt || game.questionIds?.join(",") || "", game.questionIndex, game.phase].join(":");
+}
+
 function answerLabel(option, index) {
   return `<span class="quiz-option-key" aria-hidden="true">${answerLetters[index]}</span>
     <span class="quiz-option-label">${escapeHtml(option)}</span>`;
@@ -394,6 +426,52 @@ function casualMarkup(game, accounts, currentUser) {
   const statusWithPoints = points == null ? status : `${status} · +${points.toLocaleString("pl-PL")} pkt`;
   return `${quizQuestionHeader(game,question,statusWithPoints)}<div class="quiz-options">${options}</div>
     ${revealed ? "" : lifelineButtons(game,currentUser)}`;
+}
+
+function patchCasualQuiz(root, game, accounts, currentUser) {
+  const question = questionById(game.questionIds[game.questionIndex]);
+  const committed = game.answers?.[currentUser];
+  const double = activeLifeline(game,currentUser,"double");
+  const chosen = committed ?? double?.first;
+  const extra = game.bonusAnswers?.[currentUser];
+  const removed = activeLifeline(game,currentUser,"half")?.removed || [];
+  const peek = activeLifeline(game,currentUser,"audience")?.counts;
+  root.querySelectorAll("[data-quiz-answer]").forEach(button => {
+    const index = Number(button.dataset.quizAnswer);
+    const selected = index === chosen || index === extra;
+    const discarded = removed.includes(index);
+    button.classList.toggle("is-chosen",selected && !discarded);
+    button.classList.toggle("quiz-option-removed",discarded);
+    button.disabled = discarded || committed != null || selected;
+    button.setAttribute("aria-pressed",String(selected));
+    button.querySelector(".quiz-option-label").textContent = discarded ? "—" : question.options[index];
+    if (discarded) button.setAttribute("aria-label","Opcja odrzucona przez 50:50");
+    else button.removeAttribute("aria-label");
+
+    let count = button.querySelector(".quiz-peek-count");
+    if (peek) {
+      if (!count) {
+        count = document.createElement("small");
+        count.className = "quiz-peek-count";
+        button.append(count);
+      }
+      count.textContent = `Głosy · ${peek[index]}`;
+    } else count?.remove();
+  });
+  const status = root.querySelector(".quiz-casual-status");
+  if (status) {
+    status.textContent = committed != null ? "Odpowiedź zapisana"
+      : double ? (chosen == null ? "Wybierz pierwszą odpowiedź" : "Wybierz drugą odpowiedź")
+      : "Czas na odpowiedź";
+  }
+  root.querySelectorAll("[data-quiz-lifeline]").forEach(button => {
+    const used = Boolean(game.lifelines?.[currentUser]?.[button.dataset.quizLifeline]);
+    button.classList.toggle("is-spent",used);
+    button.disabled = used || committed != null;
+    const label = button.querySelector("span:last-child")?.textContent || "Koło ratunkowe";
+    const hint = button.getAttribute("title") || "";
+    button.setAttribute("aria-label",`${label}: ${used ? "wykorzystane" : hint}`);
+  });
 }
 
 function competitiveMarkup(game, accounts, currentUser) {
@@ -482,26 +560,36 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   const game = room.game;
   const casual = game.variant === "casual";
   const finished = game.phase === "result";
+  const stageKey = casual ? quizCasualStageKey(room) : "";
+  const patchInPlace = casual && root.dataset.quizCasualStage === stageKey && root.querySelector(".quiz-page.quiz-casual");
   const phaseClass = finished ? "quiz-finished" : game.phase === "question-reveal" ? "quiz-reveal" : "";
   const markup = finished ? resultMarkup(game,accounts,currentUser) : casual
     ? casualMarkup(game,accounts,currentUser) : competitiveMarkup(game,accounts,currentUser);
-  root.innerHTML = `<main class="page quiz-page ${casual?"quiz-casual":"quiz-competitive"} ${phaseClass}"><section class="panel quiz-panel">${markup}</section></main>`;
+  if (patchInPlace && game.phase === "question") patchCasualQuiz(root,game,accounts,currentUser);
+  else root.innerHTML = `<main class="page quiz-page ${casual?"quiz-casual":"quiz-competitive"} ${phaseClass}"><section class="panel quiz-panel">${markup}</section></main>`;
+  root.dataset.quizCasualStage = stageKey;
+  root.dataset.quizPhase = game.phase;
+  root.dataset.quizPhaseEndsAt = String(game.phaseEndsAt);
+  root.dataset.quizQuestionIndex = String(game.questionIndex);
   quizPresentationState(root,room,currentUser);
   if (finished) {
     root.querySelector("#quiz-lobby")?.addEventListener("click",actions.returnToRoom);
     return;
   }
   const expected = {phase:game.phase, phaseEndsAt:game.phaseEndsAt, questionIndex:game.questionIndex};
-  root.querySelectorAll("[data-quiz-answer]").forEach(button => {
-    button.addEventListener("click", () => actions.quizAnswer(Number(button.dataset.quizAnswer),expected));
-  });
-  root.querySelectorAll("[data-quiz-lifeline]").forEach(button => {
-    button.addEventListener("click", () => actions.quizLifeline(button.dataset.quizLifeline,expected));
-  });
-  root.querySelector("[data-quiz-buzz]")?.addEventListener("click", () => actions.quizBuzz(expected));
-  root.querySelectorAll("[data-quiz-choose]").forEach(button => {
-    button.addEventListener("click", () => actions.quizChoose(button.dataset.quizChoose,expected));
-  });
+  const currentExpected = () => ({phase:root.dataset.quizPhase,phaseEndsAt:Number(root.dataset.quizPhaseEndsAt),questionIndex:Number(root.dataset.quizQuestionIndex)});
+  if (!patchInPlace) {
+    root.querySelectorAll("[data-quiz-answer]").forEach(button => {
+      button.addEventListener("click", () => actions.quizAnswer(Number(button.dataset.quizAnswer),currentExpected()));
+    });
+    root.querySelectorAll("[data-quiz-lifeline]").forEach(button => {
+      button.addEventListener("click", () => actions.quizLifeline(button.dataset.quizLifeline,currentExpected()));
+    });
+    root.querySelector("[data-quiz-buzz]")?.addEventListener("click", () => actions.quizBuzz(currentExpected()));
+    root.querySelectorAll("[data-quiz-choose]").forEach(button => {
+      button.addEventListener("click", () => actions.quizChoose(button.dataset.quizChoose,currentExpected()));
+    });
+  }
   const countdown = root.querySelector("[data-quiz-countdown]");
   const fill = root.querySelector("[data-quiz-clock-fill]");
   const clock = fill.closest(".quiz-clock");
@@ -518,7 +606,14 @@ export function renderQuizGame(root, {room, accounts, currentUser}, actions) {
   renderQuizGame.countdown = setInterval(updateClock,250);
   renderQuizGame.timer = setTimeout(() => actions.quizTimeout(expected),Math.max(100, expected.phaseEndsAt-Date.now()+50));
 }
-export function renderQuizLobbySettings(room,isHost){const s=room.settings||quizDefaults;if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label><label class="settings-toggle"><span><b>Alternatywne liczenie punktów</b><small>Więcej punktów za szybsze odpowiedzi. Od 1000 pkt za trafienie odejmuje się 10 pkt za każdy pełny 1% wykorzystanego czasu.</small></span><input type="checkbox" data-quiz-setting="alternativeScoring" ${s.alternativeScoring===true?"checked":""} ${isHost?"":"disabled"}></label></div>`;}
+export function renderQuizLobbySettings(room,isHost){
+  const s=room.settings||quizDefaults;
+  if(s.quizVariant==="competitive")return `<div class="quiz-settings"><p class="muted">Szybki mecz Rywalizacji. Pokój rozpoczyna grę po zebraniu minimum 2 osób.</p></div>`;
+  const usage=s.quizQuestionUsage&&typeof s.quizQuestionUsage==="object"&&!Array.isArray(s.quizQuestionUsage)?s.quizQuestionUsage:{};
+  const usedCount=Object.values(usage).filter(value=>Number(value)>0).length;
+  const hostCacheControl=isHost?`<button type="button" class="ghost quiz-question-cache-reset" data-quiz-question-cache-clear><span aria-hidden="true">↻</span> CLEAR CACHE</button>`:"";
+  return `<div class="quiz-settings"><label>Liczba pytań <input data-quiz-setting="questionCount" type="number" min="5" max="30" value="${s.questionCount||10}" ${isHost?"":"disabled"}></label><label>Czas na pytanie <input data-quiz-setting="questionTime" type="number" min="30" max="180" value="${s.questionTime||60}" ${isHost?"":"disabled"}> s</label><label>Poziom trudności <select data-quiz-setting="difficulty" ${isHost?"":"disabled"}>${Object.entries(quizDifficultyLabels).map(([id,label])=>`<option value="${id}" ${quizDifficulty(s.difficulty)===id?"selected":""}>${label}</option>`).join("")}</select></label><label class="settings-toggle"><span><b>Koła ratunkowe</b><small>50:50, Głosy ekipy i Drugi strzał. Każde raz na grę dla każdego gracza.</small></span><input type="checkbox" data-quiz-setting="lifelinesEnabled" ${s.lifelinesEnabled===true?"checked":""} ${isHost?"":"disabled"}></label><label class="settings-toggle"><span><b>Alternatywne liczenie punktów</b><small>Więcej punktów za szybsze odpowiedzi. Od 1000 pkt za trafienie odejmuje się 10 pkt za każdy pełny 1% wykorzystanego czasu.</small></span><input type="checkbox" data-quiz-setting="alternativeScoring" ${s.alternativeScoring===true?"checked":""} ${isHost?"":"disabled"}></label><section class="quiz-question-cache-card"><div><p class="eyebrow">LOSOWANIE PYTAŃ</p><strong>Historia tego pokoju</strong><small>${usedCount?`Zapamiętane pytania: ${usedCount}. Użyte mają mniejszą, ale nie zerową szansę na powrót.`:"Użyte pytania będą rzadziej wracać, ale żadne nie zostanie usunięte z puli."}</small></div>${hostCacheControl}</section></div>`;
+}
 export function renderQuizSelect(root, actions) {
   root.innerHTML = `<main class="page quiz-select-page enter">
     <section class="quiz-choice quiz-choice-casual">

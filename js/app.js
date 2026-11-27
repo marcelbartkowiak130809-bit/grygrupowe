@@ -14,7 +14,7 @@ import { cosmetics } from "./cosmetics.js?v=20260901-5";
 import { alexRankStatus, alexRankMove, alexRankLeaders, acknowledgeRemoteImpostorRole, authenticateGuest, authenticateNick, upgradeGuestAuth, saveGuestUpgrade, buyPotionPack as buyPotionPackRemote, buyPotionPackDatabase, claimLuckySpin as claimLuckySpinRemote, claimLuckySpinDatabase, clearSession, getFirebaseSession, hashRoomPassword, hasOnlineBackend, initFirebaseAuth, loadAccounts, loadFriendRequest, loadFriendRequestBucket, loadHonorCounts, loadSongSpotLeaderboard, saveSongSpotLeaderboard, loadLyricsSoloLeaderboard, loadModerationBans, loadModerationReports, loadInboxForNick, loadPopularitySoloLeaderboard, loadPublicProfiles, loadRemoteProfile, loadRemoteProfileState, loadRemoteRoom, loadSession, loadSiteStats, recordSoloSiteEvent, logoutAuth, mutateRemoteRoomGame, nickToEmail, recordSiteEvent, removeRemoteRoom, saveAccounts, saveLyricsSoloLeaderboard, savePopularitySoloLeaderboard, saveSession, sendInboxMessageToNick, saveModerationBan, setFriendRequest, setRemoteBirthDateForNick, serverNow, startPresence, startRoomPresence, submitHonor as submitHonorRemote, submitModerationReport, subscribeFriendRequests, subscribeOnlineCount, subscribeRemoteRooms, subscribeSiteStats, syncPlayerProfile, syncRoomState, updateAuthPassword, updateFriendRequest, updateRemoteProfileFields, usePotionDatabase, voteWouldYouRather } from "./firebase.js?v=20261124-2";
 import { answerList, createNewRound, evaluateAnswer, nextProvePlayer, provePhaseEnd, proveSummaryMs, stopGameTimer } from "./game.js?v=20261127-10";
 import { gameCategory, libraryCategories } from "./gameCategories.js?v=20261118-30";
-import { gamesList, getGameMode } from "./games.js?v=20261127-19";
+import { gamesList, getGameMode } from "./games.js?v=20261127-22";
 import { defaultCommercePreferences, gamePassById, gamePassState, hasGamePass, inGamePurchaseById, normalizeCommerceSettings } from "./gamePasses.js?v=20261121-9";
 import { createImpostorGame, ImpostorEngine, sanitizeImpostorSettings, stopImpostorTimer } from "./impostor.js?v=20261127-13";
 import { loadImpostorPairFeedback } from "./firebase.js?v=20261124-2";
@@ -42,7 +42,7 @@ import { auctionCommandContext, clearAuctionCommand, readAuctionCommand, saveAuc
 import { createWavelengthGame, WavelengthEngine, stopWavelengthTimer } from "./wavelength.js?v=20261121-9";
 import { applyChartForecastAction, chartForecastMode, createChartForecastGame } from "./chartForecast.js?v=20261121-20";
 import { chartForecastSoloMode, renderChartForecastSolo, stopChartForecastTimer, stopChartForecastView } from "./chartForecastView.js?v=20261124-2";
-import { createQuizGame, QuizEngine, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261127-19";
+import { createQuizGame, QuizEngine, quizCasualStageKey, renderQuizSelect, stopQuizTimer } from "./quiz.js?v=20261127-25";
 import { createMathematicsGame, MathematicsEngine, stopMathematicsTimer } from "./mathematics.js?v=20261121-8";
 import { createMarkerGame, MarkerEngine, stopMarkerTimer, renderMarkerGame, markerViewKey, ensureMarkerState } from "./marker.js?v=20261121-8";
 import { markerActionMatches } from './markerDrawing.js?v=20261117-10';
@@ -70,12 +70,13 @@ import { BoardEngine, createBoardGame, renderBoardGame, renderBoardLobbySettings
 import { letterTableMode, prepareLetterDictionary } from "./letterTable.js?v=20261123-21";
 import { createMinecraftGame, MinecraftEngine, sanitizeMinecraftSettings, stopMinecraftTimer } from "./minecraft.js?v=20261121-12";
 import { createRoomModal, renderLobby } from "./lobby.js?v=20261127-19";
-import { categoryDescriptions, renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-19";
+import { renderCollectionModes, renderPlatform, updatePlatformActivity } from "./platform.js?v=20261127-20";
 import {frontsLaunchState} from './fronts/launch.mjs?v=1';
 import {frontsTeaserHtml,watchFrontsLaunch} from './fronts/launchView.mjs?v=1';
-import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-19";
+import { activatePublicAds, adSenseBlock, deactivatePublicAds, renderPublicPage } from "./publicPages.js?v=20261127-20";
+import { categorySeoMetadata, homeSeoMetadata, publicSeoMetadata } from "./seoMetadata.js?v=20261127-1";
 import { Router } from "./router.js?v=20261124-6";
-import { playerMini, renderRoom } from "./room.js?v=20261127-19";
+import { playerMini, renderRoom } from "./room.js?v=20261127-22";
 import { renderShop, stopShopTimer } from "./shop.js?v=20261121-9";
 import { $, avatarHtml, escapeHtml, icon, normalizeNick, randomGuestNick, uid } from "./utils.js?v=20261121-8";
 import { claimCompletedQuestRewards, grantProgression, levelProgressButtonHtml, noteQuestEvent, progressionModal, questNotificationKey } from "./progression.js?v=20261122-7";
@@ -83,12 +84,12 @@ import { isModeLocked, lockedModeMessage } from "./upcomingModes.js?v=20261122-7
 import { friendRequestCount, friendsModal, showFriendNotification } from "./friends.js?v=20261121-8";
 import { loadPresenceUsers } from "./firebase.js?v=20261124-2";
 import { BOT_DIFFICULTIES, botCount, botDelay, botIds, botName, botProfile, botRewardMultiplier, botShouldBeCorrect, isBotId, roomAllowsBots } from "./bots.js?v=20261121-8";
-import { scheduleBot } from "./botController.js?v=20261127-19";
+import { scheduleBot } from "./botController.js?v=20261127-22";
 import { drawLocalLuckySpin, isLuckySpinAvailable, luckySpinModal } from "./luckySpin.js?v=20261121-9";
 import { consumePotion, equipmentById, equipmentModal } from "./equipment.js?v=20261121-8";
 import { potionPackById } from "./potionPacks.js?v=20261121-8";
 import { honorModal } from "./honor.js?v=20261121-8";
-import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261121-8";
+import { clearSideReactions, QUICK_REACTIONS, renderQuickReactions, renderSideReactions } from "./quickReactions.js?v=20261127-22";
 import { HOST_ANNOUNCEMENTS, renderHostAnnouncements } from "./quickAnnouncements.js?v=20261121-8";
 import { createHappyHourBanner, happyHourMultiplier } from "./happyHour.js?v=20261124-3";
 
@@ -471,28 +472,14 @@ function repaintSongSpot() {
   render({preserveDrafts:true});
 }
 const siteDescription = document.querySelector('meta[name="description"]');
-const homepage = { path:"/", title:document.title, description:siteDescription.content };
-const categorySearchTitles = {
-  music:"Quizy muzyczne online",
-  board:"Planszówki online dla znajomych",
-  minecraft:"Gry i łamigłówki Minecraft",
-  pokemon:"Gry Pokémon online",
-  knowledge:"Quizy i gry wiedzy online",
-  tiktok:"Gry i wyzwania z TikToka",
-  other:"Inne gry dla znajomych",
-};
-const publicSearchPages = {
-  "public:tryby-gry":{ title:"Gry imprezowe online dla znajomych", description:"Zobacz tryby Gry grupowe, od Impostora i Kalamburów po quizy muzyczne i planszówki." },
-  "public:jak-grac":{ title:"Jak grać ze znajomymi online", description:"Dowiedz się, jak stworzyć prywatny pokój, wysłać zaproszenie i dołączyć do gry za pomocą kodu." },
-  "public:o-grze":{ title:"O platformie Gry grupowe", description:"Gry grupowe to polska platforma gier imprezowych i solo, dostępna w przeglądarce na komputerze i telefonie." },
-};
+const homepage = homeSeoMetadata;
 
 function updateDocumentTitle() {
   const screen = Router.current;
   const category = libraryCategories.find(entry => entry.screen === screen);
-  const publicPage = publicSearchPages[screen];
+  const publicPage = publicSeoMetadata[screen];
   const landing = screen === "platform" ? homepage : category ? {
-    path:category.path, title:categorySearchTitles[category.id], description:categoryDescriptions[category.id],
+    path:category.path, ...categorySeoMetadata[category.id],
   } : screen === "three-fronts" ? {
     path:"/trzy-fronty", title:"Trzy Fronty", description:"Bajkowa karcianka dla dwóch osób. Broń zamku, wykładaj jednostki i zagrywaj taktyki.",
   } : publicPage ? { ...publicPage, path:Router.pathForPublicScreen(screen) } : null;
@@ -779,6 +766,19 @@ function applyQuestEvent(playerId, event) {
 function keepRoomCategoryUsage(room) {
   const usage = room?.game?.categoryUsage;
   if (usage && typeof usage === "object" && !Array.isArray(usage)) room.settings = { ...(room.settings || {}), categoryUsage:{ ...usage } };
+}
+function keepQuizQuestionUsage(room) {
+  if (room?.gameMode !== "quiz" || room.game?.variant !== "casual") return;
+  const current = room.settings?.quizQuestionUsage;
+  const usage = current && typeof current === "object" && !Array.isArray(current) ? { ...current } : {};
+  const saved = room.game.questionUsage;
+  if (saved && typeof saved === "object" && !Array.isArray(saved)) room.settings = { ...(room.settings || {}), quizQuestionUsage:{ ...saved } };
+  else {
+    for (const item of Array.isArray(room.game.history) ? room.game.history : []) {
+      if (item?.id) usage[item.id] = (Number(usage[item.id]) || 0) + 1;
+    }
+    room.settings = { ...(room.settings || {}), quizQuestionUsage:usage };
+  }
 }
 function addPlayerMoney(playerId, amount) {
   const room=activeRoom();if(!room)return;
@@ -2754,7 +2754,7 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     room.players = players;
     room.settings = { ...(mode.defaultSettings || {}), ...(room.settings || {}) }; if (mode.id === "quiz") room.settings.quizVariant = room.settings.quizVariant || state.quizVariant || "casual";
      room.status = "playing"; room.everStarted = true; addRoomActivity(room, "Host rozpoczął grę."); room.settings=mode.id==="impostor"?sanitizeImpostorSettings(room.settings,room.players.length):mode.id==="zatruty-cukierek"?sanitizePoisonCandySettings(room.settings,room.players.length):mode.id==="bomba"?sanitizeBombSettings(room.settings):mode.id==="dokoncz-tekst"?sanitizeLyricsSettings(room.settings):mode.id==="songspot"?sanitizeSongSpotSettings(room.settings):mode.audience==="board"?sanitizeBoardSettings(room.settings,mode.id):mode.audience==="minecraft"?sanitizeMinecraftSettings(room.settings,mode.id):room.settings;
-     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === chartForecastMode ? createChartForecastGame(room.players, room.settings, serverNow()): mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players, room.settings) : {};
+     room.game = mode.id === "udowodnij" ? createNewRound(room.players, room.settings.answerTime, 1, room.settings.rounds) : mode.id === "impostor" ? createImpostorGame(room.players,room.settings) : mode.id === "kim-jestem" ? createIdentityGame(room.players,room.settings,room.customWords) : mode.id === "inne-pytanie" ? createOtherQuestionGame(room.players,room.settings) : mode.id === "kto-najpredzej" ? createMostLikelyGame(room.players,room.settings) : mode.id === "test-znajomosci" ? createFriendshipTestGame(room.players,room.settings) : mode.id === "zatruty-cukierek" ? createPoisonCandyGame(room.players,room.settings) : mode.id === "bomba" ? createBombGame(room.players,room.settings) : mode.id === "najblizej-prawdy" ? createClosestTruthGame(room.players,room.settings) : mode.id === "ranking" ? createRankingGame(room.players,room.settings) : mode.id === "5-sekund" ? createFiveSecondsGame(room.players,room.settings) : mode.id === "zegar" ? createClockGame(room.players,room.settings) : mode.id === chartForecastMode ? createChartForecastGame(room.players, room.settings, serverNow()): mode.id === "wavelength" ? createWavelengthGame(room.players,room.settings) : mode.id === "quiz" ? createQuizGame(room.players,room.settings,room.settings.quizQuestionUsage) : mode.id === "mathematics" ? createMathematicsGame(room.players,room.settings) : mode.id === "marker" ? createMarkerGame(room.players,room.settings) : mode.id === "sequence" ? createSequenceGame(room.players,room.settings) : mode.id === "family" ? createFamilyGame(room.players,room.settings) : mode.id === "word-chain" ? createWordChainGame(room.players,room.settings) : mode.id === "charades" ? createCharadesGame(room.players,room.settings) : mode.id === "hangman" ? createHangmanGame(room.players,room.settings) : mode.id === "number-mystery" ? createNumberMysteryGame(room.players,room.settings) : mode.id === "unique-answer" ? createUniqueAnswerGame(room.players,room.settings,room.hostUid) : mode.id === "polacz-nas" ? createConnectGame(room.players,room.settings) : mode.id === "klamca" ? createLiarGame(room.players,room.settings) : mode.id === "pojedynek-hitow" ? createMusicDuelGame(room.players,room.settings) : mode.id === "bitwa-hitow" ? createMusicArenaGame(room.players,room.settings) : mode.id === "dokoncz-tekst" ? createLyricsGame(room.players,room.settings) : mode.id === "popularnosc-hitow" ? createPopularityGame(room.players,room.settings) : mode.id === "songspot" ? createSongSpotGame(room.players,room.settings) : mode.audience === "board" ? createBoardGame(mode.id, room.players, room.settings) : mode.audience === "pokemon" ? createPokemonGame(mode.id, room.players, room.settings) : mode.audience === "minecraft" ? createMinecraftGame(mode.id, room.players,room.settings) : {};
     if (mode.id === "falszywa-wiadomosc") room.game = createFalseMessageGame(room.players, room.settings);
     if (mode.id === priceGuessMode) room.game = createPriceGuessGame(room.players,room.settings,serverNow());
     if (mode.id === countryGuessMode) room.game = createCountryGuessGame(room.players,room.settings,serverNow());
@@ -2772,11 +2772,36 @@ function finishTopbarModal(modal, id, request = topbarModalRequest) {
     touchRoom(room);
     render({preserveDrafts:true});
   },
+  clearQuizQuestionCache() {
+    const room = activeRoom();
+    if (room?.gameMode !== "quiz" || room.status !== "lobby" || room.hostUid !== state.currentUser || room.settings?.quizVariant === "competitive") return;
+    const modal = document.createElement("div");
+    modal.className = "modal-backdrop";
+    modal.innerHTML = `<section class="modal confirm-modal enter quiz-question-cache-modal" role="dialog" aria-modal="true" aria-labelledby="quiz-cache-title"><div class="modal-title"><div><p class="eyebrow">QUIZ CASUAL · HISTORIA POKOJU</p><h2 id="quiz-cache-title">Wyczyścić historię pytań?</h2></div><button class="icon-btn" data-close aria-label="Zamknij">${icon("x",18)}</button></div><p>W tym pokoju rzadziej losują się pytania, na które już graliście. Wyczyść ich historię, aby w następnych rozgrywkach w tym pokoju wszystkie znów miały równą szansę.</p><div class="quiz-question-cache-note"><span aria-hidden="true">↻</span><p>To resetuje wyłącznie liczniki losowań tego pokoju. Nie usuwa pytań z puli ani nie zmienia trwającej rozgrywki.</p></div><div class="modal-actions"><button class="ghost" data-close>Wróć</button><button class="primary" id="confirm-quiz-cache-clear">Wyczyść cache</button></div></section>`;
+    const close = () => modal.remove();
+    modal.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click",close));
+    modal.addEventListener("click",event=>{if(event.target===modal)close();});
+    modal.addEventListener("keydown",event=>{if(event.key==="Escape")close();});
+    modal.querySelector("#confirm-quiz-cache-clear")?.addEventListener("click",()=>{
+      const current = activeRoom();
+      if (current?.roomId !== room.roomId || current.gameMode !== "quiz" || current.status !== "lobby" || current.hostUid !== state.currentUser) return close();
+      current.settings = {...(current.settings||{}),quizQuestionUsage:{}};
+      touchRoom(current);
+      close();
+      Audio.play("choice");
+      message("Historia pytań tego pokoju została wyczyszczona.","info");
+      render({preserveDrafts:true});
+    });
+    document.body.append(modal);
+    Audio.play("modalOpen");
+    modal.querySelector("[data-close]")?.focus();
+  },
   returnToRoom() {
     const room = activeRoom();
     if (!room || (room.gameMode === chartForecastMode && room.hostUid !== state.currentUser)) return;
     if (closeLonelyFinishedRoom(room,{notify:true})) return;
     keepRoomCategoryUsage(room);
+    keepQuizQuestionUsage(room);
     if (room.gameMode === "pokemon-type-draw" && Array.isArray(room.game?.usedRacePokemonIds)) {
       room.settings = {...room.settings,usedRacePokemonIds:room.game.usedRacePokemonIds};
     }
@@ -3602,6 +3627,7 @@ function renderNow(options = {}) {
   const popularityView = popularityRoom || (screen === "solo" && state.selectedGameMode === "popularnosc-solo");
   const preservePopularity = softRender && popularityView && oldView?.querySelector(".popularity-page");
   const preserveRoom = softRender && screen === "room" && oldView?.querySelector(".compact-room");
+  const preserveQuizCasual = softRender && screen === "game" && markerRoom?.gameMode === "quiz" && markerRoom.game?.variant === "casual" && oldView?.dataset.quizCasualStage === quizCasualStageKey(markerRoom) && oldView?.querySelector(".quiz-page.quiz-casual");
   const typeRace = screen === "game" && markerRoom?.gameMode === "pokemon-type-draw" ? markerRoom.game : null;
   const preserveTypeRace = previousScope === scope && ["type-draw","type-race"].includes(typeRace?.phase) && oldView?.querySelector("[data-type-race-view]");
   const chartForecastSolo = screen === "solo" && state.selectedGameMode === chartForecastSoloMode;
@@ -3637,7 +3663,7 @@ function renderNow(options = {}) {
   const preserveAuction = preserveAuctionResult || preserveAuctionBattle || (softRender && activeAuctionLots && oldView?.querySelector("[data-auction-lot]"));
   const preservePriceGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===priceGuessMode && oldView?.querySelector("[data-price-game]");
   const preserveCountryGuess = previousScope===scope && screen==="game" && markerRoom?.gameMode===countryGuessMode && oldView?.querySelector("[data-country-game]");
-  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveFronts || preserveAuction || preserveRoom || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess || preserveLetterTable || preserveWouldYouRather || preservePopularity ? oldView : document.createElement("div");
+  const view = preserveCup ? cupView : preserveJourney ? journeyView : preserveFronts || preserveAuction || preserveRoom || preserveQuizCasual || preserveTypeRace || preserveChess || preserveChartForecast || preservePriceGuess || preserveCountryGuess || preserveLetterTable || preserveWouldYouRather || preservePopularity ? oldView : document.createElement("div");
   if (oldView !== view) {
     if (oldView) oldView.replaceWith(view);
     else root.append(view);
@@ -3660,7 +3686,7 @@ function renderNow(options = {}) {
   if (!keepsTrackAudio) Audio.stopAllTrackAudio({clearPlayback:true});
   Audio.setMusicSuppressed((screen === "game" && ["popularnosc-hitow", "pojedynek-hitow", "bitwa-hitow", "dokoncz-tekst", "songspot"].includes(activeMode)) || (screen === "solo" && ["popularnosc-solo", "dokoncz-tekst", "songspot", "songspot-solo", "playlista-cup"].includes(state.selectedGameMode)));
   if(!wouldYouRather) stopWouldYouRather();
-  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveTypeRace && !preserveChess && !preserveChartForecast && !preserveLetterTable && !preserveWouldYouRather) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
+  if (!preserveRoom && !preserveAuctionResult && !preserveAuctionBattle && !preserveQuizCasual && !preserveTypeRace && !preserveChess && !preserveChartForecast && !preserveLetterTable && !preserveWouldYouRather) view.className = `route-view route-${String(screen).replace(/[^a-z0-9_-]/gi, "-")} ${softRender ? "soft-route" : "initial-route"}`;
   if(screen!=="game") { identityVoiceChat.stop(); stopMinecraftTimer(); stopLyricsTimer(); stopLyricsSoloTimer(); }
   if(!["platform","room","game"].includes(screen)&&!screen.startsWith("public:"))deactivatePublicAds();
   if (screen === "three-fronts") {

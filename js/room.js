@@ -1,5 +1,5 @@
 import { escapeHtml, icon, playerMiniHtml } from "./utils.js?v=20261121-8";
-import { getGameMode } from "./games.js?v=20261127-19";
+import { getGameMode } from "./games.js?v=20261127-22";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
 import { renderImpostorLobbySettings, bindImpostorLobbySettings } from "./impostor.js?v=20261127-13";
 import { renderIdentityLobbySettings } from "./identity.js?v=20261121-11";
@@ -20,7 +20,7 @@ import { renderPokemonLobbySettings } from "./pokemon.js?v=20261124-2";
 import { renderWavelengthLobbySettings } from "./wavelength.js?v=20261121-9";
 import { chartForecastMode } from "./chartForecast.js?v=20261121-20";
 import { renderChartForecastLobby } from "./chartForecastView.js?v=20261124-2";
-import { renderQuizLobbySettings } from "./quiz.js?v=20261127-19";
+import { renderQuizLobbySettings } from "./quiz.js?v=20261127-24";
 import { renderMathematicsLobbySettings } from "./mathematics.js?v=20261121-8";
 import { renderMarkerLobbySettings } from "./marker.js?v=20261121-8";
 import { renderSequenceLobbySettings } from "./sequence.js?v=20261121-8";
@@ -137,6 +137,8 @@ function bindRoomSettings(root, actions) {
   root.querySelectorAll("[data-pokemon-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.pokemonSetting, input.type === "checkbox" ? input.checked : input.value); });
   const clearTypeRace = root.querySelector("[data-type-race-clear]");
   if (clearTypeRace) clearTypeRace.onclick = actions.clearTypeRaceHistory;
+  const clearQuizQuestionCache = root.querySelector("[data-quiz-question-cache-clear]");
+  if (clearQuizQuestionCache) clearQuizQuestionCache.onclick = actions.clearQuizQuestionCache;
   root.querySelectorAll("[data-pokemon-generation]").forEach(input => { input.onchange = () => actions.setModeSetting("generations", [...root.querySelectorAll("[data-pokemon-generation]:checked")].map(item => Number(item.dataset.pokemonGeneration))); });
   root.querySelectorAll("[data-wavelength-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.wavelengthSetting, input.value); });
   root.querySelectorAll("[data-chart-setting]").forEach(input => { input.onchange = () => actions.setModeSetting(input.dataset.chartSetting, Number(input.value)); });
