@@ -1,4 +1,4 @@
-import { impostorCategories, impostorWords } from "../content/impostor/words.js?v=20261013-5";
+import { canonicalImpostorCategory, impostorCategories, impostorWords } from "../content/impostor/words.js?v=20261127-11";
 import { $, escapeHtml, icon, normalizeAnswer, playerMiniHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 import { Audio } from "./audio.js?v=20261123-7";
 import { botTooltip } from "./bots.js?v=20261121-8";
@@ -48,7 +48,7 @@ function playImpostorCue(root, room, currentUser) {
 }
 
 const clueReviewMs = 5000;
-export const impostorDefaults = { impostorCount:1, whiteEnabled:false, whiteCount:0, clueTime:20, minRounds:2, chatEnabled:true, category:"Wszystkie", categories:["Jedzenie","Gry","Filmy i seriale"] };
+export const impostorDefaults = { impostorCount:1, whiteEnabled:false, whiteCount:0, clueTime:20, minRounds:2, chatEnabled:true, category:"Wszystkie", categories:["Jedzenie i napoje","Gry","Filmy i seriale"] };
 export const maxSpecialRoles = playerCount => Math.floor(playerCount / 2);
 export const impostorCategoryCounts = Object.fromEntries(impostorCategories.map(category => [category, impostorWords.filter(item => item.category === category).length]));
 
@@ -58,7 +58,12 @@ const roleLabel = role => ({ citizen:"Obywatel", impostor:"Impostor", white:"Pan
 const objectOrEmpty = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 const arrayOrEmpty = value => Array.isArray(value) ? value : [];
 function categoryUsage(settings = {}) {
-  return settings.categoryUsage && typeof settings.categoryUsage === "object" && !Array.isArray(settings.categoryUsage) ? { ...settings.categoryUsage } : {};
+  const usage = {};
+  for (const [name, value] of Object.entries(objectOrEmpty(settings.categoryUsage))) {
+    const category = canonicalImpostorCategory(name);
+    if (impostorCategories.includes(category)) usage[category] = (usage[category] || 0) + (Number(value) || 0);
+  }
+  return usage;
 }
 function bumpCategoryUsage(usage, category) {
   if (category) usage[category] = Number(usage[category] || 0) + 1;
@@ -93,7 +98,7 @@ export function sanitizeImpostorSettings(settings, playerCount) {
   const whiteEnabled = Boolean(settings.whiteEnabled);
   const whiteCount = whiteEnabled ? Math.max(0, Math.min(Number(settings.whiteCount) || 1, max - impostorCount)) : 0;
   const rawCategories = Array.isArray(settings.categories) ? settings.categories : settings.category && settings.category !== "Wszystkie" ? [settings.category] : impostorDefaults.categories;
-  const categories = [...new Set(rawCategories.filter(name => impostorCategories.includes(name)))];
+  const categories = [...new Set(rawCategories.map(canonicalImpostorCategory).filter(name => impostorCategories.includes(name)))];
   impostorCategories.forEach(name => { if (categories.length < 3 && !categories.includes(name)) categories.push(name); });
   return { ...impostorDefaults, ...settings, category:categories.length === impostorCategories.length ? "Wszystkie" : categories[0] || "Wszystkie", categories, impostorCount, whiteEnabled: whiteEnabled && whiteCount > 0, whiteCount, clueTime:Math.max(10,Math.min(30,Number(settings.clueTime)||20)), minRounds:Math.max(1,Math.min(5,Number(settings.minRounds)||2)) };
 }
@@ -107,7 +112,7 @@ export function createImpostorGame(players, rawSettings) {
   const assigned = shuffled(players), roles = {};
   assigned.forEach((uid,index) => roles[uid] = index < settings.impostorCount ? { role:"impostor", word:words.impostor } : index < settings.impostorCount + settings.whiteCount ? { role:"white", word:null } : { role:"citizen", word:words.main });
   const order = shuffled(players);
-  return { phase:"roleReveal", category:words.category, mainWord:words.main, impostorWord:words.impostor, categoryUsage:usage, roles, roleRequests:{}, rolePurchaseResults:{}, rolePurchaseRefunds:{}, rolePurchaseRefundsClaimed:{}, acknowledged:{}, turnOrder:order, turnIndex:0, round:1, clues:[], chat:[], reactions:{}, reactionCooldowns:{}, continueVotes:{}, continueCount:0, votes:{}, result:null, phaseEndsAt:now()+15000 };
+  return { phase:"roleReveal", category:words.category, mainWord:words.main, impostorWord:words.impostor, pairFeedbackCategory:words.feedbackCategory, categoryUsage:usage, roles, roleRequests:{}, rolePurchaseResults:{}, rolePurchaseRefunds:{}, rolePurchaseRefundsClaimed:{}, acknowledged:{}, turnOrder:order, turnIndex:0, round:1, clues:[], chat:[], reactions:{}, reactionCooldowns:{}, continueVotes:{}, continueCount:0, votes:{}, result:null, phaseEndsAt:now()+15000 };
 }
 
 function startClues(game, settings) { game.phase="clues"; game.phaseEndsAt=now()+settings.clueTime*1000; }
@@ -147,7 +152,7 @@ function enterResults(game) {
   game.phase="results";
   game.phaseEndsAt=null;
   if (game.category && game.mainWord && game.impostorWord) {
-    game.pairFeedbackId=impostorPairId(game.category, game.mainWord, game.impostorWord);
+    game.pairFeedbackId=impostorPairId(game.pairFeedbackCategory || game.category, game.mainWord, game.impostorWord);
   }
 }
 function finishFinalGuess(game, guess = "", surrendered = false) {
@@ -233,7 +238,7 @@ export function bindImpostorLobbySettings(root, actions) {
 export function renderImpostorLobbySettings(room,isHost) {
   const settings=sanitizeImpostorSettings(room.settings,room.players.length), max=maxSpecialRoles(room.players.length);
   const selected = new Set(settings.categories || []);
-  const usage = room.game?.categoryUsage || room.settings?.categoryUsage || {};
+  const usage = categoryUsage(room.game?.categoryUsage ? room.game : room.settings);
   const categoryBadge = name => `<span class="category-count">${Number(usage[name] || 0)}/${impostorCategoryCounts[name] || 0}</span>`;
   return `<p class="muted">Specjalne role moga zajmowac maksymalnie 50% miejsc. Teraz: ${settings.impostorCount+settings.whiteCount}/${max}.</p>
   <div class="impostor-settings-grid">
@@ -244,7 +249,7 @@ export function renderImpostorLobbySettings(room,isHost) {
     <label>Minimum kolejek <select data-impostor-setting="minRounds" ${isHost?"":"disabled"}>${[1,2,3,4,5].map(n=>`<option value="${n}" ${settings.minRounds===n?"selected":""}>${n}</option>`).join("")}</select></label>
     <label class="check"><input data-impostor-setting="chatEnabled" type="checkbox" ${settings.chatEnabled?"checked":""} ${isHost?"":"disabled"}> Czat w grze</label>
   </div>
-  <div class="category-picker impostor-category-picker"><p class="tiny">Kategorie hasel: wybierz minimum 3, bez limitu.</p>${impostorCategories.map(name=>`<label class="check category-chip"><span><input data-impostor-category="${escapeHtml(name)}" type="checkbox" ${selected.has(name)?"checked":""} ${isHost?"":"disabled"}> ${escapeHtml(name)}</span>${categoryBadge(name)}</label>`).join("")}</div>`;
+  <div class="category-picker impostor-category-picker"><p class="tiny">Wybierz co najmniej 3 kategorie haseł.</p>${impostorCategories.map(name=>`<label class="check category-chip"><span><input data-impostor-category="${escapeHtml(name)}" type="checkbox" ${selected.has(name)?"checked":""} ${isHost?"":"disabled"}> ${escapeHtml(name)}</span>${categoryBadge(name)}</label>`).join("")}</div>`;
 }
 function roleCard(game,currentUser,accounts){
   const role=game.roles[currentUser]; if(!role)return "";

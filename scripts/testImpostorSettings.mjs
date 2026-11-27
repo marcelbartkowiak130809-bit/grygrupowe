@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {bindImpostorLobbySettings, renderImpostorLobbySettings, sanitizeImpostorSettings, createImpostorGame, ImpostorEngine} from '../js/impostor.js';
+import {impostorWords} from '../content/impostor/words.js';
+import {impostorPairId} from '../js/impostorPairFeedback.js';
 
 function slider(disabled = false) {
   const output = {textContent: '20s'}, handlers = {}, attributes = {};
@@ -48,4 +50,36 @@ test('saved time survives rendering and controls first, submitted and timed-out 
     ImpostorEngine.timeout(game, settings);
     assert.ok(Math.abs(game.phaseEndsAt - Date.now() - clueTime * 1000) < 100);
   }
+});
+
+test('saved categories and usage carry over to the merged lobby and next draw', () => {
+  const players = ['a', 'b', 'c', 'd'];
+  const settings = {
+    categories: ['Owoce', 'Warzywa', 'Minecraft', 'Roblox', 'Muzyka'],
+    categoryUsage: {Owoce: 3, Warzywa: 2, 'Jedzenie i napoje': 1, Minecraft: 2, Gry: 1},
+  };
+  const expected = ['Jedzenie i napoje', 'Gry', 'Muzyka'];
+  assert.deepEqual(sanitizeImpostorSettings(settings, players.length).categories, expected);
+  const lobby = renderImpostorLobbySettings({settings, players}, true);
+  assert.match(lobby, /data-impostor-category="Jedzenie i napoje" type="checkbox" checked[^]*?class="category-count">6\//);
+  for (let i = 0; i < 30; i++) {
+    const game = createImpostorGame(players, settings);
+    assert.ok(expected.includes(game.category));
+    assert.equal(game.categoryUsage['Jedzenie i napoje'], game.category === 'Jedzenie i napoje' ? 7 : 6);
+    assert.equal(game.categoryUsage.Gry, game.category === 'Gry' ? 4 : 3);
+    assert.ok(!Object.hasOwn(game.categoryUsage, 'Warzywa'));
+  }
+});
+
+test('moved pairs keep the same feedback key at the end of a game', () => {
+  const pair = impostorWords.find(word => word.feedbackCategory === 'Minecraft');
+  assert.equal(pair.category, 'Gry');
+  const game = {
+    phase: 'voting', category: pair.category, mainWord: pair.main, impostorWord: pair.impostor,
+    pairFeedbackCategory: pair.feedbackCategory, turnOrder: ['a', 'b'], votes: {b: 'a'},
+    roles: {a: {role: 'citizen'}, b: {role: 'impostor'}},
+  };
+  ImpostorEngine.vote(game, 'a', 'a');
+  assert.equal(game.phase, 'results');
+  assert.equal(game.pairFeedbackId, impostorPairId('Minecraft', pair.main, pair.impostor));
 });

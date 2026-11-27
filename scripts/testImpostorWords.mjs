@@ -6,8 +6,9 @@ const normalize=value=>value.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase(
 const pairKey=(a,b)=>[normalize(a),normalize(b)].sort().join('|');
 test('catalog has unique, distinct pairs and every category stays populated',()=>{
   const seen=new Set();
-  for(const pair of impostorWords){assert.ok(pair.main.trim());assert.ok(pair.impostor.trim());assert.notEqual(normalize(pair.main),normalize(pair.impostor));const key=pair.category+'|'+pairKey(pair.main,pair.impostor);assert.ok(!seen.has(key),key);seen.add(key);}
-  assert.ok(impostorWords.length>250);for(const category of impostorCategories)assert.ok(impostorWords.filter(p=>p.category===category).length>=4,category);
+  for(const pair of impostorWords){assert.ok(pair.main.trim());assert.ok(pair.impostor.trim());assert.notEqual(normalize(pair.main),normalize(pair.impostor));const key=pairKey(pair.main,pair.impostor);assert.ok(!seen.has(key),key);seen.add(key);}
+  assert.equal(impostorCategories.length, 10);
+  for(const category of impostorCategories) assert.ok(impostorWords.filter(p=>p.category===category).length>=50,category);
 });
 test('near-identical animals, synonyms, subtypes and aliases cannot return',()=>{
   const removed=[['krokodyl','aligator'],['żaba','ropucha'],['cytryna','limonka'],['brzoskwinia','nektarynka'],['excel','arkusz kalkulacyjny'],['PLS DONATE','Please Donate'],['perkusja','bębny'],['słuchawki','airpodsy'],['piłka nożna','futsal'],['cola','pepsi'],['lody','sorbet'],['gitara','ukulele']];
