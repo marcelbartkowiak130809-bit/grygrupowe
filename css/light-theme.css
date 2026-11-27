@@ -9,6 +9,15 @@
   --cyan: #0891b2;
 }
 
+.light-theme .online-count-tooltip {
+  width: max-content;
+  max-width: min(230px, calc(100vw - 16px));
+  border-color: #b5d5c8;
+  background: #e6f5ee;
+  color: #204c3e;
+  box-shadow: 0 8px 20px #2b564b26;
+}
+
 /* Initials in avatars must stay readable after the light theme changes the
    surrounding text color. Image avatars remain unchanged, while cosmetic
    frames and aura shadows still come from their existing classes. */
