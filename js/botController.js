@@ -7,7 +7,7 @@ import { IdentityEngine, identityBotResponse, identityBotTurn } from "./identity
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20261121-8";
 import { MostLikelyEngine } from "./mostLikely.js?v=20261121-8";
 import { FriendshipTestEngine } from "./friendshipTest.js?v=20261121-8";
-import { PoisonCandyEngine } from "./poisonCandy.js?v=20261121-9";
+import { PoisonCandyEngine } from "./poisonCandy.js?v=20261127-14";
 import { BombEngine, bombCategories } from "./bomb.js?v=20261121-8";
 import { ClosestTruthEngine } from "./closestTruth.js?v=20261121-8";
 import { applyPriceGuessAction, currentPriceGuessItem, priceGuessBotAnswer, priceGuessHasAnswer, priceGuessMode } from "./priceGuess.js?v=20261122-6";

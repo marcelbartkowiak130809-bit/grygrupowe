@@ -2323,6 +2323,123 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .impostor-pair-feedback .choice-row[hidden], .impostor-pair-feedback [role="status"]:empty { display: none; }
 
 .impostor-layout.impostor-layout-solo { grid-template-columns: minmax(0,1fr); }
+.poison-candy-page {
+  max-width: 1200px;
+  padding-top: clamp(10px, 2vh, 18px);
+}
+.candy-game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+.candy-game-header .eyebrow { margin: 0 0 3px; }
+.candy-game-header h1 { margin: 0; font-size: clamp(1.25rem, 3vw, 2rem); }
+.candy-game-header .leave-game { flex: none; padding-inline: 10px; }
+.poison-candy-page .candy-table-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .51fr);
+  align-items: start;
+  gap: clamp(10px, 2vw, 22px);
+  min-height: 0;
+  margin: 0;
+  padding: clamp(10px, 1.5vw, 18px);
+  border-radius: 24px;
+}
+.candy-table-layout .candy-table {
+  justify-self: center;
+  align-self: center;
+  width: min(100%, 670px, max(340px, calc(100dvh - 210px)));
+  max-height: none;
+  margin: 0;
+  container-type: inline-size;
+}
+.candy-table-layout .candy-token {
+  width: clamp(22px, 7.5cqi, 42px);
+  height: clamp(22px, 7.5cqi, 42px);
+  min-height: 0;
+}
+.candy-table-layout .is-dense .candy-token {
+  width: clamp(17px, 6cqi, 34px);
+  height: clamp(17px, 6cqi, 34px);
+}
+.candy-table-layout .candy-token > span {
+  width: min(33px, 72%);
+  height: min(22px, 48%);
+}
+.candy-side { display: grid; gap: 9px; min-width: 0; }
+.candy-controls { margin: 0; padding: 11px 12px; min-width: 0; }
+.candy-controls h2 { margin: 0; font-size: clamp(1rem, 2vw, 1.3rem); overflow-wrap: anywhere; }
+.candy-controls p { margin: 5px 0 0; font-size: .82rem; line-height: 1.35; }
+.candy-controls small { display: block; margin-top: 5px; }
+.candy-controls [data-candy-shield] { margin-top: 8px; }
+.candy-control-heading, .candy-poison-actions { display: flex; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.candy-poison-actions { flex-wrap: wrap; margin-top: 7px; }
+.candy-selection-count { font-size: .8rem; white-space: nowrap; }
+.candy-clock {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  color: #c4b5fd;
+  font-variant-numeric: tabular-nums;
+}
+.candy-clock b { min-width: 3ch; text-align: center; white-space: nowrap; }
+.candy-clock.is-urgent { color: #fda4af; }
+.light-theme .candy-clock { color: #5b21b6; }
+.light-theme .candy-clock.is-urgent { color: #9f1239; }
+.candy-roster h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 5px;
+  font-size: .9rem;
+}
+.candy-roster h3 span { font-variant-numeric: tabular-nums; }
+.candy-roster .candy-players-ring {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.candy-roster .candy-players-ring article {
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-items: start;
+  gap: 2px 7px;
+  min-width: 0;
+  padding: 6px 7px;
+  border-radius: 10px;
+}
+.candy-roster .candy-avatar { grid-row: span 2; width: 30px; height: 30px; }
+.candy-roster .candy-hearts { grid-column: 2; }
+.candy-roster .candy-hearts i { font-size: 13px; }
+.candy-side .candy-event-slot { min-height: 0; }
+.candy-side .candy-event { margin: 0; padding: 8px 10px; text-align: left; font-size: .8rem; }
+.candy-side .candy-event b { font-size: .95rem; }
+.poison-candy-page .candy-result { margin-block: 14px 0; }
+.candy-result .candy-final-ranking { max-width: none; }
+.candy-result .candy-final-ranking article { gap: 7px; padding: 9px; }
+.candy-round-summary .candy-final-ranking article { grid-template-columns: minmax(0, 1fr) auto; }
+.candy-result .candy-final-ranking .mini-player { min-width: 0; gap: 6px; }
+.candy-result .candy-final-ranking .avatar { width: 30px; height: 30px; flex: none; }
+.candy-result .candy-final-ranking .nick { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.candy-result .candy-summary-life { gap: 2px; flex-direction: column; align-items: flex-end; font-size: .8rem; }
+@media (min-width: 721px) {
+  .candy-result .candy-final-ranking { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .poison-candy-page .candy-table-layout { grid-template-columns: minmax(0, 1fr); }
+  .candy-table-layout .candy-side { display: contents; }
+  .candy-table-layout .candy-controls { grid-row: 1; }
+  .candy-table-layout .candy-table { width: min(100%, 450px); }
+  .candy-table-layout .candy-event-slot { grid-row: 3; }
+}
 .impostor-settings-grid .impostor-category-toggle {
   display: flex;
   grid-column: 1 / -1;
