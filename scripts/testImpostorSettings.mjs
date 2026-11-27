@@ -83,3 +83,27 @@ test('moved pairs keep the same feedback key at the end of a game', () => {
   assert.equal(game.phase, 'results');
   assert.equal(game.pairFeedbackId, impostorPairId('Minecraft', pair.main, pair.impostor));
 });
+
+test('category-only mode keeps citizen and white roles, and applies to purchased roles', () => {
+  const players = ['a', 'b', 'c', 'd', 'e', 'f'];
+  const settings = sanitizeImpostorSettings({impostorCategoryOnly: true, whiteEnabled: true, whiteCount: 1}, players.length);
+  const game = createImpostorGame(players, settings);
+  assert.equal(game.impostorWord, null);
+  assert.equal(game.impostorCategoryOnly, true);
+  const holder = players.find(uid => game.roles[uid].role === 'impostor');
+  const buyer = players.find(uid => game.roles[uid].role === 'citizen');
+  const white = players.find(uid => game.roles[uid].role === 'white');
+  assert.equal(game.roles[buyer].word, game.mainWord);
+  assert.equal(game.roles[holder].word, null);
+  assert.equal(game.roles[white].word, null);
+  assert.equal(ImpostorEngine.buyRole(game, buyer, 'impostor', settings), undefined);
+  assert.deepEqual(game.roles[buyer], {role: 'impostor', word: null});
+  assert.deepEqual(game.roles[holder], {role: 'citizen', word: game.mainWord});
+  game.phase = 'voting';
+  for (const uid of players) ImpostorEngine.vote(game, uid, buyer);
+  assert.equal(game.phase, 'finalGuess');
+  assert.equal(ImpostorEngine.finalGuess(game, buyer, game.mainWord), undefined);
+  assert.equal(game.phase, 'results');
+  assert.equal(game.result.citizensWin, false);
+  assert.equal(game.pairFeedbackId, undefined);
+});

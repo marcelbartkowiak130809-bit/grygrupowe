@@ -2,7 +2,7 @@ import { botDelay, botDifficulty, botIds, botShouldBeCorrect, isBotId } from "./
 import { categories } from "./categories.js?v=20261127-10";
 import { normalizeAnswer } from "./utils.js?v=20261121-8";
 import { pokemonDex } from "./pokemonData.js?v=20260804-2";
-import { ImpostorEngine } from "./impostor.js?v=20261127-12";
+import { ImpostorEngine } from "./impostor.js?v=20261127-13";
 import { IdentityEngine, identityBotResponse, identityBotTurn } from "./identity.js?v=20261121-11";
 import { OtherQuestionEngine } from "./otherQuestion.js?v=20261121-8";
 import { MostLikelyEngine } from "./mostLikely.js?v=20261121-8";
@@ -300,6 +300,12 @@ const wavelengthCluePools = [
 ];
 
 const impostorClueWords = {
+  "Jedzenie i napoje":["smak","kuchnia","przepis","zamówienie","menu"],
+  "Zwierzęta i przyroda":["dzikie","woda","środowisko","ziemia","kolory"],
+  "Szkoła i praca":["zadanie","plan","przerwa","biurko","obowiązek"],
+  "Technologia i internet":["ekran","sieć","urządzenie","konto","powiadomienie"],
+  "Geografia i podróże":["mapa","kierunek","trasa","wakacje","okolica"],
+  "Życie codzienne":["dom","zakupy","rano","rutyna","wygoda"],
   "Jedzenie":["smak","sos","talerz","obiad","przepis"],
   "Warzywa":["ogród","sałatka","liście","stragan","witamina"],
   "Owoce":["sad","sok","słodkie","pestka","witamina"],
