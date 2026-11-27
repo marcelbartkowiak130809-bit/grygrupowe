@@ -2323,7 +2323,6 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .impostor-pair-feedback .choice-row[hidden], .impostor-pair-feedback [role="status"]:empty { display: none; }
 
 .impostor-layout.impostor-layout-solo { grid-template-columns: minmax(0,1fr); }
-.impostor-page .timer-box.timer-urgent { animation: none; }
 .impostor-page { --impostor-accent: #7dd3fc; }
 .impostor-page.role-board-impostor { --impostor-accent: #fda4af; }
 .impostor-page.role-board-white { --impostor-accent: #e2e8f0; }
@@ -2361,6 +2360,154 @@ html:has(.songspot-page)::-webkit-scrollbar,html:has(.songspot-group-page)::-web
 .light-theme .impostor-page .impostor-citizens-win { --impostor-accent: #166534; }
 .light-theme .impostor-page .role-card { background: rgba(255,255,255,.92); }
 .light-theme .impostor-page .impostor-vote-confirmation { color: #065f46; }
+
+body:has(.impostor-round-header.is-timed) { overflow-x: clip; }
+.impostor-page {
+  --impostor-header-bg: #131827;
+  --impostor-clock-urgent: #fda4af;
+  padding-top: clamp(10px, 2vw, 22px);
+}
+.light-theme .impostor-page {
+  --impostor-header-bg: #f7f9ff;
+  --impostor-clock-urgent: #9f1239;
+}
+.impostor-round-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(5px, 1.5vw, 14px);
+  margin-bottom: 12px;
+  padding: 5px clamp(6px, 1.2vw, 12px);
+  border: 1px solid color-mix(in srgb, var(--impostor-accent) 22%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--impostor-accent) 6%, var(--impostor-header-bg));
+}
+.impostor-round-header.is-timed {
+  position: sticky;
+  top: var(--impostor-header-offset, 0px);
+  z-index: 4;
+}
+.impostor-page .impostor-round-header .impostor-players {
+  min-width: 0;
+  gap: 6px;
+  margin: 0;
+  padding: 5px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  scrollbar-width: thin;
+}
+.impostor-round-header .impostor-player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 39px;
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+.impostor-round-header .impostor-player small {
+  position: static;
+  color: inherit;
+  opacity: .7;
+}
+.impostor-round-header .mini-player { gap: 5px; }
+.impostor-round-header .avatar { width: 28px; height: 28px; flex: none; }
+.impostor-round-header .nick {
+  max-width: clamp(70px, 12vw, 120px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .86rem;
+}
+.impostor-round-header .reaction-bubble {
+  top: auto;
+  bottom: 0;
+  right: 2px;
+  padding: 3px 5px;
+  line-height: 1;
+  pointer-events: none;
+}
+.impostor-clock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: 11px;
+  color: var(--impostor-accent);
+  background: var(--impostor-header-bg);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.impostor-clock.is-urgent { color: var(--impostor-clock-urgent); }
+.impostor-clock b { min-width: 3ch; text-align: center; font-size: 1rem; }
+.impostor-clock-face {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background:
+    linear-gradient(currentColor, currentColor) center / 2px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) center 2px / 1px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) center calc(100% - 2px) / 1px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 2px center / 2px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) calc(100% - 2px) center / 2px 1px no-repeat;
+}
+.impostor-clock-face::before {
+  position: absolute;
+  left: calc(50% - 1px);
+  bottom: 50%;
+  width: 2px;
+  height: 7px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: rotate(var(--impostor-hand-angle, 0deg));
+  transform-origin: bottom center;
+  content: "";
+}
+.impostor-page .role-card {
+  margin: clamp(10px, 2.4vh, 24px) auto 12px;
+  padding: clamp(14px, 3vh, 26px);
+}
+.impostor-page .role-card .role-owner { margin-bottom: 8px; }
+.impostor-page .role-card .avatar { width: 40px; height: 40px; }
+.impostor-page .role-card h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); }
+.impostor-page .role-card > p { margin-block: 5px; line-height: 1.4; }
+.impostor-page .role-card strong {
+  margin: 8px 0;
+  font-size: clamp(1.55rem, 4.5vw, 2.35rem);
+  overflow-wrap: anywhere;
+}
+.impostor-page .role-card button { margin-top: 8px; }
+.impostor-page .role-purchase-panel { margin: 0 auto 12px; padding: clamp(9px, 2vw, 16px); }
+.impostor-page .role-purchase-panel p { margin: 5px 0; }
+.impostor-page .role-purchase-panel .choice-row { display: flex; gap: 6px; }
+.impostor-page .role-purchase-panel .choice-row button { width: auto; padding-inline: 10px; }
+.impostor-role-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  font-size: .85rem;
+}
+.impostor-role-footer p { margin: 0; }
+.impostor-stage-heading h2 { overflow-wrap: anywhere; }
+.impostor-page .secret-strip {
+  flex-direction: row;
+  gap: 5px 12px;
+  margin-bottom: 12px;
+  padding: 9px 14px;
+  font-size: .9rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .impostor-clock-face::before { transition: transform .22s ease-out; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .impostor-page .impostor-cue {
     animation: impostor-card-cue 440ms var(--impostor-cue-delay,0ms) ease-out;
