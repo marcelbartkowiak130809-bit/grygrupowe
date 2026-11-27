@@ -1,4 +1,4 @@
-import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-7";
+import { easierFormerMediumQuestions, quizQuestionRows } from "../content/quiz/questions.js?v=20261127-8";
 import { Audio } from "./audio.js?v=20261123-7";
 import { avatarHtml, escapeHtml, resultPlayerMiniHtml } from "./utils.js?v=20261121-8";
 
