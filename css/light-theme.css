@@ -123,3 +123,180 @@
   color: rgba(71, 85, 105, .72);
   text-shadow: none;
 }
+
+/* Account controls and the game library */
+.light-theme .install-app-copy small { color: #3d647a; }
+.light-theme .account-modal .account-summary {
+  background: #eef2fa;
+  border-radius: 12px;
+}
+.light-theme .account-modal .account-tabs { background: #edf0f8; }
+.light-theme .account-modal button.account-tab.is-active {
+  background: linear-gradient(120deg, #6543a2, #286584) !important;
+  color: #fff;
+}
+.light-theme .account-modal .avatar-editor { background: #eef4f8; }
+.light-theme .account-modal .file-button {
+  background: #e1d7f6;
+  color: #422771 !important;
+}
+.light-theme .account-modal .file-button:hover { background: #d8cbf2; }
+.light-theme .account-modal .privacy-settings .badge {
+  background: #e7def6;
+  color: #523787;
+}
+.light-theme .account-modal .privacy-setting { background: #edf3f9; }
+@media (max-width: 600px) {
+  .light-theme .account-modal .modal-title { flex-direction: row; align-items: flex-start; }
+  .light-theme .account-modal .modal-title button { flex: none; }
+}
+.light-theme .collection-selection-page .collection-selection-hero {
+  background: linear-gradient(118deg, #f0f3fb, color-mix(in srgb, var(--library-accent) 58%, #edf1f8));
+  border-color: color-mix(in srgb, var(--library-dark) 24%, #f0f3fb);
+}
+.light-theme .collection-selection-hero h1 { color: var(--library-dark, #202945); }
+.light-theme .collection-hero-copy p { color: #42536c; }
+.light-theme .collection-selection-hero .collection-hero-symbol {
+  color: color-mix(in srgb, var(--library-dark) 43%, var(--library-accent));
+  filter: none;
+}
+.light-theme .game-card .game-card-activity {
+  background: #e8f3f2;
+  border-color: #c6dddb;
+}
+.light-theme .game-card .game-card-activity span {
+  background: #d9eeea;
+  border-color: #a9d1c9;
+  color: #15594f;
+}
+
+/* Awaria Redstone and shared Minecraft quiz components */
+.light-theme .minecraft-game-page {
+  --mc-note: #435a56;
+  --mc-green-text: #23583b;
+  --mc-green-line: #abcdb6;
+}
+.light-theme .minecraft-game-page .minecraft-shell {
+  background: linear-gradient(140deg, #f2f7ed, #e6f0f6) !important;
+}
+.light-theme .minecraft-game-page .minecraft-game-head h1 { color: #1a3a30; }
+.light-theme .minecraft-game-page :is(.minecraft-head-caption, .minecraft-instruction,
+  .minecraft-settings-heading small, .minecraft-explanation, .minecraft-next-wrap small) { color: var(--mc-note); }
+.light-theme .minecraft-game-page :is(.minecraft-difficulty-chip, .minecraft-turn-badge) {
+  background: #dfefe1;
+  border-color: var(--mc-green-line);
+  color: var(--mc-green-text);
+}
+.light-theme .minecraft-game-page :is(.minecraft-score-player small, .minecraft-commerce-label,
+  .minecraft-hint-line, .minecraft-expected, .minecraft-round-answers small,
+  .minecraft-earned, .minecraft-ranking-score strong, .minecraft-final-winner,
+  .minecraft-leaderboard-row strong) { color: var(--mc-green-text); }
+.light-theme .minecraft-game-page .minecraft-score-player { background: #edf3ef; border-color: #c8d7cd; }
+.light-theme .minecraft-game-page .minecraft-score-player.is-active { background: #e0f0e4; border-color: var(--mc-green-line); box-shadow: none; }
+.light-theme .minecraft-game-page :is(.minecraft-question-card, .minecraft-reveal-card) {
+  background: linear-gradient(135deg, #eaf4ef, #e3edf7);
+  border-color: #b7cddd;
+  box-shadow: none;
+}
+.light-theme .minecraft-game-page .minecraft-question-card.is-your-turn { border-color: var(--mc-green-line); box-shadow: none; }
+.light-theme .minecraft-game-page .minecraft-reveal-card.is-correct { background: #e2f1e7; border-color: var(--mc-green-line); }
+.light-theme .minecraft-game-page .minecraft-reveal-card.is-wrong { background: #f7e8ea; border-color: #d9aab4; }
+.light-theme .minecraft-game-page .minecraft-commerce-actions { background: #e0efed; border-color: #bad6cd; }
+.light-theme .minecraft-game-page .minecraft-timer { background: #f4e9cc; border-color: #d4b97a; color: #6d4816; box-shadow: none; }
+.light-theme .minecraft-game-page .minecraft-timer.is-urgent { background: #f6dfe4; border-color: #d699a5; color: #8c2940; }
+.light-theme .minecraft-game-page .minecraft-timer-track { background: #28382e20; }
+.light-theme .minecraft-game-page .minecraft-timer-track i { background: linear-gradient(90deg, #3e8855, #ab701f); }
+.light-theme .minecraft-game-page :is(.minecraft-round-ranking-row, .minecraft-leaderboard-row,
+  .minecraft-round-answers > span) { background: #eff5f7; border-color: #c5d6dd; }
+.light-theme .minecraft-game-page :is(.minecraft-final-card h2, .minecraft-big-reveal,
+  .minecraft-round-ranking-row > span, .minecraft-leaderboard-row > span) { color: #765013; }
+
+/* Adventure panels surround the original game art. */
+.light-theme :is(.journey-page, .backpack-page) {
+  --adventure-ink: #263e34;
+  --adventure-detail: #465d53;
+  --adventure-accent: #416633;
+  --adventure-line: #b9cdbd;
+  --adventure-slot: #c5d3bd;
+  color: var(--adventure-ink);
+}
+.light-theme .journey-page { --j-border: var(--adventure-line); }
+.light-theme :is(.journey-page, .backpack-page) :is(.journey-play, .journey-pack,
+  .backpack-shell, .backpack-workbench, .backpack-level-dialog, .alex-speedrun) {
+  background: #e6f0e7;
+  border-color: var(--adventure-line);
+  color: var(--adventure-ink);
+  box-shadow: none;
+}
+.light-theme .journey-page .journey-play,
+.light-theme .backpack-page .backpack-shell {
+  background: linear-gradient(130deg, #eef5e7, #e3efeb);
+}
+.light-theme :is(.journey-page, .backpack-page) :is(.journey-heading .eyebrow, .backpack-head .eyebrow,
+  .journey-quest > div > span, .rescue-quest .eyebrow, .backpack-step, .backpack-section-title > span,
+  .alex-rank-toolbar strong, .alex-rank-board summary, .backpack-signal-key, .backpack-status.success) {
+  color: var(--adventure-accent);
+}
+.light-theme :is(.journey-page, .backpack-page) :is(.journey-objective, .rescue-quest h2) { color: var(--adventure-ink); }
+.light-theme .rescue-finished .rescue-quest h2 { color: #8a3f5d; }
+.light-theme :is(.journey-page, .backpack-page) :is(.journey-quest p:not(.journey-objective),
+  .rescue-quest p:not(.eyebrow), .rescue-foot p, .rescue-pack p, .journey-message,
+  .journey-pack-title > span, .alex-rank-toolbar small, .alex-rank-rows, .journey-credit,
+  .backpack-mission p, .backpack-status:not(.success), .backpack-input-tip, .backpack-hint,
+  .backpack-hint summary, .backpack-objective, .backpack-level-tools > span, .backpack-credit) {
+  color: var(--adventure-detail);
+}
+.light-theme .journey-page .alex-rank-board { border-color: var(--adventure-line); }
+.light-theme .journey-page .alex-rank-feedback { color: #76521d; }
+.light-theme .journey-page .alex-rank-tabs button[aria-pressed="true"] {
+  background: #d3e6cd;
+  color: #2e5128;
+  border-color: #8dab83;
+}
+.light-theme .journey-page .journey-story-chapters button[data-journey-chapter] {
+  --chapter-base: #e6f1de;
+  --chapter-accent: #4c733b;
+  background: var(--chapter-base);
+  color: #253843;
+  border-color: color-mix(in srgb, var(--chapter-accent) 45%, var(--chapter-base));
+}
+.light-theme .journey-page .journey-story-chapters button[data-journey-chapter="2"] {
+  --chapter-base: #deecf5;
+  --chapter-accent: #2c5e82;
+}
+.light-theme .journey-page .journey-story-chapters button[data-journey-chapter="3"] {
+  --chapter-base: #f2e7d8;
+  --chapter-accent: #805423;
+}
+.light-theme .journey-page .journey-story-chapters button[data-journey-chapter][aria-current] { border-color: var(--chapter-accent); }
+.light-theme .journey-page .journey-story-chapters button > span:not(.journey-chapter-art),
+.light-theme .journey-page .journey-story-chapters time { color: var(--chapter-accent); }
+
+/* Preserve terrain textures and make inventory controls distinct from the board. */
+.light-theme .backpack-page button.backpack-tile,
+.light-theme .backpack-page button.backpack-tile:hover {
+  background: var(--tile-texture) center / 100% auto;
+}
+.light-theme .journey-page button:is(.journey-node, .rescue-node) { background: none; }
+.light-theme :is(.journey-page, .backpack-page) button:is(.journey-slot, .backpack-slot) {
+  background: var(--adventure-slot);
+  border-color: #e4eddf #859982 #859982 #e4eddf;
+  color: var(--adventure-ink);
+}
+.light-theme :is(.journey-page, .backpack-page) button:is(.journey-slot, .backpack-slot):hover:not(:disabled) { background: #dbe6ce; }
+.light-theme :is(.journey-page, .backpack-page) button:is(.journey-slot, .backpack-slot).selected:not(:disabled) {
+  background: #e0edbc;
+  border-color: #6a913e;
+  box-shadow: inset 0 0 0 1px #c1d390;
+}
+.light-theme .journey-page.rescue-finished .journey-slot:disabled { opacity: .74; }
+.light-theme .backpack-page .backpack-world-caption { color: #e3f0e4; }
+.light-theme .backpack-page .backpack-objective > div { background: #cee0d2; }
+.light-theme .backpack-page .backpack-craft-arrow { color: var(--adventure-detail); }
+.light-theme .backpack-page .backpack-chapters button {
+  background: #e3ebe6;
+  color: #3c5346;
+  border-color: #bbcbbf;
+}
+.light-theme .backpack-page .backpack-chapters button.complete { background: #d7ebba; color: #345125; }
+.light-theme .backpack-page .backpack-chapters button.current { outline-color: #588137; border-color: #709452; }
